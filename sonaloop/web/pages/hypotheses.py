@@ -105,7 +105,7 @@ def _hyp_hit_rate_strip(hyps: list) -> str:
 def register_hypotheses(app) -> None:
     @app.get("/hypotheses", response_class=HTMLResponse)
     def hypotheses_list(project: str = Query(default=""), status: str = Query(default=""),
-                        q: str = Query(default="")) -> str:
+                        subtype: str = Query(default=""), q: str = Query(default="")) -> str:
         """Every bet across all projects — the Library's Hypotheses tab (ux-contract §3.5),
         keeping the GLOBAL hit-rate strip: how often do our predictions survive reality?
         Filterable by project + status (U10, the shared FilterBar grammar)."""
@@ -114,7 +114,8 @@ def register_hypotheses(app) -> None:
         hyps = services.list_hypotheses(store=store)
         strip = str(_hyp_hit_rate_strip(hyps)) if hyps else ""
         return library_page("hypotheses", store, pre_extra=strip,
-                            flt=library_filters(project, status), base="/hypotheses", q=q)
+                            flt=library_filters(project, status, subtype=subtype),
+                            base="/hypotheses", q=q)
 
     @app.get("/hypotheses/{hypothesis_id}", response_class=HTMLResponse)
     def hypothesis_detail(hypothesis_id: str) -> str:

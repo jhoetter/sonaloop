@@ -13,10 +13,14 @@ from __future__ import annotations
 from ._ctx import *  # noqa: F401,F403  (shared render toolkit)
 from .sessions import _sessions_section
 from .. import ui
+from .._html import register_css
 from .._filterbar import filter_bar, parse_multi
 from .._forms import overflow_delete
 from .edit import note_actions, section_actions
 from .._presence import asset_direction, record_status, status_filter_label
+from .._primitive_taxonomy import (
+    family_icon, family_label, primitive_family, primitive_purpose, subtype_label, subtype_value,
+)
 
 # (key, canonical route, icon, label, empty-state msg, lead, teach) — labels are lambdas so
 # they resolve per request (i18n, the _nav_seed idiom). Tab order is the methodology arc:
@@ -64,6 +68,21 @@ LIBRARY_TABS: tuple = (
      lambda: t("assets_h"), lambda: t("no_assets"), lambda: t("assets_lead"),
      lambda: t("assets_teach")),
 )
+
+TAB_KIND = {
+    "questions": "open_question",
+    "references": "url_artifact",
+    "councils": "council",
+    "reports": "synthesis",
+    "prototypes": "prototype",
+    "flows": "flow",
+    "sessions": "session",
+    "surveys": "survey",
+    "hypotheses": "hypothesis",
+    "decisions": "decision",
+    "notes": "note",
+    "assets": "asset",
+}
 
 
 def _tab_entries(key: str, store: Store, sessions: list | None = None) -> list[dict]:
@@ -193,12 +212,16 @@ def _library_facets(entries: list[dict], store: Store, *, with_direction: bool) 
     proj_n: Counter = Counter(x["project_id"] for x in entries if x["project_id"])
     status_n: Counter = Counter()
     status_lbl: dict[str, str] = {}
+    subtype_n: Counter = Counter()
     dir_n: Counter = Counter()
     for x in entries:
         st = record_status(x["kind"], x["rec"])
         if st:
             status_n[st] += 1
             status_lbl.setdefault(st, status_filter_label(x["kind"], st))
+        sub = subtype_value(x["kind"], x["rec"])
+        if sub:
+            subtype_n[sub] += 1
         if with_direction:
             dir_n[asset_direction(x["rec"])] += 1
     facets = [
@@ -208,6 +231,9 @@ def _library_facets(entries: list[dict], store: Store, *, with_direction: bool) 
         {"key": "status", "label": t("status_h"), "icon": "flag",
          "options": [{"value": s, "label": status_lbl[s], "count": n}
                      for s, n in status_n.most_common()]},
+        {"key": "subtype", "label": t("subtype_h"), "icon": "tag",
+         "options": [{"value": s, "label": subtype_label(s), "count": n}
+                     for s, n in subtype_n.most_common()]},
     ]
     if with_direction:
         dir_label = {"in": t("asset_dir_in"), "out": t("asset_dir_out")}
@@ -229,7 +255,57 @@ def _entry_blob(x: dict, store: Store) -> str:
     st = record_status(x["kind"], rec)
     if st:
         parts.append(status_filter_label(x["kind"], st))
+    sub = subtype_value(x["kind"], rec)
+    if sub:
+        parts.append(subtype_label(sub))
     return " ".join(str(p) for p in parts if p)
+
+
+def _taxonomy_context(tab: str, kind: str) -> str:
+    family = primitive_family(kind)
+    purpose = primitive_purpose(kind)
+    if not purpose:
+        return ""
+    return h("div", {"class_": "taxctx", "data-family": family},
+             h("span", {"class_": "taxctx__eyebrow"}, t("primitive_h")),
+             h("span", {"class_": "taxctx__family"}, family_label(family)),
+             h("span", {"class_": "taxctx__dot"}, "·"),
+             h("span", {"class_": "taxctx__purpose"}, purpose))
+
+
+def _library_nav(active_tab: str) -> str:
+    """Two-level Library navigation: users first choose the role a primitive plays, then the
+    specific primitive inside that role. This keeps the mental model visible instead of showing
+    twelve peer tabs that look like implementation details."""
+    rows = list(LIBRARY_TABS)
+    active_kind = TAB_KIND.get(active_tab, "open_question")
+    active_family = primitive_family(active_kind)
+    families: list[tuple[str, list[tuple]]] = []
+    for row in rows:
+        k = row[0]
+        fam = primitive_family(TAB_KIND.get(k, "note"))
+        bucket = next((items for f, items in families if f == fam), None)
+        if bucket is None:
+            bucket = []
+            families.append((fam, bucket))
+        bucket.append(row)
+    primary = []
+    for fam, items in families:
+        first = items[0]
+        route = first[1]
+        on = fam == active_family
+        primary.append(h("a", {"class_": "libnav-family is-active" if on else "libnav-family",
+                               "href": route, "aria-current": "page" if on else None},
+                         raw(_icon(family_icon(fam))), h("span", {}, family_label(fam))))
+    secondary = []
+    for row in next(items for fam, items in families if fam == active_family):
+        key, route, icon, label, *_ = row
+        on = key == active_tab
+        secondary.append(h("a", {"class_": "libnav-kind is-active" if on else "libnav-kind",
+                                 "href": route, "aria-current": "page" if on else None},
+                           raw(_icon(icon)), h("span", {}, label())))
+    return fragment(h("div", {"class_": "libnav libnav--family"}, fragment(*primary)),
+                    h("div", {"class_": "libnav libnav--kind"}, fragment(*secondary)))
 
 
 def library_page(tab: str = "questions", store: Store | None = None, *,
@@ -250,10 +326,10 @@ def library_page(tab: str = "questions", store: Store | None = None, *,
     keys = [k for k, *_ in LIBRARY_TABS]
     if tab not in keys:
         tab = keys[0]
-    tabs_html = ui.tabs([{"key": k, "label": label(), "href": route}
-                         for k, route, _icon_, label, _e, _l, _t_ in LIBRARY_TABS], tab)
+    tabs_html = _library_nav(tab)
     _k, _route, icon, tab_label, empty_msg, lead, teach = next(
         row for row in LIBRARY_TABS if row[0] == tab)
+    tab_kind = TAB_KIND.get(tab, "note")
     base0 = base or f"/library?tab={tab}"
     base = base0 + (("&" if "?" in base0 else "?") + f"q={quote(q)}" if q else "")
     selected = {k: v for k, v in (flt or {}).items()}
@@ -269,6 +345,8 @@ def library_page(tab: str = "questions", store: Store | None = None, *,
             if active.get("project") and x["project_id"] not in active["project"]:
                 return False
             if active.get("status") and record_status(x["kind"], x["rec"]) not in active["status"]:
+                return False
+            if active.get("subtype") and subtype_value(x["kind"], x["rec"]) not in active["subtype"]:
                 return False
             if active.get("direction") and asset_direction(x["rec"]) not in active["direction"]:
                 return False
@@ -286,41 +364,46 @@ def library_page(tab: str = "questions", store: Store | None = None, *,
                           empty_icon="filter", empty_msg=t("filter_no_matches_h"),
                           empty_teach=t("filter_no_matches"),
                           empty_action=(t("clear_filter"), base0, "filter"),
-                          active="library", pre=str(tabs_html) + bar + pre_extra, count=0)
+                          active="library",
+                          pre=str(tabs_html) + _taxonomy_context(tab, tab_kind) + bar + pre_extra,
+                          count=0)
     return _list_page(store, title=t("library_h"), lead=lead(), rows=rows,
                       empty_icon=icon, empty_msg=empty_msg(), empty_teach=teach(),
-                      active="library", pre=str(tabs_html) + bar + pre_extra, count=len(rows))
+                      active="library",
+                      pre=str(tabs_html) + _taxonomy_context(tab, tab_kind) + bar + pre_extra,
+                      count=len(rows))
 
 
-def library_filters(project: str = "", status: str = "", direction: str = "") -> dict:
+def library_filters(project: str = "", status: str = "", direction: str = "",
+                    subtype: str = "") -> dict:
     """Parse the shared Library filter params (?project=…&status=…&direction=… — comma = OR)
     into the `flt` dict library_page applies; the canonical tab routes all funnel through
     this so the URL grammar stays identical everywhere."""
     return {"project": parse_multi(project), "status": parse_multi(status),
-            "direction": parse_multi(direction)}
+            "direction": parse_multi(direction), "subtype": parse_multi(subtype)}
 
 
 def register_library(app) -> None:
     @app.get("/library", response_class=HTMLResponse)
     def library(tab: str = Query(default="questions"), project: str = Query(default=""),
                 status: str = Query(default=""), direction: str = Query(default=""),
-                q: str = Query(default="")) -> str:
-        return library_page(tab, flt=library_filters(project, status, direction), q=q)
+                subtype: str = Query(default=""), q: str = Query(default="")) -> str:
+        return library_page(tab, flt=library_filters(project, status, direction, subtype), q=q)
 
     @app.get("/open-questions", response_class=HTMLResponse)
     def open_questions_list(project: str = Query(default=""), status: str = Query(default=""),
-                            q: str = Query(default="")) -> str:
-        return library_page("questions", flt=library_filters(project, status), base="/open-questions", q=q)
+                            subtype: str = Query(default=""), q: str = Query(default="")) -> str:
+        return library_page("questions", flt=library_filters(project, status, subtype=subtype), base="/open-questions", q=q)
 
     @app.get("/references", response_class=HTMLResponse)
     def references_list(project: str = Query(default=""), status: str = Query(default=""),
-                        q: str = Query(default="")) -> str:
-        return library_page("references", flt=library_filters(project, status), base="/references", q=q)
+                        subtype: str = Query(default=""), q: str = Query(default="")) -> str:
+        return library_page("references", flt=library_filters(project, status, subtype=subtype), base="/references", q=q)
 
     @app.get("/flows", response_class=HTMLResponse)
     def flows_list(project: str = Query(default=""), status: str = Query(default=""),
-                   q: str = Query(default="")) -> str:
-        return library_page("flows", flt=library_filters(project, status), base="/flows", q=q)
+                   subtype: str = Query(default=""), q: str = Query(default="")) -> str:
+        return library_page("flows", flt=library_filters(project, status, subtype=subtype), base="/flows", q=q)
 
     @app.get("/open-questions/{question_id}", response_class=HTMLResponse)
     def open_question_view(question_id: str) -> str:
@@ -564,3 +647,30 @@ def register_library(app) -> None:
             # delete-only (no content editing): prototypes are recorded artifacts — the
             # subtle header overflow (U9 §8.4), never a danger zone
             actions=overflow_delete(f'/prototypes/{slug}/delete', t("delete_prototype")))
+
+
+register_css(
+    ".libnav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}"
+    ".libnav--family{margin:0 0 8px;padding:4px;background:var(--panel-2);"
+    "border:1px solid var(--line);border-radius:8px;width:max-content;max-width:100%}"
+    ".libnav-family{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;"
+    "border-radius:6px;color:var(--muted);font-size:var(--t-sm);font-weight:600;"
+    "text-decoration:none;white-space:nowrap}"
+    ".libnav-family svg{width:15px;height:15px;color:var(--faint)}"
+    ".libnav-family.is-active{background:var(--panel);color:var(--ink);box-shadow:0 0 0 1px var(--line)}"
+    ".libnav-family.is-active svg{color:var(--accent)}"
+    ".libnav--kind{margin:0 0 6px;border-bottom:1px solid var(--line)}"
+    ".libnav-kind{display:inline-flex;align-items:center;gap:6px;padding:8px 2px 9px;"
+    "margin-right:22px;color:var(--muted);font-size:var(--t-sm);font-weight:650;"
+    "text-decoration:none;border-bottom:2px solid transparent;white-space:nowrap}"
+    ".libnav-kind svg{width:15px;height:15px;color:var(--faint)}"
+    ".libnav-kind.is-active{color:var(--accent);border-bottom-color:var(--accent)}"
+    ".libnav-kind.is-active svg{color:var(--accent)}"
+    ".taxctx{display:flex;align-items:center;gap:7px;margin:10px 0 0;color:var(--muted);"
+    "font-size:var(--t-sm);line-height:1.45;flex-wrap:wrap}"
+    ".taxctx__eyebrow{font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.06em;"
+    "color:var(--faint);font-weight:650}"
+    ".taxctx__family{color:var(--ink);font-weight:650}"
+    ".taxctx__dot{color:var(--faint)}"
+    ".taxctx__purpose{max-width:78ch}"
+)

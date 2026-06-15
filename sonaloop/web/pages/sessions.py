@@ -571,7 +571,7 @@ def register_sessions(app) -> None:
                       subject_kind: str | None = Query(default=None),
                       subject: str | None = Query(default=None),
                       status: str = Query(default=""),
-                      q: str = Query(default="")) -> str:
+                      subtype: str = Query(default=""), q: str = Query(default="")) -> str:
         """The Library's Sessions tab under the canonical URL (ux-contract §3.5) — the
         honest subject query filters stay, and a subject filter with ≥2 recorded
         walks keeps earning its cross-session funnel above the rows. BOTH session kinds
@@ -595,7 +595,8 @@ def register_sessions(app) -> None:
         base = "/sessions" + (f'?subject_kind={quote(subject_kind)}&subject={quote(subject)}'
                               if subject_kind and subject else "")
         return library_page("sessions", store, sessions=merged, pre_extra=funnel_html,
-                            flt=library_filters(project or "", status), base=base, q=q)
+                            flt=library_filters(project or "", status, subtype=subtype),
+                            base=base, q=q)
 
     @app.get("/sessions/{session_id}", response_class=HTMLResponse)
     def session_detail(session_id: str) -> str:

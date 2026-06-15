@@ -40,8 +40,8 @@ def test_sidebar_is_exactly_four_workspace_items():
 
 
 def test_library_browser_tabs_and_old_routes(store):
-    """The Library is ONE browser (ux-contract §3.5): /library tabs across all kinds
-    (?tab= addresses one; unknown falls back to the first), and every old list route
+    """The Library is ONE browser (ux-contract §3.5): /library groups primitives by
+    family, scopes the second-level tabs to that family, and every old list route
     still answers 200 rendering the library with ITS tab active — no redirects."""
     from starlette.testclient import TestClient
     from sonaloop.web._i18n import STRINGS
@@ -50,18 +50,20 @@ def test_library_browser_tabs_and_old_routes(store):
     html = client.get("/library?lang=en").text
     assert STRINGS["en"]["library_h"] in html
     first_route = LIBRARY_TABS[0][1]
-    for key, route, *_ in LIBRARY_TABS:
-        assert f'href="{route}"' in html, f"tab link {route} missing"
-    assert 'class="sl-tab is-active"' in html                 # default = first tab
-    assert 'aria-selected="true"' in html.split(f'href="{first_route}"')[1][:120]
+    for route in ("/open-questions", "/references", "/councils",
+                  "/prototypes", "/sessions", "/syntheses"):
+        assert f'href="{route}"' in html, f"family link {route} missing"
+    assert 'class="libnav-kind is-active"' in html            # default = first tab
+    assert 'aria-current="page"' in html.split(f'href="{first_route}"')[1][:160]
     dec = client.get("/library?tab=decisions&lang=en").text
-    assert 'aria-selected="true"' in dec.split('href="/decisions"')[1][:120]
+    assert 'href="/syntheses"' in dec and 'href="/hypotheses"' in dec
+    assert 'aria-current="page"' in dec.split('href="/decisions"')[1][:160]
     fallback = client.get("/library?tab=nope&lang=en").text   # unknown tab → first tab
-    assert 'aria-selected="true"' in fallback.split(f'href="{first_route}"')[1][:120]
+    assert 'aria-current="page"' in fallback.split(f'href="{first_route}"')[1][:160]
     for _key, route, *_ in LIBRARY_TABS:                      # old URLs answer 200, as the library
         r = client.get(f"{route}?lang=en")
         assert r.status_code == 200 and STRINGS["en"]["library_h"] in r.text, route
-        assert 'aria-selected="true"' in r.text.split(f'href="{route}"')[1][:120], route
+        assert 'aria-current="page"' in r.text.split(f'href="{route}"')[1][:160], route
 
 
 def test_vote_tally_is_case_robust():

@@ -163,11 +163,12 @@ def _response_row(resp: dict, qmap: dict, store) -> str:
 def register_surveys(app) -> None:
     @app.get("/surveys", response_class=HTMLResponse)
     def surveys(project: str = Query(default=""), status: str = Query(default=""),
-                q: str = Query(default="")) -> str:
+                subtype: str = Query(default=""), q: str = Query(default="")) -> str:
         # The Library's Surveys tab under the canonical URL (ux-contract §3.5),
         # filterable by project + status (U10, the shared FilterBar grammar).
         from .library import library_filters, library_page
-        return library_page("surveys", flt=library_filters(project, status), base="/surveys", q=q)
+        return library_page("surveys", flt=library_filters(project, status, subtype=subtype),
+                            base="/surveys", q=q)
 
     @app.get("/surveys/{survey_id}", response_class=HTMLResponse)
     def survey_detail(survey_id: str) -> str:

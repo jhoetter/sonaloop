@@ -107,11 +107,12 @@ def _red_team_result_html(rt: dict) -> str:
 def register_councils(app) -> None:
     @app.get("/councils", response_class=HTMLResponse)
     def councils(project: str = Query(default=""), status: str = Query(default=""),
-                 q: str = Query(default="")) -> str:
+                 subtype: str = Query(default=""), q: str = Query(default="")) -> str:
         # The URL stays canonical; the content is the Library with the Councils tab
         # active (ux-contract §3.5 — one browser, no redirects) + the shared FilterBar (U10).
         from .library import library_filters, library_page
-        return library_page("councils", flt=library_filters(project, status), base="/councils", q=q)
+        return library_page("councils", flt=library_filters(project, status, subtype=subtype),
+                            base="/councils", q=q)
 
     @app.get("/councils/{session_id}", response_class=HTMLResponse)
     def council_detail(session_id: str) -> str:

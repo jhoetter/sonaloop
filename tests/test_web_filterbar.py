@@ -174,6 +174,32 @@ def test_library_filter_menu_counts_per_value(store):
     assert f'href="/hypotheses?project={ids["project_id"]}"' in html
 
 
+def test_library_subtype_filter_separates_reference_kinds(store):
+    ids = _seed(store)
+    pid = ids["project_id"]
+    services.add_artifact(pid, "https://example.test", kind="url",
+                          title="Marketing site", capture=False, store=store)
+    services.add_artifact(pid, "https://figma.test/proto", kind="prototype",
+                          title="External click model", capture=False, store=store)
+    html = _client().get("/references?subtype=external_prototype&lang=en").text
+    assert "External click model" in html and "Marketing site" not in html
+    assert "Subtype" in html and "External prototype" in html
+    assert 'href="/references"' in html                         # Clear keeps canonical route
+
+
+def test_library_subtype_filter_separates_council_formats(store):
+    ids = _seed(store)
+    pid = ids["project_id"]
+    p = ids["persona_id"]
+    services.record_red_team(pid, "What breaks this?", persona_ids=[p],
+                             objections=[{"persona_id": p, "theme": "Trust",
+                                           "text": "I would not trust it.", "severity": "high"}],
+                             store=store)
+    html = _client().get("/councils?subtype=red_team&lang=en").text
+    assert "What breaks this?" in html and "Would you pay for this?" not in html
+    assert "Red-team" in html
+
+
 # ------------------------------------------------------------------- V1: search + theme facet
 
 def test_outline_search_slot_renders_inside_the_bar(store):

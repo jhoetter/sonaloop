@@ -45,6 +45,12 @@ def test_every_core_kind_is_declared_visible():
     assert not PR.ALLOWED_HIDDEN, "ALLOWED_HIDDEN must stay empty (user decision 2026-06-10)"
 
 
+def test_presence_kinds_have_product_taxonomy():
+    from sonaloop.web._primitive_taxonomy import PRIMITIVES
+    missing = set(PR.REGISTRY) - set(PRIMITIVES)
+    assert not missing, f"presence kinds missing product taxonomy entries: {sorted(missing)}"
+
+
 def test_gate_fails_on_an_undeclared_fake_kind(monkeypatch):
     """The 'fails on a new kind' proof: a project-scoped list_* family nobody declared lands in
     the violations — a new artifact kind cannot ship without declaring where it shows."""

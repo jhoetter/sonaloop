@@ -26,11 +26,12 @@ def _informed_decisions_html(synthesis_id: str, store) -> str:
 def register_syntheses(app) -> None:
     @app.get("/syntheses", response_class=HTMLResponse)
     def syntheses(project: str = Query(default=""), status: str = Query(default=""),
-                  q: str = Query(default="")) -> str:
+                  subtype: str = Query(default=""), q: str = Query(default="")) -> str:
         # ONE concept — a Report; the list is the Library's Reports tab (ux-contract §3.5),
         # filterable by project (U10, the shared FilterBar grammar).
         from .library import library_filters, library_page
-        return library_page("reports", flt=library_filters(project, status), base="/syntheses", q=q)
+        return library_page("reports", flt=library_filters(project, status, subtype=subtype),
+                            base="/syntheses", q=q)
 
     @app.get("/syntheses/{synthesis_id}", response_class=HTMLResponse)
     def synthesis_detail(synthesis_id: str) -> str:
