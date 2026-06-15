@@ -26,11 +26,12 @@ from ._i18n import t
 # Row kinds that open as a slide-over (spec §8.1: click = the kind's FULL detail page sliding
 # over the outline; the drawer URL IS the row's canonical href). Universally true for every kind
 # that HAS a detail page — assets included since UX U8 (/assets/{id}; the row's download chip
-# keeps the file itself one click away); url_artifact / live_url / flow rows are external or
-# synthesized subjects, and open questions live inline in the row.
+# keeps the file itself one click away); references, flows and open questions have their own
+# detail pages since the artifact-inventory audit closed the Library gap.
 # (A tuple head keeps the kind-vocabulary grep gates clean — no kind-literal set heads in web/.)
 DRAWER_KINDS = frozenset(("council", "synthesis", "report", "note", "prototype", "session",
-                          "decision", "survey", "hypothesis", "asset"))
+                          "decision", "survey", "hypothesis", "asset", "url_artifact",
+                          "flow", "open_question"))
 
 
 def drawer_url(rkind: str, href: str) -> str | None:
@@ -138,7 +139,7 @@ def extra_outline_items(graph: dict, *, decisions: list, hypotheses: list, surve
         ts = o.get("created_at", "")
         pk = _phase_round_at(ts, nodes, node_round, default_phase)[0]
         out.append(item(o["id"], color="#9aa0a6", title=o.get("text", ""),
-                        kind=t("open_question_kind"), href="", pk=pk, ts=ts,
+                        kind=t("open_question_kind"), href=f'/open-questions/{o["id"]}', pk=pk, ts=ts,
                         rkind="open_question", node=o))
     for a in graph.get("assets") or []:
         ts = a.get("created_at", "")

@@ -108,14 +108,17 @@ def test_absorbed_kinds_are_outline_rows_on_the_default_view(store):
     for anchor in ("#open-questions", "#assets", "#surveys"):
         assert f'href="{anchor}"' not in html, f"retired jump-chip {anchor} resurfaced"
     # absorbed rows with a detail page open it as a slide-over (§8.1: drawer URL = canonical
-    # href); open questions live inline in the row and assets await their U8 detail surface
+    # href); the artifact-inventory audit made questions/references/assets first-class details.
     assert 'data-drawer="/surveys/' in html, "survey row lost its slide-over"
-    import re as _re
-    for kind in ("open_question", "asset"):
+    for kind in ("open_question", "url_artifact"):
+        armed = False
         for chunk in html.split('class="olrow')[1:]:
             head = chunk.split(">", 1)[0]
             if f'data-rkind="{kind}"' in head:
-                assert "data-drawer=" not in head, f"{kind} row armed a drawer without a detail page"
+                armed = "data-drawer=" in head
+                break
+        assert armed, f"{kind} row lost its detail slide-over"
+    assert 'data-drawer="/assets/' in html, "asset row lost its detail slide-over"
 
 
 def test_empty_kinds_render_no_chrome(store):

@@ -191,7 +191,7 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
         store.upsert_research_project(project)
 
     ctx: dict[str, Any] = {
-        "project_id": pid, "asset": {}, "flow": {}, "prototype": {}, "survey": {},
+        "project_id": pid, "asset": {}, "flow": {}, "artifact": {}, "prototype": {}, "survey": {},
         "usability_session": {}, "council": {}, "synthesis": {}, "hypothesis": {},
     }
 
@@ -228,6 +228,12 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
              for s in f.get("steps") or []],
             key=_ns(slug, f["key"]), store=store)
         ctx["flow"][f["key"]] = rec["id"]
+    for a in fx.get("artifacts", []):
+        rec = add_artifact(  # noqa: F821 (bound)
+            pid, a["url"], kind=a.get("kind", "url"), title=a.get("title", ""),
+            label=a.get("label"), capture=bool(a.get("capture", True)),
+            key=_ns(slug, a["key"]), store=store)
+        ctx["artifact"][a["key"]] = rec["id"]
 
     # -- hypotheses, phase 1: the bets stamped BEFORE exposure -------------------
     def _record_hypothesis(h: dict[str, Any]) -> None:
@@ -382,6 +388,7 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
             "syntheses": len(ctx["synthesis"]),
             "surveys": len(ctx["survey"]),
             "assets": len(fx.get("assets", [])),
+            "references": len(ctx["artifact"]),
             "flows": len(ctx["flow"]),
             "prototypes": len(ctx["prototype"]),
             "sessions": len(ctx["usability_session"]),

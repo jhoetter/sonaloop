@@ -54,9 +54,10 @@ def test_tour_has_localized_artifact_steps():
     for s in steps:
         if m := re.search(r'data-rkind="([^"]+)"', s["sel"]):
             rkinds.add(f'data-rkind="{m.group(1)}"')
-    assert {f'data-rkind="{k}"' for k in ("council", "survey", "synthesis", "prototype",
-                                          "session", "hypothesis", "decision", "note", "asset")} <= rkinds
-    assert all(s.get("open") for s in steps[1:10])     # real detail drawers, not just list rows
+    assert {f'data-rkind="{k}"' for k in ("open_question", "url_artifact", "council", "survey",
+                                          "synthesis", "flow", "prototype", "session",
+                                          "hypothesis", "decision", "note", "asset")} <= rkinds
+    assert all(s.get("open") for s in steps[1:-1])     # real detail drawers, not just list rows
     for lang in ("de", "en"):
         token = _UI_LANG.set(lang)
         try:

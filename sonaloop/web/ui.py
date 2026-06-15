@@ -206,7 +206,8 @@ def primitive_row(kind: str, record: dict, store: Any = None, *, href: str | Non
     rec = record or {}
     date = _fmt_day(rec.get("created_at") or "")
     icons = dict(council="councils", synthesis="syntheses", report="syntheses", decision="flag",
-                 survey="plan", session="activity", prototype="prototype", note="panel",
+                 survey="plan", session="activity", prototype="prototype", flow="compass",
+                 url_artifact="link", live_url="external", note="panel",
                  hypothesis="target", open_question="help")
     visual: Any = raw(_icon(icons.get(kind, "square")))
     title: Any = rec.get("title") or rec.get("text") or rec.get("name") or rec.get("id", "")
@@ -268,6 +269,25 @@ def primitive_row(kind: str, record: dict, store: Any = None, *, href: str | Non
             badges.append(raw(_label(_pres.present(rec["fidelity"])["short"], "#00897b")))
         meta = [avatar_group(rec.get("personas") or [], total=int(rec.get("voices") or 0)),
                 raw(_label(t("sessions_n", n=int(rec.get("n_sessions") or 0))))]
+    elif kind == "flow":
+        title = rec.get("title") or rec.get("label") or rec.get("id", "")
+        if rec.get("n_sessions") is not None:
+            meta.insert(0, raw(_label(t("sessions_n", n=int(rec.get("n_sessions") or 0)))))
+        if rec.get("steps") is not None:
+            meta.insert(0, raw(_label(t("n_steps", n=int(rec.get("steps") or 0)))))
+    elif kind == "url_artifact":
+        title = rec.get("title") or rec.get("url") or rec.get("id", "")
+        badges.append(raw(_label(t("artifact_kind_" + (rec.get("kind") or "url")), "var(--blue)")))
+        snap = rec.get("snapshot") or {}
+        badges.append(raw(_label(t("artifact_captured") if snap.get("ok") else t("artifact_capture_failed"),
+                                 "var(--green)" if snap.get("ok") else "var(--muted)")))
+        if rec.get("label"):
+            meta.insert(0, raw(_label(rec["label"])))
+        kind_desc = rec.get("url", "")
+    elif kind == "live_url":
+        title = rec.get("title") or rec.get("label") or rec.get("url") or rec.get("id", "")
+        badges.append(raw(_label(t("live_surface"), "var(--green)")))
+        kind_desc = rec.get("url", "")
     elif kind == "asset":
         # V9 (ux-contract §9): assets are FILES, not generic rows — the compact
         # `.sl-file--row` variant (ext badge/thumb identity, filename+ext title,
@@ -277,6 +297,12 @@ def primitive_row(kind: str, record: dict, store: Any = None, *, href: str | Non
                              desc="" if desc is None else _re.sub(r"<[^>]+>", "", str(desc))))
     elif kind == "hypothesis":
         badges.append(raw(hypothesis_status_pill(rec.get("status", "open"))))
+    elif kind == "open_question":
+        status = rec.get("status", "open")
+        labels = {"open": t("oq_status_open"), "resolved": t("oq_status_resolved")}
+        if status in labels:
+            badges.append(raw(_label(labels[status],
+                                     "var(--amber)" if status == "open" else "var(--green)")))
     return entity_row(title, href=href, visual=visual, badges=badges,
                       desc=desc if desc is not None else kind_desc,
                       meta=[m for m in meta if m], drawer=drawer)

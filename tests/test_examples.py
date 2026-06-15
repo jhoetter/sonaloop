@@ -139,7 +139,7 @@ def test_onboarding_showcase_loads_every_tour_artifact(store):
     c = out["counts"]
     assert c["personas"] == 4
     assert c["councils"] == 1 and c["syntheses"] == 1 and c["surveys"] == 1
-    assert c["prototypes"] == 1 and c["sessions"] == 1
+    assert c["prototypes"] == 1 and c["sessions"] == 3 and c["references"] == 4
     assert c["hypotheses"] == 1 and c["decisions"] == 1
     assert c["assets"] == 3 and c["flows"] == 1 and c["notes"] == 2 and c["sections"] == 1
     assert services.list_surveys(out["project_id"], store=store)[0]["response_count"] == 3
@@ -258,7 +258,10 @@ def test_every_major_inspector_page_is_non_empty_after_loading_both(store):
         "/syntheses": ["Pricing story", "fair, audit-proof roster"],
         "/surveys": ["TeamPulse pilot readiness"],
         "/prototypes": ["TeamPulse first-run prototype"],
-        "/sessions": ["TeamPulse first-run flow"],
+        "/flows": ["TeamPulse first-run flow"],
+        "/references": ["External prototype: sonaloop-design app"],
+        "/open-questions": ["Would teams trust"],
+        "/sessions": ["TeamPulse first-run flow", "External prototype reference"],
         "/hypotheses": ["€19/month", "works council"],
         "/decisions": ["Ship two tiers", "audit-proof roster"],
         "/notes": ["Subscription fatigue", "fairness ledger"],

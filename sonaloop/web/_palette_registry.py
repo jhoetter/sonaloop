@@ -171,6 +171,26 @@ def _asset_rows(store: Store) -> Iterator[Row]:
                    f'/assets/{a["id"]}', _date(a))
 
 
+def _open_question_rows(store: Store) -> Iterator[Row]:
+    for proj in store.list_research_projects():
+        for o in store.list_open_questions(proj["id"]):
+            yield o.get("text", ""), proj.get("title", ""), f'/open-questions/{o["id"]}', _date(o)
+
+
+def _reference_rows(store: Store) -> Iterator[Row]:
+    for proj in store.list_research_projects():
+        for a in proj.get("artifacts") or []:
+            yield (a.get("title") or a.get("url", ""), proj.get("title", ""),
+                   f'/references/{a["id"]}', _date(a))
+
+
+def _flow_rows(store: Store) -> Iterator[Row]:
+    from .. import services
+    for proj in store.list_research_projects():
+        for fl in services.list_flows(proj["id"], store=store):
+            yield fl.get("title", ""), proj.get("title", ""), f'/flows/{fl["id"]}', _date(fl, "updated_at")
+
+
 # ------------------------------------------------- the searchable entity types (ordered)
 
 SEARCH_SOURCES: dict[str, SearchSource] = {
@@ -179,6 +199,7 @@ SEARCH_SOURCES: dict[str, SearchSource] = {
     "council": SearchSource(lambda: t("councils"), "councils", "var(--accent)", "/councils", _council_rows),
     "synthesis": SearchSource(lambda: t("syntheses"), "syntheses", "#9a8cff", "/syntheses", _synthesis_rows),
     "prototype": SearchSource(lambda: t("prototypes_h"), "prototype", "#00897b", "/prototypes", _prototype_rows),
+    "flow": SearchSource(lambda: t("flows_h"), "compass", "#0f9d8f", "/flows", _flow_rows),
     "session": SearchSource(lambda: t("sessions"), "activity", "#4a7d7d", "/sessions", _session_rows),
     "survey": SearchSource(lambda: t("surveys_h"), "clipboard", "#00798c", "/surveys", _survey_rows),
     "hypothesis": SearchSource(lambda: t("hypotheses_h"), "target", "#c0760a", "/hypotheses", _hypothesis_rows),
@@ -186,6 +207,9 @@ SEARCH_SOURCES: dict[str, SearchSource] = {
     "section": SearchSource(lambda: t("sections"), "squareGrid", "#3d9b6b", "/sections", _section_rows),
     "note": SearchSource(lambda: t("notes_h"), "panel", "#b87a25", "/notes", _note_rows),
     "asset": SearchSource(lambda: t("assets_h"), "file", "#8a6d3b", "/assets", _asset_rows),
+    "reference": SearchSource(lambda: t("references_h"), "link", "#3a7bd5", "/references", _reference_rows),
+    "open_question": SearchSource(lambda: t("open_questions_h"), "help", "#9aa0a6", "/open-questions",
+                                  _open_question_rows),
 }
 
 
@@ -326,11 +350,8 @@ KIND_SEARCH: dict[str, str | NotSearchable] = {
     "hypothesis": "hypothesis",
     "decision": "decision",
     "survey": "survey",
-    "flow": NotSearchable("no detail route — a flow surfaces as its sessions' subject; the "
-                          "sessions source reaches those traces"),
-    "url_artifact": NotSearchable("no detail route — A/B captures render as outline rows on "
-                                  "their project page (reachable via the project source)"),
-    "open_question": NotSearchable("no detail route — lives in the project page's "
-                                   "#open-questions section (reachable via the project source)"),
+    "flow": "flow",
+    "url_artifact": "reference",
+    "open_question": "open_question",
     "asset": "asset",            # the U8 detail surface: /assets/{id}, global id resolution
 }

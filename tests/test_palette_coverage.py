@@ -156,6 +156,13 @@ def _seed_new_entities(store):
     services.record_survey(
         pid, title="Retirement readiness pulse",
         questions=[{"id": "q1", "text": "How do you save today?", "kind": "text"}], store=store)
+    services.record_open_questions(pid, ["Which pension proof builds confidence?"], store=store)
+    services.add_artifact(pid, "https://example.test/pension-proof", title="Pension proof reference",
+                          capture=False, store=store)
+    asset = services.attach_asset(pid, content_base64="c2NyZWVu", filename="pension-flow.png",
+                                  kind="screenshot", title="Pension flow screen", store=store)
+    services.define_flow(pid, "Pension proof flow",
+                         [{"asset_id": asset["id"], "caption": "proof screen"}], store=store)
     services.record_usability_session(
         per, {"kind": "flow", "id": "flow-check", "label": "Pension check walkthrough"},
         "artifact", "2026-06-10", [_STEP], _OUTCOME, project_id=pid, store=store)
@@ -177,6 +184,9 @@ def test_search_covers_sessions_hypotheses_decisions_surveys(store):
     hit("Ship the pension", "decision", "/decisions")
     hit("Retirement readiness", "survey", "/surveys")
     hit("Pension check walkthrough", "session", "/sessions")
+    hit("Pension proof flow", "flow", "/flows")
+    hit("Pension proof reference", "reference", "/references")
+    hit("Which pension proof", "open_question", "/open-questions")
 
 
 def test_search_rows_matches_api_contract(store):

@@ -92,6 +92,14 @@ DOCS = [
               "each speaking from its own memory."),
      "why": ("Echte, nachvollziehbare Reaktionen statt Meinungen: jede Aussage führt zurück auf die Erinnerung dahinter.",
              "Real, traceable reactions instead of opinions: any statement leads back to the memory behind it.")},
+    {"art": "reference", "icon": "link", "name": "references_h", "group": "evidence",
+     "what": ("Eine Website, ein externer Prototyp oder eine A/B-Variante, die in einem Council **im Raum** "
+              "liegt — inklusive Capture-Status und Snapshot, wenn erfassbar.",
+              "A website, external prototype or A/B variant placed **in the room** for a council — with "
+              "capture status and a snapshot when available."),
+     "why": ("Personas reagieren auf echtes Material, nicht auf eine Nacherzählung. Referenzen sind Links/Snapshots, "
+             "keine hochgeladenen Dateien.",
+             "Personas react to real material, not a retelling. References are links/snapshots, not uploaded files.")},
     {"art": "prototype", "icon": "prototype", "name": "prototypes_h", "group": "evidence",
      "what": ("Ein lauffähiger Mock — von der groben Skizze bis zum ausgefeilten Build —, den Personas "
               "tatsächlich anklicken und auf den sie reagieren.",
@@ -99,6 +107,47 @@ DOCS = [
               "through and react to."),
      "why": ("Geerdete Reaktionen auf etwas *Echtes* statt auf eine Beschreibung — du siehst, was funktioniert, bevor du baust.",
              "Grounded reactions to something *real*, not a description — you see what works before you build.")},
+    {"art": "flow", "icon": "compass", "name": "flows_h", "group": "evidence",
+     "what": ("Ein geordneter Screen-Walkthrough aus Screenshot-Assets. Personas laufen Schritt für Schritt "
+              "hindurch; Drop-off und Reibung werden pro Screen sichtbar.",
+              "An ordered screen walkthrough built from screenshot assets. Personas walk it step by step; "
+              "drop-off and friction become visible per screen."),
+     "why": ("Der zuverlässige Testpfad, wenn ein Live-Browser zu teuer oder instabil wäre.",
+             "The reliable test path when a live browser would be too expensive or unstable.")},
+    {"art": "session", "icon": "activity", "name": "sessions", "group": "evidence",
+     "what": ("Eine replaybare Nutzungsspur: was die Persona gesehen, getan, gedacht und entschieden hat — "
+              "als Screen-Walkthrough, klickbarer Prototyp oder Live-Oberfläche.",
+              "A replayable usage trace: what the persona saw, did, thought and decided — as a screen "
+              "walkthrough, clickable prototype or live surface."),
+     "why": ("Sie zeigt Verhalten und Reibung, nicht nur ein Urteil am Ende.",
+             "It shows behavior and friction, not just a final opinion.")},
+    {"art": "survey", "icon": "plan", "name": "surveys_h", "group": "evidence",
+     "what": ("Ein versandfertiges Instrument mit Fragen und Antwortoptionen; echte Antworten können "
+              "importiert und gegen Persona-Prognosen gelesen werden.",
+              "A sendable instrument with questions and options; real responses can be imported and read "
+              "against persona predictions."),
+     "why": ("Es quantifiziert offene Spannungen, statt sie nur qualitativ stehen zu lassen.",
+             "It quantifies open tensions instead of leaving them only qualitative.")},
+    {"art": "asset", "icon": "file", "name": "assets_h", "group": "evidence",
+     "what": ("Eine echte Datei im Projekt: Screenshot, Dokument, Export oder erzeugtes Deliverable — mit "
+              "Herkunft, Richtung und Download.",
+              "A real file in the project: screenshot, document, export or generated deliverable — with "
+              "provenance, direction and download."),
+     "why": ("Assets sind das Material, aus dem Flows, Evidenz und Deliverables entstehen. Sie sind Dateien, "
+             "nicht Council-Referenzen.",
+             "Assets are the material behind flows, evidence and deliverables. They are files, not council references.")},
+    {"art": "hypothesis", "icon": "target", "name": "hypotheses_h", "group": "answer",
+     "what": ("Eine falsifizierbare Wette: erwartete Metrik oder Richtung, Konfidenz und später der "
+              "beobachtete Wert.",
+              "A falsifiable bet: expected metric or direction, confidence, and later the observed value."),
+     "why": ("Sie trennt Annahmen von Ergebnissen und macht Lernen auditierbar.",
+             "It separates assumptions from outcomes and makes learning auditable.")},
+    {"art": "decision", "icon": "flag", "name": "decisions_h", "group": "answer",
+     "what": ("Ein Entscheidungsprotokoll: was beschlossen wurde, welche Evidenz es trägt und welche "
+              "Alternative verworfen wurde.",
+              "A decision record: what was chosen, which evidence supports it, and which alternative was rejected."),
+     "why": ("Der Übergang von Research zu Handlung bleibt nachvollziehbar.",
+             "The handoff from research to action remains traceable.")},
     {"art": "note", "icon": "panel", "name": None, "group": "evidence",
      "what": ("Eine leichtgewichtige Idee oder Beobachtung, überall in einer Studie festgehalten — von der "
               "rohen Beobachtung bis zur ausgearbeiteten Lösungs-Idee.",
@@ -286,10 +335,11 @@ INSPECTOR_SECTIONS = [
      ("Die Seitenleiste hat genau **vier** Einträge: **Projekte · Personas · Library · Activity** "
       "(Einstellungen & Doku sitzen im Footer). Das Denkmodell ist überall dasselbe: *Projekt → "
       "Phasen → Zeilen; Klick = Seitenpanel.* Das **Projekt ist das Zuhause** — alles, was eine Studie "
-      "erzeugt (Councils, Reports, Entscheidungen, Umfragen, Prototypen, Sessions, Assets), ist "
-      "eine Zeile in seiner Phase. Die **Library** ist der projektübergreifende Browser: eine "
-      "Seite mit Tabs (Councils · Reports · Prototypen · Sessions · Umfragen · Hypothesen · "
-      "Entscheidungen · Notizen · Assets), überall dieselben Zeilen. **Assets** — empfangene "
+      "erzeugt oder benutzt (offene Fragen, Referenzen, Councils, Reports, Flows, Prototypen, "
+      "Sessions, Umfragen, Hypothesen, Entscheidungen, Notizen, Assets), ist eine Zeile in "
+      "seiner Phase. Die **Library** ist der projektübergreifende Browser über dieselben Primitives. "
+      "Die Namensregel: **Referenzen** sind Websites, externe Prototypen oder A/B-Varianten im Council-Raum; "
+      "**Assets** sind echte Dateien; **Sessions** sind Nutzungsspuren. **Assets** — empfangene "
       "Input-Dateien (Evidenz, via MCP angehängt) und von der Software erzeugte Dokumente "
       "(Deliverables) — erscheinen überall als **Datei-Karten**: Typ-Badge oder Vorschaubild, "
       "Dateiname mit Endung, Größe · Datum, genau ein Download/Öffnen-Symbol; sie haben eigene "
@@ -305,10 +355,11 @@ INSPECTOR_SECTIONS = [
       "The sidebar has exactly **four** items: **Projects · Personas · Library · Activity** "
       "(settings & docs live in the footer). One mental model runs the whole app: *project → "
       "phases → rows; click = slide-over.* The **project is the home** — everything a study produces "
-      "(councils, reports, decisions, surveys, prototypes, sessions, assets) is a row in its "
-      "phase. The **Library** is the cross-project browser: one page with tabs (Councils · "
-      "Reports · Prototypes · Sessions · Surveys · Hypotheses · Decisions · Notes · Assets), the same "
-      "rows everywhere. **Assets** — input files received (evidence, attached via MCP) and "
+      "or uses (open questions, references, councils, reports, flows, prototypes, sessions, surveys, "
+      "hypotheses, decisions, notes, assets) is a row in its phase. The **Library** is the "
+      "cross-project browser over those same primitives. Naming rule: **References** are websites, "
+      "external prototypes or A/B variants in the council room; **Assets** are real files; "
+      "**Sessions** are usage traces. **Assets** — input files received (evidence, attached via MCP) and "
       "documents the software generated (deliverables) — show up everywhere as **file cards**: "
       "type badge or image thumbnail, filename with extension, size · date, exactly one "
       "download/open icon; they have their own detail pages with provenance (source, direction, "
@@ -322,12 +373,13 @@ INSPECTOR_SECTIONS = [
       "**run state** shows as a chip in the project header (linking to the run journal).")),
     ("examples", "package",
      ("Beispielprojekte", "Example projects"),
-     ("Zwei fertige Demo-Studien liegen bei — eine B2B-Positioning-Studie und eine B2C-Pricing-Studie "
+     ("Fertige Demo-Studien liegen bei — darunter ein Onboarding-Showcase, eine B2B-Positioning-Studie "
+      "und eine B2C-Pricing-Studie "
       "(mit Preis-Leiter und Head-to-Head). Auf einer leeren Datenbank zeigt die Startseite je einen "
       "**„Beispiel laden“**-Button; dein Agent kann sie auch per `load_example` laden, `sonaloop "
       "load-example` ebenso. Laden ist idempotent (kein Duplizieren beim erneuten Laden), und "
       "`remove_example` entfernt **nur** die Daten des Beispiels — nie deine eigenen.",
-      "Two finished demo studies ship with Sonaloop — a B2B positioning study and a B2C pricing study "
+      "Finished demo studies ship with Sonaloop — including an onboarding showcase, a B2B positioning study and a B2C pricing study "
       "(with a willingness-to-pay ladder and a head-to-head). On an empty database the home page shows "
       "a **“Load example”** button for each; your agent can load them via `load_example`, or "
       "`sonaloop load-example` from the CLI. Loading is idempotent (re-loading never duplicates), and "
@@ -376,12 +428,14 @@ INSPECTOR_SECTIONS = [
     ("tour", "compass",
      ("Produkt-Tour", "Product tour"),
      ("Die optionale Tour startet **nie von selbst**. Wenn du **„Tour starten“** wählst, lädt sie bei "
-      "Bedarf das Showcase-Beispielprojekt und führt dann durch echte Artefakte: Projekt, Council, "
-      "Survey, Report, Prototype, Session, Hypothese, Entscheidung, Notes, Assets und Library. "
+      "Bedarf das Showcase-Beispielprojekt und führt dann im Projektkontext durch echte Primitives: "
+      "offene Frage, Referenz, Council, Survey, Report, Flow, Prototype, Session, Hypothese, "
+      "Entscheidung, Notes, Assets und Library. "
       "`Esc` beendet sie jederzeit.",
       "The optional tour **never auto-starts**. When you choose **“Take the tour”**, it loads the "
-      "showcase example project if needed, then walks real artifacts: project, council, survey, "
-      "report, prototype, session, hypothesis, decision, notes, assets, and the Library. `Esc` "
+      "showcase example project if needed, then walks real primitives in project context: open "
+      "question, reference, council, survey, report, flow, prototype, session, hypothesis, decision, "
+      "notes, assets, and the Library. `Esc` "
       "ends it any time.")),
     ("editing", "pencil",
      ("Was du bearbeiten kannst", "What you can edit"),

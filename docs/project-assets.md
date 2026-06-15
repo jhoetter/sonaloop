@@ -7,6 +7,10 @@ first-class, citable evidence with a stable id. `brief_council` automatically
 puts every project asset in the room, so reactions are grounded in what is
 actually there.
 
+Terminology: assets are **files**. Council-room websites, external prototype
+links and A/B variants are **references** (`add_artifact`, surfaced under
+`/references`), not assets. Replayable uses of either are **sessions**.
+
 ## Attaching
 
 ```bash

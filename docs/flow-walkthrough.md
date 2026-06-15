@@ -6,6 +6,11 @@ reliable via reaction-to-artifacts than via live app control, so this path
 needs **no browser anywhere** — the flow is made of real screens the host
 actually looks at.
 
+In UI language this is a **screen walkthrough**. The service fidelity value is
+still `artifact` for compatibility, but it does not mean "any artifact"; the
+flow is a first-class primitive surfaced in `/flows`, and its replayable traces
+surface as sessions.
+
 ## The flow
 
 ```

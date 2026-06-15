@@ -169,15 +169,15 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
             mr.get("created_at", ""), plabel=t("synthesis_kind") if planless else None,
             rkind="report", node=mr)
 
-    # URL artifacts (A/B captures) in the council pool — first-class rows on the DEFAULT view
-    # (tracker: sonaloop/project-presence-contract: nothing project-scoped is invisible). External
-    # link target; the A/B label + capture-status chips come from the chip registry (rkind
-    # "url_artifact"). Evidence INPUTS, so they sit at the first (discover) phase, round 0.
+    # Council references (captured URLs / prototype links / A/B variants) — first-class rows on
+    # the DEFAULT view (tracker: project-presence-contract). The row opens the canonical
+    # /references/{id} detail; the original URL is one click away from there. Evidence INPUTS,
+    # so they sit at the first (discover) phase, round 0.
     for a in sorted(graph.get("artifacts") or [], key=lambda x: x.get("created_at", "")):
         po, pl = pmeta.get(notes_phase, (99, ""))
         kindlab = t("artifact_kind_" + (a.get("kind") or "url"))
         items.append({"oid": a["id"], "color": "#3a7bd5", "title": a.get("title") or a.get("url", ""),
-                      "kind": kindlab, "href": a.get("url", ""), "external": True,
+                      "kind": kindlab, "href": f'/references/{a["id"]}',
                       "plabel": pl or kindlab, "po": po, "round": 0,
                       "order": a.get("created_at", ""), "ts": a.get("created_at", ""),
                       "indent": 0, "last_child": False, "rkind": "url_artifact", "node": a,

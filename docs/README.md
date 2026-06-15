@@ -39,5 +39,5 @@ canonical published home:
 - [i18n.md](i18n.md) — bilingual chrome + the `register_strings` extension seam
 - [pagination.md](pagination.md) — cursor pagination (MCP) + `?page`/`?q` web lists
 - [grounding.md](grounding.md), [calibration.md](calibration.md), [embeddings.md](embeddings.md) — evidence, prediction quality, recall
-- [substrate.md](substrate.md), [project-assets.md](project-assets.md), [opt-in-aggregation-design.md](opt-in-aggregation-design.md)
+- [substrate.md](substrate.md), [artifact-inventory.md](artifact-inventory.md), [project-assets.md](project-assets.md), [opt-in-aggregation-design.md](opt-in-aggregation-design.md)
 - [flow-walkthrough.md](flow-walkthrough.md), [live-walkthrough-safety.md](live-walkthrough-safety.md), [selective-live-actuation.md](selective-live-actuation.md)
