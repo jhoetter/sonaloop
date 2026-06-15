@@ -17,34 +17,63 @@ Use three layers:
 
 ## Canonical primitives
 
+- **Open questions** (`record_open_questions`, outline kind `open_question`):
+  first-class research uncertainties with `/open-questions` detail surfaces.
+- **Hypotheses** (`record_hypothesis`, outline kind `hypothesis`): testable
+  assumptions with predictions. They are not answers; they are framed bets that
+  reality can validate or refute.
 - **References** (`add_artifact`, stored on `project["artifacts"]`, outline
   kind `url_artifact`): websites, external prototypes and A/B variants placed
   in a council room. They have `/references` and `/references/{id}` surfaces.
   They may carry a captured snapshot, but they are not files.
 - **Assets** (`attach_asset`, stored on `project["assets"]`, outline kind
   `asset`): real files such as screenshots, documents, exports and generated
-  deliverables. They have `/assets` and `/assets/{id}` surfaces, plus the
-  project files lens.
+  deliverables. Assets can flow **in** as evidence or **out** as deliverables.
+  They have `/assets` and `/assets/{id}` surfaces, plus the project files lens.
+- **Councils** (`record_council`, outline kind `council`): moderated research
+  rounds. A mediator asks; personas answer from memory. Formats such as
+  red-team, head-to-head, price ladder and ideation are council formats, not
+  new primitives.
+- **Surveys** (`record_survey`, outline kind `survey`): structured question
+  instruments for real responses.
+- **Prototypes** (`register_prototype` / `scaffold_prototype`, outline kind
+  `prototype`): interactive surfaces personas can actually use.
 - **Flows** (`define_flow`, stored on `project["flows"]`, outline kind
-  `flow`): ordered screenshot assets used for artifact-first walkthroughs.
-  They have `/flows` and `/flows/{id}` surfaces and collect sessions.
+  `flow`): fixed screen sequences built from screenshot/image assets. They are
+  not runnable apps; use them when order, copy and drop-off matter before or
+  instead of building an interactive prototype.
 - **Sessions** (`record_usability_session`, outline kind `session`): replayable
   usage traces against a `flow`, `prototype` or `live_url`. The old fidelity
   label `artifact` means a **screen walkthrough**, not a generic artifact type.
-- **Open questions** (`record_open_questions`, outline kind `open_question`):
-  first-class research uncertainties with `/open-questions` detail surfaces.
-
-Other Library primitives are councils, surveys, prototypes, hypotheses,
-decisions, notes and reports/syntheses. Sections are a structural primitive:
-they group existing nodes and can have detail/export surfaces, but they are not
-evidence by themselves.
+- **Notes** (`create_note`, outline kind `note`): captured signals, observations
+  or concepts. They are intentionally lightweight and may later feed councils,
+  prototypes or sections.
+- **Reports / syntheses** (`record_synthesis`, outline kind `synthesis`):
+  analyses that turn evidence into interpretation.
+- **Decisions** (`record_decision`, outline kind `decision`): evidence-backed
+  commitments about what to do. They are not answers; they are actions justified
+  by evidence.
+- **Sections** are a structural primitive: they group existing nodes and can
+  have detail/export surfaces, but they are not evidence by themselves.
 
 ## Product taxonomy
 
-The UI taxonomy is centralized in `sonaloop/web/_primitive_taxonomy.py`:
+The UI taxonomy is centralized in `sonaloop/web/_primitive_taxonomy.py`.
+The Library groups primitives as a user-facing work map:
 
-- primitive family: question, input, interaction, test surface, observation,
-  answer or structure;
+- **Frame**: open questions and hypotheses — what still needs to be resolved or
+  proven.
+- **Material**: references and assets — linked or stored material, whether
+  evidence in or deliverable out.
+- **Ask**: councils and surveys — ways to ask personas or real respondents.
+- **Test**: prototypes, flows and sessions — surfaces plus the recorded runs
+  through them.
+- **Capture**: notes — low-friction signals, observations and concepts.
+- **Conclude**: reports and decisions — analysis and commitments.
+- **Structure**: sections — grouping, not evidence.
+
+Each primitive also has:
+
 - primitive purpose: one sentence used by the Library to teach the mental model;
 - subtype extraction: a bounded, URL-stable facet value derived from the stored
   record.

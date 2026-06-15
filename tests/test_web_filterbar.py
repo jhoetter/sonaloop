@@ -183,7 +183,7 @@ def test_library_subtype_filter_separates_reference_kinds(store):
                           title="External click model", capture=False, store=store)
     html = _client().get("/references?subtype=external_prototype&lang=en").text
     assert "External click model" in html and "Marketing site" not in html
-    assert "Subtype" in html and "External prototype" in html
+    assert "Format" in html and "External prototype" in html
     assert 'href="/references"' in html                         # Clear keeps canonical route
 
 

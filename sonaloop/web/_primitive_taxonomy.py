@@ -23,30 +23,30 @@ class Primitive:
 
 
 FAMILIES: tuple[tuple[str, str, str], ...] = (
-    ("question", "primitive_family_question", "help"),
-    ("input", "primitive_family_input", "link"),
-    ("interaction", "primitive_family_interaction", "councils"),
-    ("surface", "primitive_family_surface", "prototype"),
-    ("observation", "primitive_family_observation", "activity"),
-    ("answer", "primitive_family_answer", "syntheses"),
+    ("frame", "primitive_family_frame", "help"),
+    ("material", "primitive_family_material", "file"),
+    ("ask", "primitive_family_ask", "councils"),
+    ("test", "primitive_family_test", "prototype"),
+    ("capture", "primitive_family_capture", "panel"),
+    ("conclude", "primitive_family_conclude", "syntheses"),
     ("structure", "primitive_family_structure", "squareGrid"),
 )
 
 
 PRIMITIVES: dict[str, Primitive] = {
-    "open_question": Primitive("open_question", "question", "help", "primitive_open_question_purpose"),
-    "url_artifact": Primitive("url_artifact", "input", "link", "primitive_reference_purpose"),
-    "asset": Primitive("asset", "input", "file", "primitive_asset_purpose"),
-    "council": Primitive("council", "interaction", "councils", "primitive_council_purpose"),
-    "survey": Primitive("survey", "interaction", "plan", "primitive_survey_purpose"),
-    "prototype": Primitive("prototype", "surface", "prototype", "primitive_prototype_purpose"),
-    "flow": Primitive("flow", "surface", "compass", "primitive_flow_purpose"),
-    "session": Primitive("session", "observation", "activity", "primitive_session_purpose"),
-    "hypothesis": Primitive("hypothesis", "answer", "target", "primitive_hypothesis_purpose"),
-    "decision": Primitive("decision", "answer", "flag", "primitive_decision_purpose"),
-    "synthesis": Primitive("synthesis", "answer", "syntheses", "primitive_synthesis_purpose"),
-    "report": Primitive("report", "answer", "syntheses", "primitive_report_purpose"),
-    "note": Primitive("note", "observation", "panel", "primitive_note_purpose"),
+    "open_question": Primitive("open_question", "frame", "help", "primitive_open_question_purpose"),
+    "hypothesis": Primitive("hypothesis", "frame", "target", "primitive_hypothesis_purpose"),
+    "url_artifact": Primitive("url_artifact", "material", "link", "primitive_reference_purpose"),
+    "asset": Primitive("asset", "material", "file", "primitive_asset_purpose"),
+    "council": Primitive("council", "ask", "councils", "primitive_council_purpose"),
+    "survey": Primitive("survey", "ask", "plan", "primitive_survey_purpose"),
+    "prototype": Primitive("prototype", "test", "prototype", "primitive_prototype_purpose"),
+    "flow": Primitive("flow", "test", "compass", "primitive_flow_purpose"),
+    "session": Primitive("session", "test", "activity", "primitive_session_purpose"),
+    "note": Primitive("note", "capture", "panel", "primitive_note_purpose"),
+    "synthesis": Primitive("synthesis", "conclude", "syntheses", "primitive_synthesis_purpose"),
+    "report": Primitive("report", "conclude", "syntheses", "primitive_report_purpose"),
+    "decision": Primitive("decision", "conclude", "flag", "primitive_decision_purpose"),
     "section": Primitive("section", "structure", "squareGrid", "primitive_section_purpose"),
 }
 

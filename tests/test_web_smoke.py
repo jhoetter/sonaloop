@@ -51,12 +51,18 @@ def test_library_browser_tabs_and_old_routes(store):
     assert STRINGS["en"]["library_h"] in html
     first_route = LIBRARY_TABS[0][1]
     for route in ("/open-questions", "/references", "/councils",
-                  "/prototypes", "/sessions", "/syntheses"):
+                  "/prototypes", "/notes", "/syntheses"):
         assert f'href="{route}"' in html, f"family link {route} missing"
     assert 'class="libnav-kind is-active"' in html            # default = first tab
     assert 'aria-current="page"' in html.split(f'href="{first_route}"')[1][:160]
+    hyp = client.get("/hypotheses?lang=en").text
+    assert "Frame" in hyp and 'href="/open-questions"' in hyp
+    assert 'aria-current="page"' in hyp.split('href="/hypotheses"')[1][:160]
+    sess = client.get("/sessions?lang=en").text
+    assert "Test" in sess and 'href="/prototypes"' in sess and 'href="/flows"' in sess
+    assert 'aria-current="page"' in sess.split('href="/sessions"')[1][:160]
     dec = client.get("/library?tab=decisions&lang=en").text
-    assert 'href="/syntheses"' in dec and 'href="/hypotheses"' in dec
+    assert "Conclude" in dec and 'href="/syntheses"' in dec
     assert 'aria-current="page"' in dec.split('href="/decisions"')[1][:160]
     fallback = client.get("/library?tab=nope&lang=en").text   # unknown tab → first tab
     assert 'aria-current="page"' in fallback.split(f'href="{first_route}"')[1][:160]

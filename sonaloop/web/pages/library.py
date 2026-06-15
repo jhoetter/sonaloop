@@ -19,7 +19,8 @@ from .._forms import overflow_delete
 from .edit import note_actions, section_actions
 from .._presence import asset_direction, record_status, status_filter_label
 from .._primitive_taxonomy import (
-    family_icon, family_label, primitive_family, primitive_purpose, subtype_label, subtype_value,
+    FAMILIES, family_icon, family_label, primitive_family, primitive_purpose, subtype_label,
+    subtype_value,
 )
 
 # (key, canonical route, icon, label, empty-state msg, lead, teach) — labels are lambdas so
@@ -280,15 +281,12 @@ def _library_nav(active_tab: str) -> str:
     rows = list(LIBRARY_TABS)
     active_kind = TAB_KIND.get(active_tab, "open_question")
     active_family = primitive_family(active_kind)
-    families: list[tuple[str, list[tuple]]] = []
+    buckets: dict[str, list[tuple]] = {fam: [] for fam, _label, _icon in FAMILIES}
     for row in rows:
         k = row[0]
         fam = primitive_family(TAB_KIND.get(k, "note"))
-        bucket = next((items for f, items in families if f == fam), None)
-        if bucket is None:
-            bucket = []
-            families.append((fam, bucket))
-        bucket.append(row)
+        buckets.setdefault(fam, []).append(row)
+    families = [(fam, buckets[fam]) for fam, _label, _icon in FAMILIES if buckets.get(fam)]
     primary = []
     for fam, items in families:
         first = items[0]

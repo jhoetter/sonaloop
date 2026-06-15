@@ -51,6 +51,22 @@ def test_presence_kinds_have_product_taxonomy():
     assert not missing, f"presence kinds missing product taxonomy entries: {sorted(missing)}"
 
 
+def test_product_taxonomy_groups_match_user_model():
+    from sonaloop.web._primitive_taxonomy import primitive_family
+    assert primitive_family("open_question") == "frame"
+    assert primitive_family("hypothesis") == "frame"
+    assert primitive_family("asset") == "material"
+    assert primitive_family("url_artifact") == "material"
+    assert primitive_family("council") == "ask"
+    assert primitive_family("survey") == "ask"
+    assert primitive_family("prototype") == "test"
+    assert primitive_family("flow") == "test"
+    assert primitive_family("session") == "test"
+    assert primitive_family("note") == "capture"
+    assert primitive_family("synthesis") == "conclude"
+    assert primitive_family("decision") == "conclude"
+
+
 def test_gate_fails_on_an_undeclared_fake_kind(monkeypatch):
     """The 'fails on a new kind' proof: a project-scoped list_* family nobody declared lands in
     the violations — a new artifact kind cannot ship without declaring where it shows."""
