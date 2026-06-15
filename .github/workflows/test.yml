@@ -13,5 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
+      # Walkthrough/browser tests drive a headless Chromium (degrades gracefully in prod,
+      # but the suite exercises it) — fetch it like `make playwright` does locally.
+      - name: Install Playwright Chromium
+        run: uv run playwright install --with-deps chromium
       - name: pytest
         run: uv run --group dev pytest -q
