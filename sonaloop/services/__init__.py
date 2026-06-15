@@ -201,28 +201,17 @@ from datetime import date, datetime, time, timedelta  # noqa: E402,F401
 del _name, _value, _mod, _mdict
 del _REGISTRY, _collect_public_symbols
 
-# --- Single-module patch semantics --------------------------------------------
-# The original services.py was ONE module: setattr(services, "X", v) (e.g. tests
-# monkeypatching ROOT or other module-level names) all hit the same namespace that
-# every function read its globals from. After the package
-# split a name like ROOT lives in each submodule's own __dict__, so a plain
-# setattr on the package would not reach the functions. We restore the original
-# behavior with a forwarding module: assigning services.X also writes X into every
-# submodule that already defines X, so existing globals lookups see the new value.
-import sys as _sys
-import types as _types
-
-
-class _ServicesModule(_types.ModuleType):
-    def __setattr__(self, name, value):
-        super().__setattr__(name, value)
-        subs = self.__dict__.get("_SUBMODULES")
-        if subs and not name.startswith("__"):
-            for _m in subs:
-                if name in _m.__dict__:
-                    _m.__dict__[name] = value
-
-
-_self = _sys.modules[__name__]
-_self.__class__ = _ServicesModule
-# _SUBMODULES stays as a module attribute so the forwarder can reach the submodules.
+# --- Patch semantics after the split ------------------------------------------
+# Cross-module function references are bound ONCE at import time by the _REGISTRY
+# loop above, exactly as the original single-module file resolved them. Two kinds
+# of runtime overrides used to rely on a package-level setattr fan-out; both are
+# now decoupled at the source, so no fan-out (and no custom module __setattr__) is
+# needed:
+#   * ROOT — the repo root. Submodules read it dynamically as `config.ROOT`
+#     (single source in sonaloop/config.py), so a test that does
+#     `monkeypatch.setattr(config, "ROOT", tmp)` redirects every service at once.
+#   * function overrides (e.g. export_synthesis_pptx / export_synthesis_pdf) —
+#     patch the submodule that CALLS the bare name
+#     (`sonaloop.services._synthesis_pptx.<fn>`), the same namespace the call
+#     resolves its globals from.
+# _SUBMODULES stays as a module attribute for the presence gate and other callers.

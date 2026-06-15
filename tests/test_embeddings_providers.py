@@ -7,6 +7,7 @@ import json
 
 import pytest
 
+from sonaloop import config
 from sonaloop import embeddings as E
 from sonaloop import memory as memory_mod
 from sonaloop import services
@@ -133,5 +134,5 @@ def test_snapshot_manifest_records_vector_spaces(store, monkeypatch, tmp_path):
     pid = create_persona(store, "Snapped")
     memory_mod.upsert_object_embedding(store, "fact", "fact_s", pid, "text")
     out = services.export_snapshot(store=store)
-    manifest = json.loads((services.ROOT / out["out_dir"] / "manifest.json").read_text())
+    manifest = json.loads((config.ROOT / out["out_dir"] / "manifest.json").read_text())
     assert manifest["embedding_models"] == ["ollama:nomic-embed-text"]

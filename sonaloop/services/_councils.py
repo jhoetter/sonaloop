@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from ..config import (
-    ROOT, utc_now_iso, content_language, ensure_content_language, language_instruction,
+    utc_now_iso, content_language, ensure_content_language, language_instruction,
     critic_threshold, critic_sample_k,
 )
 from ._authoring import MARKDOWN_CONTRACT, PRIMITIVES_CONTRACT

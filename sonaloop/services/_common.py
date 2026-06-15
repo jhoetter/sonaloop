@@ -15,8 +15,9 @@ from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from typing import Any
 
+from .. import config
 from ..config import (
-    ROOT, utc_now_iso, content_language, ensure_content_language, language_instruction,
+    utc_now_iso, content_language, ensure_content_language, language_instruction,
     critic_threshold, critic_sample_k,
 )
 from ..models import (
@@ -82,7 +83,7 @@ def persona_dir(persona: dict[str, Any]) -> Path:
     # Runtime working dir for rendered SOUL.md/MEMORY.md. Lives under data/ (all
     # generated state is under data/; gitignored). The portable, local-only copy
     # is data/export/ (see export_snapshot/import_snapshot).
-    return ROOT / "data" / "personas" / persona["slug"]
+    return config.ROOT / "data" / "personas" / persona["slug"]
 
 
 
@@ -126,7 +127,7 @@ def _period_bounds(anchor: date, view: str) -> tuple[date, date]:
 def write_export(content: str, path: str | Path) -> str:
     out = Path(path)
     if not out.is_absolute():
-        out = ROOT / out
+        out = config.ROOT / out
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(content, encoding="utf-8")
     return str(out)

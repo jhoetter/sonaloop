@@ -15,8 +15,9 @@ from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from typing import Any
 
+from .. import config
 from ..config import (
-    ROOT, utc_now_iso, content_language, ensure_content_language, language_instruction,
+    utc_now_iso, content_language, ensure_content_language, language_instruction,
     critic_threshold, critic_sample_k,
 )
 from ..models import (
@@ -168,7 +169,7 @@ def write_soul(persona: dict[str, Any], store: Store | None = None) -> dict[str,
     path.parent.mkdir(parents=True, exist_ok=True)
     content = render_soul(persona, store)
     path.write_text(content, encoding="utf-8")
-    return {"path": str(path.relative_to(ROOT)), "updated_at": utc_now_iso()}
+    return {"path": str(path.relative_to(config.ROOT)), "updated_at": utc_now_iso()}
 
 
 
@@ -212,7 +213,7 @@ def ensure_persona_runtime_fields(persona: dict[str, Any], store: Store | None =
         persona["soul"] = write_soul(persona, store)
         changed = True
     else:
-        path = ROOT / persona["soul"]["path"]
+        path = config.ROOT / persona["soul"]["path"]
         if not path.exists():
             persona["soul"] = write_soul(persona, store)
             changed = True
@@ -466,11 +467,11 @@ def get_persona_soul(persona_id: str, store: Store | None = None) -> dict[str, A
     if not persona:
         raise KeyError(f"Unknown persona: {persona_id}")
     persona = ensure_persona_runtime_fields(persona, store)
-    path = ROOT / persona["soul"]["path"]
+    path = config.ROOT / persona["soul"]["path"]
     if not path.exists():
         persona["soul"] = write_soul(persona, store)
         store.upsert_persona(persona, reason="recreated SOUL.md")
-        path = ROOT / persona["soul"]["path"]
+        path = config.ROOT / persona["soul"]["path"]
     return {"persona_id": persona["id"], "path": persona["soul"]["path"], "content": path.read_text(encoding="utf-8")}
 
 
@@ -707,7 +708,7 @@ def delete_persona(persona_id: str, store: Store | None = None) -> dict[str, Any
         for path in sorted(d.rglob("*"), reverse=True):
             if path.is_file():
                 path.unlink()
-                removed.append(str(path.relative_to(ROOT)))
+                removed.append(str(path.relative_to(config.ROOT)))
         try:
             d.rmdir()
         except OSError:

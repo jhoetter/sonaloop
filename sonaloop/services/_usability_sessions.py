@@ -17,7 +17,8 @@ from .. import artifacts as _A
 from .. import browser as _browser
 from .. import prototypes as _proto
 from .. import walk_policy as _wp
-from ..config import ROOT, sessions_dir, utc_now_iso
+from .. import config
+from ..config import sessions_dir, utc_now_iso
 from ..models import UsabilitySession
 from ..storage import Store
 from ..suggestions import suggest_friction_levels
@@ -72,7 +73,7 @@ def _concept_screens(prototype_id: str, store: Store) -> tuple[dict[str, Any] | 
         return None, []
     screens: list[dict[str, Any]] = []
     try:
-        cpath = ROOT / proto["path"] / "concept.json"
+        cpath = config.ROOT / proto["path"] / "concept.json"
         if cpath.exists():
             screens = [{"id": s["id"], "title": s.get("title", s["id"])}
                        for s in json.loads(cpath.read_text(encoding="utf-8")).get("screens", [])]

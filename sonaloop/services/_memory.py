@@ -15,8 +15,9 @@ from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from typing import Any
 
+from .. import config
 from ..config import (
-    ROOT, utc_now_iso, content_language, ensure_content_language, language_instruction,
+    utc_now_iso, content_language, ensure_content_language, language_instruction,
     critic_threshold, critic_sample_k,
 )
 from ..models import (
@@ -183,7 +184,7 @@ def get_persona_memory(persona_id: str, store: Store | None = None) -> dict[str,
     path = memory_path(persona)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-    return {"path": str(path.relative_to(ROOT)), "content": content}
+    return {"path": str(path.relative_to(config.ROOT)), "content": content}
 
 
 # ---- Evaluation (§12.5) & embeddings/forgetting (§12.6) ------------------

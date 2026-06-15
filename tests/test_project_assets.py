@@ -6,6 +6,7 @@ import base64
 
 import pytest
 
+from sonaloop import config
 from sonaloop import services
 from sonaloop.services import _hooks
 
@@ -122,7 +123,7 @@ def test_assets_survive_the_snapshot_roundtrip(store, project, tmp_path, monkeyp
     # Wipe runtime state: fresh DB + empty asset store, then import the snapshot.
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path / 'restored.db'}")
     from sonaloop.storage import Store
-    binary = services.ROOT / rec["asset_path"]
+    binary = config.ROOT / rec["asset_path"]
     binary.unlink()
     store2 = Store()
     services.import_snapshot(store=store2, embed=False)
@@ -169,7 +170,7 @@ def _project_synthesis(store, project):
 
 
 def test_export_synthesis_deliverable_attaches_out_asset(store, project, tmp_path, monkeypatch):
-    monkeypatch.setattr(services, "export_synthesis_pptx",
+    monkeypatch.setattr("sonaloop.services._synthesis_pptx.export_synthesis_pptx",
                         lambda sid, store=None: b"PK\x03\x04 fake deck bytes")
     syn = _project_synthesis(store, project)
     out = tmp_path / "deck.pptx"
@@ -188,7 +189,7 @@ def test_export_synthesis_deliverable_relative_path_lands_in_data_exports(store,
     # the CWD fix: a relative/omitted out path goes to DATA_DIR/exports/, not the caller's CWD
     from sonaloop import config as config_mod
     monkeypatch.setattr(config_mod, "DATA_DIR", tmp_path / "dd")
-    monkeypatch.setattr(services, "export_synthesis_pdf", lambda sid, store=None: b"%PDF-1.7 fake")
+    monkeypatch.setattr("sonaloop.services._synthesis_pptx.export_synthesis_pdf", lambda sid, store=None: b"%PDF-1.7 fake")
     syn = _project_synthesis(store, project)
     res = services.export_synthesis_deliverable(syn["id"], "pdf", store=store)
     assert res["path"] == str(tmp_path / "dd" / "exports" / f'{syn["id"]}.pdf')
@@ -199,7 +200,7 @@ def test_export_synthesis_deliverable_reexport_supersedes_stale_record(store, pr
     # renders are not byte-stable: a re-export gets a fresh content hash, so the bytes-keyed
     # attach upsert can't dedupe it — the deliverable seam must supersede the stale record
     renders = iter([b"PK\x03\x04 deck v1", b"PK\x03\x04 deck v2 (new timestamps)"])
-    monkeypatch.setattr(services, "export_synthesis_pptx",
+    monkeypatch.setattr("sonaloop.services._synthesis_pptx.export_synthesis_pptx",
                         lambda sid, store=None: next(renders))
     syn = _project_synthesis(store, project)
     first = services.export_synthesis_deliverable(syn["id"], "pptx", str(tmp_path / "d.pptx"), store=store)
@@ -215,7 +216,7 @@ def test_export_synthesis_deliverable_reexport_supersedes_stale_record(store, pr
 
 
 def test_export_synthesis_deliverable_without_project_skips_attach(store, tmp_path, monkeypatch):
-    monkeypatch.setattr(services, "export_synthesis_pptx", lambda sid, store=None: b"PK bytes")
+    monkeypatch.setattr("sonaloop.services._synthesis_pptx.export_synthesis_pptx", lambda sid, store=None: b"PK bytes")
     syn = services.record_synthesis("Standalone", "start", [], {}, store=store)
     res = services.export_synthesis_deliverable(syn["id"], "pptx", str(tmp_path / "d.pptx"), store=store)
     assert "asset_id" not in res and "project_id" not in res
@@ -226,7 +227,7 @@ def test_assets_render_as_outline_rows_with_direction_pills(store, project, tmp_
     flow, the deliverable at the END (the Deliver group); direction pills on both. Since UX U8
     the row deep-links to the asset's DETAIL page (slide-over armed, §8.1); the file itself
     stays one click away as the row's trailing download/open chip."""
-    monkeypatch.setattr(services, "export_synthesis_pptx", lambda sid, store=None: b"PK deck")
+    monkeypatch.setattr("sonaloop.services._synthesis_pptx.export_synthesis_pptx", lambda sid, store=None: b"PK deck")
     evidence = tmp_path / "field-note.txt"
     evidence.write_text("observed in the field")
     ev = services.attach_asset(project["id"], path=str(evidence), title="Field note", store=store)
@@ -360,7 +361,7 @@ def test_export_synthesis_deliverable_returns_download_url(store, project, monke
 
     from sonaloop import config
     monkeypatch.setenv("SONALOOP_PUBLIC_BASE_URL", "https://app.sonaloop.test")
-    monkeypatch.setattr(services, "export_synthesis_pptx", lambda sid, store=None: b"PK deck")
+    monkeypatch.setattr("sonaloop.services._synthesis_pptx.export_synthesis_pptx", lambda sid, store=None: b"PK deck")
     syn = _project_synthesis(store, project)
     res = services.export_synthesis_deliverable(syn["id"], "pptx", store=store)
     rec = services.get_asset(project["id"], res["asset_id"], store=store)
@@ -371,7 +372,7 @@ def test_export_synthesis_deliverable_returns_download_url(store, project, monke
 
 def test_export_synthesis_deliverable_without_project_still_links_the_export(store, monkeypatch):
     monkeypatch.setenv("SONALOOP_PUBLIC_BASE_URL", "https://app.sonaloop.test")
-    monkeypatch.setattr(services, "export_synthesis_pptx", lambda sid, store=None: b"PK bytes")
+    monkeypatch.setattr("sonaloop.services._synthesis_pptx.export_synthesis_pptx", lambda sid, store=None: b"PK bytes")
     syn = services.record_synthesis("Standalone", "start", [], {}, store=store)
     res = services.export_synthesis_deliverable(syn["id"], "pptx", store=store)
     assert res["url"] == f'https://app.sonaloop.test/data/exports/{syn["id"]}.pptx'
