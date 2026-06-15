@@ -19,6 +19,11 @@ from typing import Any
 
 from .config import suggestions_dir
 
+# Public deck-preview seam (sonaloop-research's deck.py rasterises the title slide of a
+# generated .pptx). Re-exported here so extensions import a public name rather than the
+# private _pptx_preview module; PIL/python-pptx stay lazy inside the function.
+from ._pptx_preview import render_first_slide  # noqa: F401, E402
+
 # A fixed, value-agnostic palette (colors are assigned by HASHING the tag, not by name).
 PALETTE = ["#6b7cff", "#34a853", "#f29900", "#a142f4", "#ea4335", "#00897b", "#5f6368", "#d81b60"]
 

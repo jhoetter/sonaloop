@@ -30,7 +30,7 @@ import mimetypes
 from pathlib import Path
 from typing import Any
 
-from ..config import ROOT, utc_now_iso
+from ..config import utc_now_iso
 from ..storage import Store
 
 from ._common import *  # noqa: F401,F403  (stable_id, _require_research_project, …)

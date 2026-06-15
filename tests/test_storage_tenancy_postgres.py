@@ -12,8 +12,12 @@ from __future__ import annotations
 import os
 import uuid
 
-import psycopg
 import pytest
+
+# Postgres-only suite: psycopg ships with the `postgres` extra, which open-core CI does not
+# install. importorskip skips the whole module cleanly when it's absent rather than erroring
+# at collection time (the SONALOOP_TEST_PG_DSN gate below skips it when there's no DB).
+psycopg = pytest.importorskip("psycopg")
 
 from sonaloop import config, services
 from sonaloop.storage import Store

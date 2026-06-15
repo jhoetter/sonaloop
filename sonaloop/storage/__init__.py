@@ -45,4 +45,10 @@ class Store(
     pass
 
 
-__all__ = ["Store", "SCHEMA"]
+# Public backend seam for downstream backends (sonaloop-cloud's Postgres control plane):
+# the SQLite→Postgres schema translator and the tenant-aware connection wrapper. Importing
+# these does not pull psycopg — the driver is imported lazily inside _PgConnection's methods.
+from ._backend import port_sqlite_schema_to_postgres  # noqa: E402
+from ._backend import _PgConnection as PgConnection  # noqa: E402
+
+__all__ = ["Store", "SCHEMA", "PgConnection", "port_sqlite_schema_to_postgres"]

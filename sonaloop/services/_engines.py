@@ -15,8 +15,9 @@ from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from typing import Any
 
+from .. import config
 from ..config import (
-    ROOT, utc_now_iso, content_language, ensure_content_language, language_instruction,
+    utc_now_iso, content_language, ensure_content_language, language_instruction,
     critic_threshold, critic_sample_k,
 )
 from ..models import (
@@ -450,7 +451,7 @@ def brief_prototype_session(persona_id, prototype_id, store: Store | None = None
     screens = []
     try:
         import json as _json
-        cpath = ROOT / proto["path"] / "concept.json"
+        cpath = config.ROOT / proto["path"] / "concept.json"
         if cpath.exists():
             screens = [{"id": s["id"], "title": s.get("title", s["id"])}
                        for s in _json.loads(cpath.read_text(encoding="utf-8")).get("screens", [])]

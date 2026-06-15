@@ -1,0 +1,21 @@
+name: test
+# Run the hermetic core test suite (temp DB, no network) on every push/PR — including the
+# UX usage ratchet (tests/test_ux_contract.py) and the LOC-budget god-file ratchet
+# (tests/test_loc_budget.py). Complements design-sync.yml (vendored-asset freshness).
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      # Walkthrough/browser tests drive a headless Chromium (degrades gracefully in prod,
+      # but the suite exercises it) — fetch it like `make playwright` does locally.
+      - name: Install Playwright Chromium
+        run: uv run playwright install --with-deps chromium
+      - name: pytest
+        run: uv run --group dev pytest -q

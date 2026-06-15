@@ -12,7 +12,8 @@ from __future__ import annotations
 import re as _re_pptx
 
 from .. import artifacts as _A
-from ..config import ROOT, content_language
+from .. import config
+from ..config import content_language
 from ..storage import Store
 from ._synthesis import _SYNTHESIS_EXPORT_LABELS, get_synthesis
 
@@ -339,7 +340,7 @@ def _figure_image(fig: dict, store: Store) -> tuple[str, str] | None:
         p = store.get_persona(fig["id"]) or {}
         ap = (p.get("avatar") or {}).get("path")
         if ap:
-            path = ROOT / ap
+            path = config.ROOT / ap
             return (str(path), cap or p.get("display_name", "")) if path.exists() else None
         return None
     if aid:

@@ -16,10 +16,12 @@ def _isolated(tmp_path, monkeypatch):
     monkeypatch.setenv("PERSONA_COUNCIL_CONTENT_LANGUAGE", "en")
     monkeypatch.setenv("PERSONA_COUNCIL_UI_LANGUAGE", "en")
     # SOUL/MEMORY/avatars render under ROOT/data/... — point ROOT at the tmp dir.
-    monkeypatch.setattr(services, "ROOT", tmp_path)
+    # Submodules read config.ROOT dynamically (single source), so patching it here
+    # reaches every service without any package-level fan-out.
+    from sonaloop import config
+    monkeypatch.setattr(config, "ROOT", tmp_path)
     # The asset binary store + export download URLs resolve against the LIVE
     # config.DATA_DIR (the dir the web app serves at /data) — keep it in the tmp dir.
-    from sonaloop import config
     monkeypatch.setattr(config, "DATA_DIR", tmp_path / "data")
     yield
 

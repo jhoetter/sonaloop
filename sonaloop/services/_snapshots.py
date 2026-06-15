@@ -15,8 +15,9 @@ from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from typing import Any
 
+from .. import config
 from ..config import (
-    ROOT, utc_now_iso, content_language, ensure_content_language, language_instruction,
+    utc_now_iso, content_language, ensure_content_language, language_instruction,
     critic_threshold, critic_sample_k,
 )
 from ..models import (
@@ -73,9 +74,9 @@ def export_snapshot(out_dir: str | None = None, store: Store | None = None) -> d
     import shutil
 
     store = store or Store()
-    base = Path(out_dir) if out_dir else (ROOT / "data" / "export")
+    base = Path(out_dir) if out_dir else (config.ROOT / "data" / "export")
     if not base.is_absolute():
-        base = ROOT / base
+        base = config.ROOT / base
     personas = store.list_personas()
 
     def _w(path: Path, obj: Any) -> None:
@@ -106,7 +107,7 @@ def export_snapshot(out_dir: str | None = None, store: Store | None = None) -> d
         _w(pdir / "eval.json", {"reports": store.list_eval_reports(pid), "anomalies": store.list_anomalies(pid)})
         avatar = p.get("avatar")
         if avatar and avatar.get("path"):
-            src = ROOT / avatar["path"]
+            src = config.ROOT / avatar["path"]
             if src.exists():
                 shutil.copyfile(src, pdir / "avatar.png")
                 counts["avatars"] += 1
@@ -151,7 +152,7 @@ def export_snapshot(out_dir: str | None = None, store: Store | None = None) -> d
         "note": "Reproducible snapshot of generated state. Rebuild the DB by re-running the simulation loop; this is the portable, local-only artifact (the SQLite DB stays gitignored).",
     })
     store.commit()
-    return {"out_dir": str(base.relative_to(ROOT)), "counts": counts}
+    return {"out_dir": str(base.relative_to(config.ROOT)), "counts": counts}
 
 
 
@@ -167,9 +168,9 @@ def import_snapshot(in_dir: str | None = None, store: Store | None = None, embed
     import shutil
 
     store = store or Store()
-    base = Path(in_dir) if in_dir else (ROOT / "data" / "export")
+    base = Path(in_dir) if in_dir else (config.ROOT / "data" / "export")
     if not base.is_absolute():
-        base = ROOT / base
+        base = config.ROOT / base
     if not (base / "manifest.json").exists():
         raise FileNotFoundError(f"No snapshot manifest at {base}")
     pdirs = sorted((base / "personas").glob("*/")) if (base / "personas").exists() else []
@@ -186,7 +187,7 @@ def import_snapshot(in_dir: str | None = None, store: Store | None = None, embed
         # avatar: copy the snapshot png back into the runtime avatar dir at its recorded path
         avatar = persona.get("avatar")
         if avatar and avatar.get("path") and (pdir / "avatar.png").exists():
-            dest = ROOT / avatar["path"]
+            dest = config.ROOT / avatar["path"]
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(pdir / "avatar.png", dest)
             counts["avatars"] += 1
@@ -254,7 +255,7 @@ def import_snapshot(in_dir: str | None = None, store: Store | None = None, embed
             persona = _load(pdir / "profile.json", None)
             if persona:
                 embedded[persona["slug"]] = memory_mod.backfill_persona_embeddings(store, persona["id"])
-    return {"in_dir": str(base.relative_to(ROOT)), "counts": counts,
+    return {"in_dir": str(base.relative_to(config.ROOT)), "counts": counts,
             "embeddings": "skipped" if not embed else "re-derived"}
 
 

@@ -15,8 +15,9 @@ from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from typing import Any
 
+from .. import config
 from ..config import (
-    ROOT, utc_now_iso, content_language, ensure_content_language, language_instruction,
+    utc_now_iso, content_language, ensure_content_language, language_instruction,
     critic_threshold, critic_sample_k,
 )
 from ..models import (
@@ -92,12 +93,12 @@ def purge_runtime_data(remove_files: bool = True, store: Store | None = None) ->
     deleted = store.purge_runtime_state()
     removed_files: list[str] = []
     if remove_files:
-        for root in [ROOT / "data" / "avatars", ROOT / "data" / "personas", ROOT / "personas"]:
+        for root in [config.ROOT / "data" / "avatars", config.ROOT / "data" / "personas", config.ROOT / "personas"]:
             if root.exists():
                 for path in sorted(root.rglob("*"), reverse=True):
                     if path.is_file():
                         path.unlink()
-                        removed_files.append(str(path.relative_to(ROOT)))
+                        removed_files.append(str(path.relative_to(config.ROOT)))
                     elif path.is_dir():
                         try:
                             path.rmdir()
