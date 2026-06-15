@@ -7,6 +7,11 @@ from ..config import MEMORY_SCHEMA_VERSION, load_env
 from .. import services
 from ..avatar import generate_persona_avatar
 from ._env import _NEXT, SERVER_VERSION, _env
+from ._catalogue import catalogue_data  # public: API-docs / tool-reference generation
+
+#: Public alias for the MCP tool-response envelope builder, used by extension tools
+#: (sonaloop-cloud) to wrap their tool results the same way the core tools do.
+tool_response = _env
 from ._tools_personas import register_personas
 from ._tools_catalog import register_catalog
 from ._tools_simulation import register_simulation
