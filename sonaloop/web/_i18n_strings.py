@@ -31,7 +31,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "search_project_ph": "Dieses Projekt durchsuchen …", "search_tab_ph": "{tab} durchsuchen …",  # FilterBar v2 (UX V1)
         "no_councils": "Noch keine Councils.", "no_synthesis": "Noch keine Reports.",
         "open_questions_lead": "Die offenen Forschungsfragen, die die Studie antreiben — mit Status und Projektkontext.", "no_open_questions": "Noch keine offenen Fragen.", "references_lead": "Websites, externe Prototypen und A/B-Varianten, die in Councils im Raum lagen — reproduzierbar mit Snapshot.", "no_references": "Noch keine Referenzen.",
-        "flows_lead": "Geordnete Screen-Flows für artifact-first Walkthroughs — mit Sessions und Drop-off-Kontext.", "no_flows": "Noch keine Flows.", "prototypes_lead": "Lauffähige Prototypen — von Personas getestet.", "no_prototypes": "Noch keine Prototypen.",
+        "flows_lead": "Geordnete Flows aus Screenshot-Assets — mit Sessions und Drop-off-Kontext.", "no_flows": "Noch keine Flows.", "prototypes_lead": "Lauffähige Prototypen — von Personas getestet.", "no_prototypes": "Noch keine Prototypen.",
         "notes": "Notizen", "notes_lead": "Rohe Beobachtungen aus der Forschung.", "no_notes": "Noch keine Notizen.", "library_h": "Bibliothek",
         # list pagination (docs/pagination.md)
         "pager_prev": "Zurück", "pager_next": "Weiter", "page_of": "Seite {n} von {m}",
@@ -165,17 +165,17 @@ STRINGS: dict[str, dict[str, str]] = {
         # Library empty tabs teach the next action (audit F1 — the import_survey_responses idiom)
         "councils_teach": "Starte eine memory-geerdete Debatte aus deinem MCP-Host (record_council).", "reports_teach": "Verdichte Councils oder Notizen zu einem Report (record_synthesis).",
         "open_questions_teach": "Halte Forschungsrisiken als offene Fragen fest (record_open_questions).", "references_teach": "Lege Websites, externe Prototypen oder Varianten für Councils ab (add_artifact).",
-        "prototypes_teach": "Scaffolde einen klickbaren Prototyp aus einem Konzept (scaffold_prototype).", "flows_teach": "Definiere einen Screen-Flow aus Screenshot-Assets (define_flow).", "sessions_teach": "Lass eine Persona einen Prototyp oder Flow wirklich benutzen (record_usability_session, record_prototype_session).",
+        "prototypes_teach": "Scaffolde einen klickbaren Prototyp aus einem Konzept (scaffold_prototype).", "flows_teach": "Definiere einen Flow aus Screenshot-Assets (define_flow).", "sessions_teach": "Lass eine Persona einen Prototyp oder Flow wirklich benutzen (record_usability_session, record_prototype_session).",
         "surveys_teach": "Quantifiziere eine Synthese mit einer Umfrage (record_survey).", "hypotheses_teach": "Halte eine falsifizierbare Wette fest (record_hypothesis).",
         "decisions_teach": "Dokumentiere, wie auf die Evidenz gehandelt wurde (record_decision).", "notes_teach": "Halte eine Beobachtung als Notiz fest (create_note).",
         # ("Klick-Prototyp", not the bare word: the presentation-from-data grep gate bans the
         # hardcoded artifact literal — and the fidelity rung is the clickable walk, not the artifact)
-        "fidelity_artifact": "Screen-Walkthrough", "fidelity_prototype": "Klick-Prototyp", "fidelity_live": "Live",
+        "fidelity_artifact": "Walkthrough", "fidelity_prototype": "Klick-Prototyp", "fidelity_live": "Live",
         "outcome_dropped": "Abgesprungen bei Schritt {n}",
         "friction_n": "{n}× Reibung",
         # sessions in the project outline (child rows under their subject + the funnel chip)
         "session_kind_live": "Live-Session", "session_kind_prototype": "Prototyp-Session",
-        "session_kind_artifact": "Walkthrough-Session", "live_surface": "Live-Oberfläche", "walkthrough_surface": "Screen-Flow", "replays_h": "Replays", "proto_sessions_h": "Prototyp-Sessions",
+        "session_kind_artifact": "Walkthrough-Session", "live_surface": "Live-Oberfläche", "walkthrough_surface": "Flow", "replays_h": "Replays", "proto_sessions_h": "Prototyp-Sessions",
         "sessions_n": "{n} Sessions", "sessions_n_one": "{n} Session", "no_dropoffs": "keine Abbrüche",
         "drop_at_step": "{n}× Drop @ Schritt {s}", "dropoffs_n": "{n} Abbrüche",
         # outline chip contract (_outline_chips — every row kind declares its chips)
@@ -426,7 +426,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "search_project_ph": "Search this project …", "search_tab_ph": "Search {tab} …",  # FilterBar v2 (UX V1)
         "no_councils": "No councils yet.", "no_synthesis": "No reports yet.",
         "open_questions_lead": "The research questions driving the study — with status and project context.", "no_open_questions": "No open questions yet.", "references_lead": "Websites, external prototypes and A/B variants that were put in the council room — reproducible with snapshots.", "no_references": "No references yet.",
-        "flows_lead": "Ordered screen flows for artifact-first walkthroughs — with sessions and drop-off context.", "no_flows": "No flows yet.", "prototypes_lead": "Runnable prototypes — tested by personas.", "no_prototypes": "No prototypes yet.",
+        "flows_lead": "Ordered flows from screenshot assets — with sessions and drop-off context.", "no_flows": "No flows yet.", "prototypes_lead": "Runnable prototypes — tested by personas.", "no_prototypes": "No prototypes yet.",
         "notes": "Notes", "notes_lead": "Raw observations from the research.", "no_notes": "No notes yet.", "library_h": "Library",
         # list pagination (docs/pagination.md)
         "pager_prev": "Previous", "pager_next": "Next", "page_of": "Page {n} of {m}",
@@ -558,15 +558,15 @@ STRINGS: dict[str, dict[str, str]] = {
         # Library empty tabs teach the next action (audit F1 — the import_survey_responses idiom)
         "councils_teach": "Start a memory-grounded debate from your MCP host (record_council).", "reports_teach": "Condense councils or notes into a report (record_synthesis).",
         "open_questions_teach": "Capture research risks as open questions (record_open_questions).", "references_teach": "Store websites, external prototypes or variants for councils (add_artifact).",
-        "prototypes_teach": "Scaffold a clickable prototype from a concept (scaffold_prototype).", "flows_teach": "Define a screen flow from screenshot assets (define_flow).", "sessions_teach": "Have a persona actually use a prototype or flow (record_usability_session, record_prototype_session).",
+        "prototypes_teach": "Scaffold a clickable prototype from a concept (scaffold_prototype).", "flows_teach": "Define a flow from screenshot assets (define_flow).", "sessions_teach": "Have a persona actually use a prototype or flow (record_usability_session, record_prototype_session).",
         "surveys_teach": "Quantify a synthesis with a survey (record_survey).", "hypotheses_teach": "Record a falsifiable bet (record_hypothesis).",
         "decisions_teach": "Document how the evidence was acted on (record_decision).", "notes_teach": "Capture an observation as a note (create_note).",
-        "fidelity_artifact": "Screen walkthrough", "fidelity_prototype": "Prototype", "fidelity_live": "Live",
+        "fidelity_artifact": "Walkthrough", "fidelity_prototype": "Prototype", "fidelity_live": "Live",
         "outcome_dropped": "Dropped at step {n}",
         "friction_n": "{n}× friction",
         # sessions in the project outline (child rows under their subject + the funnel chip)
         "session_kind_live": "Live session", "session_kind_prototype": "Prototype session",
-        "session_kind_artifact": "Walkthrough session", "live_surface": "Live surface", "walkthrough_surface": "Screen flow", "replays_h": "Replays", "proto_sessions_h": "Prototype sessions",
+        "session_kind_artifact": "Walkthrough session", "live_surface": "Live surface", "walkthrough_surface": "Flow", "replays_h": "Replays", "proto_sessions_h": "Prototype sessions",
         "sessions_n": "{n} sessions", "sessions_n_one": "{n} session", "no_dropoffs": "no drop-offs",
         "drop_at_step": "{n}× drop @ step {s}", "dropoffs_n": "{n} drop-offs",
         # outline chip contract (_outline_chips — every row kind declares its chips)
