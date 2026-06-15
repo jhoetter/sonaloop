@@ -36,7 +36,7 @@ FAMILIES: tuple[tuple[str, str, str], ...] = (
 PRIMITIVES: dict[str, Primitive] = {
     "open_question": Primitive("open_question", "frame", "help", "primitive_open_question_purpose"),
     "hypothesis": Primitive("hypothesis", "frame", "target", "primitive_hypothesis_purpose"),
-    "url_artifact": Primitive("url_artifact", "material", "link", "primitive_reference_purpose"),
+    "url_artifact": Primitive("url_artifact", "material", "link", "primitive_url_artifact_purpose"),
     "asset": Primitive("asset", "material", "file", "primitive_asset_purpose"),
     "council": Primitive("council", "ask", "councils", "primitive_council_purpose"),
     "survey": Primitive("survey", "ask", "plan", "primitive_survey_purpose"),
@@ -93,11 +93,11 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
     if kind == "prototype":
         return str(rec.get("fidelity") or "midfi")
     if kind == "flow":
-        return "screen_flow"
+        return "screen_walkthrough"
     if kind == "session":
         subject = rec.get("subject") or {}
         sk = subject.get("kind") or ""
-        return {"flow": "flow_session", "prototype": "prototype_session",
+        return {"flow": "walkthrough_session", "prototype": "prototype_session",
                 "live_url": "live_session"}.get(str(sk), str(sk))
     if kind == "survey":
         questions = rec.get("questions") or []

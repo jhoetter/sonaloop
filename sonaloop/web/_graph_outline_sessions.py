@@ -62,7 +62,7 @@ def _subject_parent_item(group: dict, key: str, pk, pmeta: dict) -> dict:
     subj, sessions = group["subject"], group["sessions"]
     ts = sessions[0].get("created_at", "")
     po, plabel = pmeta.get(pk, (99, ""))
-    href = f"/flows/{key}" if subj.get("kind") == "flow" else ""
+    href = f"/playbooks/{key}" if subj.get("kind") == "flow" else ""
     it = {"oid": f"subject:{key}", "color": "#9aa0a6", "title": subj.get("label") or key,
           "kind": t("walkthrough_surface"), "href": href, "plabel": plabel, "po": po, "round": 0,
           "order": ts, "ts": ts, "indent": 0, "last_child": False, "pk": pk or "",

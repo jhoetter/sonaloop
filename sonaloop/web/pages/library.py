@@ -45,7 +45,7 @@ LIBRARY_TABS: tuple = (
     ("prototypes", "/prototypes", "prototype",
      lambda: t("prototypes_h"), lambda: t("no_prototypes"), lambda: t("prototypes_lead"),
      lambda: t("prototypes_teach")),
-    ("flows", "/flows", "compass",
+    ("flows", "/playbooks", "compass",
      lambda: t("flows_h"), lambda: t("no_flows"), lambda: t("flows_lead"),
      lambda: t("flows_teach")),
     ("sessions", "/sessions", "activity",
@@ -128,7 +128,7 @@ def _tab_entries(key: str, store: Store, sessions: list | None = None) -> list[d
                 pairs.append(({**f, "project_id": proj["id"], "n_sessions": sessions_n},
                               proj["id"]))
         pairs.sort(key=lambda x: x[0].get("updated_at", ""), reverse=True)
-        return [e("flow", f, f'/flows/{f["id"]}', project_id=pid) for f, pid in pairs]
+        return [e("flow", f, f'/playbooks/{f["id"]}', project_id=pid) for f, pid in pairs]
     if key == "sessions":
         if sessions is None:
             # BOTH session kinds (§8.2 — sessions are first-class): usability walks and
@@ -268,7 +268,6 @@ def _taxonomy_context(tab: str, kind: str) -> str:
     if not purpose:
         return ""
     return h("div", {"class_": "taxctx", "data-family": family},
-             h("span", {"class_": "taxctx__eyebrow"}, t("primitive_h")),
              h("span", {"class_": "taxctx__family"}, family_label(family)),
              h("span", {"class_": "taxctx__dot"}, "·"),
              h("span", {"class_": "taxctx__purpose"}, purpose))
@@ -398,10 +397,11 @@ def register_library(app) -> None:
                         subtype: str = Query(default=""), q: str = Query(default="")) -> str:
         return library_page("references", flt=library_filters(project, status, subtype=subtype), base="/references", q=q)
 
+    @app.get("/playbooks", response_class=HTMLResponse)
     @app.get("/flows", response_class=HTMLResponse)
     def flows_list(project: str = Query(default=""), status: str = Query(default=""),
                    subtype: str = Query(default=""), q: str = Query(default="")) -> str:
-        return library_page("flows", flt=library_filters(project, status, subtype=subtype), base="/flows", q=q)
+        return library_page("flows", flt=library_filters(project, status, subtype=subtype), base="/playbooks", q=q)
 
     @app.get("/open-questions/{question_id}", response_class=HTMLResponse)
     def open_question_view(question_id: str) -> str:
@@ -464,6 +464,7 @@ def register_library(app) -> None:
             rail_sections=[("sec-snapshot", t("reference_snapshot_h"))],
             star=("reference", ref["id"], title, f'/references/{ref["id"]}'))
 
+    @app.get("/playbooks/{flow_id}", response_class=HTMLResponse)
     @app.get("/flows/{flow_id}", response_class=HTMLResponse)
     def flow_view(flow_id: str) -> str:
         store = Store()
@@ -479,7 +480,7 @@ def register_library(app) -> None:
         return detail_page(
             store, title=flow["title"], active="projects",
             crumbs=[(t("projects"), "/projects"), (proj["title"], f'/projects/{proj["id"]}'),
-                    (flow["title"], None)],
+                    (t("flows_h"), "/playbooks"), (flow["title"], None)],
             icon="compass", kind=t("flow_kind"),
             body=body,
             prop_rows=[("projects", t("project"), h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"])),
@@ -487,7 +488,7 @@ def register_library(app) -> None:
                        ("activity", t("sessions"), str(len(sessions))),
                        ("dot", t("created"), ui.fmt_date(flow.get("created_at") or ""))],
             rail_sections=[("sec-steps", t("steps_h")), ("sec-replays", t("replays_h"))],
-            star=("flow", flow["id"], flow["title"], f'/flows/{flow["id"]}'))
+            star=("flow", flow["id"], flow["title"], f'/playbooks/{flow["id"]}'))
 
     @app.get("/sections/{section_id}", response_class=HTMLResponse)
     def section_view(section_id: str) -> str:
@@ -666,8 +667,6 @@ register_css(
     ".libnav-kind.is-active svg{color:var(--accent)}"
     ".taxctx{display:flex;align-items:center;gap:7px;margin:10px 0 0;color:var(--muted);"
     "font-size:var(--t-sm);line-height:1.45;flex-wrap:wrap}"
-    ".taxctx__eyebrow{font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.06em;"
-    "color:var(--faint);font-weight:650}"
     ".taxctx__family{color:var(--ink);font-weight:650}"
     ".taxctx__dot{color:var(--faint)}"
     ".taxctx__purpose{max-width:78ch}"

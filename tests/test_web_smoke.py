@@ -59,7 +59,7 @@ def test_library_browser_tabs_and_old_routes(store):
     assert "Frame" in hyp and 'href="/open-questions"' in hyp
     assert 'aria-current="page"' in hyp.split('href="/hypotheses"')[1][:160]
     sess = client.get("/sessions?lang=en").text
-    assert "Test" in sess and 'href="/prototypes"' in sess and 'href="/flows"' in sess
+    assert "Test" in sess and 'href="/prototypes"' in sess and 'href="/playbooks"' in sess
     assert 'aria-current="page"' in sess.split('href="/sessions"')[1][:160]
     dec = client.get("/library?tab=decisions&lang=en").text
     assert "Conclude" in dec and 'href="/syntheses"' in dec

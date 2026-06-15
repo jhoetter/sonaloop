@@ -188,7 +188,7 @@ def _flow_rows(store: Store) -> Iterator[Row]:
     from .. import services
     for proj in store.list_research_projects():
         for fl in services.list_flows(proj["id"], store=store):
-            yield fl.get("title", ""), proj.get("title", ""), f'/flows/{fl["id"]}', _date(fl, "updated_at")
+            yield fl.get("title", ""), proj.get("title", ""), f'/playbooks/{fl["id"]}', _date(fl, "updated_at")
 
 
 # ------------------------------------------------- the searchable entity types (ordered)
@@ -199,7 +199,7 @@ SEARCH_SOURCES: dict[str, SearchSource] = {
     "council": SearchSource(lambda: t("councils"), "councils", "var(--accent)", "/councils", _council_rows),
     "synthesis": SearchSource(lambda: t("syntheses"), "syntheses", "#9a8cff", "/syntheses", _synthesis_rows),
     "prototype": SearchSource(lambda: t("prototypes_h"), "prototype", "#00897b", "/prototypes", _prototype_rows),
-    "flow": SearchSource(lambda: t("flows_h"), "compass", "#0f9d8f", "/flows", _flow_rows),
+    "flow": SearchSource(lambda: t("flows_h"), "compass", "#0f9d8f", "/playbooks", _flow_rows),
     "session": SearchSource(lambda: t("sessions"), "activity", "#4a7d7d", "/sessions", _session_rows),
     "survey": SearchSource(lambda: t("surveys_h"), "clipboard", "#00798c", "/surveys", _survey_rows),
     "hypothesis": SearchSource(lambda: t("hypotheses_h"), "target", "#c0760a", "/hypotheses", _hypothesis_rows),
@@ -334,6 +334,7 @@ NON_SEARCHABLE_ROUTES: dict[str, str] = {
                    "calendar; far too granular for a global jump target",
     "/documentation": "the curated docs hub — the nav-derived 'Documentation' jump command covers "
                       "it; full-text doc search is not entity search",
+    "/flows": "legacy alias for playbook detail routes — entity search targets /playbooks",
     "/sessions-files": "static passthrough for recorded session assets (screenshots), not an entity",
 }
 

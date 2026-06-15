@@ -258,7 +258,7 @@ def test_every_major_inspector_page_is_non_empty_after_loading_both(store):
         "/syntheses": ["Pricing story", "fair, audit-proof roster"],
         "/surveys": ["TeamPulse pilot readiness"],
         "/prototypes": ["TeamPulse first-run prototype"],
-        "/flows": ["TeamPulse first-run flow"],
+        "/playbooks": ["TeamPulse first-run flow"],
         "/references": ["External prototype: sonaloop-design app"],
         "/open-questions": ["Would teams trust"],
         "/sessions": ["TeamPulse first-run flow", "External prototype reference"],
