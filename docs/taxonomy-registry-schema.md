@@ -224,6 +224,14 @@ Every registered council form must declare `classifier.mode_alias` and
 `renderer.requires`, so the UI can show structural descriptions while preserving
 familiar product aliases.
 
+New generic council writes can use `services.record_council_form(project_id,
+form_id, payload, persona_ids, ...)`. It validates the requested `council/*`
+form against the registry, normalizes the payload into the existing
+CouncilSession shape, and stamps `form` plus `form_payload` metadata. Specialized
+tools such as head-to-head, red-team, price-ladder and ideation remain
+compatibility wrappers/presets over those registered forms; they are not the only
+possible council forms.
+
 ## Session form bridge
 
 Session forms separate the object under test from the observed test run. This is

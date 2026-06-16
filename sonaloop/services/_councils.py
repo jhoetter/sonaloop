@@ -293,6 +293,75 @@ def council_form_definition(council: dict[str, Any]) -> dict[str, Any]:
     return form
 
 
+def _validate_council_form_payload(form: dict[str, Any], payload: dict[str, Any]) -> None:
+    if not isinstance(payload, dict):
+        raise ValueError("payload must be a dict")
+    renderer = form.get("renderer") or {}
+    if not renderer.get("library") or not renderer.get("detail"):
+        raise ValueError(f"council form {form.get('id')} lacks a compatible renderer")
+    required = (form.get("schema") or {}).get("required") or []
+    missing = [field for field in required if field not in payload]
+    if missing:
+        raise ValueError(f"payload for council/{form.get('id')} missing required fields: {', '.join(missing)}")
+
+
+def record_council_form(project_id: str, form_id: str, payload: dict[str, Any],
+                        persona_ids: list[str], prompt: str = "",
+                        summary: str = "", exec_summary: str = "",
+                        selection_reason: str = "", key: str | None = None,
+                        findings: list | None = None, created_at: str | None = None,
+                        store: Store | None = None) -> dict[str, Any]:
+    """Record a registered council form through one generic API.
+
+    Existing specialized tools remain wrappers/presets over the same persisted
+    CouncilSession shape. This function validates the requested form against the
+    registry, normalizes the payload into `record_council`, and stamps form
+    metadata so readers can distinguish structural form from historic mode.
+    """
+    store = store or Store()
+    form = _taxonomy_registry.resolve_form("council", form_id)
+    if form is None:
+        raise KeyError(f"No registered council form '{form_id}'")
+    _validate_council_form_payload(form, payload)
+    canonical = str(form["id"])
+    prompt = str(prompt or payload.get("prompt") or payload.get("proposal") or "Council form").strip()
+    statements = payload.get("statements") or []
+    questions = payload.get("questions") or []
+    proposal = str(payload.get("proposal") or "")
+    votes = payload.get("votes") or []
+
+    block_by_form = {
+        "option_comparison": "head_to_head",
+        "objection_review": "red_team",
+        "ladder_review": "price_ladder",
+        "idea_review": "ideation",
+    }
+    if canonical == "open_discussion":
+        questions = questions or [prompt]
+    elif canonical == "proposal_reaction":
+        if not proposal:
+            proposal = prompt
+    elif canonical == "vote":
+        if not proposal:
+            proposal = prompt
+
+    out = record_council(
+        project_id, prompt, persona_ids, statements=statements, votes=votes,
+        proposal=proposal, summary=summary, exec_summary=exec_summary,
+        selection_reason=selection_reason or f"generic council form: {canonical}",
+        questions=questions, key=key, findings=findings, created_at=created_at, store=store)
+    stored = store.get_council_session(out["id"]) or dict(out)
+    block = block_by_form.get(canonical)
+    if block:
+        stored[block] = dict(payload)
+    stored["form"] = {"primitive": "council", "id": canonical, "label": form.get("label", ""),
+                      "source": "generic"}
+    stored["form_payload"] = dict(payload)
+    store.insert_council_session(stored)
+    return {**stored, "url": web_url(f"/councils/{stored['id']}"),  # noqa: F821 (bound)
+            "project_url": web_url(f"/projects/{project_id}")}  # noqa: F821 (bound)
+
+
 def record_council(project_id: str, prompt: str, persona_ids: list[str],
                    statements: list | None = None, votes: list[dict[str, Any]] | None = None,
                    proposal: str = "", summary: str = "", exec_summary: str = "",
