@@ -150,6 +150,15 @@ def test_absorbed_kinds_are_outline_rows_on_the_default_view(store):
 
 def test_experimental_graph_view_contains_absorbed_project_primitives(store):
     pid = _seed_tier3(store)
+    services.record_council(pid, "Review landing context", [], store=store)
+    services.record_usability_session(
+        "pX", {"kind": "live_url", "url": "https://example.test/landing", "label": "Landing A"},
+        "live", "2026-06-10",
+        [{"index": 0, "action": {"type": "navigate", "target": "Landing A"},
+          "state": {"screen": "Landing A", "url": "https://example.test/landing"},
+          "friction": {"level": "none", "note": ""},
+          "verdict": {"would_continue": True}}],
+        {"completed": True, "summary": "Reviewed the landing reference."}, project_id=pid, store=store)
     page = _client().get(f"/projects/{pid}?view=graph&lang=en").text
     assert re.search(rf'href="/projects/{pid}"[^>]*>.*List</a>', page, re.S)
     m = re.search(r'<script type="application/json" id="rgdata">(.*?)</script>', page, re.S)
@@ -161,6 +170,10 @@ def test_experimental_graph_view_contains_absorbed_project_primitives(store):
     assert {"What about pricing?", "Landing A", "Field note", "Pricing survey"} <= labels
     subs = {n.get("sub", "") for n in data["nodes"]}
     assert any("Reference" in s and "Website" in s for s in subs)
+    by_kind_label = {(n.get("tags", [""])[0], n["label"]): n["id"] for n in data["nodes"] if n.get("tags")}
+    assert {"from": by_kind_label[("url_artifact", "Landing A")],
+            "to": by_kind_label[("session", "Landing A")]} in [
+                {"from": e["from"], "to": e["to"]} for e in data["edges"]]
 
 
 def test_empty_kinds_render_no_chrome(store):

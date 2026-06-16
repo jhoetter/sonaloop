@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from typing import Any
+from urllib.parse import urlparse
 
 from ._i18n import t
 from ._primitive_taxonomy import primitive_color, subtype_label, subtype_value
@@ -40,6 +41,21 @@ def _phase(graph: dict, created_at: str) -> str:
         if n.get("created_at", "") <= created_at:
             current = n.get("phase") or current
     return current
+
+
+def _host(url: str) -> str:
+    try:
+        return urlparse(url).netloc.lower().removeprefix("www.")
+    except Exception:
+        return ""
+
+
+def _tokens(*values: object) -> set[str]:
+    import re
+    out: set[str] = set()
+    for value in values:
+        out.update(t for t in re.findall(r"[a-z0-9]+", str(value or "").lower()) if len(t) > 2)
+    return out
 
 
 def _add(nodes: list[dict], seen: set[str], *, kind: str, rid: str, title: str,
@@ -104,17 +120,23 @@ def project_graph_view_data(graph: dict, *, sessions: dict[str, dict], decisions
             if p["id"] in (n.get("prototype_ids") or []):
                 edge(str(n.get("study_id")), pid, "informs")
 
+    artifact_nodes: dict[str, str] = {}
+    artifact_hosts: dict[str, str] = {}
     for a in out.get("artifacts") or []:
-        _add(nodes, seen, kind="url_artifact", rid=a["id"], title=a.get("title") or a.get("url", ""),
+        aid = _add(nodes, seen, kind="url_artifact", rid=a["id"], title=a.get("title") or a.get("url", ""),
              created_at=a.get("created_at", ""), href=f'/references/{a["id"]}',
              subtype=subtype_value("url_artifact", a), phase=_phase(out, a.get("created_at", "")),
-             extra={"url": a.get("url", ""), "variant": a.get("label", "")})
+        extra={"url": a.get("url", ""), "variant": a.get("label", "")})
+        artifact_nodes[a["id"]] = aid
+        artifact_hosts[aid] = _host(a.get("url", ""))
 
+    asset_token_map: dict[str, set[str]] = {}
     for a in assets:
-        _add(nodes, seen, kind="asset", rid=a["id"], title=a.get("title") or a.get("filename", ""),
+        aid = _add(nodes, seen, kind="asset", rid=a["id"], title=a.get("title") or a.get("filename", ""),
              created_at=a.get("created_at", ""), href=f'/assets/{a["id"]}',
              subtype=subtype_value("asset", a), phase=_phase(out, a.get("created_at", "")),
              extra={"direction": a.get("direction", "in")})
+        asset_token_map[aid] = _tokens(a.get("title"), a.get("filename"), a.get("notes"), a.get("source"))
 
     for o in out.get("open_questions") or []:
         _add(nodes, seen, kind="open_question", rid=o["id"], title=o.get("text", ""),
@@ -154,6 +176,42 @@ def project_graph_view_data(graph: dict, *, sessions: dict[str, dict], decisions
                        subtype=subtype_value("session", s), phase=_phase(out, s.get("created_at", "")),
                        extra={"persona_id": s.get("persona_id", ""), "subject": subj})
             edge(subj_node, sid, "informs")
+            if subj.get("kind") == "live_url":
+                shost = _host(subj.get("url", ""))
+                for anid, ahost in artifact_hosts.items():
+                    if shost and ahost and shost == ahost:
+                        edge(anid, sid, "informs")
+            elif subj.get("kind") == "flow":
+                session_tokens = _tokens(subj.get("label"), subj.get("id"))
+                for step in s.get("steps") or []:
+                    action = step.get("action") or {}
+                    state = step.get("state") or {}
+                    session_tokens |= _tokens(action.get("target"), action.get("detail"),
+                                              state.get("screen"), state.get("title"), step.get("monologue"))
+                for aid, toks in asset_token_map.items():
+                    if session_tokens & toks:
+                        edge(aid, sid, "informs")
+
+    # References are explicitly the council material pool. When no narrower ref edge exists,
+    # connect them to the first recorded council as weak context so material does not appear as
+    # random debris while still avoiding a fake chronological chain.
+    council_ids = [n["study_id"] for n in sorted(nodes, key=lambda n: n.get("created_at", ""))
+                   if str(n.get("study_id", "")).startswith("council:")]
+    first_council = council_ids[0] if council_ids else ""
+    if first_council:
+        for aid in artifact_nodes.values():
+            if not any(e.get("from_study") == aid or e.get("to_study") == aid for e in edges):
+                edge(aid, first_council, "informs")
+    # Open questions frame the early research. Link unanswered questions to the first study node
+    # when they are not already cited by surveys/hypotheses/decisions.
+    first_study = next((n["study_id"] for n in sorted(nodes, key=lambda n: n.get("created_at", ""))
+                        if str(n.get("study_id", "")).split(":", 1)[0]
+                        in {"council", "survey", "hypothesis", "session", "report", "decision"}), "")
+    if first_study:
+        for o in out.get("open_questions") or []:
+            oid = _node_id("open_question", o["id"])
+            if not any(e.get("from_study") == oid or e.get("to_study") == oid for e in edges):
+                edge(oid, first_study, "informs")
 
     out["nodes"] = sorted(nodes, key=lambda n: (n.get("created_at", ""), n.get("study_id", "")))
     out["edges"] = edges
