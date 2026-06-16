@@ -113,3 +113,11 @@ def register_methodologies(mcp):
         t = time.perf_counter()
         return _env("record_judgment",
                     services.record_judgment(project_id, task_id, gate_tag, decided, rationale, evidence_refs), t)
+
+    @mcp.tool()
+    def park_evidence(project_id: str, refs: list[Any], reason: str,
+                      task_id: str = "") -> dict[str, Any]:
+        """Explicitly park evidence that should remain visible but should NOT flow into a downstream
+        gate/decision. Use this instead of leaving produced evidence orphaned."""
+        t = time.perf_counter()
+        return _env("park_evidence", services.park_evidence(project_id, refs, reason, task_id), t)

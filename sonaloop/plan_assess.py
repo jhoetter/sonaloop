@@ -130,6 +130,7 @@ def assess_project(project_id: str, store: Store | None = None) -> dict[str, Any
         for u in g["unmet"]:
             gaps.append(f"{g['title']}: {u}")
     judged_refs = {str(r) for j in plan.get("judgments", []) for r in (j.get("evidence_refs") or [])}
+    parked_refs = {str(r) for p in plan.get("parked_refs", []) for r in (p.get("refs") or [])}
     for tsk in tasks:
         if tsk["bucket"] != "act" or tsk.get("status") != "done":
             continue
@@ -142,7 +143,8 @@ def assess_project(project_id: str, store: Store | None = None) -> dict[str, Any
             if ref.get("kind") == "frame":
                 continue
             rid, kind = str(ref.get("id") or ""), str(ref.get("kind") or "")
-            if not rid or ({rid, f"{kind}:{rid}"} & judged_refs):
+            names = {rid, f"{kind}:{rid}"}
+            if not rid or (names & judged_refs) or (names & parked_refs):
                 continue
             gaps.append(f"{tsk['title']}: produced {kind}:{rid} but no completed gate cites it — "
                         f"record_judgment(evidence_refs=[...]) or park the evidence explicitly")

@@ -288,6 +288,43 @@ def record_judgment(project_id: str, task_id: str, gate_tag: str, decided: bool,
     return j
 
 
+def _ref_text(raw: Any) -> str:
+    if isinstance(raw, dict):
+        r = _ref(raw)
+        return f"{r['kind']}:{r['id']}" if r["kind"] and r["id"] else r["id"]
+    return str(raw or "").strip()
+
+
+def park_evidence(project_id: str, refs: list[Any], reason: str, task_id: str = "",
+                  store: Store | None = None) -> dict[str, Any]:
+    """Mark evidence as deliberately not flowing into a downstream gate.
+
+    This is the explicit counterpart to a trace gap: a produced ref can be useful context but not
+    decision evidence. Parking keeps it visible and auditable instead of letting agents silently
+    strand it.
+    """
+    store = store or Store()
+    plan = get_plan(project_id, store=store)
+    if plan is None:
+        raise PlanError("NO_PLAN", f"project {project_id} has no plan")
+    if task_id and task(plan, task_id) is None:
+        raise PlanError("BAD_PARK", f"unknown task '{task_id}'")
+    clean = [r for r in (_ref_text(x) for x in (refs or [])) if r]
+    if not clean:
+        raise PlanError("BAD_PARK", "park_evidence needs >= 1 evidence ref")
+    why = str(reason or "").strip()
+    if not why:
+        raise PlanError("BAD_PARK", "park_evidence needs a reason")
+    rec = {"task_id": task_id, "refs": clean, "reason": why, "created_at": utc_now_iso()}
+    parked = plan.setdefault("parked_refs", [])
+    key = (task_id, tuple(sorted(clean)), why)
+    if not any((p.get("task_id", ""), tuple(sorted(p.get("refs") or [])), p.get("reason", "")) == key
+               for p in parked):
+        parked.append(rec)
+        save_plan(plan, store=store)
+    return rec
+
+
 def _fan_tasks(plan: dict[str, Any], vtask: dict[str, Any]) -> list[dict[str, Any]]:
     """The act 'fan' a verify task consolidates: sibling tasks sharing one of its consumed frames."""
     frames = set(vtask["consumes"])

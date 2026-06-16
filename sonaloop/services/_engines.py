@@ -314,6 +314,11 @@ def record_judgment(project_id, task_id, gate_tag, decided, rationale,
                                  evidence_refs, store=store)
 
 
+def park_evidence(project_id: str, refs: list[Any], reason: str, task_id: str = "",
+                  store: Store | None = None) -> dict[str, Any]:
+    return _plan.park_evidence(project_id, refs, reason, task_id, store=store)
+
+
 
 def export_plan_md(project_id: str, store: Store | None = None) -> str:
     store = store or Store()

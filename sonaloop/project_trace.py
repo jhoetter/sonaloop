@@ -140,14 +140,24 @@ def _terminal_plan_nodes(plan: dict[str, Any] | None, known_nodes: set[str]) -> 
     return out
 
 
+def _parked_plan_nodes(plan: dict[str, Any] | None, known_nodes: set[str]) -> set[str]:
+    out: set[str] = set()
+    for rec in (plan or {}).get("parked_refs") or []:
+        for ref in rec.get("refs") or []:
+            nid = normalize_trace_ref(ref, known_nodes)
+            if nid:
+                out.add(nid)
+    return out
+
+
 def trace_node_health(nodes: list[dict[str, Any]], edges: list[dict[str, Any]],
                       plan: dict[str, Any] | None = None) -> dict[str, str]:
     """Deterministic lifecycle state for visible project nodes.
 
     A node without outputs is acceptable while the plan is still open; after the
     plan is complete, middle/source evidence must either be consumed, terminal
-    or explicitly parked (parked edges land in a later slice). This is the
-    substrate for quiet UI warnings and assess_project gaps.
+    or explicitly parked. This is the substrate for quiet UI warnings and
+    assess_project gaps.
     """
     known = {str(n.get("study_id")) for n in nodes if n.get("study_id")}
     incoming: dict[str, int] = {nid: 0 for nid in known}
@@ -158,6 +168,7 @@ def trace_node_health(nodes: list[dict[str, Any]], edges: list[dict[str, Any]],
             outgoing[a] = outgoing.get(a, 0) + 1
             incoming[b] = incoming.get(b, 0) + 1
     terminal_nodes = _terminal_plan_nodes(plan, known)
+    parked_nodes = _parked_plan_nodes(plan, known)
     complete = _plan_complete(plan)
     out: dict[str, str] = {}
     for n in nodes:
@@ -167,6 +178,8 @@ def trace_node_health(nodes: list[dict[str, Any]], edges: list[dict[str, Any]],
         kind = _kind_of(n)
         if outgoing.get(nid, 0):
             out[nid] = "source" if incoming.get(nid, 0) == 0 and kind in START_KINDS else "consumed"
+        elif nid in parked_nodes:
+            out[nid] = "parked"
         elif kind in TERMINAL_KINDS or nid in terminal_nodes:
             out[nid] = "terminal"
         elif complete:

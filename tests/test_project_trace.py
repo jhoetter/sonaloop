@@ -21,6 +21,13 @@ def test_trace_node_without_output_is_orphaned_after_plan_completes():
     assert trace_node_health(nodes, [], _plan("done")) == {"survey:sv1": "orphaned"}
 
 
+def test_trace_node_without_output_can_be_explicitly_parked():
+    nodes = [{"study_id": "survey:sv1", "kind": "survey"}]
+    plan = _plan("done")
+    plan["parked_refs"] = [{"refs": ["survey:sv1"], "reason": "side signal"}]
+    assert trace_node_health(nodes, [], plan) == {"survey:sv1": "parked"}
+
+
 def test_trace_node_with_output_is_consumed_and_terminal_verify_synthesis_ends():
     nodes = [
         {"study_id": "survey:sv1", "kind": "survey"},
