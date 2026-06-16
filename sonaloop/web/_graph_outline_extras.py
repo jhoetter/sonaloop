@@ -151,9 +151,9 @@ def extra_outline_items(graph: dict, *, decisions: list, hypotheses: list, surve
             pk, order, rnd = _phase_round_at(ts, nodes, node_round, default_phase)[0], f"~{ts}", None
         # V9: the renderer presents asset items as `.sl-file--row` FILE rows (_graph_outline.row)
         # — identity badge, one download/open affordance, body = the /assets/{id} slide-over.
-        out.append(item(a["id"], color="#0f9d8f" if deliverable else "#8a6d3b",
+        out.append(item(a["id"], color=primitive_color("asset"),
                         title=a.get("title") or a.get("filename", ""),
-                        kind=t("asset_kind_" + (a.get("kind") or "file")), href=f'/assets/{a["id"]}',
+                        kind=t("asset_kind"), href=f'/assets/{a["id"]}',
                         pk=pk, ts=ts, rkind="asset", node=a, order=order, rnd=rnd,
                         evidence=not deliverable, deliverable=deliverable))
     return out

@@ -135,7 +135,7 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
     for p in protos:                               # prototypes NOT paired under a built note → standalone
         if p["id"] not in used:
             pk = producing_step(plan, p["id"], ("artifact", "prototype")) or ideation
-            add(p["id"], "#00897b", p["name"], _pres.present("prototype")["label"],
+            add(p["id"], primitive_color("prototype"), p["name"], t("prototype_kind"),
                 f'/prototypes/{p["slug"]}', pk, 0, p.get("created_at", ""), p.get("created_at", ""),
                 rkind="prototype", node=p)
     # Notes (phase-free): a CONCEPT (built, or carrying an artifact_kind) sits at the ideation/develop phase;
@@ -149,13 +149,13 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         cr = node_round.get(nt["study_id"], 0)
         built = sorted(pro_of.get(nt["study_id"]) or [], key=lambda p: p.get("created_at", ""))
         is_concept = bool(built) or nt.get("artifact_kind")
-        add(nt["study_id"], nt.get("color", "#f29900"), nt.get("title", "") or "—",
+        add(nt["study_id"], nt.get("color", primitive_color("note")), nt.get("title", "") or "—",
             nt.get("kind_label", ""), nt.get("href", ""), ideation if is_concept else notes_phase, cr,
             f'{nt.get("created_at", "")}#{seq:04d}', nt.get("created_at", ""),
             plabel=nt.get("kind_label", "") if planless else None, rkind=nt.get("kind", ""), node=nt)
         seq += 1
         for i, p in enumerate(built):
-            add(p["id"], "#00897b", p["name"], _pres.present("prototype")["label"],
+            add(p["id"], primitive_color("prototype"), p["name"], t("prototype_kind"),
                 f'/prototypes/{p["slug"]}', ideation, cr, f'{nt.get("created_at", "")}#{seq:04d}',
                 p.get("created_at", ""), indent=1, last_child=(i == len(built) - 1),
                 rkind="prototype", node=p)
@@ -165,7 +165,7 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
     # after the methodology rows, before the deliverable assets), each opening its own report page.
     last_key = max(pmeta, key=lambda k: pmeta[k][0]) if pmeta else ""
     for mr in sorted(graph.get("reports", []), key=lambda m: m.get("created_at", "")):
-        add(mr["id"], "#6d5ef0", mr.get("title", "") or t("synthesis_kind"), t("synthesis_kind"),
+        add(mr["id"], primitive_color("report"), mr.get("title", "") or t("synthesis_kind"), t("synthesis_kind"),
             f'/syntheses/{mr["id"]}', last_key, max(nrounds - 1, 0), f'~{mr.get("created_at", "")}',
             mr.get("created_at", ""), plabel=t("synthesis_kind") if planless else None,
             rkind="report", node=mr)

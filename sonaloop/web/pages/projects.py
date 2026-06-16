@@ -5,6 +5,7 @@ from fastapi.responses import RedirectResponse
 
 from ._ctx import *  # noqa: F401,F403  (shared render toolkit)
 from .._graph_outline_sessions import outline_session_groups
+from .._primitive_taxonomy import PRIMITIVES, primitive_color, subtype_label, subtype_value
 # Presence contract (tracker: sonaloop/project-presence-contract) + UX P2 (spec/ux-contract.md
 # §3.4): EVERY project-scoped kind is an outline row in its phase context — decisions, surveys,
 # hypotheses, open questions and assets included (_graph_outline_extras builds their items).
@@ -57,10 +58,9 @@ def register_projects(app) -> None:
         for n in graph["nodes"]:
             nt = n.get("note_kind") if str(n["study_id"]).startswith("note:") else str(n["study_id"]).split(":", 1)[0]
             if nt and nt not in type_meta:
-                type_meta[nt] = (n.get("color", "#9aa0a6"), n.get("kind_label", nt), n.get("glyph", ""))
+                type_meta[nt] = (primitive_color(nt), n.get("kind_label", nt), n.get("glyph", ""))
         if protos:
-            ap0 = _artifact_present(protos[0])
-            type_meta["prototype"] = (ap0["color"], t("prototypes_h"), ap0.get("glyph", ""))
+            type_meta["prototype"] = (primitive_color("prototype"), t("prototypes_h"), PRIMITIVES["prototype"].icon)
         type_tagset = set(type_meta)
         type_chips = fragment(*(
             h("button", {"class_": "rgchip", "data-theme": ty, "style": f"--c:{c}"},
@@ -118,7 +118,7 @@ def register_projects(app) -> None:
                 cap_icon = _icon("check") if captured else _icon("circle")
                 cap_txt = (f'{t("artifact_captured")} · {ui.fmt_ts(a.get("captured_at") or "")}' if captured
                            else t("artifact_capture_failed"))
-                kind_label = t("artifact_kind_" + (a.get("kind") or "url"))
+                kind_label = subtype_label(subtype_value("url_artifact", a))
                 arows.append(h("div", {"class_": "strow"},
                                h("span", {"class_": "pill"}, a.get("label", "?")), " ",
                                h("a", {"href": a.get("url", "#"), "target": "_blank", "rel": "noopener"},
