@@ -82,6 +82,8 @@ def test_expected_tools_registered():
         "get_hypothesis", "list_hypotheses",
         # authoring vocabularies (the stance scale is the CLOSED set every stance resolves onto):
         "suggest_stances", "suggest_finding_kinds",
+        # primitive/form taxonomy registry:
+        "list_primitives", "list_forms", "get_form", "suggest_forms",
     }
     missing = expected - names
     assert not missing, f"MCP tools missing: {sorted(missing)}"

@@ -159,6 +159,38 @@ def forms_for_primitive(primitive_id: str) -> list[dict[str, Any]]:
     return [form for form in reg.get("forms", []) if form.get("primitive") == primitive_id]
 
 
+def list_primitives() -> list[dict[str, Any]]:
+    """Read-only primitive catalogue with family, presentation and purpose."""
+    return [dict(p) for p in load_registry().get("primitives") or []]
+
+
+def list_forms(primitive: str | None = None) -> list[dict[str, Any]]:
+    """Read-only form catalogue, optionally filtered by primitive id."""
+    forms = [dict(f) for f in load_registry().get("forms") or []]
+    if primitive:
+        forms = [f for f in forms if f.get("primitive") == primitive]
+    return forms
+
+
+def get_form(primitive: str, form_id: str) -> dict[str, Any]:
+    form = resolve_form(primitive, form_id)
+    if form is None:
+        raise KeyError(f"No registered form {primitive}/{form_id}")
+    return dict(form)
+
+
+def suggest_forms(primitive: str) -> dict[str, Any]:
+    """Agent-facing read path for choosing a form and inspecting payload shape."""
+    primitive_doc = next((p for p in list_primitives() if p.get("id") == primitive), None)
+    if primitive_doc is None:
+        raise KeyError(f"No registered primitive {primitive}")
+    return {
+        "primitive": primitive_doc,
+        "forms": list_forms(primitive),
+        "custom_form_policy": dict(load_registry().get("custom_form_policy") or {}),
+    }
+
+
 def resolve_form(primitive_id: str, value: str) -> dict[str, Any] | None:
     """Resolve a canonical form id or compatibility alias for one primitive."""
     needle = str(value or "")

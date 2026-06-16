@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from sonaloop import services
 from sonaloop import primitive_taxonomy_registry as reg
 
 
@@ -171,3 +172,30 @@ def test_note_and_conclude_forms_keep_statuses_orthogonal():
     assert attrs["synthesis_status"]["kind"] == "status"
     assert reg.resolve_form("decision", "adopted") is None
     assert reg.resolve_form("hypothesis", "validated") is None
+
+
+def test_taxonomy_read_services_expose_shapes_and_aliases():
+    primitives = services.list_primitives()
+    assert any(p["id"] == "council" for p in primitives)
+    council_forms = services.list_forms("council")
+    assert any(f["id"] == "option_comparison" for f in council_forms)
+    form = services.get_form("council", "head_to_head")
+    assert form["id"] == "option_comparison"
+    assert form["schema"]["required"] == ["options", "preferences"]
+    assert form["renderer"]["requires"] == ["option_comparison"]
+    suggested = services.suggest_forms("session")
+    assert suggested["primitive"]["id"] == "session"
+    assert any(f["id"] == "prototype_use" for f in suggested["forms"])
+    assert suggested["custom_form_policy"]["default"] == "reject_unknown"
+
+
+def test_taxonomy_cli_commands_are_wired():
+    from sonaloop.cli import build_parser
+
+    assert build_parser().parse_args(["primitive-list"]).command == "primitive-list"
+    args = build_parser().parse_args(["form-list", "--primitive", "council"])
+    assert args.command == "form-list" and args.primitive == "council"
+    args = build_parser().parse_args(["form-get", "council", "head_to_head"])
+    assert args.command == "form-get" and args.form_id == "head_to_head"
+    args = build_parser().parse_args(["forms-suggest", "survey"])
+    assert args.command == "forms-suggest" and args.primitive == "survey"
