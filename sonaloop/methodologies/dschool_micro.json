@@ -5,6 +5,8 @@
   "when_to_use": "Human-centered design when you want empathy-first divergence and rapid prototype testing.",
   "presentation": {
     "icon": "compass",
+    "image": "dschool-micro.jpg",
+    "figure": "convene",
     "summary": "Empathy-first divergence, a sharp POV, then rapid prototype testing.",
     "jobs": "Fast human-centered concept work and continuous discovery loops."
   },

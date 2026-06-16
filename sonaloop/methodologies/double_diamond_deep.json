@@ -5,6 +5,8 @@
   "when_to_use": "When you want depth: many personas, broad problem exploration, clustered key problems, several lo-fi prototypes tested and down-selected, a refined mid-fi prototype tested, and a buildable solution presentation.",
   "presentation": {
     "icon": "network",
+    "image": "double-diamond-deep.jpg",
+    "figure": "coreSample",
     "summary": "Three diamonds with a fidelity ladder from rough options to tested refinement.",
     "jobs": "High-stakes ideation where breadth, prototype variety, and down-selection matter."
   },

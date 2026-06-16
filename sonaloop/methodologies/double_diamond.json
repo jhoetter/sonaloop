@@ -5,6 +5,8 @@
   "when_to_use": "When you have a 'How Might We' question and want a rigorous problem framing plus a tested, buildable solution spec.",
   "presentation": {
     "icon": "exchange",
+    "image": "double-diamond.jpg",
+    "figure": "loop",
     "summary": "Frame the problem, then build the solution.",
     "jobs": "Ambiguous HMW questions, positioning work, and buildable solution specs."
   },

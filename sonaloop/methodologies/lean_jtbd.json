@@ -5,6 +5,8 @@
   "when_to_use": "When you want to anchor on the customer's job, find the highest-value problem, then validate a minimal solution.",
   "presentation": {
     "icon": "target",
+    "image": "lean-jtbd.jpg",
+    "figure": "signal",
     "summary": "Anchor on the job-to-be-done, pick the strongest problem, validate a minimal answer.",
     "jobs": "Demand, pricing, churn, and MVP questions where the customer job is the anchor."
   },

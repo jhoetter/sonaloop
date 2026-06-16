@@ -1,9 +1,14 @@
 """Methodology browser: the process layer a project can run through."""
 from __future__ import annotations
 
+import base64
+from functools import lru_cache
+from pathlib import Path
+
 from ._ctx import *  # noqa: F401,F403
 
 from ... import job_taxonomy, methodology as _methodology
+from ..._icons import figure as _figure
 from .._html import register_css
 
 
@@ -11,12 +16,20 @@ register_css(
     ".meth-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,420px);gap:24px;align-items:start;margin:6px 0 22px}"
     ".meth-lede{max-width:78ch}"
     ".meth-index{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}"
-    ".meth-card{display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;align-items:start;text-decoration:none;color:inherit}"
+    ".meth-card{display:grid;grid-template-columns:104px minmax(0,1fr);gap:12px;align-items:start;text-decoration:none;color:inherit;padding:10px}"
     ".meth-card:hover{border-color:color-mix(in srgb,var(--accent) 42%,var(--line));background:var(--panel-2)}"
-    ".meth-card .rico{color:var(--accent);margin-top:1px}"
+    ".meth-card-img{position:relative;display:block;aspect-ratio:4/3;border-radius:var(--radius-sm);overflow:hidden;background:var(--panel-2);border:1px solid var(--line)}"
+    ".meth-card-img img{width:100%;height:100%;object-fit:cover;display:block}"
+    ".meth-card-img .rico{position:absolute;left:8px;bottom:8px;width:28px;height:28px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;color:var(--accent);background:color-mix(in srgb,var(--panel) 84%,transparent);backdrop-filter:blur(10px);box-shadow:0 1px 8px color-mix(in srgb,var(--ink) 12%,transparent)}"
     ".meth-card h2{font-size:var(--t-md);line-height:1.25;margin:0 0 4px;font-weight:650}"
     ".meth-card p{margin:0;color:var(--muted);line-height:1.4}"
     ".meth-card .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}"
+    ".meth-cover{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);min-height:250px;color:var(--accent)}"
+    ".meth-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}"
+    ".meth-cover:after{content:\"\";position:absolute;inset:0;background:linear-gradient(180deg,color-mix(in srgb,var(--panel) 0%,transparent),color-mix(in srgb,var(--panel) 72%,transparent))}"
+    ".meth-cover-fig{position:absolute;inset:auto 8px -28px 8px;z-index:1;opacity:.78}"
+    ".meth-cover-fig svg{width:100%;height:auto;display:block}"
+    ".meth-cover+.meth-viz{margin-top:10px}"
     ".meth-bands{display:grid;gap:8px;margin-top:18px}"
     ".meth-band{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;padding:12px 0;border-top:1px solid var(--line)}"
     ".meth-band b{font-size:var(--t-sm)}"
@@ -38,7 +51,22 @@ register_css(
     ".meth-job b{display:block;margin-bottom:4px}"
     ".meth-job span{color:var(--muted);line-height:1.4}"
     "@media(max-width:980px){.meth-hero{grid-template-columns:1fr}.meth-band{grid-template-columns:1fr}}"
+    "@media(max-width:560px){.meth-card{grid-template-columns:1fr}.meth-card-img{aspect-ratio:16/7}}"
 )
+
+_ASSET_DIR = Path(__file__).resolve().parents[1] / "assets" / "methodologies"
+
+
+@lru_cache(maxsize=16)
+def _asset_uri(name: str) -> str:
+    if not name or Path(name).name != name:
+        return ""
+    path = _ASSET_DIR / name
+    try:
+        data = path.read_bytes()
+    except OSError:
+        return ""
+    return "data:image/jpeg;base64," + base64.b64encode(data).decode("ascii")
 
 
 def _slug(key: str) -> str:
@@ -53,7 +81,23 @@ def _spec_for(slug: str, store: Store) -> dict | None:
 
 def _meta(spec: dict) -> dict:
     own = spec.get("presentation") or {}
-    return {"icon": "target", "summary": spec.get("description", ""), "jobs": spec.get("when_to_use", "")} | own
+    return {"icon": "target", "summary": spec.get("description", ""), "jobs": spec.get("when_to_use", ""),
+            "image": "", "figure": ""} | own
+
+
+def _image(spec: dict) -> str:
+    return _asset_uri(str(_meta(spec).get("image") or ""))
+
+
+def _cover(spec: dict) -> str:
+    meta = _meta(spec)
+    src = _asset_uri(str(meta.get("image") or ""))
+    if not src:
+        return ""
+    fig = _figure(str(meta.get("figure") or ""), width=420, cls="meth-figure", animate=True)
+    return h("div", {"class_": "meth-cover"},
+             h("img", {"src": src, "alt": ""}),
+             h("div", {"class_": "meth-cover-fig"}, raw(fig)) if fig else None)
 
 
 def _jobs_for(key: str) -> list[dict]:
@@ -99,8 +143,11 @@ def _methodologies_page() -> str:
     for spec in specs:
         meta = _meta(spec)
         jobs = _jobs_for(spec.get("key", ""))
+        src = _image(spec)
         rows.append(h("a", {"class_": "sl-card meth-card", "href": f"/methodologies/{_slug(spec.get('key', ''))}"},
-                      h("span", {"class_": "rico"}, raw(_icon(meta["icon"]))),
+                      h("span", {"class_": "meth-card-img"},
+                        h("img", {"src": src, "alt": ""}) if src else None,
+                        h("span", {"class_": "rico"}, raw(_icon(meta["icon"])))),
                       h("span", {},
                         h("h2", {}, spec.get("name", "")),
                         h("p", {}, meta["summary"]),
@@ -157,6 +204,7 @@ def _methodology_detail(slug: str) -> str:
                  h("h2", {"class_": "doc-sub-h", "id": "steps"}, "Phasen" if _lang() == "de" else "Stages"),
                  h("div", {"class_": "meth-steps"}, fragment(*step_rows))),
                h("aside", {},
+                 raw(_cover(spec)),
                  h("div", {"class_": "meth-viz"}, raw(_methodology_svg(spec))),
                  h("div", {"class_": "meth-bands"},
                    h("div", {"class_": "meth-band"}, h("b", {}, "Geeignet für" if _lang() == "de" else "Good for"), h("span", {}, meta["jobs"])),
