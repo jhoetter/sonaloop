@@ -19,8 +19,8 @@ from .._forms import overflow_delete
 from .edit import note_actions, section_actions
 from .._presence import asset_direction, record_status, status_filter_label
 from .._primitive_taxonomy import (
-    FAMILIES, family_icon, family_label, primitive_family, primitive_purpose, subtype_label,
-    subtype_value,
+    FAMILIES, family_icon, family_label, primitive_family, primitive_purpose, primitive_subtypes,
+    subtype_label, subtype_value,
 )
 
 # (key, canonical route, icon, label, empty-state msg, lead, teach) — labels are lambdas so
@@ -237,6 +237,44 @@ def _taxonomy_context(tab: str, kind: str) -> str:
              h("span", {"class_": "sl-taxctx__purpose"}, purpose))
 
 
+def _library_taxonomy_map(active_tab: str) -> str:
+    """A visible map of Library primitives and their real subforms.
+
+    The map is intentionally rendered from _primitive_taxonomy's catalogue,
+    while row filtering still uses subtype_value(). That gives users a stable
+    explanation without making row classification depend on prose.
+    """
+    de = _lang() == "de"
+    rows = []
+    for key, route, icon, label, *_ in LIBRARY_TABS:
+        kind = TAB_KIND.get(key, "")
+        family = primitive_family(kind)
+        docs = primitive_subtypes(kind)
+        rows.append(h("section", {"class_": "sl-libmap-card sl-is-active" if key == active_tab else "sl-libmap-card"},
+                      h("header", {"class_": "sl-libmap-card__head"},
+                        h("a", {"href": route}, raw(_icon(icon)), h("span", {}, label())),
+                        h("span", {"class_": "sl-libmap-family"}, family_label(family))),
+                      h("p", {"class_": "sl-libmap-purpose"}, primitive_purpose(kind)),
+                      h("div", {"class_": "sl-libmap-subtypes"},
+                        fragment(*[
+                            h("div", {"class_": "sl-libmap-subtype"},
+                              h("div", {"class_": "sl-libmap-subtype__label"},
+                                raw(_label(subtype_label(d.value), "var(--blue)"))),
+                              h("p", {}, d.meaning_de if de else d.meaning_en),
+                              h("code", {}, d.rule_de if de else d.rule_en))
+                            for d in docs
+                        ]))))
+    summary = ("Library-Primitives und ihre echten Subformen" if de
+               else "Library primitives and their real subforms")
+    lead = ("Subformen sind keine neuen Top-Level-Artefakte. Sie sind Record-Varianten innerhalb eines "
+            "Library-Primitives, z. B. Red-Team als CouncilSession mit `red_team`-Block." if de else
+            "Subforms are not new top-level artifacts. They are record variants inside a Library "
+            "primitive, for example Red-team as a CouncilSession carrying a `red_team` block.")
+    return h("details", {"class_": "sl-libmap", "open": True},
+             h("summary", {}, h("span", {}, summary), h("small", {}, lead)),
+             h("div", {"class_": "sl-libmap-grid"}, fragment(*rows)))
+
+
 def _library_nav(active_tab: str) -> str:
     """Two-level Library navigation: users first choose the role a primitive plays, then the
     specific primitive inside that role. This keeps the mental model visible instead of showing
@@ -326,12 +364,14 @@ def library_page(tab: str = "questions", store: Store | None = None, *,
                           empty_teach=t("filter_no_matches"),
                           empty_action=(t("clear_filter"), base0, "filter"),
                           active="library",
-                          pre=str(tabs_html) + _taxonomy_context(tab, tab_kind) + bar + pre_extra,
+                          pre=(str(tabs_html) + _taxonomy_context(tab, tab_kind)
+                               + _library_taxonomy_map(tab) + bar + pre_extra),
                           count=0)
     return _list_page(store, title=t("library_h"), lead=lead(), rows=rows,
                       empty_icon=icon, empty_msg=empty_msg(), empty_teach=teach(),
                       active="library",
-                      pre=str(tabs_html) + _taxonomy_context(tab, tab_kind) + bar + pre_extra,
+                      pre=(str(tabs_html) + _taxonomy_context(tab, tab_kind)
+                           + _library_taxonomy_map(tab) + bar + pre_extra),
                       count=len(rows))
 
 
@@ -602,4 +642,28 @@ register_css(
     ".sl-taxctx__family{color:var(--ink);font-weight:650}"
     ".sl-taxctx__dot{color:var(--faint)}"
     ".sl-taxctx__purpose{max-width:78ch}"
+    ".sl-libmap{margin:12px 0 12px;border:1px solid var(--line);border-radius:var(--radius);"
+    "background:var(--panel);overflow:hidden}"
+    ".sl-libmap>summary{display:flex;gap:10px;align-items:baseline;justify-content:space-between;"
+    "padding:12px 14px;cursor:pointer;font-weight:700}"
+    ".sl-libmap>summary small{font-weight:450;color:var(--muted);line-height:1.35;max-width:74ch}"
+    ".sl-libmap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px;"
+    "padding:0 12px 12px}"
+    ".sl-libmap-card{border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--bg);"
+    "padding:12px;display:grid;gap:8px;align-content:start}"
+    ".sl-libmap-card.sl-is-active{border-color:color-mix(in srgb,var(--accent) 44%,var(--line));"
+    "box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 18%,transparent)}"
+    ".sl-libmap-card__head{display:flex;align-items:center;justify-content:space-between;gap:10px}"
+    ".sl-libmap-card__head a{display:inline-flex;align-items:center;gap:7px;color:var(--ink);"
+    "font-weight:700;text-decoration:none}"
+    ".sl-libmap-card__head svg{width:15px;height:15px;color:var(--accent)}"
+    ".sl-libmap-family{font-size:var(--t-xs);color:var(--muted);text-transform:uppercase;letter-spacing:.08em}"
+    ".sl-libmap-purpose{margin:0;color:var(--muted);line-height:1.4}"
+    ".sl-libmap-subtypes{display:grid;gap:8px}"
+    ".sl-libmap-subtype{padding-top:8px;border-top:1px solid var(--line)}"
+    ".sl-libmap-subtype__label{margin-bottom:4px}"
+    ".sl-libmap-subtype p{margin:0 0 5px;line-height:1.4}"
+    ".sl-libmap-subtype code{display:block;white-space:normal;background:var(--panel-2);"
+    "border:1px solid var(--line);border-radius:var(--radius-sm);padding:6px 7px;color:var(--muted);"
+    "font-size:var(--t-xs)}"
 )

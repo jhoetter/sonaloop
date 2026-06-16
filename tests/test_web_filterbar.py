@@ -200,6 +200,24 @@ def test_library_subtype_filter_separates_council_formats(store):
     assert "Red-team" in html
 
 
+def test_library_explains_primitives_and_subforms(store):
+    html = _client().get("/library?tab=councils&lang=en").text
+    assert "Library primitives and their real subforms" in html
+    assert "Red-team" in html and "red_team" in html
+    assert "Head-to-head" in html and "head_to_head" in html
+    assert "Prototype session" in html
+    assert "Concept note" in html
+    assert "Subforms are not new top-level artifacts" in html
+
+
+def test_every_library_tab_has_subtype_documentation():
+    from sonaloop.web._primitive_taxonomy import primitive_subtypes
+    from sonaloop.web.pages.library import LIBRARY_TABS, TAB_KIND
+
+    missing = [key for key, *_ in LIBRARY_TABS if not primitive_subtypes(TAB_KIND[key])]
+    assert missing == []
+
+
 # ------------------------------------------------------------------- V1: search + theme facet
 
 def test_outline_search_slot_renders_inside_the_bar(store):
