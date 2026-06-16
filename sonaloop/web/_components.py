@@ -12,7 +12,7 @@ from .._shell import SHELL_JS  # app-shell behaviour (resize/collapse/user-menu)
 from .. import services
 from .. import presentation as _pres
 from ..storage import Store
-from ..web_assets import CSS, HEAD_JS, _RGRAPH_JS  # noqa: F401  (extracted assets)
+from ..web_assets import CSS, HEAD_JS  # noqa: F401  (extracted assets)
 from ._i18n import t, _lang
 from ._html import h, raw, fragment, register_css, collect_css  # noqa: F401  (component-SSR foundation)
 from ._palette import PALETTE_CSS, PALETTE_JS, palette_markup

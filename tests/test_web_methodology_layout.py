@@ -1,9 +1,8 @@
-"""C3 — generic DAG UI layout (spec/methodology-constellations.md §5).
+"""Project-graph edge data over the plan DAG (spec/methodology-constellations.md §5).
 
-The layout is derived from the plan's analyze→act→verify DAG + recorded evidence + artifact tags,
-with NO phase-key/tag literals. double_diamond_deep still renders three diamonds with both prototypes
-routed (solid idea->artifact, dashed artifact->tested-at); a different-shaped methodology renders
-too; the interactive graph builds without error.
+The spatial graph view is retired, but get_project_graph still derives the methodology DAG +
+recorded evidence + artifact tags into nodes/edges — the data that now feeds the outline's
+relation arrows. The synthesis spine (GAP-6) keeps successive converging syntheses connected.
 
 The plan is the single engine (HX3): a methodology only SEEDS the plan. `_drive_plan` is a tiny
 deterministic offline driver — the plan analogue of the old StubAuthoringBackend — that discharges
@@ -13,12 +12,9 @@ engine and no stub driver.
 """
 from __future__ import annotations
 
-import re
-from pathlib import Path
-
 from sonaloop import methodology as M
 from sonaloop import plan as PL
-from sonaloop import services, web
+from sonaloop import services
 
 
 def _council(store, cid: str) -> None:
@@ -74,37 +70,9 @@ def _drive_plan(store, tmp_path, key):
     return services.get_project_graph(pid, store=store)
 
 
-def test_deep_renders_three_diamonds_with_routed_artifacts(store, tmp_path):
-    g = _drive_plan(store, tmp_path, "double_diamond_deep")
-    ml = web._methodology_layout(g)
-    assert ml is not None
-    assert len(ml["diamonds"]) == 3                      # three emergent fan->waist diamonds
-    assert len(ml["proto_pos"]) == 2                     # lo-fi + mid-fi placed
-    solid = [e for e in ml["proto_edges"] if not e[2]]
-    dashed = [e for e in ml["proto_edges"] if e[2]]
-    assert len(solid) == 2 and len(dashed) == 2          # idea->artifact + artifact->tested-at
-    assert "rgdata" in web._graph_interactive(g)         # interactive graph builds
-
-
-def test_other_shaped_methodology_renders(store, tmp_path):
-    g = _drive_plan(store, tmp_path, "dschool_micro")
-    ml = web._methodology_layout(g)
-    assert ml is not None and len(ml["diamonds"]) == 2 and len(ml["proto_pos"]) == 1
-    assert "rgdata" in web._graph_interactive(g)
-
-
-def test_layout_has_no_phase_key_literals():
-    """grep: the layout must not hardcode any methodology's phase keys or fidelity vocab."""
-    src = Path(web._graph.__file__).read_text()
-    lo = src[src.index("def _methodology_layout"):src.index("def _graph_interactive")]
-    for lit in ('"ideate"', '"refine"', '"lofi_select"', '"deliver"', "build_col", "test_conv",
-                '"lofi"', '"midfi"'):
-        assert lit not in lo, lit
-
-
 def test_diamonds_connect_via_synthesis_spine(store, tmp_path):
     """GAP-6: the converging syntheses of successive diamonds are linked (Define→Select→Deliver…) so
-    the full double-diamond reads as ONE connected flow, not edge-less floating diamonds ("no lines")."""
+    the full double-diamond reads as ONE connected flow — the spine that now feeds outline relations."""
     g = _drive_plan(store, tmp_path, "double_diamond_deep")
     syn_nodes = [n["study_id"] for n in g["nodes"] if n["study_id"].startswith("synthesis:")]
     informs = [(e["from_study"], e["to_study"]) for e in g["edges"] if e["type"] == "informs"]

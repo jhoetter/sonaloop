@@ -454,7 +454,6 @@ def test_heterogeneous_graph_councils_and_synthesis(store):
     # colors come from data (present(kind)), not code
     council_node = next(n for n in g["nodes"] if n["kind"] == "council")
     assert council_node["color"] == "#6b7cff"          # from suggestions/evidence_kinds.json
-    assert "rgdata" in web._graph_interactive(g)        # renders
 
 
 def test_no_hardcoded_evidence_kind_literal_in_web():

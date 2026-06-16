@@ -25,7 +25,7 @@ PAGES_DIR = Path(__file__).resolve().parent.parent / "sonaloop" / "web" / "pages
 # .oqp-h rule itself, web_assets.py), U9/U10 (the oqpanel pills/ul margins moved
 # into the .oqpanel rules) and V2 (the council section-hint margins folded into the
 # now-global `.ihint` rule). ONLY lower it.
-STYLE_BASELINE = 35
+STYLE_BASELINE = 23
 
 
 def _pages() -> list[Path]:
@@ -61,10 +61,8 @@ ALLOWED_CLASS_TOKENS = {
     "muted", "small", "lead", "h1", "h1cnt", "page", "grid", "two", "right", "rows", "row",
     "cnt", "pill", "pills", "sec", "spacer", "title", "sub", "empty", "avatar",
     "quote", "thought", "lbl", "lbl-soft", "ihint", "identity", "cap-row", "rico",
-    # project page: outline/toolbar/graph chrome (P2 retired the appendix: projjump/projsection)
-    "proj", "proj-graph", "proj-head", "oqp-h", "oqpanel",
-    "ptoolbar", "ptlabel", "ptlabel-2", "graphcard", "rgchip", "rgclear", "tagchip",
-    "protoframe", "strow",
+    # project page: outline chrome (the spatial graph view + its toolbar/panel retired)
+    "proj", "proj-head", "protoframe", "strow",
     # hypothesis/decision cards (.hyp co-located in pages/hypotheses.py)
     "hyp", "hyprate", "hypseg", "hypstrip", "hypvals",
     # councils: turns/head-to-head tables (the votebar retired with the P3 Library rows)

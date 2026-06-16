@@ -167,19 +167,3 @@ def test_persona_ids_override_the_project_panel(store):
     out = services.assess_coverage(proj["id"], persona_ids=[a], store=store)
     assert out["panel_size"] == 1                      # only the overridden panel is assessed
 
-
-# --------------------------------------------------------------------------- inspector render
-
-def test_coverage_renders_in_the_inspector(store):
-    """The project page surfaces the coverage indicator (level) + a gap — German UI strings."""
-    from starlette.testclient import TestClient
-    from sonaloop import web
-
-    pids = [_diverse_persona(store, f"Clone{i}", customer_type="Solo", risk="high",
-                             size="small", goal="same", pain="same") for i in range(4)]
-    proj = services.create_research_project("render", goal="g", persona_ids=pids, store=store)
-
-    client = TestClient(web.create_app())
-    html = client.get(f"/projects/{proj['id']}?view=graph&lang=de").text
-    assert "Abdeckung" in html        # coverage section title (German UI)
-    assert "dünn" in html             # the thin indicator level

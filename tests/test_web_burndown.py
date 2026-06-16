@@ -19,14 +19,12 @@ from sonaloop import web
 # LEGITIMATE FLOOR — raw HTML PRODUCERS, not page hand-HTML, and intentionally not converted:
 #   _components.py 32 — the _md/_md_inline markdown->HTML renderer (a text transformer) + _effort_impact's
 #                       SVG quadrant chart (self-closing <rect/>/<line/>/<text>) + _srcchips(_esc(...)).
-#   _graph.py 15      — the _graph_svg scene + the _graph_interactive <svg> scene-graph raw() islands
-#                       (self-closing SVG; JS-populated <g>s) — spec §11.2.
 #   _synthesis.py 3   — _srcchips(_esc(...)) x2 + voices_meta(s=_esc(...)) i18n-format text-escaping.
 # These go through raw() by design (h() can't emit self-closing SVG; a markdown/citation transformer
 # legitimately produces HTML strings). The ratchet stays so nothing NEW creeps in.
 BASELINE = {
     "_components.py": 32,
-    "_graph.py": 15,
+    "_graph.py": 0,
     "_palette.py": 0,
     "_rail.py": 0,
     "_routes_lists.py": 0,

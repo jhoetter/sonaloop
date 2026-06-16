@@ -129,6 +129,23 @@ def assess_project(project_id: str, store: Store | None = None) -> dict[str, Any
     for g in open_gates:
         for u in g["unmet"]:
             gaps.append(f"{g['title']}: {u}")
+    judged_refs = {str(r) for j in plan.get("judgments", []) for r in (j.get("evidence_refs") or [])}
+    for tsk in tasks:
+        if tsk["bucket"] != "act" or tsk.get("status") != "done":
+            continue
+        downstream_closed = any(v.get("bucket") == "verify" and v.get("status") == "done"
+                                and set(v.get("consumes") or []) & set(tsk.get("consumes") or [])
+                                for v in tasks)
+        if not downstream_closed:
+            continue
+        for ref in tsk.get("produces", []):
+            if ref.get("kind") == "frame":
+                continue
+            rid, kind = str(ref.get("id") or ""), str(ref.get("kind") or "")
+            if not rid or ({rid, f"{kind}:{rid}"} & judged_refs):
+                continue
+            gaps.append(f"{tsk['title']}: produced {kind}:{rid} but no completed gate cites it — "
+                        f"record_judgment(evidence_refs=[...]) or park the evidence explicitly")
     # CONTENT-quality gaps (right level of assessment, not just structure): a verify that converged
     # without a linked synthesis (orphaned convergence), or whose synthesis is near-empty (the answer
     # artifact is hollow — substance may be stranded in notes). Soft signals; they don't block the gate.
