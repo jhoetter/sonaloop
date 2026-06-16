@@ -12,6 +12,7 @@ from ._components import (
 from ._graph_outline import _outline_html  # noqa: F401  (split out; import surface preserved)
 from ._html import h, raw, fragment
 from ._plan_fw import _framework_strip
+from ._primitive_taxonomy import PROJECT_LANES, primitive_project_lane, project_lane_label, project_lane_sub
 
 
 def _graph_layout(graph: dict) -> dict:
@@ -52,23 +53,14 @@ def _experimental_project_layout(graph: dict) -> dict:
     project inventories because uncited material becomes one tall source column. This layout keeps
     the same nodes/edges, but gives the product model explicit lanes: Input → Ask → Test → Conclude.
     """
-    lane_of = {
-        "open_question": 0, "url_artifact": 0, "asset": 0, "note": 0,
-        "council": 1, "survey": 1,
-        "prototype": 2, "session": 2, "hypothesis": 2,
-        "synthesis": 3, "report": 3, "decision": 3,
-    }
-    lanes = [
-        {"key": "input", "label": t("graph_lane_input"), "sub": t("graph_lane_input_sub")},
-        {"key": "ask", "label": t("graph_lane_ask"), "sub": t("graph_lane_ask_sub")},
-        {"key": "test", "label": t("graph_lane_test"), "sub": t("graph_lane_test_sub")},
-        {"key": "conclude", "label": t("graph_lane_conclude"), "sub": t("graph_lane_conclude_sub")},
-    ]
+    lanes = [{"key": key, "label": project_lane_label(key), "sub": project_lane_sub(key)}
+             for key, _label, _sub in PROJECT_LANES]
+    lane_of = {key: i for i, (key, _label, _sub) in enumerate(PROJECT_LANES)}
     X0, COLW, Y0, ROWH = 40, 430, 120, 92
     buckets: dict[int, list[dict]] = {i: [] for i in range(len(lanes))}
     for n in graph["nodes"]:
         kind = str(n.get("kind") or n.get("note_kind") or n["study_id"].split(":", 1)[0])
-        buckets.setdefault(lane_of.get(kind, 0), []).append(n)
+        buckets.setdefault(lane_of.get(primitive_project_lane(kind), 0), []).append(n)
     pos: dict[str, tuple] = {}
     for lane, ns in buckets.items():
         for i, n in enumerate(sorted(ns, key=lambda x: (x.get("created_at", ""), x.get("study_id", "")))):

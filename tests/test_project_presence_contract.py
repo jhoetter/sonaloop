@@ -179,6 +179,24 @@ def test_experimental_graph_view_contains_absorbed_project_primitives(store):
                 {"from": e["from"], "to": e["to"], "label": e.get("label")} for e in data["edges"]]
 
 
+def test_planless_project_outline_uses_same_story_lanes_as_graph(store):
+    pid = _seed_tier3(store)
+    council = services.record_council(pid, "Review landing context", [], store=store)
+    services.record_hypothesis(pid, "If pricing is clear, support increases",
+                               {"metric": "support", "expected_direction": "increase"}, store=store)
+    services.record_decision(pid, "Ship A", "Ship the small pilot",
+                             [{"kind": "council", "id": council["id"]}],
+                             store=store)
+
+    html = _client().get(f"/projects/{pid}?lang=en").text
+    assert 'class="ol-flat"' not in html
+    assert html.index(">Input<") < html.index(">Ask<") < html.index(">Test<") < html.index(">Conclude<")
+    assert html.index('data-rkind="url_artifact"') < html.index(">Ask<")
+    assert html.index('data-rkind="survey"') < html.index(">Test<")
+    assert html.index('data-rkind="hypothesis"') < html.index(">Conclude<")
+    assert html.index('data-rkind="decision"') > html.index(">Conclude<")
+
+
 def test_empty_kinds_render_no_chrome(store):
     proj = services.create_research_project("Empty", goal="g", store=store)
     html = _client().get(f'/projects/{proj["id"]}?lang=en').text
