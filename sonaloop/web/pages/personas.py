@@ -1,6 +1,9 @@
 """Persona pages: list, detail, memory, activity (spec/roadmap.md R2)."""
 from __future__ import annotations
 
+from fastapi import Request
+from fastapi.responses import Response
+
 from ._ctx import *  # noqa: F401,F403  (shared render toolkit)
 from ._calendar import _calendar_tabs, _period_calendar_html
 from .sessions import _sessions_section
@@ -40,10 +43,35 @@ register_css(r"""
 .mem-pane-h{font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;margin:0 0 8px}
 .mem-hit{padding:7px 0;font-size:var(--t-sm)}.mem-hit+.mem-hit{border-top:1px solid var(--line-2)}
 .cap-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
+.catalog-note{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel-2);padding:9px 12px;margin:0 0 12px;color:var(--muted);font-size:var(--t-sm)}
+.catalog-form{margin-left:auto;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.catalog-form .sl-btn{white-space:nowrap}
+.catalog-row-title{display:flex;align-items:center;gap:8px;min-width:0}
+.catalog-row-title .slug{font-weight:400;color:var(--faint);font-size:var(--t-xs)}
+.catalog-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;background:var(--panel-2);border:1px solid var(--line-2);flex-shrink:0}
+.catalog-facets{display:flex;flex-direction:column;gap:9px;margin:0 0 14px}
+.catalog-facet{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.catalog-facet__label{min-width:118px;color:var(--muted);font-size:var(--t-xs);font-weight:650;text-transform:uppercase;letter-spacing:.05em}
+.catalog-chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:var(--radius-full);padding:3px 9px;color:var(--muted);font-size:var(--t-xs);text-decoration:none;background:var(--panel)}
+.catalog-chip:hover{background:var(--hover);color:var(--ink)}
+.catalog-chip.is-active{border-color:var(--accent);color:var(--accent);background:var(--accent-weak)}
+.catalog-chip__count{color:var(--faint);font-variant-numeric:tabular-nums}
 """)
 
 
 _MEM_KINDS = [("project", "briefcase"), ("person", "contact"), ("topic", "tag"), ("tool", "settings")]
+_CATALOG_FACETS = ("tier", "lebensphase", "einstellung", "role_family", "seniority",
+                   "decision_power", "age_band", "region", "has_avatar")
+_CATALOG_FACET_LABELS = {
+    "tier": "Access", "lebensphase": "Life phase", "einstellung": "Attitude",
+    "role_family": "Role family", "seniority": "Seniority",
+    "decision_power": "Decision power", "age_band": "Age band",
+    "region": "Region", "has_avatar": "Avatar",
+}
+_CATALOG_VALUE_LABELS = {
+    "tier": {"free": "Free", "premium": "Premium"},
+    "has_avatar": {"yes": "Avatar", "no": "No avatar"},
+}
 
 
 def _cap_provenance_label(prov: str) -> str:                # explicit t() calls so the i18n usage scan sees them
@@ -152,6 +180,169 @@ def _memory_html(store: Store, persona_id: str, as_of: str | None, q: str | None
     return _doc(main)
 
 
+def _catalog_notice(status: str = "") -> str:
+    return h("div", {"class_": "catalog-note"}, status) if status else ""
+
+
+def _catalog_tier_label(tier: str) -> str:
+    return {"free": t("catalog_tier_free"), "premium": t("catalog_tier_premium")}.get(tier, tier)
+
+
+def _catalog_status_label(status: str) -> str:
+    return {
+        "up_to_date": t("catalog_status_up_to_date"),
+        "behind": t("catalog_status_behind"),
+        "possibly_behind": t("catalog_status_possibly_behind"),
+        "locally_modified": t("catalog_status_locally_modified"),
+        "diverged": t("catalog_status_diverged"),
+        "removed_upstream": t("catalog_status_removed_upstream"),
+    }.get(status, status)
+
+
+def _catalog_avatar(entry: dict) -> str:
+    name = entry.get("display_name") or entry.get("slug") or "?"
+    if entry.get("has_avatar") and entry.get("slug"):
+        return h("img", {"class_": "catalog-avatar", "src": f'/personas/catalog/avatar/{entry["slug"]}',
+                         "alt": "", "loading": "lazy", "width": "28", "height": "28",
+                         "style": "width:28px;height:28px;object-fit:cover"})
+    return raw(_avatar({"display_name": name}, 28))
+
+
+def _catalog_row(entry: dict, store: Store, local: dict[str, dict], status_by_slug: dict[str, dict]) -> str:
+    from .._forms import csrf_field
+
+    slug = entry.get("slug") or ""
+    existing = local.get(slug)
+    tier = entry.get("tier") or "free"
+    status = (status_by_slug.get(slug) or {}).get("status")
+    meta = [_label(_catalog_tier_label(tier),
+                   "var(--amber)" if tier == "premium" else "var(--green)",
+                   "soft" if tier == "premium" else "outline")]
+    if existing:
+        meta.append(_label(t("catalog_imported"), "var(--accent)", "soft"))
+    if status and status != "up_to_date":
+        meta.append(_label(_catalog_status_label(status), "var(--amber)", "outline"))
+
+    if existing:
+        action = h("a", {"class_": "sl-btn", "href": f'/personas/{existing["id"]}'}, t("open"))
+        if status in {"behind", "possibly_behind"}:
+            action = fragment(
+                action,
+                h("form", {"class_": "catalog-form", "method": "post", "action": "/personas/catalog/pull"},
+                  raw(csrf_field()),
+                  h("input", {"type": "hidden", "name": "slug", "value": slug}),
+                  h("button", {"class_": "sl-btn", "type": "submit"}, t("catalog_update"))))
+    else:
+        action = h("form", {"class_": "catalog-form", "method": "post", "action": "/personas/catalog/pull"},
+                   raw(csrf_field()),
+                   h("input", {"type": "hidden", "name": "slug", "value": slug}),
+                   h("button", {"class_": "sl-btn sl-btn--primary", "type": "submit"}, t("catalog_add")))
+
+    title = h("span", {"class_": "catalog-row-title"},
+              h("span", {}, entry.get("display_name") or slug),
+              h("span", {"class_": "slug"}, slug))
+    return h("div", {"class_": "row"},
+             _catalog_avatar(entry),
+             h("span", {"class_": "title"}, title,
+               h("span", {"class_": "muted small"}, f' · {entry.get("role") or "—"}')),
+             h("span", {"class_": "right"}, fragment(*(meta + [action]))))
+
+
+def _catalog_parse_facets(params) -> dict[str, list[str]]:
+    facets: dict[str, list[str]] = {}
+    for key in _CATALOG_FACETS:
+        raw_val = params.get(key)
+        if raw_val:
+            facets[key] = [v.strip() for v in raw_val.split(",") if v.strip()]
+    return facets
+
+
+def _catalog_url(*, q: str, facets: dict[str, list[str]], cursor: str | None = None) -> str:
+    from urllib.parse import urlencode
+
+    qs: dict[str, str] = {}
+    if q:
+        qs["q"] = q
+    for key in _CATALOG_FACETS:
+        vals = facets.get(key) or []
+        if vals:
+            qs[key] = ",".join(vals)
+    if cursor:
+        qs["cursor"] = cursor
+    return "/personas/catalog" + (("?" + urlencode(qs)) if qs else "")
+
+
+def _catalog_toggle(facets: dict[str, list[str]], key: str, value: str) -> dict[str, list[str]]:
+    nxt = {k: list(v) for k, v in facets.items()}
+    vals = nxt.get(key, [])
+    nxt[key] = [v for v in vals if v != value] if value in vals else vals + [value]
+    if not nxt[key]:
+        nxt.pop(key, None)
+    return nxt
+
+
+def _catalog_value_label(key: str, value: str) -> str:
+    return _CATALOG_VALUE_LABELS.get(key, {}).get(value, value)
+
+
+def _catalog_facets_html(data: dict, q: str, selected: dict[str, list[str]]) -> str:
+    summary = data.get("facet_summary") or {}
+    groups = []
+    for key in _CATALOG_FACETS:
+        vals = summary.get(key) or {}
+        if len(vals) <= 1 and not selected.get(key):
+            continue
+        chips = []
+        for value, count in sorted(vals.items(), key=lambda kv: (-kv[1], kv[0]))[:12]:
+            active = value in (selected.get(key) or [])
+            chips.append(h("a", {"class_": "catalog-chip" + (" is-active" if active else ""),
+                                 "href": _catalog_url(q=q, facets=_catalog_toggle(selected, key, value))},
+                           (raw(_icon("check")) if active else None),
+                           _catalog_value_label(key, value),
+                           h("span", {"class_": "catalog-chip__count"}, str(count))))
+        if chips:
+            groups.append(h("div", {"class_": "catalog-facet"},
+                            h("span", {"class_": "catalog-facet__label"},
+                              _CATALOG_FACET_LABELS.get(key, key.replace("_", " "))),
+                            fragment(*chips)))
+    if not groups:
+        return ""
+    return h("div", {"class_": "catalog-facets"},
+             fragment(*groups),
+             h("a", {"class_": "sl-btn", "href": _catalog_url(q=q, facets={})}, t("clear_filter")))
+
+
+def _catalog_page(store: Store, *, q: str = "", cursor: str | None = None,
+                  status: str = "", facets: dict[str, list[str]] | None = None) -> str:
+    from .._forms import not_found
+    from .._pager import _list_filter_box
+
+    facets = facets or {}
+    try:
+        data = services.catalog_search(q or None, facets=facets or None, limit=25, cursor=cursor)
+    except Exception:
+        return not_found("personas", "personas")
+    local = {p.get("slug"): p for p in services.list_personas(store=store) if p.get("slug")}
+    cstat = services.catalog_status(store=store)
+    status_by_slug = {i.get("slug"): i for i in cstat.get("items") or []}
+    rows = [_catalog_row(e, store, local, status_by_slug) for e in data.get("items") or []]
+
+    def link(label: str, cur: str | None) -> str:
+        if not cur:
+            return h("span", {"class_": "sl-btn", "aria-disabled": "true"}, label)
+        return h("a", {"class_": "sl-btn", "href": _catalog_url(q=q, facets=facets, cursor=cur)}, label)
+
+    after = h("nav", {"class_": "pager"},
+              link(t("pager_next"), data.get("next_cursor"))) if data.get("has_more") else ""
+    return _list_page(
+        store, title=t("catalog_h"), lead=t("catalog_lead"), rows=rows,
+        empty_icon="personas", empty_msg=t("catalog_empty"), active="personas",
+        pre=fragment(_catalog_notice(status),
+                     raw(_list_filter_box("/personas/catalog", q)),
+                     raw(_catalog_facets_html(data, q, facets))),
+        count=data.get("total", len(rows)), after=after)
+
+
 
 def register_personas(app) -> None:
     @app.get("/personas", response_class=HTMLResponse)
@@ -169,10 +360,47 @@ def register_personas(app) -> None:
                         or needle in p.get("slug", "").casefold()]
         visible, page, pages = _page_window(personas, page)
         rows = [_persona_row(p, store) for p in visible]
+        actions = h("a", {"class_": "sl-btn", "href": "/personas/catalog"},
+                    raw(_icon("search")), " ", t("catalog_open"))
         return _list_page(store, title=t("personas"), lead=t("personas_lead"), rows=rows,
                           empty_icon="personas", empty_msg=t("no_personas"), active="personas",
                           pre=_list_filter_box("/personas", q) if (q or pages > 1) else "",
-                          count=len(personas), after=_pager("/personas", page, pages, q))
+                          count=len(personas), after=_pager("/personas", page, pages, q),
+                          actions=actions)
+
+    @app.get("/personas/catalog", response_class=HTMLResponse)
+    def personas_catalog(request: Request, q: str = Query(default=""),
+                         cursor: str | None = Query(default=None),
+                         status: str = Query(default="")) -> str:
+        return _catalog_page(Store(), q=q, cursor=cursor, status=status,
+                             facets=_catalog_parse_facets(request.query_params))
+
+    @app.get("/personas/catalog/avatar/{slug}")
+    def personas_catalog_avatar(slug: str):
+        data = services.catalog_avatar(slug)
+        if data is None:
+            return Response(status_code=404)
+        return Response(content=data, media_type="image/png")
+
+    @app.post("/personas/catalog/pull")
+    async def personas_catalog_pull(request: Request):
+        from urllib.parse import urlencode
+
+        from .._forms import see_other, write_gate
+
+        form = await request.form()
+        slug = str(form.get("slug") or "").strip()
+        if (gate := write_gate(form, "catalog_pull_persona", {"slug": slug})) is not None:
+            return gate
+        if not slug:
+            return see_other("/personas/catalog?" + urlencode({"status": t("catalog_missing_slug")}))
+        store = Store()
+        out = services.catalog_pull(persona_slugs=[slug], store=store)
+        if out.get("landed"):
+            return see_other(f'/personas/{out["landed"][0]["id"]}')
+        skipped = (out.get("skipped_premium") or out.get("skipped_locally_modified") or [])
+        msg = skipped[0].get("reason") if skipped else out.get("note") or t("catalog_pull_noop")
+        return see_other("/personas/catalog?" + urlencode({"q": slug, "status": msg}))
 
     @app.get("/personas/{persona_id}", response_class=HTMLResponse)
     def persona_detail(persona_id: str, date_value: str | None = Query(default=None, alias="date"), view: str = Query(default="month")) -> str:

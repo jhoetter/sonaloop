@@ -141,6 +141,34 @@ def test_persona_create_stays_mcp_only():
     assert "/personas/new" not in client.get("/personas?lang=en").text
 
 
+def test_persona_catalog_link_page_and_pull(monkeypatch):
+    monkeypatch.setattr(services, "catalog_search", lambda *a, **k: {
+        "items": [{"slug": "amelie-duval", "display_name": "Amelie Duval",
+                   "role": "Commodity Director", "has_avatar": False, "tier": "free",
+                   "facets": {"tier": ["free"]}}],
+        "total": 1,
+        "has_more": False,
+        "facet_summary": {"tier": {"free": 1}},
+        "source": "test",
+    })
+    monkeypatch.setattr(services, "catalog_status", lambda *a, **k: {"items": []})
+    monkeypatch.setattr(services, "catalog_pull", lambda *a, **k: {
+        "landed": [{"id": "persona_amelie"}],
+        "personas": ["amelie-duval"],
+    })
+    monkeypatch.setattr(services, "catalog_avatar", lambda *a, **k: None)
+
+    client = _client()
+    html = client.get("/personas?lang=en").text
+    assert 'href="/personas/catalog"' in html and "Open catalog" in html
+    cat_html = client.get("/personas/catalog?lang=en").text
+    assert "Persona catalog" in cat_html
+    assert "Amelie Duval" in cat_html
+    assert "free" in cat_html
+    r = _post(client, "/personas/catalog/pull", slug="amelie-duval")
+    assert r.status_code == 303 and r.headers["location"] == "/personas/persona_amelie"
+
+
 # --------------------------------------------------------------------------- notes
 
 def test_note_create_edit_delete_roundtrip(store):

@@ -233,4 +233,7 @@ def register_surveys(app) -> None:
                        ("clock", t("created"), ui.fmt_date(s.get("created_at", "")))],
             rail_sections=[("sec-questions", t("n_questions", n=len(s["questions"]))),
                            ("sec-responses", t("n_responses", n=n_resp))],
-            star=("survey", s["id"], s["title"], f'/surveys/{s["id"]}'))
+            star=("survey", s["id"], s["title"], f'/surveys/{s["id"]}'),
+            # Cloud's share-link block plugs in here (render_detail_extra seam); "" in the
+            # public core, so the aside renders bit-identically without the extension.
+            aside_extra=render_detail_extra("survey", store, s))

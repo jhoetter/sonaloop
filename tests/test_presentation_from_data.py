@@ -127,18 +127,3 @@ def test_step_tags_are_first_class_on_nodes(store):
     disc_node = next(n for n in graph["nodes"] if n.get("phase") == "frame__discover")
     assert "council" in disc_node["theme_tags"]          # evidence-kind tag is filterable
     assert "frame" in disc_node["theme_tags"]            # diverge step tag propagated onto the node
-
-
-def test_empty_step_draws_no_diamond(store):
-    """A declared fan with no act evidence yet must NOT render an (empty) diamond silhouette."""
-    proj = services.start_project("DD", "g", "double_diamond_deep", persona_ids=["p1"], store=store)
-    pid = proj["id"]
-    services.record_frame(pid, "frame__discover", ["q?"], memory_refs=["m1"], store=store)
-    for cid in ("c1", "c2"):
-        _council(store, cid)
-        a = services.add_task(pid, "act", "explore", f"angle {cid}", consumes=["frame__discover"], store=store)
-        services.link_evidence(pid, a["id"], {"kind": "council", "id": cid}, store=store)
-    graph = services.get_project_graph(pid, store=store)
-    ml = web._methodology_layout(graph)
-    # only `discover` has act evidence → exactly one diamond, not one per declared diverge step
-    assert len(ml["diamonds"]) == 1

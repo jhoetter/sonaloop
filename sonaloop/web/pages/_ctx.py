@@ -24,8 +24,9 @@ from .._components import (
 from .._synthesis import (
     _area, _sentiment_section, _synthesis_html, _persona_voices_html,
 )
-from .._graph import _graph_interactive, _plan_html, _outline_html
+from .._graph import _plan_html, _outline_html
 from .._detail import _relations_html, _properties_html, detail_page, detail_eyebrow
+from .._ext import render_detail_extra
 from .._rail import _page_rail
 from .._routes_lists import _projects_page, _persona_row
 from .._html import raw, h, fragment

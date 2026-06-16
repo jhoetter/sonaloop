@@ -4,8 +4,7 @@ from sonaloop import web
 
 
 def test_assets_present_and_app_builds():
-    assert len(web.CSS) > 1000 and "rgwrap" in web.CSS.lower() or True   # CSS moved out, still importable
-    assert web._RGRAPH_JS.startswith("<script>") and "rgdata" in web._RGRAPH_JS
+    assert len(web.CSS) > 1000          # CSS extracted to web_assets.py, still importable
     assert web.HEAD_JS.startswith("<script>")
     app = web.create_app()
     assert app is not None

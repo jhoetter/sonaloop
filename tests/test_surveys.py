@@ -372,6 +372,30 @@ def test_detail_page_renders_questions_chips_and_predicted_vs_actual(store):
     assert STRINGS["en"]["runtime_maybe_cleared"] in client.get("/surveys/nope?lang=en").text
 
 
+def test_survey_detail_extra_seam_is_noop_in_core_and_pluggable(store):
+    """The render_detail_extra("survey", …) seam injects extension chrome into the aside
+    (sonaloop-cloud's share link). The public core registers nothing, so the page renders
+    without it; a registered provider's HTML appears and is handed the survey record."""
+    from starlette.testclient import TestClient
+    from sonaloop import web
+    from sonaloop.web import _ext
+    proj = _project(store)
+    s = _record(store, proj["id"])
+    client = TestClient(web.create_app())
+    assert "SHARE-EXTRA-MARKER" not in client.get(f'/surveys/{s["id"]}').text   # no-op in core
+
+    seen = {}
+    _ext.register_detail_extra("survey",
+                               lambda st, e: seen.setdefault("id", e["id"]) and "" or
+                               f'<div>SHARE-EXTRA-MARKER {e["id"]}</div>')
+    try:
+        html = client.get(f'/surveys/{s["id"]}').text
+        assert f'SHARE-EXTRA-MARKER {s["id"]}' in html
+        assert seen["id"] == s["id"]                                            # gets the record
+    finally:
+        _ext._DETAIL_EXTRAS.pop("survey", None)
+
+
 def test_csv_reimport_without_timestamps_is_idempotent(store):
     proj = _project(store)
     s = _record(store, proj["id"])

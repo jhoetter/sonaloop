@@ -119,7 +119,7 @@ def detail_page(store, *, title: str, active: str, crumbs: list, body,
                 rel_study_id: str | None = None, rel_proj_id: str | None = None,
                 rel_extra_in: list | None = None, rel_extra_out: list | None = None,
                 rail_sections: list | None = None, star: tuple | None = None,
-                actions: str = "") -> str:
+                actions: str = "", aside_extra: str = "") -> str:
     """The ONE detail-page shell every artifact page extends — consistency by construction.
 
     Assembles: hero · content column (`body`) · Properties→Relations aside (always that order) · the
@@ -155,8 +155,9 @@ def detail_page(store, *, title: str, active: str, crumbs: list, body,
     # carries `acts` (the V10 overflow + dialogs + star) as the hidden [data-slide-actions]
     # block the drawer hoists into its header.
     if slide_mode():
-        aside = (str(h("aside", {"class_": "rail rail--slide"}, raw(props), raw(rel)))
-                 if (props or rel) else "")
+        aside = (str(h("aside", {"class_": "rail rail--slide"},
+                       raw(props), raw(aside_extra), raw(rel)))
+                 if (props or aside_extra or rel) else "")
         body_html = str(body)
         if aside and not str(hero_html):
             # hero-less pages (the report shell) open with their own <header> cover at the head
@@ -172,5 +173,5 @@ def detail_page(store, *, title: str, active: str, crumbs: list, body,
     # The right-edge TOC (scrollspy) indexes the MAIN-content sections only — Properties/Relations live in
     # the aside, not the scrolling column, so they must NOT appear as TOC ticks.
     rail = list(rail_sections or [])
-    page = _doc(main, rail=raw(props) + raw(rel)) + _page_rail(rail)
+    page = _doc(main, rail=raw(props) + raw(aside_extra) + raw(rel)) + _page_rail(rail)
     return _layout(title, page, store, crumbs=crumbs, active=active, actions=acts)

@@ -111,6 +111,36 @@ def render_slot(name: str, store: Any) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Detail-page extras (entity-scoped insertion points)
+# ---------------------------------------------------------------------------
+# Slots above are global shell points (head/sidebar/body) that see only the store.
+# A detail extra is scoped to ONE artifact kind and is handed that record, so an
+# extension can render record-specific chrome inside the Properties aside — e.g.
+# sonaloop-cloud's survey share link. No-op (returns "") when nothing is registered,
+# so the public core renders the aside bit-identically to before.
+
+_DETAIL_EXTRAS: dict[str, list[Callable[[Any, Any], str]]] = {}
+
+
+def register_detail_extra(kind: str, fn: Callable[[Any, Any], str]) -> None:
+    """Register a render function for a detail page's aside, scoped to one artifact
+    `kind` ("survey", "council", …). fn(store, entity) -> HTML string; registrations
+    accumulate (rendered in registration order). Idempotent by fn identity (like
+    register_nav_item by href), so re-running an extension's setup() — e.g. a second
+    create_app() in a test process — never double-renders the block."""
+    fns = _DETAIL_EXTRAS.setdefault(kind, [])
+    if fn not in fns:
+        fns.append(fn)
+
+
+def render_detail_extra(kind: str, store: Any, entity: Any) -> str:
+    fns = _DETAIL_EXTRAS.get(kind)
+    if not fns:
+        return ""
+    return "".join(fn(store, entity) for fn in fns)
+
+
+# ---------------------------------------------------------------------------
 # Authenticated identity (multi-user extensions)
 # ---------------------------------------------------------------------------
 # Core renders a per-user menu (sidebar foot) when an extension provides the

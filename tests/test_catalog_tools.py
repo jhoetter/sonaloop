@@ -151,6 +151,31 @@ def test_pull_remote_fallback_round_trip_idempotent_with_provenance(monkeypatch,
     assert len(dest.list_personas()) == 1                               # upsert, no duplicate
 
 
+def test_pulled_catalog_memory_without_blockers_is_readable(tmp_path):
+    """Older catalog memory snapshots may not carry every current DailySummary
+    field; read paths should degrade instead of breaking persona detail pages."""
+    dest = Store(tmp_path / "dest.db")
+    persona = services.record_persona("Amelie source", make_profile("Amelie Duval"), store=dest)
+    dest.upsert_daily_summary({
+        "id": "summary_amelie_2026_06_13",
+        "persona_id": persona["id"],
+        "date": "2026-06-13",
+        "mood": "angespannt und abwaegend",
+        "summary": "Katalog-Snapshot mit alter Summary-Form.",
+        "open_loops": ["Retail promise resetten"],
+        "events": [],
+        "created_at": "2026-06-13T18:00:00+00:00",
+    })
+    dest.commit()
+
+    state = services.get_current_state(persona["id"], store=dest)
+    period = services.summarize_persona_period(persona["id"], store=dest)
+    assert state["blocked_by"] == []
+    assert state["likely_next"] == ["Retail promise resetten"]
+    assert period["blockers"] == []
+    assert period["open_loops"] == ["Retail promise resetten"]
+
+
 def test_pull_remote_fallback_resolves_packs_and_rejects_unknowns(monkeypatch, tmp_path):
     _no_data_pkg(monkeypatch)
     files, personas = _mini_catalog(Store(), ["Cara Chef", "Dev Driver"])
@@ -376,7 +401,8 @@ def test_pull_without_checkout_uses_pull_remote(monkeypatch, tmp_path):
 def test_search_local_catalog_facets_and_summary(monkeypatch, tmp_path):
     profiles = [
         {"slug": "anna", "display_name": "Anna", "role": {"title": "Bäckerin"},
-         "goals": ["ruhe"], "pain_points": ["schichtplan"], "avatar": {"path": "x"}},
+         "goals": ["ruhe"], "pain_points": ["schichtplan"], "avatar": {"path": "x"},
+         "tier": "premium"},
         {"slug": "ben", "display_name": "Ben", "role": {"title": "Controller"},
          "goals": [], "pain_points": []},
     ]
@@ -384,8 +410,10 @@ def test_search_local_catalog_facets_and_summary(monkeypatch, tmp_path):
     out = cat.catalog_search(facets={"role_family": ["handwerk"]})
     assert out["source"] == "local-catalog" and out["total"] == 1
     assert out["items"][0]["slug"] == "anna" and out["items"][0]["has_avatar"] is True
-    assert out["facet_summary"] == {"role_family": {"handwerk": 1}}     # over the filtered set
+    assert out["facet_summary"] == {"role_family": {"handwerk": 1},
+                                    "tier": {"premium": 1}}             # over the filtered set
     assert cat.catalog_search(query="schichtplan")["total"] == 1        # pain points searchable
+    assert cat.catalog_search(facets={"tier": ["free"]})["items"][0]["slug"] == "ben"
 
 
 def test_recommend_delegates_to_the_package(monkeypatch, tmp_path):
@@ -556,6 +584,11 @@ def test_search_surfaces_tier_and_tolerates_its_absence(monkeypatch):
     by_slug = {e["slug"]: e for e in cat.catalog_search()["items"]}
     assert by_slug["persona-000"]["tier"] == "premium"
     assert "tier" not in by_slug["persona-001"]                          # pre-tier row == free
+    free = cat.catalog_search(facets={"tier": ["free"]})
+    premium = cat.catalog_search(facets={"tier": ["premium"]})
+    assert [p["slug"] for p in free["items"]] == ["persona-001"]
+    assert [p["slug"] for p in premium["items"]] == ["persona-000"]
+    assert free["facet_summary"] == {"tier": {"free": 1}}
 
 
 def test_status_surfaces_tier_from_the_catalog_index(monkeypatch, tmp_path):

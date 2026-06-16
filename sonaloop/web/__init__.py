@@ -10,7 +10,7 @@ from ._i18n import (  # noqa: F401  (public surface preserved)
 )
 from ._components import *  # noqa: F401,F403  (re-export render helpers / assets)
 from ._components import (  # noqa: F401  (explicit names used by callers/tests)
-    CSS, HEAD_JS, _RGRAPH_JS,
+    CSS, HEAD_JS,
     _esc, _icon, _avatar, _artifact_present, _proto_tags,
     _EDGE_COLORS, _theme_color,
 )
@@ -18,10 +18,7 @@ from ._synthesis import *  # noqa: F401,F403  (re-export synthesis/voices/charts
 from ._synthesis import (  # noqa: F401  (public surface preserved)
     _sentiment_section, _synthesis_html, _persona_voices_html,
 )
-from ._graph import (  # noqa: F401  (public surface preserved)
-    _graph_layout, _graph_interactive, _graph_svg, _methodology_layout,
-    _convex_hull, _expand_hull, _plan_html, _NW, _NH, _LAYOUT_VERSION,
-)
+from ._graph import _plan_html  # noqa: F401  (public surface preserved)
 from .pages import (  # noqa: F401  (public surface preserved; routes split into web/pages/ — R2)
     register_pages, _projects_page, _calendar_tabs,
     _event_chip, _period_calendar_html, _memory_html,
@@ -30,6 +27,7 @@ from .pages import register_runs_section  # noqa: F401  (public /runs extension 
 from ._routes_api import register_api  # noqa: F401
 from ._ext import (  # noqa: F401  (public extension surface for sonaloop-cloud / sonaloop-research)
     register_nav_section, register_nav_item, register_slot,
+    register_detail_extra, render_detail_extra,
     set_theme_overrides, reset_theme_overrides, set_brand, load_extensions,
     set_identity, reset_identity, current_identity,
 )

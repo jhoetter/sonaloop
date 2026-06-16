@@ -15,7 +15,7 @@ remain MCP-only.
 | Entity | Create | Edit | Delete | Notes |
 | --- | --- | --- | --- | --- |
 | Project | ❌ UI (MCP/CLI: `start_project` / `create_research_project`; `POST /projects/new` stays as API surface) | ✅ title/goal/description | ✅ typed-confirmation (type the project title) | container metadata only; the graph/plan stays agent-driven |
-| Persona | ❌ MCP-only (`brief_persona` → `record_persona`) | ✅ metadata: name, role title, segment, industry | ✅ typed-confirmation (type the display name) | see "Why persona create is MCP-only" |
+| Persona | ❌ MCP-only for authored profiles (`brief_persona` → `record_persona`); ✅ catalog import from `/personas/catalog` via `catalog_pull` | ✅ metadata: name, role title, segment, industry | ✅ typed-confirmation (type the display name) | catalog import is a selective structural pull from sonaloop-data, not browser authoring |
 | Note | ❌ UI (MCP: `create_note`; `POST /projects/{id}/notes/new` stays as API surface) | ✅ title/text | ✅ | notes are observations the agent records; editing their text in the browser stays fine |
 | Section | ❌ UI (MCP: `create_section`; `POST /projects/{id}/sections/new` stays as API surface) | ✅ title/kind/note | ✅ (member nodes untouched) | a section is a view; membership editing stays MCP (`add_to_section` …) |
 | Council | ❌ | ❌ | ✅ delete only | statements are generated prose — never editable |
@@ -27,6 +27,16 @@ The `POST …/new` routes remain registered (CSRF + access-guard gated) so hosts
 automations keep a stable HTTP surface, but their GET forms are gone and nothing in
 the UI links them.
 
+The one browser-side persona addition affordance is **catalog import**:
+`/personas/catalog` searches the curated sonaloop-data catalog and posts a selected
+slug to `catalog_pull`. When a local `sonaloop-data` checkout is available, the page
+uses the same facet rules and avatar files as the catalog UI; otherwise it falls back
+to the published manifest. Free personas import directly; premium personas remain
+visible but require `SONALOOP_CATALOG_TOKEN` (or a request-scoped hosted token) and
+otherwise return the service's `skipped_premium` explanation in-band. This path does
+not create or edit profile prose in the browser; it pulls an existing, validated
+catalog snapshot through the same service used by MCP/CLI.
+
 Everything in the ✅ columns goes through the **existing service layer**
 (`sonaloop.services`) — the web routes never touch the `Store` for writes, so
 lifecycle events, hooks, the event bus (SSE/activity feed) and cloud guards all
@@ -36,7 +46,7 @@ available to MCP/CLI: `update_research_project(project_id, patch)` and
 
 ## Why persona create is MCP-only
 
-`record_persona` (the only create path) requires the **complete host-authored
+`record_persona` (the only authored create path) requires the **complete host-authored
 profile JSON** produced by the `brief_persona` protocol: goals, pain points,
 personality, relationships, success criteria, … — prose authored by the agent
 against the briefing instructions, validated by `validate_profile_payload`. The
@@ -44,7 +54,8 @@ generated SOUL is then derived from that profile. There is no meaningful
 "structural shell" subset that passes validation, and a web form that asked a
 human to hand-type the full profile would bypass the briefing protocol that
 keeps personas evidence-shaped. The web therefore offers **metadata edit +
-delete** only; creation stays with the agent.
+delete** only for authored personas; catalog personas can be imported because
+the authored profile already exists in sonaloop-data and is pulled verbatim.
 
 ## The write-path pattern (web/_forms.py)
 

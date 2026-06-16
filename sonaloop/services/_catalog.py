@@ -179,6 +179,14 @@ def _get(ref: str, path: str, *, required: bool = False) -> bytes | None:
     return data
 
 
+def catalog_avatar(slug: str, ref: str = "main") -> bytes | None:
+    pkg = _data_pkg()
+    if ref == "main" and pkg is not None and (root := _local_root(pkg)) is not None:
+        path = root / "personas" / slug / "avatar.png"
+        return path.read_bytes() if path.exists() else None
+    return _get(ref, f"personas/{slug}/avatar.png")
+
+
 # --------------------------------------------------------------------------- #
 # search                                                                        #
 # --------------------------------------------------------------------------- #
@@ -200,9 +208,12 @@ def _local_entries(pkg) -> list[dict[str, Any]]:
     entries = []
     for profile in pkg.read_persona_files():
         role = (profile.get("role") or {}).get("title") or ""
+        tier = profile.get("tier") or "free"
+        facets = pkg.derive_facets(profile)
+        facets["tier"] = [tier]
         entry = {"slug": profile.get("slug"), "display_name": profile.get("display_name", ""),
                  "role": role, "has_avatar": bool(profile.get("avatar")),
-                 "facets": pkg.derive_facets(profile)}
+                 "facets": facets}
         if profile.get("tier"):                          # absent == free (pre-tier profiles)
             entry["tier"] = profile["tier"]
         entry["_text"] = " ".join([entry["slug"] or "", entry["display_name"], role,
@@ -217,8 +228,10 @@ def _remote_entries(ref: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     manifest = json.loads(_get(ref, "manifest.json", required=True))
     entries = []
     for p in manifest.get("personas", []):
+        tier = p.get("tier") or "free"
         entry = {"slug": p.get("slug"), "display_name": p.get("display_name", ""),
-                 "role": p.get("role", ""), "has_avatar": bool(p.get("has_avatar"))}
+                 "role": p.get("role", ""), "has_avatar": bool(p.get("has_avatar")),
+                 "facets": {"tier": [tier]}}
         if p.get("tier"):                                # absent == free (pre-tier manifests)
             entry["tier"] = p["tier"]
         entry["_text"] = " ".join(str(v) for v in (entry["slug"], entry["display_name"],
@@ -243,9 +256,13 @@ def catalog_search(query: str | None = None, facets: dict[str, list[str]] | None
         if pkg is None:
             notes.append(INSTALL_NOTE)
         if facets:
-            notes.append("facet filtering needs the sonaloop-data package with a local "
-                         "catalog — the facet filter was IGNORED for this remote search")
-            facets = None
+            remote_facets = {k: v for k, v in facets.items() if k == "tier"}
+            ignored = sorted(k for k in facets if k != "tier")
+            if ignored:
+                notes.append("facet filtering beyond tier needs the sonaloop-data package "
+                             "with a local catalog — IGNORED for this remote search: "
+                             + ", ".join(ignored))
+            facets = remote_facets or None
 
     if query:
         needle = query.strip().casefold()
@@ -260,7 +277,7 @@ def catalog_search(query: str | None = None, facets: dict[str, list[str]] | None
     fp = {"query": query or "", "facets": facets or {}, "source": source}
     page = paginate(entries, lambda e: e["slug"] or "",            # noqa: F821 (bound)
                     limit=limit, cursor=cursor, filters=fp)
-    summary = _facet_summary(entries) if source == "local-catalog" else None
+    summary = _facet_summary(entries) if source == "local-catalog" or (facets and set(facets) <= {"tier"}) else None
     return {**page, "source": source, "facet_summary": summary,
             **({"manifest": manifest_meta} if manifest_meta else {}),
             **({"notes": notes} if notes else {})}
@@ -523,7 +540,12 @@ def catalog_pull(persona_slugs: list[str] | None = None, pack: str | None = None
         if ref == "main" and _local_root(pkg) is not None:
             # Same data, no network: the checkout (or SONALOOP_DATA_CATALOG_ROOT) wins for
             # the default ref; pass an explicit ref to force a published-version pull.
-            out = pkg.load_into(store, embed=embed, persona_slugs=pull_slugs or None, pack=use_pack)
+            if use_pack:
+                for slug in _pack_member_slugs(use_pack, ref, pkg):
+                    if slug not in pull_slugs:
+                        pull_slugs.append(slug)
+                use_pack = None
+            out = pkg.load_into(store, embed=embed, persona_slugs=pull_slugs or None)
             out.setdefault("source", "local-catalog")
         else:
             out = pkg.pull_remote(store, persona_slugs=pull_slugs or None, pack=use_pack,

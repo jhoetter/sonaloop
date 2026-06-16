@@ -349,6 +349,7 @@ def get_current_state(persona_id: str, at_time: str | None = None, store: Store 
     events = store.list_experience_events(persona["id"])
     summaries = store.list_daily_summaries(persona["id"])
     latest = events[-1] if events else None
+    latest_summary = summaries[-1] if summaries else {}
     return {
         "persona_id": persona["id"],
         "display_name": persona["display_name"],
@@ -358,8 +359,8 @@ def get_current_state(persona_id: str, at_time: str | None = None, store: Store 
         "collaboration_mode": latest.get("collaboration_mode") if latest else None,
         "mood": (latest.get("impact") or {}).get("mood", "unknown") if latest else "unknown",
         "current_thought": latest.get("persona_thought") if latest else "unknown",
-        "blocked_by": summaries[-1]["blockers"] if summaries else [],
-        "likely_next": summaries[-1]["open_loops"][:3] if summaries else persona["goals"][:2],
+        "blocked_by": latest_summary.get("blockers") or [],
+        "likely_next": (latest_summary.get("open_loops") or persona["goals"])[:3] if summaries else persona["goals"][:2],
         "synthetic_notice": "State is simulated unless backed by attached evidence.",
     }
 
@@ -478,9 +479,9 @@ def summarize_persona_period(persona_id: str, start_date: str | None = None, end
         "days": len(summaries),
         "events": len(events),
         "top_pain_points": sorted(pains.items(), key=lambda x: x[1], reverse=True),
-        "completed": [item for s in summaries for item in s["completed"]][:20],
-        "blockers": sorted(set(item for s in summaries for item in s["blockers"])),
-        "open_loops": [item for s in summaries for item in s["open_loops"]][-10:],
+        "completed": [item for s in summaries for item in (s.get("completed") or [])][:20],
+        "blockers": sorted(set(item for s in summaries for item in (s.get("blockers") or []))),
+        "open_loops": [item for s in summaries for item in (s.get("open_loops") or [])][-10:],
     }
 
 
