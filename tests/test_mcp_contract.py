@@ -25,6 +25,16 @@ def test_next_recommended_dag():
     assert env2["next_recommended_tool"]["name"] == "record_cohort_critic"
 
 
+def test_next_recommended_tool_respects_trace_contract():
+    env = _env("run_step", {"kind": "act", "must_link_before_complete": True}, 0.0)
+    assert env["next_recommended_tool"]["name"] == "link_evidence"
+    env2 = _env("complete_task", {"trace_nudge": {
+        "next_tool": "link_evidence",
+        "message": "link produced evidence before continuing",
+    }}, 0.0)
+    assert env2["next_recommended_tool"]["name"] == "link_evidence"
+
+
 def test_expected_tools_registered():
     server = build_server()
     tools = asyncio.run(server.list_tools())

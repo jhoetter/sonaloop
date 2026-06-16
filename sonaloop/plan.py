@@ -410,6 +410,7 @@ def complete_task(project_id: str, task_id: str, store: Store | None = None) -> 
         unmet = verify_unmet(plan, t, store)
         if unmet:
             raise PlanError("GATE_UNMET", f"verify task '{task_id}' blocked: {unmet}")
+    produced_evidence = [r for r in t.get("produces") or [] if r.get("kind") != "frame"]
     t["status"] = "done"
     save_plan(plan, store=store)
     # Non-terminal completion: say so in-band — the host deciding "is this enough?" right after a
@@ -424,6 +425,17 @@ def complete_task(project_id: str, task_id: str, store: Store | None = None) -> 
         rs = run_state(project_id, plan, store)
         if rs:
             out["run_state"] = rs
+    if t["bucket"] in ("act", "verify") and not produced_evidence:
+        out["trace_nudge"] = {
+            "code": "TRACE_LINK_MISSING",
+            "task_id": task_id,
+            "message": (
+                "This task was completed without produced evidence linked to the plan. "
+                "Record the output, then call link_evidence(project_id, task_id, kind, evidence_id); "
+                "if the output should deliberately not feed a gate, call park_evidence with a reason."
+            ),
+            "next_tool": "link_evidence",
+        }
     return out
 
 
@@ -587,7 +599,8 @@ def next_action(project_id: str, store: Store | None = None) -> dict[str, Any]:
     persona_ids = project.get("persona_ids", [])
     out: dict[str, Any] = {"complete": False, "task": b["task"], "bucket": b["bucket"],
                            "capability": b["capability"], "title": b["title"], "intent": b["intent"],
-                           "unmet": b.get("unmet", []), "instructions": b["instructions"]}
+                           "unmet": b.get("unmet", []), "instructions": b["instructions"],
+                           "must_link_before_complete": b["bucket"] in ("act", "verify")}
     if b["bucket"] == "analyze":
         try:
             oqs = [o["text"] for o in store.list_open_questions(project_id) if o.get("status") == "open"]

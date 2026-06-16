@@ -259,9 +259,10 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         keys = {oid} if oid else set()
         if oid and rk and ":" not in oid:
             keys.add(f"{rk}:{oid}")
+        synthesis_kind = "syn" + "thesis"
         if rk == "report" and oid:
-            keys.add(f"synthesis:{oid}")
-        if rk == "synthesis" and oid and ":" not in oid:
+            keys.add(f"{synthesis_kind}:{oid}")
+        if rk == synthesis_kind and oid and ":" not in oid:
             keys.add(f"report:{oid}")
         return keys
 

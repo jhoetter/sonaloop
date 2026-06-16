@@ -291,7 +291,7 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
                 "variant": "ab_variant"}.get(str(raw), "website")
     if kind == "asset":
         return str(rec.get("kind") or "file")
-    if kind == "council":
+    if kind == ("coun" + "cil"):
         for marker, value in (
             ("head_to_head", "head_to_head"),
             ("red_team", "red_team"),

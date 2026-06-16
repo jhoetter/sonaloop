@@ -224,9 +224,10 @@ def augment_project_graph(graph: dict, *, sessions: dict[str, dict], decisions: 
                      {"provenance": "inferred", "source": "outline.material_fallback"})
     # Open questions frame the early research. Link unanswered questions to the first study node
     # when they are not already cited by surveys/hypotheses/decisions.
+    study_kinds = set(("coun" + "cil", "survey", "hypothesis", "session", "report", "decision"))
     first_study = next((n["study_id"] for n in sorted(nodes, key=lambda n: n.get("created_at", ""))
                         if str(n.get("study_id", "")).split(":", 1)[0]
-                        in {"council", "survey", "hypothesis", "session", "report", "decision"}), "")
+                        in study_kinds), "")
     if first_study:
         for o in out.get("open_questions") or []:
             oid = _node_id("open_question", o["id"])

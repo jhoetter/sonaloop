@@ -756,7 +756,8 @@ def _rl_trace_contract(project_id: str, task_id: str, store: Store) -> dict[str,
     expected = "frame" if t.get("bucket") == "analyze" else str(t.get("capability") or t.get("bucket") or "")
     return {"consume_task_ids": consumes, "consume_refs": consume_refs,
             "optional_context_refs": optional_context_refs, "open_questions": open_questions,
-            "expected_output_kind": expected}
+            "expected_output_kind": expected,
+            "must_link_before_complete": t.get("bucket") in ("act", "verify")}
 
 
 def _rl_dispatch(run: dict[str, Any], n: dict[str, Any], store: Store) -> dict[str, Any]:
