@@ -57,7 +57,9 @@ def test_tour_has_localized_artifact_steps():
     assert {f'data-rkind="{k}"' for k in ("open_question", "url_artifact", "council", "survey",
                                           "synthesis", "prototype", "session",
                                           "hypothesis", "decision", "note", "asset")} <= rkinds
-    assert all(s.get("open") for s in steps[1:-1])     # real detail drawers, not just list rows
+    open_steps = [s for s in steps if s.get("open")]
+    assert 1 <= len(open_steps) <= 4                    # only detail-rich stops open drawers
+    assert len(open_steps) < len(steps) / 2             # keeps Back/Next local and fast
     for lang in ("de", "en"):
         token = _UI_LANG.set(lang)
         try:

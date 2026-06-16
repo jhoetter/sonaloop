@@ -162,7 +162,6 @@ def _methodology_svg(spec: dict) -> str:
 def _methodologies_page() -> str:
     store = Store()
     specs = sorted(_methodology.registry(store).values(), key=lambda s: s.get("name", ""))
-    de = _lang() == "de"
     rows = []
     for spec in specs:
         meta = _meta(spec)
@@ -177,18 +176,17 @@ def _methodologies_page() -> str:
                         h("p", {}, meta["summary"]),
                         h("span", {"class_": "meta"},
                           raw(_label(t("n_tasks", n=len(spec.get("steps") or [])), "var(--accent)")),
-                          raw(_label(f"{len(jobs)} Jobs", "var(--blue)"))))))
+                          raw(_label(t("n_jobs", n=len(jobs)), "var(--blue)"))))))
     bands = h("div", {"class_": "meth-bands"},
-              h("div", {"class_": "meth-band"}, h("b", {}, "Job"), h("span", {}, "Was du herausfinden willst: Positioning, Pricing, Demand, Churn.")),
-              h("div", {"class_": "meth-band"}, h("b", {}, t("methodology_h")), h("span", {}, "Der Prozess, der die Studie von offenem Problem zu belastbarer Antwort führt.")),
-              h("div", {"class_": "meth-band"}, h("b", {}, "Format"), h("span", {}, "Ein einzelner Move im Prozess: Council, Head-to-Head, Red-Team oder Prototype Test.")))
+              h("div", {"class_": "meth-band"}, h("b", {}, t("job_h")), h("span", {}, t("job_d"))),
+              h("div", {"class_": "meth-band"}, h("b", {}, t("methodology_h")), h("span", {}, t("methodology_d"))),
+              h("div", {"class_": "meth-band"}, h("b", {}, t("format_h")), h("span", {}, t("format_d"))))
     hero = h("div", {"class_": "meth-hero"},
              h("div", {"class_": "meth-lede"},
                h("h1", {"class_": "h1"}, t("methodologies_h"), h("span", {"class_": "h1cnt"}, str(len(specs)))),
-               h("p", {"class_": "lead"}, "Methodologies sind die Prozesse, die ein Projekt strukturiert durchläuft." if de else "Methodologies are the processes a project runs through."),
+               h("p", {"class_": "lead"}, t("methodologies_lead")),
                h("div", {"class_": "sl-prose"}, raw(_md(
-                 "Ein Projekt startet mit einer Forschungsfrage. Die Methodology entscheidet, in welcher Reihenfolge Sonaloop öffnet, verdichtet, baut, testet und am Ende übergibt. Formate sind die einzelnen Moves innerhalb dieses Ablaufs." if de else
-                 "A project starts with a research question. The methodology decides the order in which Sonaloop diverges, converges, builds, tests and hands off. Formats are the individual moves inside that process.")))),
+                 t("methodologies_intro"))))),
              bands)
     body = h("div", {"class_": "page"}, hero, h("div", {"class_": "meth-index"}, fragment(*rows)))
     return _layout(t("methodologies_h"), body, store, crumbs=[(t("projects"), "/projects"), (t("methodologies_h"), None)], active="methodologies")
@@ -221,15 +219,15 @@ def _methodology_detail(slug: str) -> str:
              h("div", {"class_": "meth-hero"},
                h("div", {},
                  h("div", {"class_": "sl-prose"}, raw(_md(spec.get("when_to_use", "")))),
-                 h("h2", {"class_": "doc-sub-h", "id": "steps"}, "Phasen" if _lang() == "de" else "Stages"),
+                 h("h2", {"class_": "doc-sub-h", "id": "steps"}, t("stages_h")),
                  h("div", {"class_": "meth-steps"}, fragment(*step_rows))),
                h("aside", {},
                  raw(_cover(spec)),
                  h("div", {"class_": "meth-viz"}, raw(_methodology_svg(spec))),
                  h("div", {"class_": "meth-bands"},
-                   h("div", {"class_": "meth-band"}, h("b", {}, "Geeignet für" if _lang() == "de" else "Good for"), h("span", {}, meta["jobs"])),
-                   h("div", {"class_": "meth-band"}, h("b", {}, "Engine"), h("span", {}, "Analyze -> Act -> Verify; convergence needs evidence-backed gates."))))),
-             h("h2", {"class_": "doc-sub-h", "id": "jobs"}, "Passende Jobs" if _lang() == "de" else "Matching jobs"),
+                   h("div", {"class_": "meth-band"}, h("b", {}, t("good_for_h")), h("span", {}, meta["jobs"])),
+                   h("div", {"class_": "meth-band"}, h("b", {}, t("engine_h")), h("span", {}, t("engine_d")))))),
+             h("h2", {"class_": "doc-sub-h", "id": "jobs"}, t("matching_jobs_h")),
              h("div", {"class_": "meth-jobs"}, fragment(*job_cards)) if job_cards else h("p", {"class_": "muted"}, "—"))
     return _layout(title, body, store, crumbs=[(t("projects"), "/projects"), (t("methodologies_h"), "/methodologies"), (title, None)], active="methodologies")
 

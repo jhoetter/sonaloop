@@ -39,23 +39,31 @@ def _showcase() -> dict:
 
 
 def tour_steps() -> list[dict]:
-    """The anchored showcase walkthrough, in order."""
+    """The anchored showcase walkthrough, in order.
+
+    Keep this as a same-page tour. Most steps spotlight real outline rows without
+    opening drawers; only a few detail-heavy artifacts open a drawer. That keeps
+    Next/Back responsive while still showing actual project data.
+    """
     sc = _showcase()
     url = sc["url"]
     return [
         {"url": url, "sel": ".sl-scaffold__head,.h1", "title": t("tour_project_h"), "body": t("tour_project_d")},
-        {"url": url, "sel": '.olrow[data-rkind="open_question"]', "open": True, "title": t("tour_question_h"), "body": t("tour_question_d")},
-        {"url": url, "sel": '.olrow[data-rkind="url_artifact"]', "open": True, "title": t("tour_reference_h"), "body": t("tour_reference_d")},
+        {"url": url, "sel": ".sl-toolbtn", "title": t("tour_plan_h"), "body": t("tour_plan_d")},
+        {"url": url, "sel": ".outline", "title": t("tour_trace_h"), "body": t("tour_trace_d")},
+        {"url": url, "sel": '.olrow[data-rkind="open_question"]', "title": t("tour_question_h"), "body": t("tour_question_d")},
+        {"url": url, "sel": '.olrow[data-rkind="note"]', "title": t("tour_note_h"), "body": t("tour_note_d")},
+        {"url": url, "sel": '.olrow[data-rkind="url_artifact"]', "title": t("tour_reference_h"), "body": t("tour_reference_d")},
+        {"url": url, "sel": '.olrow[data-rkind="asset"],.sl-file', "title": t("tour_asset_h"), "body": t("tour_asset_d")},
         {"url": url, "sel": '.olrow[data-rkind="council"]', "open": True, "title": t("tour_council_h"), "body": t("tour_council_d")},
-        {"url": url, "sel": '.olrow[data-rkind="survey"]', "open": True, "title": t("tour_survey_h"), "body": t("tour_survey_d")},
-        {"url": url, "sel": '.olrow[data-rkind="synthesis"]', "open": True, "title": t("tour_report_h"), "body": t("tour_report_d")},
-        {"url": url, "sel": '.olrow[data-rkind="prototype"]', "open": True, "title": t("tour_prototype_h"), "body": t("tour_prototype_d")},
+        {"url": url, "sel": '.olrow[data-rkind="survey"]', "title": t("tour_survey_h"), "body": t("tour_survey_d")},
+        {"url": url, "sel": '.olrow[data-rkind="hypothesis"]', "title": t("tour_hypothesis_h"), "body": t("tour_hypothesis_d")},
+        {"url": url, "sel": '.olrow[data-rkind="prototype"]', "title": t("tour_prototype_h"), "body": t("tour_prototype_d")},
         {"url": url, "sel": '.olrow[data-rkind="session"]', "open": True, "title": t("tour_session_h"), "body": t("tour_session_d")},
-        {"url": url, "sel": '.olrow[data-rkind="hypothesis"]', "open": True, "title": t("tour_hypothesis_h"), "body": t("tour_hypothesis_d")},
-        {"url": url, "sel": '.olrow[data-rkind="decision"]', "open": True, "title": t("tour_decision_h"), "body": t("tour_decision_d")},
-        {"url": url, "sel": '.olrow[data-rkind="note"]', "open": True, "title": t("tour_note_h"), "body": t("tour_note_d")},
-        {"url": url, "sel": '.olrow[data-rkind="asset"],.sl-file', "open": True, "title": t("tour_asset_h"), "body": t("tour_asset_d")},
-        {"url": url, "sel": ".sl-tabs,.outline", "title": t("tour_library_h"), "body": t("tour_library_d")},
+        {"url": url, "sel": '.olrow[data-rkind="synthesis"]', "open": True, "title": t("tour_report_h"), "body": t("tour_report_d")},
+        {"url": url, "sel": '.olrow[data-rkind="decision"]', "title": t("tour_decision_h"), "body": t("tour_decision_d")},
+        {"url": url, "sel": '.olrow[data-rkind="synthesis"]', "title": t("tour_gate_h"), "body": t("tour_gate_d")},
+        {"url": url, "sel": ".outline", "title": t("tour_library_h"), "body": t("tour_library_d")},
     ]
 
 
@@ -122,6 +130,7 @@ var ring=document.getElementById('tour-ring'), card=document.getElementById('tou
 var CFG={steps:[],labels:{}}; try{ CFG=JSON.parse(document.getElementById('tour-cfg').textContent)||CFG; }catch(e){}
 var steps=[], i=0, on=false;
 var KEY='sl-tour-resume';
+var openHref='';
 function q(sel){ try{ return document.querySelector(sel); }catch(e){ return null; } }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 function cleanUrl(u){ var x; try{x=new URL(u||location.href, location.origin);}catch(e){return String(u||'').split('#')[0];}
@@ -152,6 +161,7 @@ function drawer(){ return document.getElementById('drawer'); }
 function closeDrawer(){
   var d=drawer(); if(!d||!d.classList.contains('is-open')) return;
   var b=d.querySelector('[data-drawer-close]'); if(b) b.click();
+  openHref='';
 }
 function targetFor(st, el){
   var d=drawer();
@@ -164,10 +174,14 @@ function ensureDetail(st, el, tries){
   if(!st.open){ closeDrawer(); return false; }
   var d=drawer(), href=el && el.getAttribute && el.getAttribute('data-drawer');
   if(!href) return false;
-  if(!st._opened){
+  if(d && d.classList.contains('is-open') && openHref===href) return false;
+  if(st._opening===href) return true;
+  if(!st._opened || openHref!==href){
     st._opened=true;
+    st._opening=href;
     el.click();
-    setTimeout(place, 180);
+    openHref=href;
+    setTimeout(function(){ st._opening=''; place(); }, 90);
     return true;
   }
   if((!d || !d.classList.contains('is-open')) && (tries||0)<12){
