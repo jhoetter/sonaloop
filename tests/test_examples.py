@@ -165,6 +165,29 @@ def test_onboarding_showcase_loads_every_tour_artifact(store):
         ptag = re.search(r'<span class="ol-ptag[^"]*">([^<]*)</span>', chunk)
         assert ptag and ptag.group(1) == "Reference"
     assert "A/B variant" in html
+    plan = services.get_plan(out["project_id"], store=store)
+    assert plan["methodology"] == "showcase_trace"
+    assert all(t["status"] == "done" for t in plan["tasks"])
+
+    from sonaloop.project_trace import trace_node_health
+    from sonaloop.web._graph_outline_sessions import outline_session_groups
+    from sonaloop.web._project_graph_view import augment_project_graph
+
+    graph = services.get_project_graph(out["project_id"], store=store)
+    proto_ids = {p.get("id") for p in graph.get("prototypes") or []}
+    sessions = outline_session_groups(
+        services.list_usability_sessions(project_id=out["project_id"], store=store), store,
+        prototype_sessions=[s for s in store.list_prototype_sessions() if s.get("prototype_id") in proto_ids],
+    )
+    full_graph = augment_project_graph(
+        graph, sessions=sessions,
+        decisions=services.list_decisions(out["project_id"], store=store),
+        hypotheses=services.list_hypotheses(out["project_id"], store=store),
+        surveys=services.list_surveys(project_id=out["project_id"], store=store),
+        assets=assets,
+    )
+    health = trace_node_health(full_graph["nodes"], full_graph["edges"], plan)
+    assert {k: v for k, v in health.items() if v == "orphaned"} == {}
 
 
 def test_onboarding_showcase_timeline_is_authored_not_load_time(store):
@@ -191,6 +214,7 @@ def test_double_load_is_idempotent_for_both_examples(store):
         second = services.load_example(slug, store=store)
         assert first["project_id"] == second["project_id"]
         assert first["counts"] == second["counts"]
+        assert services.get_plan(first["project_id"], store=store)
     assert len(store.list_research_projects()) == 3
     assert len(store.list_personas()) == 13
     assert len(store.list_council_sessions()) == 7

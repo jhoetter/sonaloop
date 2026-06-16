@@ -29,6 +29,7 @@ from typing import Any
 from ..config import utc_now_iso
 from ..models import ResearchProject
 from ..storage import Store
+from .. import plan as _plan
 
 from ._common import *  # noqa: F401,F403  (stable_id, slugify, _require_research_project, …)
 
@@ -133,6 +134,56 @@ def _fixture_created(raw: Any, fallback: str = "") -> str:
     if not isinstance(raw, dict):
         return fallback
     return str(raw.get("created_at") or fallback)
+
+
+def _plan_ref(raw: dict[str, Any], ctx: dict[str, Any]) -> dict[str, str]:
+    kind = str(raw.get("kind") or "")
+    key = raw.get("key")
+    if raw.get("id"):
+        return {"kind": kind, "id": str(raw["id"])}
+    bucket = {"url_artifact": "artifact", "reference": "artifact", "report": "synthesis",
+              "session": "usability_session"}.get(kind, kind)
+    if key is None or bucket not in ctx:
+        return {"kind": kind, "id": str(key or "")}
+    return {"kind": kind, "id": str(ctx[bucket][key])}
+
+
+def _plan_ref_text(raw: dict[str, Any], ctx: dict[str, Any]) -> str:
+    ref = _plan_ref(raw, ctx)
+    return f"{ref['kind']}:{ref['id']}" if ref["kind"] and ref["id"] else ref["id"]
+
+
+def _load_fixture_plan(fx: dict[str, Any], ctx: dict[str, Any], store: Store) -> None:
+    raw = fx.get("plan")
+    if not raw:
+        root = {"id": "frame__root", "title": "Example frame", "bucket": "analyze",
+                "capability": "frame", "status": "done", "consumes": [],
+                "produces": [{"kind": "frame", "id": "frame__root"}],
+                "frame": {"questions": [fx["project"].get("goal", "Example project")],
+                          "hypotheses": [], "memory_refs": [f"example:{fx['slug']}"]}}
+        plan = _plan.new_plan(ctx["project_id"], fx["project"].get("goal", ""), "", [root])
+        _plan.save_plan(plan, store=store)
+        return
+    tasks = []
+    for t in raw.get("tasks") or []:
+        task = dict(t)
+        task["produces"] = [_plan_ref(r, ctx) for r in t.get("produces") or []]
+        tasks.append(task)
+    plan = _plan.new_plan(ctx["project_id"], fx["project"].get("goal", ""),
+                          raw.get("methodology", ""), tasks)
+    plan["judgments"] = [
+        {**{k: v for k, v in j.items() if k != "evidence_refs"},
+         "evidence_refs": [_plan_ref_text(r, ctx) for r in j.get("evidence_refs") or []],
+         "created_at": j.get("created_at") or utc_now_iso()}
+        for j in raw.get("judgments") or []
+    ]
+    plan["parked_refs"] = [
+        {**{k: v for k, v in p.items() if k != "refs"},
+         "refs": [_plan_ref_text(r, ctx) for r in p.get("refs") or []],
+         "created_at": p.get("created_at") or utc_now_iso()}
+        for p in raw.get("parked_refs") or []
+    ]
+    _plan.save_plan(plan, store=store)
 
 
 def _stamp_project_list_item(store: Store, project_id: str, field: str, item_id: str,
@@ -257,6 +308,7 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
     ctx: dict[str, Any] = {
         "project_id": pid, "asset": {}, "flow": {}, "artifact": {}, "prototype": {}, "survey": {},
         "usability_session": {}, "council": {}, "synthesis": {}, "hypothesis": {},
+        "decision": {}, "note": {},
     }
 
     # -- open questions + the HMW reframe (stable per-text ids -> idempotent) ---
@@ -449,6 +501,7 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
                               rejected=[_resolve_ref(r, ctx) for r in d.get("rejected") or []],
                               status=d.get("status", "proposed"), key=_ns(slug, d["key"]), store=store)
         _stamp_entity_created(store, "decision", dec["decision"]["id"], d.get("created_at", ""))
+        ctx["decision"][d["key"]] = dec["decision"]["id"]
 
     # -- plain notes + sections (deduped: no keyed upsert on these paths) --------
     note_ids: dict[str, str] = {}
@@ -459,6 +512,8 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
         if nid not in existing_notes:
             create_note(pid, n["text"], title=n.get("title", ""),  # noqa: F821 (bound)
                         created_at=n["created_at"], store=store)
+    ctx["note"] = note_ids
+    _load_fixture_plan(fx, ctx, store)
     existing_sections = {s["title"] for s in list_sections(pid, store=store)}  # noqa: F821 (bound)
     for sec in fx.get("sections", []):
         if sec["title"] in existing_sections:
@@ -466,7 +521,7 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
         members = []
         for m in sec.get("members") or []:
             if m["kind"] == "synthesis":
-                members.append(ctx["synthesis"][m["key"]])
+                members.append(f"synthesis:{ctx['synthesis'][m['key']]}")
             elif m["kind"] == "note":
                 members.append(f"note:{note_ids[m['key']]}")
         create_section(pid, sec["title"], kind=sec.get("kind", "theme"),  # noqa: F821 (bound)
