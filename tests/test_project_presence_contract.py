@@ -12,6 +12,9 @@ sections, no header jump-chips, and no chrome at all for empty kinds.
 from __future__ import annotations
 
 import base64
+import html
+import json
+import re
 
 from starlette.testclient import TestClient
 
@@ -116,6 +119,7 @@ def _seed_tier3(store) -> str:
 def test_absorbed_kinds_are_outline_rows_on_the_default_view(store):
     pid = _seed_tier3(store)
     html = _client().get(f"/projects/{pid}?lang=en").text   # the DEFAULT view — no ?view=graph
+    assert re.search(rf'href="/projects/{pid}\?view=graph"[^>]*>.*Graph</a>', html, re.S)
     # open questions: an outline row with the open/resolved pill
     assert 'data-rkind="open_question"' in html and "What about pricing?" in html
     # URL artifacts: an outline row (chip contract kind) with the capture-status chip
@@ -142,6 +146,21 @@ def test_absorbed_kinds_are_outline_rows_on_the_default_view(store):
                 break
         assert armed, f"{kind} row lost its detail slide-over"
     assert 'data-drawer="/assets/' in html, "asset row lost its detail slide-over"
+
+
+def test_experimental_graph_view_contains_absorbed_project_primitives(store):
+    pid = _seed_tier3(store)
+    page = _client().get(f"/projects/{pid}?view=graph&lang=en").text
+    assert re.search(rf'href="/projects/{pid}"[^>]*>.*List</a>', page, re.S)
+    m = re.search(r'<script type="application/json" id="rgdata">(.*?)</script>', page, re.S)
+    assert m, "graph view did not render rgdata"
+    data = json.loads(html.unescape(m.group(1)))
+    kinds = {n.get("tags", [""])[0] for n in data["nodes"] if n.get("tags")}
+    assert {"open_question", "url_artifact", "asset", "survey"} <= kinds
+    labels = {n["label"] for n in data["nodes"]}
+    assert {"What about pricing?", "Landing A", "Field note", "Pricing survey"} <= labels
+    subs = {n.get("sub", "") for n in data["nodes"]}
+    assert any("Reference" in s and "Website" in s for s in subs)
 
 
 def test_empty_kinds_render_no_chrome(store):

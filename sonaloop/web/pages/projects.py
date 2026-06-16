@@ -5,6 +5,7 @@ from fastapi.responses import RedirectResponse
 
 from ._ctx import *  # noqa: F401,F403  (shared render toolkit)
 from .._graph_outline_sessions import outline_session_groups
+from .._project_graph_view import project_graph_view_data
 from .._primitive_taxonomy import PRIMITIVES, primitive_color, subtype_label, subtype_value
 # Presence contract (tracker: sonaloop/project-presence-contract) + UX P2 (spec/ux-contract.md
 # §3.4): EVERY project-scoped kind is an outline row in its phase context — decisions, surveys,
@@ -250,7 +251,9 @@ def register_projects(app) -> None:
                           search={"value": q, "placeholder": t("search_project_ph")})
                if not is_graph else "")
         # data-keynav arms the keymap's j/k row walk on the outline (ux-contract C7).
-        main_view = (fragment(h("div", {"class_": "graphcard proj-graph"}, raw(_graph_interactive(graph))), panel, raw(oq_js))
+        graph_payload = project_graph_view_data(graph, sessions=sess_groups, decisions=decisions,
+                                                hypotheses=hypotheses, surveys=surveys, assets=assets)
+        main_view = (fragment(h("div", {"class_": "graphcard proj-graph"}, raw(_graph_interactive(graph_payload))), panel, raw(oq_js))
                      if is_graph else h("div", {"class_": card_cls, "data-keynav": True}, raw(outline)))
         # The run-state chip (ux-contract §3.5 / decision §7.4): `▶ Run · state` with a
         # popover (last activity · next-ready/resume hint · /runs journal link). Runs left
@@ -263,7 +266,11 @@ def register_projects(app) -> None:
         files_chip = h("a", {"class_": "sl-toolbtn", "href": f'/projects/{proj["id"]}?view=files'},
                        raw(_icon("file")), " ",
                        t("one_file") if len(assets) == 1 else t("n_files", n=len(assets)))
-        chips = h("div", {"class_": "pills"}, raw(run_chip), files_chip)
+        view_chip = h("a", {"class_": "sl-toolbtn",
+                            "href": f'/projects/{proj["id"]}' if is_graph else f'/projects/{proj["id"]}?view=graph'},
+                      raw(_icon("overview" if is_graph else "squareGrid")), " ",
+                      t("project_view_list") if is_graph else t("project_view_graph"))
+        chips = h("div", {"class_": "pills"}, raw(run_chip), view_chip, files_chip)
         # The FilterBar closes the head so it sits INSIDE the 900px measure (V1 — it used to
         # float at the page's far left), aligned with the title/outline left edge.
         body = h("div", {"class_": "proj"},

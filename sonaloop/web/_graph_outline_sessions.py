@@ -76,7 +76,7 @@ def _session_child_item(sess: dict, parent: dict, seq: int, last: bool) -> dict:
     Prototype subjects keep sessions as indented executions under the prototype row. Non-prototype
     subjects use an invisible ordering slot and render as top-level SESSION rows. In both cases
     the kind column stays type-only: icon + SESSION, never a persona avatar."""
-    kind = t("sessions").rstrip("s")
+    kind = t("session_kind")
     under_visible_subject = parent.get("indent", 0) >= 0
     title = sess["persona"]["display_name"] if under_visible_subject else parent["title"]
     item = {"oid": sess["id"], "color": primitive_color("session"), "title": title,

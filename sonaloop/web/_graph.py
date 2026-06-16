@@ -293,7 +293,11 @@ def _graph_interactive(graph: dict) -> str:
         x, y = pos[n["study_id"]]
         sent = max(n.get("sentiment", {}).items(), key=lambda kv: kv[1])[0] if n.get("sentiment") else "—"
         if n.get("kind"):                         # heterogeneous evidence node (plan graph)
-            sub = f'{n.get("kind_label", "")} · ' + (", ".join(tg for tg in tags if tg != n["kind"] and tg != ntype)[:48] or "—")
+            meta = [n.get("format_label") or ""]
+            if n.get("status"):
+                meta.append(str(n["status"]))
+            meta += [tg for tg in tags if tg != n["kind"] and tg != ntype and tg != n.get("format_label")]
+            sub = f'{n.get("kind_label", "")} · ' + (", ".join(m for m in meta if m)[:48] or "—")
             color = n.get("color") or "#9aa0a6"
             href = n.get("href") or ""
         else:                                     # legacy synthesis node

@@ -53,7 +53,7 @@ def test_library_browser_tabs_and_old_routes(store):
     for route in ("/open-questions", "/references", "/councils",
                   "/prototypes", "/notes", "/syntheses"):
         assert f'href="{route}"' in html, f"family link {route} missing"
-    assert 'class="libnav-kind is-active"' in html            # default = first tab
+    assert 'class="sl-libnav-kind sl-is-active"' in html      # default = first tab
     assert 'aria-current="page"' in html.split(f'href="{first_route}"')[1][:160]
     hyp = client.get("/hypotheses?lang=en").text
     assert "Frame" in hyp and 'href="/open-questions"' in hyp
