@@ -190,6 +190,20 @@ def test_onboarding_showcase_loads_every_tour_artifact(store):
     assert {k: v for k, v in health.items() if v == "orphaned"} == {}
     assert "parked" in set(health.values())
 
+    from sonaloop.web.pages.library import LIBRARY_TABS, TAB_KIND, _tab_entries
+
+    outline_kinds = {n.get("kind") for n in full_graph["nodes"] if n.get("kind")}
+    library_tabs = {TAB_KIND[key]: key for key, *_ in LIBRARY_TABS}
+    missing_tabs = outline_kinds - set(library_tabs)
+    assert missing_tabs == set()
+    library_kinds = {
+        x["kind"]
+        for key, *_ in LIBRARY_TABS
+        for x in _tab_entries(key, store)
+        if x.get("project_id") == out["project_id"]
+    }
+    assert outline_kinds <= library_kinds
+
 
 def test_onboarding_showcase_timeline_is_authored_not_load_time(store):
     out = services.load_example(ONBOARDING, store=store)

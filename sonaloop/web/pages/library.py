@@ -88,7 +88,9 @@ def _tab_entries(key: str, store: Store, sessions: list | None = None) -> list[d
     (ui.primitive_row — §3.2) AFTER the U10 facet filter ran, with the owning project's
     title as the muted desc line (this is a CROSS-project browser — the row must say where
     it lives). Every href is the canonical detail URL the slide-over pushes (§8.1)."""
-    projects = {p["id"]: p["title"] for p in store.list_research_projects()}
+    project_rows = store.list_research_projects()
+    projects = {p["id"]: p["title"] for p in project_rows}
+    study_projects = {sid: p["id"] for p in project_rows for sid in (p.get("study_ids") or [])}
     def e(kind, rec, href, project_id=None, desc=None):
         pid = rec.get("project_id") or project_id or ""
         return {"kind": kind, "rec": rec, "href": href, "project_id": pid,
@@ -108,7 +110,8 @@ def _tab_entries(key: str, store: Store, sessions: list | None = None) -> list[d
         return [e("council", {**c, "mode": services.council_mode(c)}, f'/councils/{c["id"]}')
                 for c in store.list_council_sessions()]
     if key == "reports":
-        return [e("synthesis", s, f'/syntheses/{s["id"]}') for s in store.list_syntheses()]
+        return [e("synthesis", s, f'/syntheses/{s["id"]}', project_id=study_projects.get(s["id"], ""))
+                for s in store.list_syntheses()]
     if key == "prototypes":
         # the W11 crew enrichment (n_sessions BOTH kinds + the drivers' personas/voices) —
         # the same services read the outline rows use, so the avatars never diverge
