@@ -87,9 +87,9 @@ def _add(nodes: list[dict], seen: set[str], *, kind: str, rid: str, title: str,
     return nid
 
 
-def project_graph_view_data(graph: dict, *, sessions: dict[str, dict], decisions: list[dict],
-                            hypotheses: list[dict], surveys: list[dict], assets: list[dict]) -> dict:
-    """Return a graph payload whose nodes cover every project primitive visible in the outline."""
+def augment_project_graph(graph: dict, *, sessions: dict[str, dict], decisions: list[dict],
+                          hypotheses: list[dict], surveys: list[dict], assets: list[dict]) -> dict:
+    """Return a project graph whose nodes/edges cover every primitive visible in the outline."""
     out = deepcopy(graph)
     base_nodes = out.get("nodes") or []
     nodes = list(base_nodes)
@@ -221,3 +221,10 @@ def project_graph_view_data(graph: dict, *, sessions: dict[str, dict], decisions
     out["reports"] = []
     out["experimental_full_graph"] = True
     return out
+
+
+def project_graph_view_data(graph: dict, *, sessions: dict[str, dict], decisions: list[dict],
+                            hypotheses: list[dict], surveys: list[dict], assets: list[dict]) -> dict:
+    """Return the payload consumed by the removable spatial graph view."""
+    return augment_project_graph(graph, sessions=sessions, decisions=decisions, hypotheses=hypotheses,
+                                 surveys=surveys, assets=assets)

@@ -193,6 +193,45 @@ APP_JS = """
     if(!el.classList.contains('expanded')) el.classList.toggle('is-clamped', el.scrollHeight-el.clientHeight>2); }); }
   document.addEventListener('click',function(e){ var t=e.target.closest&&e.target.closest('.is-clamped'); if(t) t.classList.toggle('expanded'); });
   initClamp(); document.addEventListener('spa:load',initClamp);
+  // Outline relation hover: draw real project-graph input/output edges in the quiet left rail.
+  function initOutlineRelations(){
+    document.querySelectorAll('.outline[data-relgraph]').forEach(function(outline){
+      if(outline.dataset.relInit) return; outline.dataset.relInit='1';
+      var svg=outline.querySelector('.ol-rel-svg'); if(!svg) return;
+      function rows(){ return [].slice.call(outline.querySelectorAll('[data-oid]')); }
+      function byId(){ var m={}; rows().forEach(function(r){ m[r.dataset.oid]=r; }); return m; }
+      function clear(){ svg.querySelectorAll('path.ol-rel').forEach(function(p){p.remove();});
+        outline.classList.remove('is-relating'); rows().forEach(function(r){r.classList.remove('ol-rel-active');}); }
+      function mid(row){
+        var a=outline.getBoundingClientRect(), b=row.getBoundingClientRect();
+        return b.top-a.top+b.height/2+outline.scrollTop;
+      }
+      function path(y1,y2,cls){
+        var p=document.createElementNS('http://www.w3.org/2000/svg','path');
+        var x1=30,x2=8,c=18;
+        p.setAttribute('class','ol-rel '+cls);
+        p.setAttribute('d','M '+x1+' '+y1+' C '+c+' '+y1+', '+c+' '+y2+', '+x2+' '+y2);
+        svg.appendChild(p);
+      }
+      function show(row){
+        clear();
+        var map=byId(), idsIn=(row.dataset.relIn||'').split(/\\s+/).filter(Boolean),
+            idsOut=(row.dataset.relOut||'').split(/\\s+/).filter(Boolean);
+        if(!idsIn.length&&!idsOut.length) return;
+        outline.classList.add('is-relating'); row.classList.add('ol-rel-active');
+        var y=mid(row);
+        idsIn.forEach(function(id){ var r=map[id]; if(r){ r.classList.add('ol-rel-active'); path(mid(r),y,'ol-rel-in'); }});
+        idsOut.forEach(function(id){ var r=map[id]; if(r){ r.classList.add('ol-rel-active'); path(y,mid(r),'ol-rel-out'); }});
+      }
+      outline.addEventListener('mouseover',function(e){ var r=e.target.closest&&e.target.closest('[data-oid]');
+        if(r&&outline.contains(r)) show(r); });
+      outline.addEventListener('focusin',function(e){ var r=e.target.closest&&e.target.closest('[data-oid]');
+        if(r&&outline.contains(r)) show(r); });
+      outline.addEventListener('mouseleave',clear);
+      outline.addEventListener('focusout',function(e){ if(!outline.contains(e.relatedTarget)) clear(); });
+    });
+  }
+  initOutlineRelations(); document.addEventListener('spa:load',initOutlineRelations);
 })();
 </script>
 """

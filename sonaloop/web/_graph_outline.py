@@ -326,17 +326,44 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
                          empty_filter_state(clear_href or "?")))
     # -----------------------------------------------------------------------------------
 
+    def _rel_keys(it: dict) -> set[str]:
+        oid, rk = str(it.get("oid", "")), str(it.get("rkind", ""))
+        keys = {oid} if oid else set()
+        if oid and rk and ":" not in oid:
+            keys.add(f"{rk}:{oid}")
+        if rk == "report" and oid:
+            keys.add(f"synthesis:{oid}")
+        if rk == "synthesis" and oid and ":" not in oid:
+            keys.add(f"report:{oid}")
+        return keys
+
+    rel_lookup: dict[str, str] = {}
+    for it in items:
+        for k in _rel_keys(it):
+            rel_lookup[k] = str(it["oid"])
+    rel_in: dict[str, set[str]] = {str(it["oid"]): set() for it in items}
+    rel_out: dict[str, set[str]] = {str(it["oid"]): set() for it in items}
+    for e in graph.get("outline_edges") or graph.get("edges") or []:
+        a, b = rel_lookup.get(str(e.get("from_study", ""))), rel_lookup.get(str(e.get("to_study", "")))
+        if a and b and a != b:
+            rel_out.setdefault(a, set()).add(b)
+            rel_in.setdefault(b, set()).add(a)
+
     def row(it: dict) -> str:
         # V9 (ux-contract §9): asset rows render as FILES — the compact `.sl-file--row`
         # (ext badge/thumb identity, filename+ext title, size · date, direction pill, ONE
         # download/open affordance; the body opens /assets/{id} as the slide-over). The
         # generic olrow vocabulary stays for every other kind; data-rkind keeps the
         # presence/slide-over contracts addressable.
+        oid = str(it["oid"])
+        rel_attrs = {"data-oid": oid,
+                     "data-rel-in": " ".join(sorted(rel_in.get(oid, ()))),
+                     "data-rel-out": " ".join(sorted(rel_out.get(oid, ())))}
         if it.get("rkind") in ("asset",):
             from ._presence import file_card
             return file_card(it.get("node") or {}, row=True, href=it["href"],
                              drawer=bool(drawer_url("asset", it["href"])),
-                             attrs={"data-rkind": "asset"})
+                             attrs={"data-rkind": "asset", **rel_attrs})
         tw = ("ol-tw" + (" ol-last" if it.get("last_child") else "")) if it["indent"] else ""  # tree connector
         tis = node_themes.get(it["oid"], [])
         # Persona presence + stance lean (tracker: sonaloop/inspector-cinematic-
@@ -366,7 +393,7 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         # --ti feeds the tree-spine x-offset so a depth-2 child (session under a paired prototype)
         # draws its connector one indent step deeper than a depth-1 child.
         dw_url = drawer_url(it.get("rkind", ""), it["href"])
-        attrs = {"class_": f"olrow {tw}", "data-oid": it["oid"],
+        attrs = {"class_": f"olrow {tw}", **rel_attrs,
                  "data-rkind": it.get("rkind", ""), "id": it.get("anchor"),
                  "style": f'padding-left:{8 + it["indent"] * 24}px'
                           + (f';--ti:{it["indent"]}' if it["indent"] else "")}
@@ -495,5 +522,9 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
                                h("summary", {}, rmark, h("b", {}, label), " ",
                                  h("span", {"class_": "ol-cnt"}, str(len(cluster))), capH),
                                fragment(*cluster_rows(cluster))))
-    out.append(h("div", {"class_": "outline"}, fragment(*inner)))
+    out.append(h("div", {"class_": "outline", "data-relgraph": True},
+                 h("svg", {"class_": "ol-rel-svg", "aria-hidden": "true"},
+                   raw('<defs><marker id="olrel-arrow" viewBox="0 0 10 10" refX="9" refY="5" '
+                       'markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z"/></marker></defs>')),
+                 fragment(*inner)))
     return "".join(out)

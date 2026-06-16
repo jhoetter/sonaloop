@@ -91,7 +91,11 @@ svg.ic{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke
    content — the page (.proj) scrolls as one document. Since UX P2 the outline IS the whole
    page (every primitive is a row in its phase group; the appendix sections retired). */
 .outlinecard{flex:1 0 auto;padding:8px 0 40px}
-.outline{max-width:900px;margin:0 auto;padding:0 24px}
+.outline{max-width:900px;margin:0 auto;padding:0 24px 0 58px;position:relative}
+.ol-rel-svg{position:absolute;left:18px;top:0;width:34px;height:100%;overflow:visible;pointer-events:none;z-index:0}
+.ol-rel-svg path{fill:none;stroke:var(--accent);stroke-width:1.8;opacity:.82;marker-end:url(#olrel-arrow)}
+.ol-rel-svg path.ol-rel-in{stroke:var(--muted);opacity:.46;marker-end:none}
+.ol-rel-svg marker path{fill:var(--accent)}
 .ol-phase{border-bottom:1px solid var(--line-2)}
 .ol-phase>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:12px 8px;font-size:var(--t-body);position:sticky;top:0;background:var(--bg);z-index:1}
 .ol-phase>summary::-webkit-details-marker{display:none}
@@ -103,7 +107,7 @@ svg.ic{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke
    divider + floating card (owner round 5); the spacing harness flags the mixed idiom. */
 .outline .sl-file--row{border:0;background:transparent;border-radius:0;padding:7px 8px}
 .outline .sl-file--row:hover{background:var(--hover);border-radius:var(--radius-sm)}
-.olrow{display:flex;align-items:center;gap:8px;padding:8px;border-radius:var(--radius-sm);color:var(--ink);text-decoration:none;font-size:var(--t-body)}
+.olrow{display:flex;align-items:center;gap:8px;padding:8px;border-radius:var(--radius-sm);color:var(--ink);text-decoration:none;font-size:var(--t-body);z-index:1}
 .olrow:hover{background:var(--hover)}
 .ol-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
 /* per-kind leading icon (§3.2 row atom) — same slot as the dot, tinted per kind */
@@ -188,6 +192,8 @@ svg.ic{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke
    The P0 bridge section classes + header jump chips retired with UX P2: every kind is an
    outline row in its phase group now (spec/ux-contract.md §3.4). */
 .outline .olrow{transition:opacity .12s,background .12s}
+.outline.is-relating .olrow,.outline.is-relating .sl-file--row{opacity:.34}
+.outline.is-relating .olrow.ol-rel-active,.outline.is-relating .sl-file--row.ol-rel-active{opacity:1;background:var(--hover)}
 /* themes — cross-cutting labels (V1: the chip row retired into a FilterBar facet; a row's
    membership is a small colored dot with the full theme title on hover) */
 .olth-pills{display:inline-flex;align-items:center;gap:4px;flex-shrink:0;margin-right:10px}

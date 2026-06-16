@@ -207,6 +207,27 @@ def test_project_header_surfaces_applied_methodology(store):
     assert "Methodology · Double Diamond" in html
 
 
+def test_project_outline_rows_expose_real_hover_relations(store):
+    project = services.start_project("Related rows", "How might we prove the value?",
+                                     methodology="double_diamond", store=store)
+    council = services.record_council(project["id"], "What matters?", [], store=store)
+    synthesis = services.record_synthesis("Evidence summary", "What matters?",
+                                           council_ids=[council["id"]],
+                                           project_id=project["id"], store=store)
+    decision = services.record_decision(project["id"], "Use the evidence", "Proceed from the report.",
+                                        based_on=[{"kind": "synthesis", "id": synthesis["id"]}],
+                                        status="adopted", store=store)["decision"]
+    html = _client().get(f'/projects/{project["id"]}?lang=en').text
+    assert 'class="ol-rel-svg"' in html and "data-relgraph" in html
+    assert f'data-oid="council:{council["id"]}"' in html
+    assert f'data-rel-out="synthesis:{synthesis["id"]}"' in html
+    assert f'data-oid="synthesis:{synthesis["id"]}"' in html
+    assert f'data-rel-in="council:{council["id"]}"' in html
+    assert f'data-rel-out="{decision["id"]}"' in html
+    assert f'data-oid="{decision["id"]}"' in html
+    assert f'data-rel-in="synthesis:{synthesis["id"]}"' in html
+
+
 def test_empty_kinds_render_no_chrome(store):
     proj = services.create_research_project("Empty", goal="g", store=store)
     html = _client().get(f'/projects/{proj["id"]}?lang=en').text

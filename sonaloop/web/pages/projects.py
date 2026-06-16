@@ -5,7 +5,7 @@ from fastapi.responses import RedirectResponse
 
 from ._ctx import *  # noqa: F401,F403  (shared render toolkit)
 from .._graph_outline_sessions import outline_session_groups
-from .._project_graph_view import project_graph_view_data
+from .._project_graph_view import augment_project_graph, project_graph_view_data
 from .._primitive_taxonomy import PRIMITIVES, primitive_color, subtype_label, subtype_value
 # Presence contract (tracker: sonaloop/project-presence-contract) + UX P2 (spec/ux-contract.md
 # §3.4): EVERY project-scoped kind is an outline row in its phase context — decisions, surveys,
@@ -243,7 +243,11 @@ def register_projects(app) -> None:
                     "persona": parse_multi(persona), "status": parse_multi(status),
                     "theme": parse_multi(theme)}
         facets: list = []
-        outline = _outline_html(graph, sessions=sess_groups, decisions=decisions,
+        display_graph = dict(graph)
+        display_graph["outline_edges"] = augment_project_graph(
+            graph, sessions=sess_groups, decisions=decisions, hypotheses=hypotheses,
+            surveys=surveys, assets=assets).get("edges", [])
+        outline = _outline_html(display_graph, sessions=sess_groups, decisions=decisions,
                                 hypotheses=hypotheses, surveys=surveys,
                                 filters=selected, facets_out=facets,
                                 clear_href=f'/projects/{proj["id"]}', q=q)
