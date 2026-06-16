@@ -188,7 +188,7 @@ def test_onboarding_showcase_loads_every_tour_artifact(store):
     )
     health = trace_node_health(full_graph["nodes"], full_graph["edges"], plan)
     assert {k: v for k, v in health.items() if v == "orphaned"} == {}
-    assert "parked" in set(health.values())
+    assert {"source", "consumed", "terminal", "parked"} <= set(health.values())
 
     from sonaloop.web.pages.library import (
         LIBRARY_TABS, TAB_KIND, _annotate_library_trace, _entry_trace_keys, _tab_entries,
