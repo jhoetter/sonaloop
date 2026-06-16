@@ -20,6 +20,7 @@ import json
 from typing import Any
 
 from .config import methodologies_dir, utc_now_iso
+from . import primitive_taxonomy_registry as _taxonomy
 from .storage import Store
 
 # The structural breadth invariant: a waist consuming a fan needs at least this many upstream
@@ -54,6 +55,10 @@ def _norm_step(raw: dict[str, Any]) -> dict[str, Any]:
     """Canonical step dict. All domain words are open tags; nothing checked against a set."""
     produces = dict(raw.get("produces") or {})
     requires = dict(raw.get("requires") or {})
+    presentation = dict(raw.get("presentation") or {})
+    registered_forms = _registered_forms_for_presentation(presentation)
+    if registered_forms:
+        presentation["registered_forms"] = registered_forms
     return {
         "id": raw.get("id") or raw.get("key"),
         "name": raw.get("name", raw.get("id") or raw.get("key") or ""),
@@ -74,8 +79,47 @@ def _norm_step(raw: dict[str, Any]) -> dict[str, Any]:
             "session_of_tags": list(requires.get("session_of_tags") or []),
         },
         "loop_back": raw.get("loop_back", ""),
-        "presentation": dict(raw.get("presentation") or {}),
+        "presentation": presentation,
     }
+
+
+def _registered_forms_for_presentation(presentation: dict[str, Any]) -> list[dict[str, Any]]:
+    """Resolve optional user-facing stage form hints against the primitive registry.
+
+    Methodology tags stay open. Only explicit `presentation.forms` declarations are checked,
+    then exposed as `registered_forms` for UI/MCP consumers.
+    """
+    declared = presentation.get("forms") or presentation.get("registered_forms") or []
+    if not declared:
+        return []
+    primitives = {p["id"]: p for p in _taxonomy.list_primitives()}
+    out: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    for raw in declared:
+        if isinstance(raw, str) and "/" in raw:
+            primitive, form_id = raw.split("/", 1)
+        elif isinstance(raw, dict):
+            primitive = str(raw.get("primitive") or "")
+            form_id = str(raw.get("form") or raw.get("id") or "")
+        else:
+            raise MethodologyError("BAD_SPEC", "presentation.forms entries must be {primitive, form} or 'primitive/form'")
+        primitive_doc = primitives.get(primitive)
+        form = _taxonomy.resolve_form(primitive, form_id)
+        if primitive_doc is None or form is None:
+            raise MethodologyError("BAD_SPEC", f"unknown registered form '{primitive}/{form_id}'")
+        key = (primitive, str(form["id"]))
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append({
+            "primitive": primitive,
+            "form": str(form["id"]),
+            "primitive_label": primitive_doc.get("label", primitive),
+            "form_label": form.get("label", form["id"]),
+            "label": f"{primitive_doc.get('label', primitive)} / {form.get('label', form['id'])}",
+            "description": form.get("description", ""),
+        })
+    return out
 
 
 def _phases_to_steps(phases: list[dict[str, Any]]) -> list[dict[str, Any]]:

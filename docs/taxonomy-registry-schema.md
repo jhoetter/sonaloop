@@ -178,6 +178,38 @@ graph tooling can validate relationship vocabulary.
 Registered relationship types include `derived_from`, `based_on`, `tested_in`,
 `uses_material`, `supports`, `contradicts`, `supersedes` and `groups`.
 
+## Methodology compatibility
+
+Methodologies remain tag-driven plan seeds. Their step tags, roles,
+capabilities and gate names are open methodology vocabulary and must not become
+Library primitives or forms just because a framework uses them.
+
+When a methodology page wants to show the concrete artifact forms that usually
+appear in a stage, the methodology spec declares them under
+`step.presentation.forms` as registry references:
+
+```json
+{
+  "presentation": {
+    "forms": ["council/open_discussion", "session/prototype_use"],
+    "library": ["Councils", "Sessions", "Reports"]
+  }
+}
+```
+
+`methodology.get_methodology()` resolves those references against
+`primitive_taxonomy.json` and exposes `presentation.registered_forms` with
+canonical labels. The web UI renders those resolved labels and falls back to old
+`presentation.formats` strings only for un-migrated specs.
+
+This gives frameworks clear stage guidance without constraining custom
+methodology tags:
+
+- `tags: ["explore", "build", "spec"]` are methodology-local words;
+- `forms: ["council/option_comparison"]` points to a real Library form;
+- unknown explicit form refs are rejected at methodology validation time;
+- missing form refs are allowed for custom/open methodology steps.
+
 ## Examples by family
 
 | Family | Example form | Why it exists |

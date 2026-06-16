@@ -114,7 +114,12 @@ def _guide_row(label: str, items: list[str], color: str) -> str:
 
 def _stage_guide(st: dict) -> str:
     pres = st.get("presentation") or {}
-    formats = [str(x) for x in pres.get("formats") or [] if str(x).strip()]
+    registered_forms = [
+        str((x or {}).get("label") or "")
+        for x in pres.get("registered_forms") or []
+        if isinstance(x, dict)
+    ]
+    formats = registered_forms or [str(x) for x in pres.get("formats") or [] if str(x).strip()]
     library = [str(x) for x in (pres.get("library") or pres.get("artifacts") or []) if str(x).strip()]
     if not (formats or library):
         return ""
