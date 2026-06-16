@@ -91,9 +91,9 @@ svg.ic{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke
    content — the page (.proj) scrolls as one document. Since UX P2 the outline IS the whole
    page (every primitive is a row in its phase group; the appendix sections retired). */
 .outlinecard{flex:1 0 auto;padding:8px 0 40px}
-.outline{max-width:900px;margin:0 auto;padding:0 24px 0 64px;position:relative}
-.ol-rel-svg{position:absolute;left:18px;top:0;width:44px;height:100%;overflow:visible;pointer-events:none;z-index:3}
-.ol-rel-svg path{fill:none;stroke:var(--accent);stroke-width:2.2;opacity:.9;marker-end:url(#olrel-arrow)}
+.outline{max-width:900px;margin:0 auto;padding:0 24px;position:relative}
+.ol-rel-svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:3}
+.ol-rel-svg path{fill:none;stroke:var(--accent);stroke-width:1.8;opacity:.86;marker-end:url(#olrel-arrow)}
 .ol-rel-svg path.ol-rel-in{stroke:var(--muted);opacity:.72}
 .ol-rel-svg marker path{fill:var(--accent)}
 .ol-phase{border-bottom:1px solid var(--line-2)}

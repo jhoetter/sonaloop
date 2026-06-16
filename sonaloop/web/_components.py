@@ -204,15 +204,20 @@ APP_JS = """
         outline.classList.remove('is-relating'); rows().forEach(function(r){
           r.classList.remove('ol-rel-source','ol-rel-in-row','ol-rel-out-row');
         }); }
-      function mid(row){
-        var a=outline.getBoundingClientRect(), b=row.getBoundingClientRect();
-        return b.top-a.top+b.height/2+outline.scrollTop;
+      function anchor(row){
+        var a=outline.getBoundingClientRect(), ico=row.querySelector('.ol-ico')||row,
+            b=ico.getBoundingClientRect();
+        return {
+          x: Math.max(2,b.left-a.left-12),
+          y: b.top-a.top+b.height/2+outline.scrollTop
+        };
       }
-      function path(y1,y2,cls){
+      function path(from,to,cls){
         var p=document.createElementNS('http://www.w3.org/2000/svg','path');
-        var x1=8,x2=34,c=24;
+        var bend=Math.max(22,Math.min(72,Math.abs(to.y-from.y)*.28));
+        var c1=from.x-bend, c2=to.x-bend;
         p.setAttribute('class','ol-rel '+cls);
-        p.setAttribute('d','M '+x1+' '+y1+' C '+c+' '+y1+', '+c+' '+y2+', '+x2+' '+y2);
+        p.setAttribute('d','M '+from.x+' '+from.y+' C '+c1+' '+from.y+', '+c2+' '+to.y+', '+to.x+' '+to.y);
         svg.appendChild(p);
       }
       function show(row){
@@ -221,9 +226,9 @@ APP_JS = """
             idsOut=(row.dataset.relOut||'').split(/\\s+/).filter(Boolean);
         if(!idsIn.length&&!idsOut.length) return;
         outline.classList.add('is-relating'); row.classList.add('ol-rel-source');
-        var y=mid(row);
-        idsIn.forEach(function(id){ var r=map[id]; if(r){ r.classList.add('ol-rel-in-row'); path(mid(r),y,'ol-rel-in'); }});
-        idsOut.forEach(function(id){ var r=map[id]; if(r){ r.classList.add('ol-rel-out-row'); path(y,mid(r),'ol-rel-out'); }});
+        var a=anchor(row);
+        idsIn.forEach(function(id){ var r=map[id]; if(r){ r.classList.add('ol-rel-in-row'); path(anchor(r),a,'ol-rel-in'); }});
+        idsOut.forEach(function(id){ var r=map[id]; if(r){ r.classList.add('ol-rel-out-row'); path(a,anchor(r),'ol-rel-out'); }});
       }
       outline.addEventListener('mouseover',function(e){ var r=e.target.closest&&e.target.closest('[data-oid]');
         if(r&&outline.contains(r)) show(r); });

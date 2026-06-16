@@ -529,6 +529,6 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
     out.append(h("div", {"class_": "outline", "data-relgraph": True},
                  h("svg", {"class_": "ol-rel-svg", "aria-hidden": "true"},
                    raw('<defs><marker id="olrel-arrow" viewBox="0 0 10 10" refX="9" refY="5" '
-                       'markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z"/></marker></defs>')),
+                       'markerWidth="3.5" markerHeight="3.5" orient="auto"><path d="M0 0L10 5L0 10z"/></marker></defs>')),
                  fragment(*inner)))
     return "".join(out)
