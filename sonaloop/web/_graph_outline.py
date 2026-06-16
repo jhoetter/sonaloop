@@ -14,6 +14,7 @@ from ._graph_outline_sessions import merge_session_items
 from ._html import h, raw, fragment
 from ._i18n import t
 from ._outline_chips import chips_html
+from ._primitive_taxonomy import primitive_color, subtype_label, subtype_value
 # Case-/diacritic-insensitive search form for the `?q=` text search (V1) — ONE shared
 # helper with the ⌘K entity search (V6), so the list filter and the palette never diverge.
 from ._palette_registry import fold as _fold
@@ -108,7 +109,7 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         # tree spine (the connector continues down through earlier siblings, stops at the last). `rkind` is
         # the row's machine kind for the chip CONTRACT (_outline_chips); `node` the data its builder reads.
         po, pl = pmeta.get(pk, (99, ""))
-        items.append({"oid": oid, "color": color or "#9aa0a6", "title": title, "kind": kind, "href": href,
+        items.append({"oid": oid, "color": color or primitive_color(rkind), "title": title, "kind": kind, "href": href,
                       "plabel": plabel if plabel is not None else pl, "po": po, "round": r, "order": order,
                       "ts": ts, "indent": indent, "last_child": last_child, "rkind": rkind,
                       "node": node or {}, "pk": pk or ""})
@@ -175,12 +176,14 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
     # so they sit at the first (discover) phase, round 0.
     for a in sorted(graph.get("artifacts") or [], key=lambda x: x.get("created_at", "")):
         po, pl = pmeta.get(notes_phase, (99, ""))
-        kindlab = t("artifact_kind_" + (a.get("kind") or "url"))
-        items.append({"oid": a["id"], "color": "#3a7bd5", "title": a.get("title") or a.get("url", ""),
+        kindlab = t("reference_kind")
+        items.append({"oid": a["id"], "color": primitive_color("url_artifact"),
+                      "title": a.get("title") or a.get("url", ""),
                       "kind": kindlab, "href": f'/references/{a["id"]}',
                       "plabel": pl or kindlab, "po": po, "round": 0,
                       "order": a.get("created_at", ""), "ts": a.get("created_at", ""),
                       "indent": 0, "last_child": False, "rkind": "url_artifact", "node": a,
+                      "format": subtype_label(subtype_value("url_artifact", a)),
                       "pk": notes_phase or ""})
 
     # Usability sessions nest only under real prototype rows. Other tested surfaces (a live URL,

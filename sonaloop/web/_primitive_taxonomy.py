@@ -20,6 +20,7 @@ class Primitive:
     family: str
     icon: str
     purpose_key: str
+    color: str
 
 
 FAMILIES: tuple[tuple[str, str, str], ...] = (
@@ -34,19 +35,19 @@ FAMILIES: tuple[tuple[str, str, str], ...] = (
 
 
 PRIMITIVES: dict[str, Primitive] = {
-    "open_question": Primitive("open_question", "frame", "help", "primitive_open_question_purpose"),
-    "hypothesis": Primitive("hypothesis", "frame", "target", "primitive_hypothesis_purpose"),
-    "url_artifact": Primitive("url_artifact", "material", "link", "primitive_url_artifact_purpose"),
-    "asset": Primitive("asset", "material", "file", "primitive_asset_purpose"),
-    "council": Primitive("council", "ask", "councils", "primitive_council_purpose"),
-    "survey": Primitive("survey", "ask", "plan", "primitive_survey_purpose"),
-    "prototype": Primitive("prototype", "test", "prototype", "primitive_prototype_purpose"),
-    "session": Primitive("session", "test", "activity", "primitive_session_purpose"),
-    "note": Primitive("note", "capture", "panel", "primitive_note_purpose"),
-    "synthesis": Primitive("synthesis", "conclude", "syntheses", "primitive_synthesis_purpose"),
-    "report": Primitive("report", "conclude", "syntheses", "primitive_report_purpose"),
-    "decision": Primitive("decision", "conclude", "flag", "primitive_decision_purpose"),
-    "section": Primitive("section", "structure", "squareGrid", "primitive_section_purpose"),
+    "open_question": Primitive("open_question", "frame", "help", "primitive_open_question_purpose", "#c98218"),
+    "hypothesis": Primitive("hypothesis", "frame", "target", "primitive_hypothesis_purpose", "#e0820a"),
+    "url_artifact": Primitive("url_artifact", "material", "link", "primitive_url_artifact_purpose", "#3a7bd5"),
+    "asset": Primitive("asset", "material", "file", "primitive_asset_purpose", "#5f6f7a"),
+    "council": Primitive("council", "ask", "councils", "primitive_council_purpose", "#6d5ef0"),
+    "survey": Primitive("survey", "ask", "plan", "primitive_survey_purpose", "#6b7cff"),
+    "prototype": Primitive("prototype", "test", "prototype", "primitive_prototype_purpose", "#0f9d8f"),
+    "session": Primitive("session", "test", "activity", "primitive_session_purpose", "#3d7fc4"),
+    "note": Primitive("note", "capture", "panel", "primitive_note_purpose", "#ff9800"),
+    "synthesis": Primitive("synthesis", "conclude", "syntheses", "primitive_synthesis_purpose", "#6d5ef0"),
+    "report": Primitive("report", "conclude", "syntheses", "primitive_report_purpose", "#6d5ef0"),
+    "decision": Primitive("decision", "conclude", "flag", "primitive_decision_purpose", "#c0476b"),
+    "section": Primitive("section", "structure", "squareGrid", "primitive_section_purpose", "#8a6d3b"),
 }
 
 
@@ -61,7 +62,11 @@ def family_icon(family: str) -> str:
 
 
 def primitive_family(kind: str) -> str:
-    return PRIMITIVES.get(kind, Primitive(kind, "structure", "square", "")).family
+    return PRIMITIVES.get(kind, Primitive(kind, "structure", "square", "", "#9aa0a6")).family
+
+
+def primitive_color(kind: str) -> str:
+    return PRIMITIVES.get(kind, Primitive(kind, "structure", "square", "", "#9aa0a6")).color
 
 
 def primitive_purpose(kind: str) -> str:

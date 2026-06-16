@@ -98,7 +98,10 @@ def _url_artifact_chips(item: dict) -> str:
     DEFAULT view (tracker: sonaloop/project-presence-contract); `kind` is bounded by the code enum
     services ARTIFACT_KINDS, normalized on add_artifact."""
     node = item.get("node") or {}
-    chips = [_label(str(node.get("label") or "?"))]
+    chips = []
+    if item.get("format"):
+        chips.append(_label(str(item["format"]), "var(--blue)"))
+    chips.append(_label(str(node.get("label") or "?")))
     if (node.get("snapshot") or {}).get("ok"):
         chips.append(_label(t("artifact_captured"), "var(--green)"))
     else:

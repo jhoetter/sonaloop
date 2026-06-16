@@ -10,6 +10,7 @@ from urllib.parse import quote
 
 from .. import services
 from ._i18n import t
+from ._primitive_taxonomy import primitive_color
 
 
 def outline_session_groups(sessions: list[dict], store) -> dict[str, dict]:
@@ -61,7 +62,7 @@ def _subject_slot(group: dict, key: str, pk, pmeta: dict) -> dict:
     subj, sessions = group["subject"], group["sessions"]
     ts = sessions[0].get("created_at", "")
     po, plabel = pmeta.get(pk, (99, ""))
-    it = {"oid": f"subject:{key}", "color": "#9aa0a6", "title": subj.get("label") or key,
+    it = {"oid": f"subject:{key}", "color": primitive_color("session"), "title": subj.get("label") or key,
           "kind": t("sessions"), "href": "", "plabel": plabel, "po": po, "round": 0,
           "order": ts, "ts": ts, "indent": -1, "last_child": False, "pk": pk or "",
           "rkind": subj.get("kind", "")}
@@ -78,7 +79,7 @@ def _session_child_item(sess: dict, parent: dict, seq: int, last: bool) -> dict:
     kind = t("sessions").rstrip("s")
     under_visible_subject = parent.get("indent", 0) >= 0
     title = sess["persona"]["display_name"] if under_visible_subject else parent["title"]
-    item = {"oid": sess["id"], "color": "#9aa0a6", "title": title,
+    item = {"oid": sess["id"], "color": primitive_color("session"), "title": title,
             "kind": kind, "href": f'/sessions/{sess["id"]}', "plabel": parent["plabel"],
             "po": parent["po"], "round": parent["round"], "order": f'{parent["order"]}#s{seq:03d}',
             "ts": sess.get("created_at", ""), "indent": parent["indent"] + 1, "last_child": last,

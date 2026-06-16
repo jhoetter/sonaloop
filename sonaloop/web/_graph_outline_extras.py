@@ -22,6 +22,7 @@ every extra row borrows the round of its nearest preceding plan node.
 from __future__ import annotations
 
 from ._i18n import t
+from ._primitive_taxonomy import primitive_color
 
 # Row kinds that open as a slide-over (spec §8.1: click = the kind's FULL detail page sliding
 # over the outline; the drawer URL IS the row's canonical href). Universally true for every kind
@@ -119,26 +120,26 @@ def extra_outline_items(graph: dict, *, decisions: list, hypotheses: list, surve
         ts = d.get("created_at", "")
         pk = (producing_step(plan, d["id"], ("decision",)) or _judging_step(plan, d["id"])
               or _phase_round_at(ts, nodes, node_round, default_phase)[0])
-        out.append(item(d["id"], color="#c0476b", title=d.get("title", ""),
+        out.append(item(d["id"], color=primitive_color("decision"), title=d.get("title", ""),
                         kind=t("decision_kind"), href=f'/decisions/{d["id"]}', pk=pk, ts=ts,
                         rkind="decision", node=d, anchor=f'dec-{d["id"]}'))
     for s in surveys:
         ts = s.get("created_at", "")
         pk = (producing_step(plan, s["id"], ("survey",))
               or _phase_round_at(ts, nodes, node_round, default_phase)[0])
-        out.append(item(s["id"], color="#6b7cff", title=s.get("title", ""),
+        out.append(item(s["id"], color=primitive_color("survey"), title=s.get("title", ""),
                         kind=t("survey_kind"), href=f'/surveys/{s["id"]}', pk=pk, ts=ts,
                         rkind="survey", node=s))
     for x in hypotheses:
         ts = x.get("created_at", "")
         pk = _phase_round_at(ts, nodes, node_round, default_phase)[0]
-        out.append(item(x["id"], color="#e0820a", title=x.get("text", ""),
+        out.append(item(x["id"], color=primitive_color("hypothesis"), title=x.get("text", ""),
                         kind=t("hypothesis_kind"), href=f'/hypotheses/{x["id"]}', pk=pk, ts=ts,
                         rkind="hypothesis", node=x, anchor=f'hyp-{x["id"]}'))
     for o in graph.get("open_questions") or []:
         ts = o.get("created_at", "")
         pk = _phase_round_at(ts, nodes, node_round, default_phase)[0]
-        out.append(item(o["id"], color="#9aa0a6", title=o.get("text", ""),
+        out.append(item(o["id"], color=primitive_color("open_question"), title=o.get("text", ""),
                         kind=t("open_question_kind"), href=f'/open-questions/{o["id"]}', pk=pk, ts=ts,
                         rkind="open_question", node=o))
     for a in graph.get("assets") or []:

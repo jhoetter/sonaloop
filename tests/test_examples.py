@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 
 from sonaloop import services
 from sonaloop.storage import Store
@@ -157,6 +158,13 @@ def test_onboarding_showcase_loads_every_tour_artifact(store):
     assert 'data-rkind="live_url"' not in html
     assert "WALKTHROUGH" not in html and "LIVE SURFACE" not in html
     assert ">Flow<" not in html
+    ref_rows = [chunk for chunk in html.split('class="olrow')[1:]
+                if 'data-rkind="url_artifact"' in chunk.split(">", 1)[0]]
+    assert ref_rows
+    for chunk in ref_rows:
+        ptag = re.search(r'<span class="ol-ptag[^"]*">([^<]*)</span>', chunk)
+        assert ptag and ptag.group(1) == "Reference"
+    assert "A/B variant" in html
 
 
 def test_double_load_is_idempotent_for_both_examples(store):

@@ -52,7 +52,7 @@ def test_presence_kinds_have_product_taxonomy():
 
 
 def test_product_taxonomy_groups_match_user_model():
-    from sonaloop.web._primitive_taxonomy import primitive_family
+    from sonaloop.web._primitive_taxonomy import primitive_color, primitive_family
     assert primitive_family("open_question") == "frame"
     assert primitive_family("hypothesis") == "frame"
     assert primitive_family("asset") == "material"
@@ -64,6 +64,8 @@ def test_product_taxonomy_groups_match_user_model():
     assert primitive_family("note") == "capture"
     assert primitive_family("synthesis") == "conclude"
     assert primitive_family("decision") == "conclude"
+    assert primitive_color("open_question") != "#9aa0a6"
+    assert primitive_color("session") != "#9aa0a6"
 
 
 def test_gate_fails_on_an_undeclared_fake_kind(monkeypatch):
