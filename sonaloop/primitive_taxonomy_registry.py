@@ -110,6 +110,14 @@ def registry_errors(registry: dict[str, Any] | None = None) -> list[str]:
                 errors.append(f"{where}: council forms need classifier.mode_alias")
             if not renderer.get("requires"):
                 errors.append(f"{where}: council forms need renderer.requires")
+        if primitive == "session":
+            classifier = form.get("classifier") or {}
+            if not classifier.get("mode_alias"):
+                errors.append(f"{where}: session forms need classifier.mode_alias")
+            if not (classifier.get("subject_kind") or classifier.get("compat_fields")):
+                errors.append(f"{where}: session forms need classifier subject_kind or compat_fields")
+            if not renderer.get("requires"):
+                errors.append(f"{where}: session forms need renderer.requires")
         schema = form.get("schema") or {}
         if schema.get("type") != "object":
             errors.append(f"{where}: schema.type must be 'object'")

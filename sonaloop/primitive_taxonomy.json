@@ -344,8 +344,9 @@
       "label": "Walkthrough session",
       "description": "A recorded screen or flow walkthrough.",
       "aliases": ["walkthrough_session", "flow_walkthrough"],
+      "classifier": {"mode_alias": "walkthrough_session", "subject_kind": "flow"},
       "schema": {"type": "object", "required": ["subject", "timeline"], "fields": {"subject": "object", "timeline": "array", "outcome": "object?"}},
-      "renderer": {"library": "row", "detail": "session_detail"},
+      "renderer": {"library": "row", "detail": "session_detail", "requires": ["timeline", "funnel"]},
       "protocol": {"kind": "test", "inputs": ["prototype", "asset"], "outputs": ["session", "predicted_behaviors"]}
     },
     {
@@ -354,8 +355,9 @@
       "label": "Prototype use session",
       "description": "A session against a stored prototype.",
       "aliases": ["prototype_session"],
+      "classifier": {"mode_alias": "prototype_session", "subject_kind": "prototype", "compat_fields": ["prototype_id"]},
       "schema": {"type": "object", "required": ["subject", "timeline"], "fields": {"subject": "object", "timeline": "array", "verified": "boolean?"}},
-      "renderer": {"library": "row", "detail": "session_detail"},
+      "renderer": {"library": "row", "detail": "session_detail", "requires": ["timeline", "prototype_reaction"]},
       "protocol": {"kind": "test", "inputs": ["prototype"], "outputs": ["session", "predicted_behaviors"]}
     },
     {
@@ -364,18 +366,20 @@
       "label": "Live use session",
       "description": "A session against a live URL or owned surface.",
       "aliases": ["live_session"],
+      "classifier": {"mode_alias": "live_session", "subject_kind": "live_url"},
       "schema": {"type": "object", "required": ["subject", "timeline"], "fields": {"subject": "object", "timeline": "array", "verified": "boolean?"}},
-      "renderer": {"library": "row", "detail": "session_detail"},
+      "renderer": {"library": "row", "detail": "session_detail", "requires": ["timeline", "live_replay"]},
       "protocol": {"kind": "test", "inputs": ["url_artifact"], "outputs": ["session", "predicted_behaviors"]}
     },
     {
       "id": "variant_test",
       "primitive": "session",
       "label": "Variant test session",
-      "description": "A session that tests one or more variants in observed use.",
+      "description": "A session that tests one or more variants in observed use, including assignment, order and outcome.",
       "aliases": [],
+      "classifier": {"mode_alias": "variant_test", "subject_kind": "variant", "compat_fields": ["variants", "assignment", "order_shown"]},
       "schema": {"type": "object", "required": ["subject", "variants"], "fields": {"subject": "object", "variants": "array", "timeline": "array"}},
-      "renderer": {"library": "row", "detail": "session_detail"},
+      "renderer": {"library": "row", "detail": "session_detail", "requires": ["timeline", "variant_comparison"]},
       "protocol": {"kind": "test", "inputs": ["url_artifact", "prototype"], "outputs": ["session", "predicted_behaviors"]}
     },
     {

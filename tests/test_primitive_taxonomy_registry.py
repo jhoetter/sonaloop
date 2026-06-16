@@ -114,3 +114,17 @@ def test_council_forms_document_classifiers_and_renderers():
         assert alias in form["aliases"]
         assert form["classifier"]["mode_alias"] == alias
         assert form["renderer"]["requires"]
+
+
+def test_session_forms_document_classifiers_and_renderers():
+    data = reg.load_registry()
+    by_id = {f["id"]: f for f in data["forms"] if f["primitive"] == "session"}
+    assert set(by_id) == {"walkthrough", "prototype_use", "live_use", "variant_test"}
+    assert by_id["walkthrough"]["classifier"]["subject_kind"] == "flow"
+    assert by_id["prototype_use"]["classifier"]["subject_kind"] == "prototype"
+    assert "prototype_id" in by_id["prototype_use"]["classifier"]["compat_fields"]
+    assert by_id["live_use"]["classifier"]["subject_kind"] == "live_url"
+    assert by_id["variant_test"]["classifier"]["subject_kind"] == "variant"
+    assert {"variants", "assignment", "order_shown"} <= set(by_id["variant_test"]["classifier"]["compat_fields"])
+    for form in by_id.values():
+        assert form["renderer"]["requires"]

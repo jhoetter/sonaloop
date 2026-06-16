@@ -145,6 +145,7 @@ Required compatibility aliases include:
 - `session/walkthrough_session` -> `session/walkthrough`
 - `session/prototype_session` -> `session/prototype_use`
 - `session/live_session` -> `session/live_use`
+- `session/variant_test` -> `session/variant_test`
 
 ## Orthogonal attributes
 
@@ -218,6 +219,33 @@ Every registered council form must declare `classifier.mode_alias` and
 `renderer.requires`, so the UI can show structural descriptions while preserving
 familiar product aliases.
 
+## Session form bridge
+
+Session forms separate the object under test from the observed test run. This is
+the boundary that keeps `flow`, `prototype`, `live URL` and `A/B variant` from
+turning into competing Library primitives.
+
+Existing and new session records classify through `services.session_form()`:
+
+- `subject.kind == "flow"` -> `session/walkthrough`
+- `subject.kind == "prototype"` -> `session/prototype_use`
+- legacy `prototype_id` without a subject -> `session/prototype_use`
+- `subject.kind == "live_url"` -> `session/live_use`
+- `subject.kind == "variant"` or a `variants` payload -> `session/variant_test`
+
+The corresponding material/test-object boundary is:
+
+- a `prototype/flow` is material: the designed sequence being evaluated;
+- a `session/walkthrough` is test evidence: the run through that sequence;
+- a `url_artifact/variant_reference` is material: the stimulus or option;
+- a `session/variant_test` is test evidence: assignment, order and observed
+  outcome.
+
+Every registered session form must declare `classifier.mode_alias`, either
+`classifier.subject_kind` or compatibility fields, and `renderer.requires`.
+This lets the UI explain the difference between test object and test run, and
+lets compatibility rows keep rendering without creating new subtype labels.
+
 ## Lint contract
 
 `registry_errors()` checks:
@@ -230,5 +258,6 @@ familiar product aliases.
 - at least one registered form per family;
 - parameter references to registered orthogonal attributes;
 - council classifiers and renderer requirements;
+- session classifiers and renderer requirements;
 - edge forms backed by relationship types;
 - default custom-form policy is `reject_unknown`.
