@@ -97,14 +97,14 @@
     }
   ],
   "open_questions": [
-    "Would teams trust a weekly pulse check if follow-up is visible?",
-    "Which artifact proves enough value for a capped pilot?",
-    "Where would frontline managers abandon the first-run flow?"
+    {"text": "Would teams trust a weekly pulse check if follow-up is visible?", "created_at": "2026-06-14T10:30:00Z"},
+    {"text": "Which artifact proves enough value for a capped pilot?", "created_at": "2026-06-14T10:31:00Z"},
+    {"text": "Where would frontline managers abandon the first-run flow?", "created_at": "2026-06-14T10:32:00Z"}
   ],
   "assets": [
-    {"key": "screen_intro", "filename": "teampulse-intro.png", "kind": "screenshot", "title": "Prototype screen: intro", "notes": "First screen used in the artifact walkthrough.", "content_base64": "iVBORw0KGgoAAAANSUhEUgAAALQAAAB4CAIAAADUhU+qAAABQklEQVR42u3dIQ6AIABAUa5m4Rg2L2c3eCA3g85k0KIH0IIJ4W3/AExeQWCEbZ2k14JPIDgEh+AQHIJDcKgQHOexq5LgEByCQ3AIDsEhOASH4BAcaTjabtaPgkNwCA7BITgEh+CAAw444IADDjjggENwCA7BIThUPg457CM44IADDsEhOASH4BAcgkNwCA7B8Q1HjE1WmWw44IADDjjggAMOOOCAAw444IADDjjgkN/ngkNwCA7BITgEh+AQHKk4xqFXVsEhOASH4BAcgkOWsoIDDjjgEByCQ3AIDsEhOFQ7jmW7lGFwCA7BITgEh+B4DquYd/PggAMOOOCAAw444IADDjjggAMOOOCAAw444IADDjhsvNl4gwMOOASH4BAcqgSHXGoSHHDAAYfgEByCQ3AobxwSHIJDcAgOwSE4BId+1g0A/4CphwhcxwAAAABJRU5ErkJggg=="},
-    {"key": "screen_action", "filename": "teampulse-action.png", "kind": "screenshot", "title": "Prototype screen: action owner", "notes": "Second screen used in the artifact walkthrough.", "content_base64": "iVBORw0KGgoAAAANSUhEUgAAALQAAAB4CAIAAADUhU+qAAABRUlEQVR42u3dMQ5AMABAUVdyBEvv4kIOYTe4jsQkYhADkwOw1FTtS/4BGn1LtU2rbZ2l1yqfQHAIDsEhOASH4FAmOK7zUCHBITgEh+AQHIJDcAgOwSE44nDUXasfBYfgEByCQ3AIDsEBBxxwwAEHHHDAAYfgEByCQ3Aofxxy2EdwwAEHHIJDcAgOwSE4BIfgEByC4xuOEJqkMtlwwAEHHHDAAQcccMABBxxwwAEHHHDAIb/PBYfgEByCQ3AIDsEhOGJxjEOvpIJDcAgOwSE4BIcsZQUHHHDAITgEh+AQHIJDcKh0HNO+KMHgEByCQ3AIDsHxHFY27+bBAQcccMABBxxwwAEHHHDAAQcccMABBxxwwAEHHHDYeLPxBgcccAgOwSE4VAgOudQkOOCAAw7BITgEh+BQ2jgkOASH4BAcgkNwCA79rBsV77Ecgy5nCQAAAABJRU5ErkJggg=="},
-    {"key": "field_note", "filename": "field-note.txt", "kind": "document", "title": "Field note: shift handover", "notes": "Input evidence attached to the project.", "content_base64": "RmllbGQgbm90ZTogc2hpZnQgaGFuZG92ZXIgaXNzdWVzIGFyZSByZXBlYXRlZCB3aGVuIG5vIG93bmVyIGlzIG5hbWVkLg=="}
+    {"key": "screen_intro", "filename": "teampulse-intro.png", "kind": "screenshot", "title": "Prototype screen: intro", "notes": "First screen used in the artifact walkthrough.", "created_at": "2026-06-14T10:20:00Z", "content_base64": "iVBORw0KGgoAAAANSUhEUgAAALQAAAB4CAIAAADUhU+qAAABQklEQVR42u3dIQ6AIABAUa5m4Rg2L2c3eCA3g85k0KIH0IIJ4W3/AExeQWCEbZ2k14JPIDgEh+AQHIJDcKgQHOexq5LgEByCQ3AIDsEhOASH4BAcaTjabtaPgkNwCA7BITgEh+CAAw444IADDjjggENwCA7BIThUPg457CM44IADDsEhOASH4BAcgkNwCA7B8Q1HjE1WmWw44IADDjjggAMOOOCAAw444IADDjjgkN/ngkNwCA7BITgEh+AQHKk4xqFXVsEhOASH4BAcgkOWsoIDDjjgEByCQ3AIDsEhOFQ7jmW7lGFwCA7BITgEh+B4DquYd/PggAMOOOCAAw444IADDjjggAMOOOCAAw444IADDjhsvNl4gwMOOASH4BAcqgSHXGoSHHDAAYfgEByCQ3AobxwSHIJDcAgOwSE4BId+1g0A/4CphwhcxwAAAABJRU5ErkJggg=="},
+    {"key": "screen_action", "filename": "teampulse-action.png", "kind": "screenshot", "title": "Prototype screen: action owner", "notes": "Second screen used in the artifact walkthrough.", "created_at": "2026-06-14T10:21:00Z", "content_base64": "iVBORw0KGgoAAAANSUhEUgAAALQAAAB4CAIAAADUhU+qAAABRUlEQVR42u3dMQ5AMABAUVdyBEvv4kIOYTe4jsQkYhADkwOw1FTtS/4BGn1LtU2rbZ2l1yqfQHAIDsEhOASH4FAmOK7zUCHBITgEh+AQHIJDcAgOwSE44nDUXasfBYfgEByCQ3AIDsEBBxxwwAEHHHDAAYfgEByCQ3Aofxxy2EdwwAEHHIJDcAgOwSE4BIfgEByC4xuOEJqkMtlwwAEHHHDAAQcccMABBxxwwAEHHHDAIb/PBYfgEByCQ3AIDsEhOGJxjEOvpIJDcAgOwSE4BIcsZQUHHHDAITgEh+AQHIJDcKh0HNO+KMHgEByCQ3AIDsHxHFY27+bBAQcccMABBxxwwAEHHHDAAQcccMABBxxwwAEHHHDYeLPxBgcccAgOwSE4VAgOudQkOOCAAw7BITgEh+BQ2jgkOASH4BAcgkNwCA79rBsV77Ecgy5nCQAAAABJRU5ErkJggg=="},
+    {"key": "field_note", "filename": "field-note.txt", "kind": "document", "title": "Field note: shift handover", "notes": "Input evidence attached to the project.", "created_at": "2026-06-14T10:22:00Z", "content_base64": "RmllbGQgbm90ZTogc2hpZnQgaGFuZG92ZXIgaXNzdWVzIGFyZSByZXBlYXRlZCB3aGVuIG5vIG93bmVyIGlzIG5hbWVkLg=="}
   ],
   "flows": [
     {"key": "first_run", "title": "TeamPulse first-run flow", "steps": [
@@ -113,14 +113,15 @@
     ]}
   ],
   "artifacts": [
-    {"key": "marketing-site", "kind": "url", "label": "A", "title": "TeamPulse marketing page reference", "url": "https://example.com/teampulse", "capture": false},
-    {"key": "external-prototype", "kind": "prototype", "label": "B", "title": "External prototype: sonaloop-design app", "url": "https://design.sonaloop.com", "capture": false},
-    {"key": "variant-privacy-first", "kind": "variant", "label": "C", "title": "Variant C — privacy-first intro", "url": "https://example.com/teampulse/privacy-first", "capture": false},
-    {"key": "variant-dashboard-first", "kind": "variant", "label": "D", "title": "Variant D — dashboard-first intro", "url": "https://example.com/teampulse/dashboard-first", "capture": false}
+    {"key": "marketing-site", "kind": "url", "label": "A", "title": "TeamPulse marketing page reference", "url": "https://example.com/teampulse", "capture": false, "created_at": "2026-06-14T10:24:00Z"},
+    {"key": "external-prototype", "kind": "prototype", "label": "B", "title": "External prototype: sonaloop-design app", "url": "https://design.sonaloop.com", "capture": false, "created_at": "2026-06-14T10:25:00Z"},
+    {"key": "variant-privacy-first", "kind": "variant", "label": "C", "title": "Variant C — privacy-first intro", "url": "https://example.com/teampulse/privacy-first", "capture": false, "created_at": "2026-06-14T10:26:00Z"},
+    {"key": "variant-dashboard-first", "kind": "variant", "label": "D", "title": "Variant D — dashboard-first intro", "url": "https://example.com/teampulse/dashboard-first", "capture": false, "created_at": "2026-06-14T10:27:00Z"}
   ],
   "councils": [
     {
       "key": "trust-council",
+      "created_at": "2026-06-14T10:43:00Z",
       "prompt": "Would this team trust a weekly TeamPulse check if it shows visible follow-up?",
       "questions": ["What would make this feel useful rather than like surveillance?"],
       "personas": ["ops", "hr", "lead", "finance"],
@@ -138,6 +139,7 @@
   "hypotheses": [
     {
       "key": "visible-followup",
+      "created_at": "2026-06-14T10:55:00Z",
       "text": "If the first-run flow explains anonymity and shows a named follow-up owner, at least 60% of pilot respondents will support trying TeamPulse for four weeks.",
       "prediction": {"metric": "support share on survey q3", "expected_value": 0.6, "tolerance": 0.1, "confidence": 0.72},
       "derived_from": [{"kind": "council", "key": "trust-council", "role": "derived_from"}]
@@ -149,6 +151,7 @@
   "syntheses": [
     {
       "key": "artifact-map",
+      "created_at": "2026-06-14T11:05:00Z",
       "title": "Showcase report — from question to decision",
       "start_input": "Synthesize the trust council into an onboarding-ready project report.",
       "goal": "Explain how the artifacts connect.",
@@ -173,6 +176,7 @@
   "surveys": [
     {
       "key": "pilot-readiness",
+      "created_at": "2026-06-14T11:15:00Z",
       "slug": "teampulse-pilot-readiness",
       "title": "TeamPulse pilot readiness survey",
       "intro": "Three questions to validate the pilot risk before launch.",
@@ -194,6 +198,7 @@
   "prototypes": [
     {
       "key": "first-run-prototype",
+      "created_at": "2026-06-14T11:30:00Z",
       "slug": "teampulse-first-run-showcase",
       "name": "TeamPulse first-run prototype",
       "fidelity": "midfi",
@@ -211,6 +216,7 @@
   "usability_sessions": [
     {
       "key": "lead-flow-walk",
+      "created_at": "2026-06-14T11:45:00Z",
       "persona": "lead",
       "subject": {"kind": "flow", "key": "first_run", "label": "TeamPulse first-run flow"},
       "fidelity": "artifact",
@@ -223,6 +229,7 @@
     },
     {
       "key": "ops-prototype-click",
+      "created_at": "2026-06-14T11:55:00Z",
       "persona": "ops",
       "subject": {"kind": "prototype", "key": "first-run-prototype", "label": "TeamPulse first-run prototype"},
       "fidelity": "prototype",
@@ -235,6 +242,7 @@
     },
     {
       "key": "hr-live-reference",
+      "created_at": "2026-06-14T12:05:00Z",
       "persona": "hr",
       "subject": {"kind": "live_url", "url": "https://design.sonaloop.com", "label": "External prototype reference"},
       "fidelity": "live",
@@ -248,6 +256,7 @@
   "decisions": [
     {
       "key": "pilot-decision",
+      "created_at": "2026-06-14T12:20:00Z",
       "title": "Run a capped TeamPulse pilot",
       "decision": "Run a four-week pilot at one site, gated by visible owner follow-up and works-council privacy review.",
       "status": "adopted",

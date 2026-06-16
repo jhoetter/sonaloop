@@ -167,6 +167,24 @@ def test_onboarding_showcase_loads_every_tour_artifact(store):
     assert "A/B variant" in html
 
 
+def test_onboarding_showcase_timeline_is_authored_not_load_time(store):
+    out = services.load_example(ONBOARDING, store=store)
+    pid = out["project_id"]
+    project = store.get_research_project(pid)
+    refs = project["artifacts"]
+    oqs = store.list_open_questions(pid)
+    council = store.get_council_session(project["council_ids"][0])
+    survey = services.list_surveys(pid, store=store)[0]
+    sessions = services.list_usability_sessions(project_id=pid, store=store)
+    decision = services.list_decisions(project_id=pid, store=store)[0]
+
+    assert refs[0]["created_at"] == "2026-06-14T10:24:00Z"
+    assert oqs[0]["created_at"] == "2026-06-14T10:30:00Z"
+    assert refs[-1]["created_at"] < oqs[0]["created_at"] < council["created_at"]
+    assert council["created_at"] < survey["created_at"] < sessions[0]["created_at"]
+    assert max(s["created_at"] for s in sessions) < decision["created_at"]
+
+
 def test_double_load_is_idempotent_for_both_examples(store):
     for slug in (ONBOARDING, PREMIUM, POSITIONING):
         first = services.load_example(slug, store=store)

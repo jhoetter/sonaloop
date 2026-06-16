@@ -125,6 +125,70 @@ def _hypothesis_phase(h: dict[str, Any]) -> str:
     return "pre" if kinds <= {"open_question"} else "post"
 
 
+def _question_text(raw: Any) -> str:
+    return str(raw.get("text") if isinstance(raw, dict) else raw).strip()
+
+
+def _fixture_created(raw: Any, fallback: str = "") -> str:
+    if not isinstance(raw, dict):
+        return fallback
+    return str(raw.get("created_at") or fallback)
+
+
+def _stamp_project_list_item(store: Store, project_id: str, field: str, item_id: str,
+                             created_at: str = "") -> None:
+    """Fixture-only timestamp repair for project-embedded collections.
+
+    Several public record APIs intentionally stamp runtime creation time and do not expose
+    `created_at`. Examples, however, are authored demo histories. When a fixture supplies a
+    timestamp, replay it after validation so project views do not look chronologically incoherent.
+    """
+    if not created_at:
+        return
+    project = store.get_research_project(project_id) or {}
+    items = list(project.get(field) or [])
+    changed = False
+    for it in items:
+        if it.get("id") == item_id:
+            it["created_at"] = created_at
+            it.setdefault("updated_at", created_at)
+            changed = True
+            break
+    if changed:
+        project[field] = items
+        project["updated_at"] = utc_now_iso()
+        store.upsert_research_project(project)
+
+
+def _stamp_entity_created(store: Store, kind: str, entity_id: str, created_at: str = "") -> None:
+    if not created_at:
+        return
+    getters = {
+        "council": store.get_council_session,
+        "synthesis": store.get_synthesis,
+        "hypothesis": store.get_hypothesis,
+        "survey": store.get_survey,
+        "decision": store.get_decision,
+        "prototype": store.get_prototype,
+        "session": store.get_usability_session,
+    }
+    updaters = {
+        "council": store.insert_council_session,
+        "synthesis": store.upsert_synthesis,
+        "hypothesis": store.upsert_hypothesis,
+        "survey": store.upsert_survey,
+        "decision": store.upsert_decision,
+        "prototype": store.upsert_prototype,
+        "session": store.insert_usability_session,
+    }
+    rec = getters[kind](entity_id)
+    if not rec:
+        return
+    rec["created_at"] = created_at
+    rec.setdefault("updated_at", created_at)
+    updaters[kind](rec)
+
+
 # ------------------------------------------------------------------ public API
 
 def list_examples(store: Store | None = None) -> list[dict[str, Any]]:
@@ -197,7 +261,14 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
 
     # -- open questions + the HMW reframe (stable per-text ids -> idempotent) ---
     if fx.get("open_questions"):
-        record_open_questions(pid, fx["open_questions"], store=store)  # noqa: F821 (bound)
+        oq_inputs = fx["open_questions"]
+        oq_records = record_open_questions(pid, [_question_text(q) for q in oq_inputs], store=store)  # noqa: F821 (bound)
+        created_by_text = {_question_text(q): _fixture_created(q, fx.get("open_questions_created_at", ""))
+                           for q in oq_inputs}
+        for oq in oq_records:
+            if ts := created_by_text.get(oq.get("text", "")):
+                oq["created_at"] = ts
+                store.upsert_open_question(oq)
     hmw = fx.get("hmw")
     if hmw:
         record_hmw_reframe(pid, hmw["problem"], hmw["questions"], store=store)  # noqa: F821 (bound)
@@ -234,6 +305,7 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
             pid, content_base64=a["content_base64"], filename=a["filename"],
             kind=a.get("kind"), title=a.get("title", ""), notes=a.get("notes", ""),
             source=a.get("source", ""), direction=a.get("direction"), store=store)
+        _stamp_project_list_item(store, pid, "assets", rec["id"], a.get("created_at", ""))
         ctx["asset"][a["key"]] = rec["id"]
     for f in fx.get("flows", []):
         rec = define_flow(  # noqa: F821 (bound)
@@ -247,6 +319,7 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
             pid, a["url"], kind=a.get("kind", "url"), title=a.get("title", ""),
             label=a.get("label"), capture=bool(a.get("capture", True)),
             key=_ns(slug, a["key"]), store=store)
+        _stamp_project_list_item(store, pid, "artifacts", rec["id"], a.get("created_at", ""))
         ctx["artifact"][a["key"]] = rec["id"]
 
     # -- hypotheses, phase 1: the bets stamped BEFORE exposure -------------------
@@ -255,10 +328,12 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
         ctx["hypothesis"][h["key"]] = hid
         existing = store.get_hypothesis(hid)
         if existing and existing.get("status") != "open":
+            _stamp_entity_created(store, "hypothesis", hid, h.get("created_at", ""))
             return                                  # resolved on a prior load — the audit trail stays
         record_hypothesis(pid, h["text"], h["prediction"],  # noqa: F821 (bound)
                           derived_from=[_resolve_ref(r, ctx) for r in h.get("derived_from") or []],
                           key=_ns(slug, h["key"]), store=store)
+        _stamp_entity_created(store, "hypothesis", hid, h.get("created_at", ""))
 
     hypotheses = fx.get("hypotheses", [])
     for h in hypotheses:
@@ -302,6 +377,7 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
                                   statements=stmts, votes=c.get("votes"),
                                   proposal=c.get("proposal", ""),
                                   questions=c.get("questions"), **common)
+        _stamp_entity_created(store, "council", sess["id"], c.get("created_at", ""))
         ctx["council"][c["key"]] = sess["id"]
 
     # -- hypotheses, phase 2 (derived from councils) + results -------------------
@@ -328,6 +404,7 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
                                council_ids=[ctx["council"][k] for k in s.get("councils") or []],
                                payload=payload, goal=s.get("goal", ""),
                                key=_ns(slug, s["key"]), created_at=s.get("created_at"), store=store)
+        _stamp_entity_created(store, "synthesis", rec["id"], s.get("created_at", ""))
         ctx["synthesis"][s["key"]] = rec["id"]
     project = store.get_research_project(pid)
     new_studies = [sid for sid in ctx["synthesis"].values()
@@ -344,6 +421,7 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
             derived_from=[_resolve_ref(r, ctx) for r in s.get("derived_from") or []],
             status=s.get("status", "draft"), slug=s.get("slug"), key=_ns(slug, s["key"]),
             store=store)["survey"]
+        _stamp_entity_created(store, "survey", rec["id"], s.get("created_at", ""))
         ctx["survey"][s["key"]] = rec["id"]
         if s.get("responses"):
             import_survey_responses(rec["id"], responses=s["responses"],  # noqa: F821 (bound)
@@ -354,20 +432,23 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
         rec = scaffold_prototype(  # noqa: F821 (bound)
             p["slug"], p["name"], p["concept"], template=p.get("template"),
             project_id=pid, fidelity=p.get("fidelity"), store=store)
+        _stamp_entity_created(store, "prototype", rec["id"], p.get("created_at", ""))
         ctx["prototype"][p["key"]] = rec["id"]
     for s in fx.get("usability_sessions", []):
         rec = record_usability_session(  # noqa: F821 (bound)
             pids[s["persona"]], _resolve_subject(s["subject"], ctx), s["fidelity"],
             s["date"], s["steps"], s["outcome"], statements=_resolve_statements(s.get("statements"), pids),
             project_id=pid, session_id=s.get("session_id"), key=_ns(slug, s["key"]), store=store)
+        _stamp_entity_created(store, "session", rec["usability_session"]["id"], s.get("created_at", ""))
         ctx["usability_session"][s["key"]] = rec["usability_session"]["id"]
 
     # -- decision records (keyed upsert; refs must resolve by contract) ----------
     for d in fx.get("decisions", []):
-        record_decision(pid, d["title"], d["decision"],  # noqa: F821 (bound)
-                        based_on=[_resolve_ref(r, ctx) for r in d.get("based_on") or []],
-                        rejected=[_resolve_ref(r, ctx) for r in d.get("rejected") or []],
-                        status=d.get("status", "proposed"), key=_ns(slug, d["key"]), store=store)
+        dec = record_decision(pid, d["title"], d["decision"],  # noqa: F821 (bound)
+                              based_on=[_resolve_ref(r, ctx) for r in d.get("based_on") or []],
+                              rejected=[_resolve_ref(r, ctx) for r in d.get("rejected") or []],
+                              status=d.get("status", "proposed"), key=_ns(slug, d["key"]), store=store)
+        _stamp_entity_created(store, "decision", dec["decision"]["id"], d.get("created_at", ""))
 
     # -- plain notes + sections (deduped: no keyed upsert on these paths) --------
     note_ids: dict[str, str] = {}
