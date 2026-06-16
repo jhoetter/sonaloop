@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import base64
 import html
+import json
 import re
 
 from starlette.testclient import TestClient
@@ -247,7 +248,7 @@ def test_project_outline_surfaces_plan_judgment_trace_edges(store):
 
 
 def test_project_trace_edges_are_registered(store):
-    from sonaloop.project_trace import TRACE_EDGE_TYPES
+    from sonaloop.project_trace import TRACE_EDGE_TYPES, collect_project_trace_edges
     from sonaloop.web._graph_outline_sessions import outline_session_groups
     from sonaloop.web._project_graph_view import augment_project_graph
 
@@ -269,15 +270,27 @@ def test_project_trace_edges_are_registered(store):
                              "Survey evidence converged.",
                              evidence_refs=[f"survey:{survey['id']}"], store=store)
     graph = services.get_project_graph(project["id"], store=store)
+    sessions = outline_session_groups([], store)
+    decisions = services.list_decisions(project["id"], store=store)
+    hypotheses = services.list_hypotheses(project["id"], store=store)
+    surveys = services.list_surveys(project_id=project["id"], store=store)
+    assets = services.list_assets(project["id"], store=store)
     full_graph = augment_project_graph(
-        graph, sessions=outline_session_groups([], store),
-        decisions=services.list_decisions(project["id"], store=store),
-        hypotheses=services.list_hypotheses(project["id"], store=store),
-        surveys=services.list_surveys(project_id=project["id"], store=store),
-        assets=services.list_assets(project["id"], store=store),
+        graph, sessions=sessions, decisions=decisions, hypotheses=hypotheses,
+        surveys=surveys, assets=assets,
+    )
+    central_edges = collect_project_trace_edges(
+        graph, full_graph["nodes"], sessions=sessions, decisions=decisions,
+        hypotheses=hypotheses, surveys=surveys, assets=assets,
+        base_edges=graph.get("edges") or [],
     )
     emitted = {e.get("type") for e in full_graph["edges"]}
     assert emitted <= set(TRACE_EDGE_TYPES), emitted - set(TRACE_EDGE_TYPES)
+
+    def as_sorted_json(rows):
+        return sorted(json.dumps(r, sort_keys=True) for r in rows)
+
+    assert as_sorted_json(full_graph["edges"]) == as_sorted_json(central_edges)
 
 
 def test_project_outline_marks_orphaned_trace_nodes_after_plan_completion(store):
