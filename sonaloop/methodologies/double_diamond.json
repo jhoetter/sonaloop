@@ -17,8 +17,8 @@
       "strategy": "pain-discovery", "diverge_by": "persona_subset",
       "produces": {"role": "problem-landscape"},
       "presentation": {
-        "formats": ["Council", "Red-Team"],
-        "artifacts": ["Problem landscape", "Pain themes", "Open questions"]
+        "formats": ["Council: Discovery", "Council: Red-Team"],
+        "library": ["Councils", "Notes", "Open questions"]
       }
     },
     {
@@ -28,8 +28,8 @@
       "requires": {"min_inputs": 2, "gate_tag": "divergence_complete"},
       "produces": {"role": "point-of-view"},
       "presentation": {
-        "formats": ["Council", "Head-to-Head"],
-        "artifacts": ["Point-of-view", "How-Might-We", "Evidence gate"]
+        "formats": ["Council: Discovery", "Council: Head-to-Head"],
+        "library": ["Councils", "Reports", "Open questions"]
       }
     },
     {
@@ -38,8 +38,8 @@
       "strategy": "positive-deepdive", "consumes": ["define"], "diverge_by": "solution_candidate",
       "produces": {"role": "solution-options", "artifact_type": "prototype"},
       "presentation": {
-        "formats": ["Council", "Head-to-Head"],
-        "artifacts": ["Solution options", "Prototype", "Variant notes"]
+        "formats": ["Council: Discovery", "Council: Head-to-Head"],
+        "library": ["Councils", "Prototypes", "Notes"]
       }
     },
     {
@@ -50,8 +50,8 @@
       "produces": {"role": "spec"},
       "loop_back": "develop",
       "presentation": {
-        "formats": ["Prototype Test", "Red-Team"],
-        "artifacts": ["Prototype sessions", "Buildable spec", "Open risks"]
+        "formats": ["Session: Prototype test", "Council: Red-Team"],
+        "library": ["Sessions", "Councils", "Reports", "Decisions"]
       }
     }
   ]

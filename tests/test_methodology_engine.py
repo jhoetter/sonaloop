@@ -27,6 +27,24 @@ def test_builtins_load_and_validate(store):
     assert [M._is_decide(s) for s in dd["steps"]] == [False, True, False, True]
 
 
+def test_builtin_stage_guides_use_library_primitives(store):
+    """Stage guides are user-facing. They may name Library primitives and explicit
+    Council/Session subtypes, but not raw engine roles like problem-landscape."""
+    library = {
+        "Open questions", "References", "Councils", "Reports", "Prototypes", "Sessions",
+        "Surveys", "Hypotheses", "Decisions", "Notes", "Assets",
+    }
+    prefixes = ("Council: ", "Session: ")
+    for row in M.list_methodologies(store=store):
+        spec = M.get_methodology(row["key"], store=store)
+        for step in spec["steps"]:
+            pres = step.get("presentation") or {}
+            for item in pres.get("library") or []:
+                assert item in library, (spec["key"], step["id"], item)
+            for item in pres.get("formats") or []:
+                assert item == "Council" or item.startswith(prefixes), (spec["key"], step["id"], item)
+
+
 def test_no_hardcoded_vocabularies_in_engine_source():
     """C1 acceptance: no closed capability/role/breadth/judgment/artifact SET remains in code, and
     the structural helpers do not special-case any artifact tag."""

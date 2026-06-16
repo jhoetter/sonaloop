@@ -17,8 +17,8 @@
       "strategy": "pain-discovery", "diverge_by": "angle",
       "produces": {"role": "problem-landscape"},
       "presentation": {
-        "formats": ["Council"],
-        "artifacts": ["Job map", "Problem landscape", "Current alternatives"]
+        "formats": ["Council: Discovery"],
+        "library": ["Councils", "Notes", "Open questions"]
       }
     },
     {
@@ -28,8 +28,8 @@
       "requires": {"min_inputs": 2, "gate_tag": "divergence_complete"},
       "produces": {"role": "point-of-view"},
       "presentation": {
-        "formats": ["Council", "Head-to-Head"],
-        "artifacts": ["Selected job", "Point-of-view", "Value hypothesis"]
+        "formats": ["Council: Discovery", "Council: Head-to-Head"],
+        "library": ["Councils", "Hypotheses", "Reports"]
       }
     },
     {
@@ -38,8 +38,8 @@
       "strategy": "positive-deepdive", "consumes": ["problem_pick"], "diverge_by": "solution_candidate",
       "produces": {"role": "solution-options", "artifact_type": "prototype"},
       "presentation": {
-        "formats": ["Council", "Head-to-Head"],
-        "artifacts": ["MVP options", "Prototype", "Assumption list"]
+        "formats": ["Council: Discovery", "Council: Head-to-Head"],
+        "library": ["Councils", "Prototypes", "Hypotheses"]
       }
     },
     {
@@ -50,8 +50,8 @@
       "produces": {"role": "spec"},
       "loop_back": "solution_explore",
       "presentation": {
-        "formats": ["Prototype Test", "Red-Team"],
-        "artifacts": ["Value evidence", "Buildable spec", "Risks"]
+        "formats": ["Session: Prototype test", "Council: Red-Team"],
+        "library": ["Sessions", "Councils", "Reports", "Decisions"]
       }
     }
   ]

@@ -17,8 +17,8 @@
       "strategy": "pain-discovery", "diverge_by": "persona_subset",
       "produces": {"role": "problem-landscape"},
       "presentation": {
-        "formats": ["Council", "Red-Team"],
-        "artifacts": ["Problem landscape", "Segment angles", "Raw evidence"]
+        "formats": ["Council: Discovery", "Council: Red-Team"],
+        "library": ["Councils", "Notes", "Open questions"]
       }
     },
     {
@@ -28,8 +28,8 @@
       "requires": {"min_inputs": 2, "gate_tag": "divergence_complete"},
       "produces": {"role": "key-problems"},
       "presentation": {
-        "formats": ["Council", "Head-to-Head"],
-        "artifacts": ["Affinity clusters", "Key problems", "Point-of-view"]
+        "formats": ["Council: Discovery", "Council: Head-to-Head"],
+        "library": ["Councils", "Reports", "Open questions"]
       }
     },
     {
@@ -38,8 +38,8 @@
       "strategy": "positive-deepdive", "consumes": ["define"], "diverge_by": "solution_candidate",
       "produces": {"role": "solution-options", "artifact_type": "prototype", "more_tags": ["lofi"]},
       "presentation": {
-        "formats": ["Council", "Head-to-Head"],
-        "artifacts": ["Solution concepts", "Lo-fi prototypes", "Dark-horse option"]
+        "formats": ["Council: Ideation", "Council: Head-to-Head"],
+        "library": ["Councils", "Prototypes", "Notes"]
       }
     },
     {
@@ -49,8 +49,8 @@
       "requires": {"min_inputs": 2, "gate_tag": "divergence_complete", "session_of_tags": ["lofi"]},
       "produces": {"role": "solution-shortlist"},
       "presentation": {
-        "formats": ["Prototype Test", "Head-to-Head"],
-        "artifacts": ["Session logs", "Ranking", "Shortlist"]
+        "formats": ["Session: Prototype test", "Council: Head-to-Head"],
+        "library": ["Sessions", "Councils", "Reports"]
       }
     },
     {
@@ -59,8 +59,8 @@
       "strategy": "positive-deepdive", "consumes": ["lofi_select"], "diverge_by": "solution_candidate",
       "produces": {"role": "solution-options", "artifact_type": "prototype", "more_tags": ["midfi"]},
       "presentation": {
-        "formats": ["Council", "Head-to-Head"],
-        "artifacts": ["Mid-fi prototype", "Refinement variants", "Decision notes"]
+        "formats": ["Council: Discovery", "Council: Head-to-Head"],
+        "library": ["Councils", "Prototypes", "Notes"]
       }
     },
     {
@@ -71,8 +71,8 @@
       "produces": {"role": "solution-presentation"},
       "loop_back": "refine",
       "presentation": {
-        "formats": ["Prototype Test", "Red-Team"],
-        "artifacts": ["Solution presentation", "Buildable spec", "Evidence trail"]
+        "formats": ["Session: Prototype test", "Council: Red-Team"],
+        "library": ["Sessions", "Councils", "Reports", "Decisions"]
       }
     }
   ]

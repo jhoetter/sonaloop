@@ -115,13 +115,13 @@ def _guide_row(label: str, items: list[str], color: str) -> str:
 def _stage_guide(st: dict) -> str:
     pres = st.get("presentation") or {}
     formats = [str(x) for x in pres.get("formats") or [] if str(x).strip()]
-    artifacts = [str(x) for x in pres.get("artifacts") or [] if str(x).strip()]
-    if not (formats or artifacts):
+    library = [str(x) for x in (pres.get("library") or pres.get("artifacts") or []) if str(x).strip()]
+    if not (formats or library):
         return ""
     de = _lang() == "de"
     return h("div", {"class_": "meth-guide"},
              raw(_guide_row("Formate" if de else "Formats", formats, "var(--accent)")),
-             raw(_guide_row("Artefakte" if de else "Artifacts", artifacts, "var(--blue)")))
+             raw(_guide_row("Library", library, "var(--blue)")))
 
 
 def _jobs_for(key: str) -> list[dict]:
