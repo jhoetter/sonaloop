@@ -45,7 +45,10 @@ register_css(
     ".meth-step-n{width:28px;height:28px;border-radius:999px;background:var(--panel-2);display:inline-flex;align-items:center;justify-content:center;font-size:var(--t-xs);font-family:var(--mono);color:var(--accent)}"
     ".meth-step h3{margin:0 0 4px;font-size:var(--t-md)}"
     ".meth-step p{margin:0;color:var(--muted);line-height:1.45}"
-    ".meth-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}"
+    ".meth-guide{display:grid;gap:6px;margin-top:10px}"
+    ".meth-guide-row{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap}"
+    ".meth-guide-row b{min-width:62px;color:var(--muted);font-size:var(--t-xs);line-height:1.9;text-transform:uppercase;letter-spacing:.08em}"
+    ".meth-guide-row .chips{display:flex;gap:6px;flex-wrap:wrap}"
     ".meth-jobs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}"
     ".meth-job{padding:12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel)}"
     ".meth-job b{display:block;margin-bottom:4px}"
@@ -98,6 +101,27 @@ def _cover(spec: dict) -> str:
     return h("div", {"class_": "meth-cover"},
              h("img", {"src": src, "alt": ""}),
              h("div", {"class_": "meth-cover-fig"}, raw(fig)) if fig else None)
+
+
+def _guide_row(label: str, items: list[str], color: str) -> str:
+    if not items:
+        return ""
+    return h("div", {"class_": "meth-guide-row"},
+             h("b", {}, label),
+             h("span", {"class_": "chips"},
+               fragment(*(raw(_label(item, color)) for item in items))))
+
+
+def _stage_guide(st: dict) -> str:
+    pres = st.get("presentation") or {}
+    formats = [str(x) for x in pres.get("formats") or [] if str(x).strip()]
+    artifacts = [str(x) for x in pres.get("artifacts") or [] if str(x).strip()]
+    if not (formats or artifacts):
+        return ""
+    de = _lang() == "de"
+    return h("div", {"class_": "meth-guide"},
+             raw(_guide_row("Formate" if de else "Formats", formats, "var(--accent)")),
+             raw(_guide_row("Artefakte" if de else "Artifacts", artifacts, "var(--blue)")))
 
 
 def _jobs_for(key: str) -> list[dict]:
@@ -180,16 +204,12 @@ def _methodology_detail(slug: str) -> str:
     steps = spec.get("steps") or []
     step_rows = []
     for i, st in enumerate(steps, start=1):
-        tags = list(st.get("tags") or [])
-        produces = st.get("produces") or {}
-        tags += [v for v in (produces.get("role"), produces.get("artifact_type")) if v]
-        tags = list(dict.fromkeys(tags))
         step_rows.append(h("div", {"class_": "meth-step"},
                            h("span", {"class_": "meth-step-n"}, f"{i:02d}"),
                            h("div", {},
                              h("h3", {}, st.get("name", "")),
                              h("p", {}, st.get("intent", "")),
-                             h("div", {"class_": "meth-tags"}, fragment(*(raw(_label(tag, "var(--muted)")) for tag in tags[:6]))))))
+                             raw(_stage_guide(st)))))
     job_cards = [h("div", {"class_": "meth-job"},
                    h("b", {}, j.get("name", "")),
                    h("span", {}, j.get("user_question", "")))

@@ -15,20 +15,32 @@
       "id": "problem_explore", "name": "Problem Explore", "tags": ["explore", "problem-landscape"],
       "intent": "Explore the jobs-to-be-done and the problems blocking them, broadly across customers.",
       "strategy": "pain-discovery", "diverge_by": "angle",
-      "produces": {"role": "problem-landscape"}
+      "produces": {"role": "problem-landscape"},
+      "presentation": {
+        "formats": ["Council"],
+        "artifacts": ["Job map", "Problem landscape", "Current alternatives"]
+      }
     },
     {
       "id": "problem_pick", "name": "Problem Pick", "tags": ["decide", "point-of-view"],
       "intent": "Pick the single highest-value, most-underserved problem/job to solve first.",
       "strategy": "goal", "consumes": ["problem_explore"],
       "requires": {"min_inputs": 2, "gate_tag": "divergence_complete"},
-      "produces": {"role": "point-of-view"}
+      "produces": {"role": "point-of-view"},
+      "presentation": {
+        "formats": ["Council", "Head-to-Head"],
+        "artifacts": ["Selected job", "Point-of-view", "Value hypothesis"]
+      }
     },
     {
       "id": "solution_explore", "name": "Solution Explore", "tags": ["explore", "build", "solution-options"],
       "intent": "Explore solution/MVP candidates and build a minimal prototype.",
       "strategy": "positive-deepdive", "consumes": ["problem_pick"], "diverge_by": "solution_candidate",
-      "produces": {"role": "solution-options", "artifact_type": "prototype"}
+      "produces": {"role": "solution-options", "artifact_type": "prototype"},
+      "presentation": {
+        "formats": ["Council", "Head-to-Head"],
+        "artifacts": ["MVP options", "Prototype", "Assumption list"]
+      }
     },
     {
       "id": "validate", "name": "Validate", "tags": ["decide", "test", "spec"],
@@ -36,7 +48,11 @@
       "strategy": "tension", "consumes": ["solution_explore"],
       "requires": {"min_inputs": 2, "gate_tag": "divergence_complete", "session_of_tags": ["prototype"]},
       "produces": {"role": "spec"},
-      "loop_back": "solution_explore"
+      "loop_back": "solution_explore",
+      "presentation": {
+        "formats": ["Prototype Test", "Red-Team"],
+        "artifacts": ["Value evidence", "Buildable spec", "Risks"]
+      }
     }
   ]
 }
