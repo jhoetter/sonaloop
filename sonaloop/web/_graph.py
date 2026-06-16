@@ -12,7 +12,6 @@ from ._components import (
 from ._graph_outline import _outline_html  # noqa: F401  (split out; import surface preserved)
 from ._html import h, raw, fragment
 from ._plan_fw import _framework_strip
-from ._primitive_taxonomy import PROJECT_LANES, primitive_project_lane, project_lane_label, project_lane_sub
 
 
 def _graph_layout(graph: dict) -> dict:
@@ -44,31 +43,6 @@ def _graph_layout(graph: dict) -> dict:
         per_depth[de] = row + 1
         pos[n["study_id"]] = (40 + de * 600, 30 + row * 108)
     return pos
-
-
-def _experimental_project_layout(graph: dict) -> dict:
-    """Readable full-project layout for the removable graph experiment.
-
-    The normal graph layout is a pure longest-path DAG. That is honest but hard to read for
-    project inventories because uncited material becomes one tall source column. This layout keeps
-    the same nodes/edges, but gives the product model explicit lanes: Input → Ask → Test → Conclude.
-    """
-    lanes = [{"key": key, "label": project_lane_label(key), "sub": project_lane_sub(key)}
-             for key, _label, _sub in PROJECT_LANES]
-    lane_of = {key: i for i, (key, _label, _sub) in enumerate(PROJECT_LANES)}
-    X0, COLW, Y0, ROWH = 40, 430, 120, 92
-    buckets: dict[int, list[dict]] = {i: [] for i in range(len(lanes))}
-    for n in graph["nodes"]:
-        kind = str(n.get("kind") or n.get("note_kind") or n["study_id"].split(":", 1)[0])
-        buckets.setdefault(lane_of.get(primitive_project_lane(kind), 0), []).append(n)
-    pos: dict[str, tuple] = {}
-    for lane, ns in buckets.items():
-        for i, n in enumerate(sorted(ns, key=lambda x: (x.get("created_at", ""), x.get("study_id", "")))):
-            pos[n["study_id"]] = (X0 + lane * COLW, Y0 + i * ROWH)
-    phases = [{"label": lane["label"], "sub": lane["sub"], "x": X0 + i * COLW + _NW / 2,
-               "is_fan": i in (0, 1, 2), "i": i + 1, "top": 54}
-              for i, lane in enumerate(lanes)]
-    return {"pos": pos, "phase_cols": phases}
 
 
 # node box dimensions (must match _RGRAPH_JS NW/NH)
@@ -307,8 +281,7 @@ def _graph_interactive(graph: dict) -> str:
         return h("p", {"class_": "muted"}, t("no_synthesis"))
     vocab = graph["project"].get("themes", [])
     ml = _methodology_layout(graph)
-    xl = _experimental_project_layout(graph) if not ml and graph.get("experimental_full_graph") else None
-    pos = ml["pos"] if ml else xl["pos"] if xl else _graph_layout(graph)
+    pos = ml["pos"] if ml else _graph_layout(graph)
     diamonds = ml["diamonds"] if ml else []
     # If an idea has a prototype that feeds the convergence, route THROUGH the prototype:
     # suppress the idea's direct edge to that convergence so there's one clear path.
@@ -442,7 +415,7 @@ def _graph_interactive(graph: dict) -> str:
         if phase_sections:
             diamonds = []                              # one mechanism: labeled phases replace diamonds
     jsections = phase_sections + jsections             # phases behind, user themes on top
-    jphases = (ml.get("phase_cols") if ml else xl.get("phase_cols") if xl else None) or []
+    jphases = (ml.get("phase_cols") if ml else None) or []
     jrounds = (ml.get("round_lanes") if ml else None) or []
     # Icon path bodies for the notation/markers the graph JS renders inline (glyph icon
     # names arrive on nodes/sections; the renderer looks each up here). Single source of

@@ -14,10 +14,7 @@ from ._graph_outline_sessions import merge_session_items
 from ._html import h, raw, fragment
 from ._i18n import t
 from ._outline_chips import chips_html
-from ._primitive_taxonomy import (
-    PROJECT_LANES, primitive_color, primitive_project_lane, project_lane_label, project_lane_sub,
-    subtype_label, subtype_value,
-)
+from ._primitive_taxonomy import primitive_color, subtype_label, subtype_value
 # Case-/diacritic-insensitive search form for the `?q=` text search (V1) — ONE shared
 # helper with the ⌘K entity search (V6), so the list filter and the palette never diverge.
 from ._palette_registry import fold as _fold
@@ -475,15 +472,10 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
     inner = []
     if not pmeta:
         ris = sorted(items, key=lambda it: (it["po"], it["order"]))
-        for key, _label_key, _sub_key in PROJECT_LANES:
-            cluster = [it for it in ris if primitive_project_lane(it.get("rkind", "")) == key]
-            if not cluster:
-                continue
-            inner.append(h("details", {"class_": "ol-phase ol-product-phase", "open": True},
-                           h("summary", {}, h("b", {}, project_lane_label(key)), " ",
-                             h("span", {"class_": "ol-cnt"}, str(len(cluster))),
-                             h("span", {"class_": "ol-rcap"}, f"· {project_lane_sub(key)}")),
-                           fragment(*cluster_rows(cluster))))
+        inner.append(h("details", {"class_": "ol-phase", "open": True},
+                       h("summary", {}, h("b", {}, t("plan_freeform")), " ",
+                         h("span", {"class_": "ol-cnt"}, str(len(ris)))),
+                       fragment(*cluster_rows(ris))))
     else:
         po_label = {po: lab for (po, lab) in pmeta.values()}
         for r in range(nrounds):

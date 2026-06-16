@@ -164,7 +164,7 @@ def test_experimental_graph_view_contains_absorbed_project_primitives(store):
     m = re.search(r'<script type="application/json" id="rgdata">(.*?)</script>', page, re.S)
     assert m, "graph view did not render rgdata"
     data = json.loads(html.unescape(m.group(1)))
-    assert [p["label"] for p in data["phases"]] == ["Input", "Ask", "Test", "Conclude"]
+    assert data["phases"] == []                              # no invented phases on a freeform project
     kinds = {n.get("tags", [""])[0] for n in data["nodes"] if n.get("tags")}
     assert {"open_question", "url_artifact", "asset", "survey"} <= kinds
     assert not any(k.startswith("synthesis_") for k in kinds)
@@ -179,7 +179,7 @@ def test_experimental_graph_view_contains_absorbed_project_primitives(store):
                 {"from": e["from"], "to": e["to"], "label": e.get("label")} for e in data["edges"]]
 
 
-def test_planless_project_outline_uses_same_story_lanes_as_graph(store):
+def test_planless_project_outline_is_explicitly_freeform_not_fake_lanes(store):
     pid = _seed_tier3(store)
     council = services.record_council(pid, "Review landing context", [], store=store)
     services.record_hypothesis(pid, "If pricing is clear, support increases",
@@ -190,11 +190,21 @@ def test_planless_project_outline_uses_same_story_lanes_as_graph(store):
 
     html = _client().get(f"/projects/{pid}?lang=en").text
     assert 'class="ol-flat"' not in html
-    assert html.index(">Input<") < html.index(">Ask<") < html.index(">Test<") < html.index(">Conclude<")
-    assert html.index('data-rkind="url_artifact"') < html.index(">Ask<")
-    assert html.index('data-rkind="survey"') < html.index(">Test<")
-    assert html.index('data-rkind="hypothesis"') < html.index(">Conclude<")
-    assert html.index('data-rkind="decision"') > html.index(">Conclude<")
+    assert ">freeform<" in html
+    for fake in (">Input<", ">Ask<", ">Test<", ">Conclude<"):
+        assert fake not in html
+    for kind in ("url_artifact", "survey", "hypothesis", "decision"):
+        assert f'data-rkind="{kind}"' in html
+
+
+def test_project_header_surfaces_applied_methodology(store):
+    free = services.start_project("Freeform study", "Understand this", store=store)
+    dd = services.start_project("DD study", "Understand this", methodology="double_diamond", store=store)
+    client = _client()
+    html = client.get(f'/projects/{free["id"]}?lang=en').text
+    assert "Methodology · freeform" in html
+    html = client.get(f'/projects/{dd["id"]}?lang=en').text
+    assert "Methodology · Double Diamond" in html
 
 
 def test_empty_kinds_render_no_chrome(store):

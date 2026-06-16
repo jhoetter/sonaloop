@@ -34,14 +34,6 @@ FAMILIES: tuple[tuple[str, str, str], ...] = (
 )
 
 
-PROJECT_LANES: tuple[tuple[str, str, str], ...] = (
-    ("input", "graph_lane_input", "graph_lane_input_sub"),
-    ("ask", "graph_lane_ask", "graph_lane_ask_sub"),
-    ("test", "graph_lane_test", "graph_lane_test_sub"),
-    ("conclude", "graph_lane_conclude", "graph_lane_conclude_sub"),
-)
-
-
 PRIMITIVES: dict[str, Primitive] = {
     "open_question": Primitive("open_question", "frame", "help", "primitive_open_question_purpose", "#c98218"),
     "hypothesis": Primitive("hypothesis", "frame", "target", "primitive_hypothesis_purpose", "#e0820a"),
@@ -56,14 +48,6 @@ PRIMITIVES: dict[str, Primitive] = {
     "report": Primitive("report", "conclude", "syntheses", "primitive_report_purpose", "#6d5ef0"),
     "decision": Primitive("decision", "conclude", "flag", "primitive_decision_purpose", "#c0476b"),
     "section": Primitive("section", "structure", "squareGrid", "primitive_section_purpose", "#8a6d3b"),
-}
-
-
-_PROJECT_LANE_OF = {
-    "open_question": "input", "url_artifact": "input", "asset": "input", "note": "input",
-    "council": "ask", "survey": "ask",
-    "prototype": "test", "session": "test", "hypothesis": "test",
-    "synthesis": "conclude", "report": "conclude", "decision": "conclude",
 }
 
 
@@ -83,35 +67,6 @@ def primitive_family(kind: str) -> str:
 
 def primitive_color(kind: str) -> str:
     return PRIMITIVES.get(kind, Primitive(kind, "structure", "square", "", "#9aa0a6")).color
-
-
-def primitive_project_lane(kind: str) -> str:
-    """The compact project-story lane used by the project outline and graph.
-
-    This is not the Library family. The Library answers "what kind of artifact is this?";
-    a project page answers "where does this sit in the research flow?".
-    """
-    return _PROJECT_LANE_OF.get(kind, "input")
-
-
-def project_lane_label(lane: str) -> str:
-    if lane == "ask":
-        return t("graph_lane_ask")
-    if lane == "test":
-        return t("graph_lane_test")
-    if lane == "conclude":
-        return t("graph_lane_conclude")
-    return t("graph_lane_input")
-
-
-def project_lane_sub(lane: str) -> str:
-    if lane == "ask":
-        return t("graph_lane_ask_sub")
-    if lane == "test":
-        return t("graph_lane_test_sub")
-    if lane == "conclude":
-        return t("graph_lane_conclude_sub")
-    return t("graph_lane_input_sub")
 
 
 def primitive_purpose(kind: str) -> str:

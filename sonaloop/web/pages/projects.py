@@ -39,6 +39,7 @@ def register_projects(app) -> None:
         except KeyError:
             return _layout(t("not_found"), _empty_state(t("not_found"), t("runtime_maybe_cleared"), icon="projects"), store, active="projects")
         proj = graph["project"]
+        plan = services.get_plan(proj["id"], store=store)
         # edge legend (shown in the floating open-questions panel)
         used_types = sorted({e["type"] for e in graph["edges"]})
         edge_leg = fragment(*(h("span", {"class_": "pill", "style": f'border-color:{_EDGE_COLORS.get(ty, "#9aa0a6")}'}, ty)
@@ -48,7 +49,7 @@ def register_projects(app) -> None:
         # Plan opens in a right drawer. Reports are NOT a top-bar button anymore — they're listed
         # inline in the outline as first-class artifacts (add as many as you like; they flow into the project).
         top_btn = ""
-        if services.get_plan(proj["id"], store=store):
+        if plan:
             plan_url = f'/projects/{proj["id"]}/plan'
             top_btn = h("a", {"class_": "sl-btn", "href": plan_url, "data-drawer": plan_url, "data-drawer-title": t("plan_h")},
                         raw(_icon("plan")), " ", t("plan_h"))
@@ -266,11 +267,29 @@ def register_projects(app) -> None:
         files_chip = h("a", {"class_": "sl-toolbtn", "href": f'/projects/{proj["id"]}?view=files'},
                        raw(_icon("file")), " ",
                        t("one_file") if len(assets) == 1 else t("n_files", n=len(assets)))
+        def _methodology_name() -> str:
+            key = (plan or {}).get("methodology") or proj.get("methodology") or ""
+            if not key:
+                return t("plan_freeform")
+            try:
+                from ... import job_taxonomy as _jt
+                return _jt.get_framework_description(key, store).get("name", key)
+            except Exception:
+                try:
+                    return services.get_methodology(key, store=store).get("name", key)
+                except Exception:
+                    return key
+
+        method_chip = h("a", {"class_": "sl-toolbtn", "href": f'/projects/{proj["id"]}/plan',
+                              "data-drawer": f'/projects/{proj["id"]}/plan',
+                              "data-drawer-title": t("plan_h")},
+                        raw(_icon("target")), " ",
+                        t("methodology_h"), " · ", _methodology_name())
         view_chip = h("a", {"class_": "sl-toolbtn",
                             "href": f'/projects/{proj["id"]}' if is_graph else f'/projects/{proj["id"]}?view=graph'},
                       raw(_icon("overview" if is_graph else "squareGrid")), " ",
                       t("project_view_list") if is_graph else t("project_view_graph"))
-        chips = h("div", {"class_": "pills"}, raw(run_chip), view_chip, files_chip)
+        chips = h("div", {"class_": "pills"}, raw(run_chip), method_chip, view_chip, files_chip)
         # The FilterBar closes the head so it sits INSIDE the 900px measure (V1 — it used to
         # float at the page's far left), aligned with the title/outline left edge.
         body = h("div", {"class_": "proj"},
