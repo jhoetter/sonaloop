@@ -253,9 +253,15 @@ def _reference_status_pill(ref: dict) -> str:
 
 
 def _trace_filter_label(state: str) -> str:
-    return t(f"trace_{state}") if state in {
-        "source", "active", "consumed", "terminal", "parked", "orphaned"
-    } else state
+    labels = {
+        "source": t("trace_source"),
+        "active": t("trace_active"),
+        "consumed": t("trace_consumed"),
+        "terminal": t("trace_terminal"),
+        "parked": t("trace_parked"),
+        "orphaned": t("trace_orphaned"),
+    }
+    return labels.get(state, state)
 
 
 def _library_facets(entries: list[dict], store: Store, *, with_direction: bool) -> list[dict]:

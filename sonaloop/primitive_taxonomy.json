@@ -1,0 +1,519 @@
+{
+  "schema": "sonaloop.primitive_taxonomy.registry",
+  "version": 1,
+  "custom_form_policy": {
+    "default": "reject_unknown",
+    "workspace_custom_forms": "allowed_only_when_registered",
+    "id_pattern": "^[a-z][a-z0-9_]*$",
+    "notes": "Unknown LLM-authored values must not create primitives or forms. A custom form must extend a registered base form and declare a compatible schema and renderer."
+  },
+  "families": [
+    {"id": "frame", "label": "Frame", "description": "Questions and bets that frame the work.", "icon": "help"},
+    {"id": "material", "label": "Material", "description": "Inputs and testable material shown or attached.", "icon": "file"},
+    {"id": "ask", "label": "Ask", "description": "Structured ways to ask personas or real people.", "icon": "councils"},
+    {"id": "test", "label": "Test", "description": "Observed runs against material or live surfaces.", "icon": "prototype"},
+    {"id": "capture", "label": "Capture", "description": "Lightweight captured signals and concepts.", "icon": "panel"},
+    {"id": "conclude", "label": "Conclude", "description": "Synthesized answers and commitments.", "icon": "syntheses"},
+    {"id": "structure", "label": "Structure", "description": "Grouping and relationship primitives.", "icon": "squareGrid"}
+  ],
+  "primitives": [
+    {"id": "open_question", "family": "frame", "label": "Question", "description": "A research uncertainty that still needs work.", "icon": "help", "color": "#c98218"},
+    {"id": "hypothesis", "family": "frame", "label": "Hypothesis", "description": "A falsifiable bet with metric and expected value or direction.", "icon": "target", "color": "#e0820a"},
+    {"id": "url_artifact", "family": "material", "label": "Reference", "description": "Linked material such as a website, external prototype or variant.", "icon": "link", "color": "#3a7bd5"},
+    {"id": "asset", "family": "material", "label": "Asset", "description": "A stored file, either evidence-in or deliverable-out.", "icon": "file", "color": "#5f6f7a"},
+    {"id": "prototype", "family": "material", "label": "Prototype", "description": "A testable surface or model personas can inspect or use.", "icon": "prototype", "color": "#0f9d8f"},
+    {"id": "council", "family": "ask", "label": "Council", "description": "A moderated persona round.", "icon": "councils", "color": "#6d5ef0"},
+    {"id": "survey", "family": "ask", "label": "Survey", "description": "A structured questionnaire for real responses.", "icon": "plan", "color": "#6b7cff"},
+    {"id": "session", "family": "test", "label": "Session", "description": "A recorded test run through a walkthrough, prototype or live URL.", "icon": "activity", "color": "#3d7fc4"},
+    {"id": "note", "family": "capture", "label": "Note", "description": "A captured signal, observation, idea or concept.", "icon": "panel", "color": "#ff9800"},
+    {"id": "synthesis", "family": "conclude", "label": "Synthesis", "description": "An analysis that turns evidence into interpretation.", "icon": "syntheses", "color": "#6d5ef0"},
+    {"id": "report", "family": "conclude", "label": "Report", "description": "A presentation-ready analysis report.", "icon": "syntheses", "color": "#6d5ef0"},
+    {"id": "decision", "family": "conclude", "label": "Decision", "description": "An evidence-backed commitment record.", "icon": "flag", "color": "#c0476b"},
+    {"id": "section", "family": "structure", "label": "Section", "description": "A grouping overlay over existing project nodes.", "icon": "squareGrid", "color": "#8a6d3b"},
+    {"id": "edge", "family": "structure", "label": "Edge", "description": "A typed relationship between two project nodes.", "icon": "arrowRight", "color": "#8a6d3b"}
+  ],
+  "forms": [
+    {
+      "id": "open_question",
+      "primitive": "open_question",
+      "label": "Open question",
+      "description": "A research question that still needs resolution.",
+      "aliases": ["question"],
+      "schema": {"type": "object", "required": ["text"], "fields": {"text": "string", "status": "status:question_status"}},
+      "renderer": {"library": "row", "detail": "question_detail"},
+      "protocol": {"kind": "frame", "outputs": ["open_question"]}
+    },
+    {
+      "id": "how_might_we",
+      "primitive": "open_question",
+      "label": "How might we",
+      "description": "A generative framing question for methodology runs.",
+      "aliases": ["hmw"],
+      "schema": {"type": "object", "required": ["text"], "fields": {"text": "string", "source_problem": "string?"}},
+      "renderer": {"library": "row", "detail": "question_detail"},
+      "protocol": {"kind": "frame", "outputs": ["open_question"]}
+    },
+    {
+      "id": "hypothesis",
+      "primitive": "hypothesis",
+      "label": "Hypothesis",
+      "description": "A falsifiable bet with a metric and expected value or direction.",
+      "aliases": [],
+      "schema": {"type": "object", "required": ["text", "prediction"], "fields": {"text": "string", "prediction": "object", "status": "status:hypothesis_status"}},
+      "renderer": {"library": "row", "detail": "hypothesis_detail"},
+      "protocol": {"kind": "frame", "outputs": ["hypothesis"]}
+    },
+    {
+      "id": "web_reference",
+      "primitive": "url_artifact",
+      "label": "Website",
+      "description": "A captured or referenced website/page shown as material.",
+      "aliases": ["website", "url"],
+      "schema": {"type": "object", "required": ["url"], "fields": {"url": "string", "capture": "boolean?", "capture_status": "status:capture_status"}},
+      "renderer": {"library": "row", "detail": "reference_detail"},
+      "protocol": {"kind": "material", "outputs": ["url_artifact"]}
+    },
+    {
+      "id": "prototype_reference",
+      "primitive": "url_artifact",
+      "label": "External prototype",
+      "description": "A link to an external prototype such as Figma or a hosted app.",
+      "aliases": ["external_prototype", "prototype_url"],
+      "schema": {"type": "object", "required": ["url"], "fields": {"url": "string", "capture": "boolean?", "capture_status": "status:capture_status"}},
+      "renderer": {"library": "row", "detail": "reference_detail"},
+      "protocol": {"kind": "material", "outputs": ["url_artifact"]}
+    },
+    {
+      "id": "variant_reference",
+      "primitive": "url_artifact",
+      "label": "Variant reference",
+      "description": "One labelled side of an A/B or multi-variant comparison.",
+      "aliases": ["ab_variant", "variant"],
+      "schema": {"type": "object", "required": ["url", "label"], "fields": {"url": "string", "label": "string", "capture_status": "status:capture_status"}},
+      "renderer": {"library": "row", "detail": "reference_detail"},
+      "protocol": {"kind": "material", "outputs": ["url_artifact"]}
+    },
+    {
+      "id": "image",
+      "primitive": "asset",
+      "label": "Image",
+      "description": "An attached image file.",
+      "aliases": [],
+      "schema": {"type": "object", "required": ["filename"], "fields": {"filename": "string", "direction": "attribute:asset_direction"}},
+      "renderer": {"library": "row", "detail": "asset_detail"},
+      "protocol": {"kind": "material", "outputs": ["asset"]}
+    },
+    {
+      "id": "screenshot",
+      "primitive": "asset",
+      "label": "Screenshot",
+      "description": "A captured screen image used as evidence or material.",
+      "aliases": [],
+      "schema": {"type": "object", "required": ["filename"], "fields": {"filename": "string", "direction": "attribute:asset_direction"}},
+      "renderer": {"library": "row", "detail": "asset_detail"},
+      "protocol": {"kind": "material", "outputs": ["asset"]}
+    },
+    {
+      "id": "document",
+      "primitive": "asset",
+      "label": "Document",
+      "description": "An attached document-style file.",
+      "aliases": [],
+      "schema": {"type": "object", "required": ["filename"], "fields": {"filename": "string", "direction": "attribute:asset_direction"}},
+      "renderer": {"library": "row", "detail": "asset_detail"},
+      "protocol": {"kind": "material", "outputs": ["asset"]}
+    },
+    {
+      "id": "file",
+      "primitive": "asset",
+      "label": "File",
+      "description": "A generic attached file.",
+      "aliases": [],
+      "schema": {"type": "object", "required": ["filename"], "fields": {"filename": "string", "direction": "attribute:asset_direction"}},
+      "renderer": {"library": "row", "detail": "asset_detail"},
+      "protocol": {"kind": "material", "outputs": ["asset"]}
+    },
+    {
+      "id": "app",
+      "primitive": "prototype",
+      "label": "App prototype",
+      "description": "A runnable app-like prototype.",
+      "aliases": ["prototype"],
+      "parameters": [{"id": "fidelity", "attribute": "prototype_fidelity"}],
+      "schema": {"type": "object", "required": ["name"], "fields": {"name": "string", "fidelity": "attribute:prototype_fidelity"}},
+      "renderer": {"library": "row", "detail": "prototype_detail"},
+      "protocol": {"kind": "material", "outputs": ["prototype"]}
+    },
+    {
+      "id": "flow",
+      "primitive": "prototype",
+      "label": "Flow prototype",
+      "description": "A sequenced prototype flow used as material for walkthrough sessions.",
+      "aliases": ["screen_flow"],
+      "parameters": [{"id": "fidelity", "attribute": "prototype_fidelity"}],
+      "schema": {"type": "object", "required": ["name", "steps"], "fields": {"name": "string", "steps": "array"}},
+      "renderer": {"library": "row", "detail": "prototype_detail"},
+      "protocol": {"kind": "material", "outputs": ["prototype"]}
+    },
+    {
+      "id": "dashboard",
+      "primitive": "prototype",
+      "label": "Dashboard prototype",
+      "description": "A dashboard-style prototype.",
+      "aliases": [],
+      "parameters": [{"id": "fidelity", "attribute": "prototype_fidelity"}],
+      "schema": {"type": "object", "required": ["name"], "fields": {"name": "string", "fidelity": "attribute:prototype_fidelity"}},
+      "renderer": {"library": "row", "detail": "prototype_detail"},
+      "protocol": {"kind": "material", "outputs": ["prototype"]}
+    },
+    {
+      "id": "cards",
+      "primitive": "prototype",
+      "label": "Cards prototype",
+      "description": "A card-based prototype.",
+      "aliases": [],
+      "parameters": [{"id": "fidelity", "attribute": "prototype_fidelity"}],
+      "schema": {"type": "object", "required": ["name"], "fields": {"name": "string", "fidelity": "attribute:prototype_fidelity"}},
+      "renderer": {"library": "row", "detail": "prototype_detail"},
+      "protocol": {"kind": "material", "outputs": ["prototype"]}
+    },
+    {
+      "id": "comparison",
+      "primitive": "prototype",
+      "label": "Comparison prototype",
+      "description": "A prototype that compares options or variants.",
+      "aliases": [],
+      "parameters": [{"id": "fidelity", "attribute": "prototype_fidelity"}],
+      "schema": {"type": "object", "required": ["name"], "fields": {"name": "string", "options": "array"}},
+      "renderer": {"library": "row", "detail": "prototype_detail"},
+      "protocol": {"kind": "material", "outputs": ["prototype"]}
+    },
+    {
+      "id": "model",
+      "primitive": "prototype",
+      "label": "Model prototype",
+      "description": "An interactive model with inputs and computed outputs.",
+      "aliases": [],
+      "parameters": [{"id": "fidelity", "attribute": "prototype_fidelity"}],
+      "schema": {"type": "object", "required": ["name"], "fields": {"name": "string", "computed": "array"}},
+      "renderer": {"library": "row", "detail": "prototype_detail"},
+      "protocol": {"kind": "material", "outputs": ["prototype"]}
+    },
+    {
+      "id": "journey",
+      "primitive": "prototype",
+      "label": "Journey prototype",
+      "description": "A multi-screen journey prototype with cross-screen state.",
+      "aliases": [],
+      "parameters": [{"id": "fidelity", "attribute": "prototype_fidelity"}],
+      "schema": {"type": "object", "required": ["name"], "fields": {"name": "string", "screens": "array"}},
+      "renderer": {"library": "row", "detail": "prototype_detail"},
+      "protocol": {"kind": "material", "outputs": ["prototype"]}
+    },
+    {
+      "id": "open_discussion",
+      "primitive": "council",
+      "label": "Open discussion",
+      "description": "Moderator asks open questions; personas answer from memory.",
+      "aliases": ["discovery"],
+      "schema": {"type": "object", "required": ["questions", "statements"], "fields": {"questions": "array", "statements": "array"}},
+      "renderer": {"library": "row", "detail": "council_detail"},
+      "protocol": {"kind": "ask", "inputs": ["prompt"], "outputs": ["statements", "findings"]},
+      "aggregators": []
+    },
+    {
+      "id": "proposal_reaction",
+      "primitive": "council",
+      "label": "Proposal reaction",
+      "description": "Personas react to a proposal without a hard vote.",
+      "aliases": ["evaluation"],
+      "schema": {"type": "object", "required": ["proposal", "statements"], "fields": {"proposal": "string", "statements": "array"}},
+      "renderer": {"library": "row", "detail": "council_detail"},
+      "protocol": {"kind": "ask", "inputs": ["proposal"], "outputs": ["statements", "findings"]}
+    },
+    {
+      "id": "vote",
+      "primitive": "council",
+      "label": "Vote",
+      "description": "Personas react to a proposal and record vote stances.",
+      "aliases": ["decision_council", "council_decision", "decision"],
+      "schema": {"type": "object", "required": ["proposal", "votes"], "fields": {"proposal": "string", "votes": "array"}},
+      "renderer": {"library": "row", "detail": "council_detail"},
+      "protocol": {"kind": "ask", "inputs": ["proposal"], "outputs": ["votes", "statements", "findings"]},
+      "aggregators": [{"type": "stance_tally", "field": "votes"}]
+    },
+    {
+      "id": "option_comparison",
+      "primitive": "council",
+      "label": "Option comparison",
+      "description": "Personas compare labelled options and force a preference.",
+      "aliases": ["head_to_head", "ab_test"],
+      "schema": {"type": "object", "required": ["options", "preferences"], "fields": {"options": "array", "preferences": "array", "variant_meta": "object?"}},
+      "renderer": {"library": "row", "detail": "head_to_head_detail"},
+      "protocol": {"kind": "ask", "inputs": ["options"], "outputs": ["preferences", "segment_splits"]},
+      "aggregators": [{"type": "preference_tally", "field": "preferences"}]
+    },
+    {
+      "id": "objection_review",
+      "primitive": "council",
+      "label": "Objection review",
+      "description": "Personas argue blockers and severity to falsify or stress-test an idea.",
+      "aliases": ["red_team"],
+      "parameters": [{"id": "stance_mode", "attribute": "stance_mode"}],
+      "schema": {"type": "object", "required": ["objections"], "fields": {"objections": "array", "endorsements": "array?", "stance": "attribute:stance_mode"}},
+      "renderer": {"library": "row", "detail": "red_team_detail"},
+      "protocol": {"kind": "ask", "inputs": ["proposal"], "outputs": ["objections"]},
+      "aggregators": [{"type": "group_by", "field": "theme"}, {"type": "max_enum", "field": "severity"}]
+    },
+    {
+      "id": "ladder_review",
+      "primitive": "council",
+      "label": "Ladder review",
+      "description": "Personas respond to a fixed ladder of values, usually price points.",
+      "aliases": ["price_ladder"],
+      "schema": {"type": "object", "required": ["price_points", "responses"], "fields": {"price_points": "array", "responses": "array"}},
+      "renderer": {"library": "row", "detail": "price_ladder_detail"},
+      "protocol": {"kind": "ask", "inputs": ["ladder"], "outputs": ["responses", "range"]},
+      "aggregators": [{"type": "ladder_acceptance", "field": "responses"}]
+    },
+    {
+      "id": "idea_review",
+      "primitive": "council",
+      "label": "Idea review",
+      "description": "Structured ideation against HMW questions and idea records.",
+      "aliases": ["ideation"],
+      "schema": {"type": "object", "required": ["ideas"], "fields": {"ideas": "array", "shortlist": "array?"}},
+      "renderer": {"library": "row", "detail": "ideation_detail"},
+      "protocol": {"kind": "ask", "inputs": ["open_question"], "outputs": ["ideas", "shortlist"]},
+      "aggregators": [{"type": "ranked_shortlist", "field": "shortlist"}]
+    },
+    {
+      "id": "choice",
+      "primitive": "survey",
+      "label": "Choice survey",
+      "description": "A survey dominated by single or multiple choice questions.",
+      "aliases": ["single_survey", "multi_survey"],
+      "schema": {"type": "object", "required": ["questions"], "fields": {"questions": "array", "status": "status:survey_status"}},
+      "renderer": {"library": "row", "detail": "survey_detail"},
+      "protocol": {"kind": "ask", "outputs": ["survey_responses"]},
+      "aggregators": [{"type": "choice_counts", "field": "answers"}]
+    },
+    {
+      "id": "scale",
+      "primitive": "survey",
+      "label": "Scale survey",
+      "description": "A survey dominated by scale questions.",
+      "aliases": ["scale_survey"],
+      "schema": {"type": "object", "required": ["questions"], "fields": {"questions": "array", "status": "status:survey_status"}},
+      "renderer": {"library": "row", "detail": "survey_detail"},
+      "protocol": {"kind": "ask", "outputs": ["survey_responses"]},
+      "aggregators": [{"type": "scale_distribution", "field": "answers"}]
+    },
+    {
+      "id": "text",
+      "primitive": "survey",
+      "label": "Text survey",
+      "description": "A survey dominated by free-text questions.",
+      "aliases": ["text_survey"],
+      "schema": {"type": "object", "required": ["questions"], "fields": {"questions": "array", "status": "status:survey_status"}},
+      "renderer": {"library": "row", "detail": "survey_detail"},
+      "protocol": {"kind": "ask", "outputs": ["survey_responses"]},
+      "aggregators": [{"type": "text_themes", "field": "answers"}]
+    },
+    {
+      "id": "ranking",
+      "primitive": "survey",
+      "label": "Ranking survey",
+      "description": "A survey that asks respondents to rank options.",
+      "aliases": ["ranking_survey"],
+      "schema": {"type": "object", "required": ["questions"], "fields": {"questions": "array", "status": "status:survey_status"}},
+      "renderer": {"library": "row", "detail": "survey_detail"},
+      "protocol": {"kind": "ask", "outputs": ["survey_responses"]},
+      "aggregators": [{"type": "rank_tally", "field": "answers"}]
+    },
+    {
+      "id": "walkthrough",
+      "primitive": "session",
+      "label": "Walkthrough session",
+      "description": "A recorded screen or flow walkthrough.",
+      "aliases": ["walkthrough_session", "flow_walkthrough"],
+      "schema": {"type": "object", "required": ["subject", "timeline"], "fields": {"subject": "object", "timeline": "array", "outcome": "object?"}},
+      "renderer": {"library": "row", "detail": "session_detail"},
+      "protocol": {"kind": "test", "inputs": ["prototype", "asset"], "outputs": ["session", "predicted_behaviors"]}
+    },
+    {
+      "id": "prototype_use",
+      "primitive": "session",
+      "label": "Prototype use session",
+      "description": "A session against a stored prototype.",
+      "aliases": ["prototype_session"],
+      "schema": {"type": "object", "required": ["subject", "timeline"], "fields": {"subject": "object", "timeline": "array", "verified": "boolean?"}},
+      "renderer": {"library": "row", "detail": "session_detail"},
+      "protocol": {"kind": "test", "inputs": ["prototype"], "outputs": ["session", "predicted_behaviors"]}
+    },
+    {
+      "id": "live_use",
+      "primitive": "session",
+      "label": "Live use session",
+      "description": "A session against a live URL or owned surface.",
+      "aliases": ["live_session"],
+      "schema": {"type": "object", "required": ["subject", "timeline"], "fields": {"subject": "object", "timeline": "array", "verified": "boolean?"}},
+      "renderer": {"library": "row", "detail": "session_detail"},
+      "protocol": {"kind": "test", "inputs": ["url_artifact"], "outputs": ["session", "predicted_behaviors"]}
+    },
+    {
+      "id": "variant_test",
+      "primitive": "session",
+      "label": "Variant test session",
+      "description": "A session that tests one or more variants in observed use.",
+      "aliases": [],
+      "schema": {"type": "object", "required": ["subject", "variants"], "fields": {"subject": "object", "variants": "array", "timeline": "array"}},
+      "renderer": {"library": "row", "detail": "session_detail"},
+      "protocol": {"kind": "test", "inputs": ["url_artifact", "prototype"], "outputs": ["session", "predicted_behaviors"]}
+    },
+    {
+      "id": "observation",
+      "primitive": "note",
+      "label": "Observation",
+      "description": "A captured signal or raw observation.",
+      "aliases": ["observation_note"],
+      "schema": {"type": "object", "required": ["text"], "fields": {"text": "string", "data": "object?"}},
+      "renderer": {"library": "row", "detail": "note_detail"},
+      "protocol": {"kind": "capture", "outputs": ["note"]}
+    },
+    {
+      "id": "insight",
+      "primitive": "note",
+      "label": "Insight",
+      "description": "A worked interpretation of one or more observations.",
+      "aliases": [],
+      "schema": {"type": "object", "required": ["text"], "fields": {"text": "string", "refs": "array?"}},
+      "renderer": {"library": "row", "detail": "note_detail"},
+      "protocol": {"kind": "capture", "outputs": ["note"]}
+    },
+    {
+      "id": "idea",
+      "primitive": "note",
+      "label": "Idea",
+      "description": "A lightweight solution idea.",
+      "aliases": [],
+      "schema": {"type": "object", "required": ["text"], "fields": {"text": "string", "lens": "string?"}},
+      "renderer": {"library": "row", "detail": "note_detail"},
+      "protocol": {"kind": "capture", "outputs": ["note"]}
+    },
+    {
+      "id": "concept",
+      "primitive": "note",
+      "label": "Concept",
+      "description": "A solution concept linked to prototype intent or artifact kind.",
+      "aliases": ["concept_note"],
+      "schema": {"type": "object", "required": ["text"], "fields": {"text": "string", "prototype_id": "string?", "artifact_kind": "string?"}},
+      "renderer": {"library": "row", "detail": "note_detail"},
+      "protocol": {"kind": "capture", "outputs": ["note"]}
+    },
+    {
+      "id": "synthesis",
+      "primitive": "synthesis",
+      "label": "Synthesis",
+      "description": "An analysis that turns evidence into interpretation.",
+      "aliases": [],
+      "schema": {"type": "object", "required": ["title", "payload"], "fields": {"title": "string", "payload": "object", "status": "status:synthesis_status"}},
+      "renderer": {"library": "row", "detail": "synthesis_detail"},
+      "protocol": {"kind": "conclude", "inputs": ["evidence"], "outputs": ["synthesis", "findings"]}
+    },
+    {
+      "id": "brief",
+      "primitive": "synthesis",
+      "label": "Brief",
+      "description": "A compact synthesis intended for handoff.",
+      "aliases": [],
+      "schema": {"type": "object", "required": ["title", "payload"], "fields": {"title": "string", "payload": "object"}},
+      "renderer": {"library": "row", "detail": "synthesis_detail"},
+      "protocol": {"kind": "conclude", "inputs": ["evidence"], "outputs": ["synthesis"]}
+    },
+    {
+      "id": "report",
+      "primitive": "report",
+      "label": "Report",
+      "description": "A presentation-ready analysis report.",
+      "aliases": [],
+      "schema": {"type": "object", "required": ["title", "sections"], "fields": {"title": "string", "sections": "array"}},
+      "renderer": {"library": "row", "detail": "report_detail"},
+      "protocol": {"kind": "conclude", "inputs": ["synthesis"], "outputs": ["report"]}
+    },
+    {
+      "id": "decision",
+      "primitive": "decision",
+      "label": "Decision",
+      "description": "An evidence-backed commitment record.",
+      "aliases": [],
+      "schema": {"type": "object", "required": ["title", "decision", "based_on"], "fields": {"title": "string", "decision": "string", "based_on": "array", "status": "status:decision_status"}},
+      "renderer": {"library": "row", "detail": "decision_detail"},
+      "protocol": {"kind": "conclude", "inputs": ["evidence"], "outputs": ["decision"]}
+    },
+    {
+      "id": "phase",
+      "primitive": "section",
+      "label": "Phase section",
+      "description": "A methodology-derived section.",
+      "aliases": [],
+      "schema": {"type": "object", "required": ["title", "members"], "fields": {"title": "string", "members": "array", "kind": "string"}},
+      "renderer": {"library": "none", "detail": "section_detail"},
+      "protocol": {"kind": "structure", "outputs": ["section"]}
+    },
+    {
+      "id": "theme",
+      "primitive": "section",
+      "label": "Theme section",
+      "description": "A user-authored thematic grouping.",
+      "aliases": [],
+      "schema": {"type": "object", "required": ["title", "members"], "fields": {"title": "string", "members": "array", "kind": "string"}},
+      "renderer": {"library": "none", "detail": "section_detail"},
+      "protocol": {"kind": "structure", "outputs": ["section"]}
+    },
+    {
+      "id": "group",
+      "primitive": "section",
+      "label": "Group section",
+      "description": "A generic grouping over project nodes.",
+      "aliases": [],
+      "schema": {"type": "object", "required": ["title", "members"], "fields": {"title": "string", "members": "array", "kind": "string"}},
+      "renderer": {"library": "none", "detail": "section_detail"},
+      "protocol": {"kind": "structure", "outputs": ["section"]}
+    },
+    {
+      "id": "derived_from",
+      "primitive": "edge",
+      "label": "Derived from",
+      "description": "A trace relationship where one node was derived from another.",
+      "aliases": [],
+      "schema": {"type": "object", "required": ["source", "target"], "fields": {"source": "ref", "target": "ref"}},
+      "renderer": {"library": "none", "detail": "edge_detail"},
+      "protocol": {"kind": "structure", "outputs": ["edge"]}
+    }
+  ],
+  "orthogonal_attributes": [
+    {"id": "question_status", "kind": "status", "values": ["open", "resolved", "dropped"]},
+    {"id": "hypothesis_status", "kind": "status", "values": ["open", "validated", "refuted", "inconclusive", "dropped"]},
+    {"id": "survey_status", "kind": "status", "values": ["draft", "open", "closed"]},
+    {"id": "decision_status", "kind": "status", "values": ["proposed", "adopted", "superseded"]},
+    {"id": "synthesis_status", "kind": "status", "values": ["in_progress", "done"]},
+    {"id": "capture_status", "kind": "status", "values": ["captured", "not_captured", "failed"]},
+    {"id": "prototype_fidelity", "kind": "parameter", "values": ["lofi", "midfi", "hifi"]},
+    {"id": "asset_direction", "kind": "parameter", "values": ["evidence", "deliverable"]},
+    {"id": "stance_mode", "kind": "parameter", "values": ["against", "for", "both"]},
+    {"id": "variant_label", "kind": "parameter", "values": "open"},
+    {"id": "domain_label", "kind": "label", "values": "open"},
+    {"id": "methodology_phase", "kind": "label", "values": "open"}
+  ],
+  "relationship_types": [
+    {"id": "derived_from", "description": "Target was derived from source."},
+    {"id": "based_on", "description": "Target cites source as evidence."},
+    {"id": "tested_in", "description": "Material was tested in a session."},
+    {"id": "uses_material", "description": "Target consumed source as material."},
+    {"id": "supports", "description": "Source supports target."},
+    {"id": "contradicts", "description": "Source contradicts target."},
+    {"id": "supersedes", "description": "Target replaces source."},
+    {"id": "groups", "description": "Section groups a member."}
+  ]
+}
