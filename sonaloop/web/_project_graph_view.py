@@ -10,7 +10,7 @@ from copy import deepcopy
 from typing import Any
 from urllib.parse import urlparse
 
-from ..project_trace import plan_judgment_edges
+from ..project_trace import plan_judgment_edges, trace_node_health
 from ._i18n import t
 from ._primitive_taxonomy import primitive_color, subtype_label, subtype_value
 
@@ -224,6 +224,7 @@ def augment_project_graph(graph: dict, *, sessions: dict[str, dict], decisions: 
 
     out["nodes"] = sorted(nodes, key=lambda n: (n.get("created_at", ""), n.get("study_id", "")))
     out["edges"] = edges
+    out["trace_health"] = trace_node_health(out["nodes"], edges, out.get("plan"))
     out["prototypes"] = []  # prototypes are explicit nodes in this experimental full graph.
     out["reports"] = []
     out["experimental_full_graph"] = True

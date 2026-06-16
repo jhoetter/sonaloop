@@ -281,6 +281,23 @@ def test_project_outline_surfaces_plan_judgment_trace_edges(store):
     assert f"synthesis:{deliver_syn['id']}" in rel_out(sess["id"])
 
 
+def test_project_outline_marks_orphaned_trace_nodes_after_plan_completion(store):
+    project = services.create_research_project("Trace health", goal="Understand orphaned evidence",
+                                               store=store)
+    services.record_survey(
+        project["id"], "Unconsumed survey",
+        [{"id": "q1", "text": "Still useful?", "kind": "single", "options": ["yes", "no"]}],
+        status="open", store=store)
+    page = _client().get(f'/projects/{project["id"]}?lang=en').text
+    assert "unused after phase close" not in page
+
+    services.record_frame(project["id"], "frame__root", ["What needs tracing?"],
+                          memory_refs=["note:seed"], store=store)
+    page = _client().get(f'/projects/{project["id"]}?lang=en').text
+    assert "Unconsumed survey" in page
+    assert "unused after phase close" in page
+
+
 def test_empty_kinds_render_no_chrome(store):
     proj = services.create_research_project("Empty", goal="g", store=store)
     html = _client().get(f'/projects/{proj["id"]}?lang=en').text

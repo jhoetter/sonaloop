@@ -7,6 +7,7 @@ from itertools import groupby
 
 from .. import artifacts as _A_art
 from .. import presentation as _pres
+from ..project_trace import trace_node_health
 from ._components import _icon
 from ._filterbar import empty_filter_state
 from ._graph_outline_extras import extra_outline_items, drawer_url, producing_step
@@ -345,9 +346,18 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
     for it in items:
         for k in _rel_keys(it):
             rel_lookup[k] = str(it["oid"])
+    edge_source = graph.get("outline_edges") or graph.get("edges") or []
+    trace_health = graph.get("trace_health") or trace_node_health(
+        [{"study_id": k, "kind": it.get("rkind", "")}
+         for it in items for k in _rel_keys(it)],
+        edge_source, graph.get("plan"))
+    for it in items:
+        keys = sorted(_rel_keys(it), key=lambda k: (":" not in k, k))
+        it["trace_health"] = next((trace_health[k] for k in keys
+                                   if k in trace_health), "")
     rel_in: dict[str, set[str]] = {str(it["oid"]): set() for it in items}
     rel_out: dict[str, set[str]] = {str(it["oid"]): set() for it in items}
-    for e in graph.get("outline_edges") or graph.get("edges") or []:
+    for e in edge_source:
         a, b = rel_lookup.get(str(e.get("from_study", ""))), rel_lookup.get(str(e.get("to_study", "")))
         if a and b and a != b:
             rel_out.setdefault(a, set()).add(b)

@@ -191,5 +191,7 @@ def chips_html(item: dict) -> str:
         return ""
     if isinstance(entry, NoChips):
         return ""
-    chips = entry(item)
+    chips = str(entry(item))
+    if item.get("trace_health") == "orphaned":
+        chips += str(_label("unused after phase close", "var(--amber)"))
     return h("span", {"class_": "ol-chips"}, raw(chips)) if chips else ""
