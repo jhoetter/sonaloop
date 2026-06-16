@@ -18,7 +18,7 @@ import re
 
 from starlette.testclient import TestClient
 
-from sonaloop import services, web
+from sonaloop import prototypes, services, web
 from sonaloop.web import _presence as PR
 
 # The audited core inventory (the three tiers): everything project-scoped the default page shows.
@@ -229,6 +229,56 @@ def test_project_outline_rows_expose_real_hover_relations(store):
     assert f'data-rel-out="{decision["id"]}"' in html
     assert f'data-oid="{decision["id"]}"' in html
     assert f'data-rel-in="synthesis:{synthesis["id"]}"' in html
+
+
+def test_project_outline_surfaces_plan_judgment_trace_edges(store):
+    project = services.start_project("Trace rows", "How might we keep evidence connected?",
+                                     methodology="double_diamond", store=store)
+    council = services.record_council(project["id"], "What evidence matters?", [], store=store)
+    survey = services.record_survey(
+        project["id"], "Evidence survey",
+        [{"id": "q1", "text": "Which signal matters most?", "kind": "single",
+          "options": ["A", "B"]}],
+        derived_from=[{"kind": "council", "id": council["id"]}], status="open", store=store)["survey"]
+    define_syn = services.record_synthesis("Define synthesis", "What matters?",
+                                            council_ids=[council["id"]],
+                                            project_id=project["id"], store=store)
+    services.link_evidence(project["id"], "verify__define",
+                           {"kind": "synthesis", "id": define_syn["id"]}, store=store)
+    services.record_judgment(project["id"], "verify__define", "divergence_complete", True,
+                             "Survey and council evidence converged.",
+                             evidence_refs=[f"survey:{survey['id']}", f"synthesis:{define_syn['id']}"],
+                             store=store)
+
+    proto = prototypes.register_prototype("trace-proto", "Trace prototype", "prototypes/trace",
+                                          project_id=project["id"], store=store)
+    sess = services.record_prototype_session(
+        "persona_trace", proto["id"], "trace-browser-session", "2026-06-16",
+        {"persona": "Trace Persona", "summary": "Tested the prototype.",
+         "liked": ["clear next action"], "friction": ["owner ambiguity"],
+         "verdict": "continue with pilot", "observed_state_refs": ["prototype screen"]},
+        key="trace-proto-session", store=store)["prototype_session"]
+    deliver_syn = services.record_synthesis("Deliver synthesis", "Prototype result",
+                                             council_ids=[council["id"]],
+                                             project_id=project["id"], store=store)
+    services.link_evidence(project["id"], "verify__deliver",
+                           {"kind": "synthesis", "id": deliver_syn["id"]}, store=store)
+    services.record_judgment(project["id"], "verify__deliver", "divergence_complete", True,
+                             "Prototype and session evidence are sufficient.",
+                             evidence_refs=[f"artifact:{proto['id']}", f"session:{sess['id']}",
+                                            f"synthesis:{deliver_syn['id']}"],
+                             store=store)
+
+    page = _client().get(f'/projects/{project["id"]}?lang=en').text
+
+    def rel_out(oid: str) -> str:
+        m = re.search(rf'data-oid="{re.escape(oid)}"[^>]*data-rel-out="([^"]*)"', page)
+        assert m, f"missing outline row for {oid}"
+        return html.unescape(m.group(1))
+
+    assert f"synthesis:{define_syn['id']}" in rel_out(survey["id"])
+    assert f"synthesis:{deliver_syn['id']}" in rel_out(proto["id"])
+    assert f"synthesis:{deliver_syn['id']}" in rel_out(sess["id"])
 
 
 def test_empty_kinds_render_no_chrome(store):

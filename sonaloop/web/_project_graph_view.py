@@ -10,6 +10,7 @@ from copy import deepcopy
 from typing import Any
 from urllib.parse import urlparse
 
+from ..project_trace import plan_judgment_edges
 from ._i18n import t
 from ._primitive_taxonomy import primitive_color, subtype_label, subtype_value
 
@@ -96,11 +97,14 @@ def augment_project_graph(graph: dict, *, sessions: dict[str, dict], decisions: 
     seen = {str(n.get("study_id")) for n in nodes if n.get("study_id")}
     edges = list(out.get("edges") or [])
 
-    def edge(a: str, b: str, typ: str = "informs", label: str = "") -> None:
+    def edge(a: str, b: str, typ: str = "informs", label: str = "",
+             extra: dict[str, Any] | None = None) -> None:
         if a and b and a != b and a in seen and b in seen:
             e = {"from_study": a, "to_study": b, "type": typ}
             if label:
                 e["label"] = label
+            if extra:
+                e.update(extra)
             if e not in edges:
                 edges.append(e)
 
@@ -193,6 +197,9 @@ def augment_project_graph(graph: dict, *, sessions: dict[str, dict], decisions: 
                 for aid, toks in asset_token_map.items():
                     if session_tokens & toks:
                         edge(aid, sid, "informs", "screen used")
+
+    for te in plan_judgment_edges(out.get("plan"), seen):
+        edge(te["from_study"], te["to_study"], te["type"], te.get("label", ""), te)
 
     # References are explicitly the council material pool. When no narrower ref edge exists,
     # connect them to the first recorded council as weak context so material does not appear as
