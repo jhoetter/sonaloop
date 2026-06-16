@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any
+from urllib.parse import urlparse
 
 
 @dataclass(frozen=True)
@@ -25,6 +26,8 @@ TRACE_EDGE_TYPES: dict[str, TraceEdgeType] = {
     "based_on": TraceEdgeType("based_on", "authored", "*.based_on", "based on"),
     "tested_in": TraceEdgeType("tested_in", "system", "session.subject", "tested in"),
     "uses_material": TraceEdgeType("uses_material", "authored", "*.refs", "uses material"),
+    "refines": TraceEdgeType("refines", "authored", "study.edge.refines", "refines"),
+    "informs": TraceEdgeType("informs", "system", "plan.verify_spine", "informs"),
     "task_consumes": TraceEdgeType("task_consumes", "system", "plan.task.consumes", "consumes"),
     "task_produces": TraceEdgeType("task_produces", "system", "plan.task.produces", "produces"),
     "judgment_evidence": TraceEdgeType(
@@ -34,8 +37,174 @@ TRACE_EDGE_TYPES: dict[str, TraceEdgeType] = {
 }
 
 
+def trace_edge(from_study: str, to_study: str, edge_type: str, **overrides: Any) -> dict[str, Any]:
+    """Build a visible trace edge from the registry.
+
+    Rendering code should not mint ad-hoc edge vocabulary. When a relation needs a new
+    type, it has to be declared in TRACE_EDGE_TYPES first so provenance and labels stay
+    inspectable.
+    """
+    meta = TRACE_EDGE_TYPES.get(edge_type)
+    if not meta:
+        raise ValueError(f"Unknown project trace edge type: {edge_type}")
+    edge = {"from_study": from_study, "to_study": to_study, "type": meta.type,
+            "label": meta.label, "provenance": meta.provenance, "source": meta.source}
+    edge.update({k: v for k, v in overrides.items() if v is not None and v != ""})
+    return edge
+
+
 def _node_id(kind: str, rid: str) -> str:
     return f"{kind}:{rid}"
+
+
+def _ref_node_id(ref: dict[str, Any], known: set[str]) -> str:
+    kind, rid = str(ref.get("kind") or ""), str(ref.get("id") or "")
+    if not kind or not rid:
+        return ""
+    cands = [_node_id(kind, rid), rid]
+    if kind == "report":
+        cands.append(_node_id("synthesis", rid))
+    if kind == "artifact":
+        cands.extend((_node_id("prototype", rid), _node_id("url_artifact", rid), _node_id("asset", rid)))
+    return next((c for c in cands if c in known), "")
+
+
+def _host(url: str) -> str:
+    try:
+        return urlparse(url).netloc.lower().removeprefix("www.")
+    except Exception:
+        return ""
+
+
+def _tokens(*values: object) -> set[str]:
+    import re
+    out: set[str] = set()
+    for value in values:
+        out.update(t for t in re.findall(r"[a-z0-9]+", str(value or "").lower()) if len(t) > 2)
+    return out
+
+
+def collect_project_trace_edges(graph: dict[str, Any], nodes: list[dict[str, Any]], *,
+                                sessions: dict[str, dict[str, Any]] | None = None,
+                                decisions: list[dict[str, Any]] | None = None,
+                                hypotheses: list[dict[str, Any]] | None = None,
+                                surveys: list[dict[str, Any]] | None = None,
+                                assets: list[dict[str, Any]] | None = None,
+                                base_edges: list[dict[str, Any]] | None = None) -> list[dict[str, Any]]:
+    """Return all visible project trace edges for the already assembled project nodes.
+
+    This is the single edge collection service used by the outline/detail graph adapters. It
+    accepts project records because node construction is still presentation-specific, but every
+    emitted edge goes through `trace_edge`, so provenance/type vocabulary stays centralized.
+    """
+    seen = {str(n.get("study_id")) for n in nodes if n.get("study_id")}
+    edges = list(base_edges or [])
+
+    def edge(a: str, b: str, typ: str, label: str = "",
+             extra: dict[str, Any] | None = None) -> None:
+        if a and b and a != b and a in seen and b in seen:
+            extra_clean = {k: v for k, v in (extra or {}).items()
+                           if k not in {"from_study", "to_study", "type", "label"}}
+            e = trace_edge(a, b, typ, label=label, **extra_clean)
+            if e not in edges:
+                edges.append(e)
+
+    for p in graph.get("prototypes") or []:
+        pid = _node_id("prototype", p.get("id", ""))
+        for n in nodes:
+            if p.get("id") in (n.get("prototype_ids") or []):
+                edge(str(n.get("study_id")), pid, "derived_from", "builds",
+                     {"source": "prototype.prototype_ids"})
+
+    for s in surveys or []:
+        sid = _node_id("survey", s.get("id", ""))
+        for ref in s.get("derived_from") or []:
+            edge(_ref_node_id(ref, seen), sid, "derived_from", "derived from")
+
+    for h in hypotheses or []:
+        hid = _node_id("hypothesis", h.get("id", ""))
+        for ref in h.get("derived_from") or []:
+            edge(_ref_node_id(ref, seen), hid, "derived_from", "derived from")
+
+    for d in decisions or []:
+        did = _node_id("decision", d.get("id", ""))
+        for ref in d.get("based_on") or []:
+            edge(_ref_node_id(ref, seen), did, "based_on", "based on")
+
+    artifact_nodes: dict[str, str] = {}
+    artifact_hosts: dict[str, str] = {}
+    for a in graph.get("artifacts") or []:
+        aid = _node_id("url_artifact", a.get("id", ""))
+        if aid in seen:
+            artifact_nodes[a.get("id", "")] = aid
+            artifact_hosts[aid] = _host(a.get("url", ""))
+
+    asset_token_map: dict[str, set[str]] = {}
+    for a in assets or []:
+        aid = _node_id("asset", a.get("id", ""))
+        if aid in seen:
+            asset_token_map[aid] = _tokens(a.get("title"), a.get("filename"),
+                                           a.get("notes"), a.get("source"))
+
+    proto_keys = {p.get("id"): _node_id("prototype", p["id"]) for p in graph.get("prototypes") or []}
+    proto_keys.update({p.get("slug"): _node_id("prototype", p["id"])
+                       for p in graph.get("prototypes") or [] if p.get("slug")})
+    for grp in (sessions or {}).values():
+        subj = grp.get("subject") or {}
+        subj_node = proto_keys.get(subj.get("id")) if subj.get("kind") == "prototype" else ""
+        for s in grp.get("sessions") or []:
+            sid = _node_id("session", s.get("id", ""))
+            edge(subj_node, sid, "tested_in", "tested in")
+            if subj.get("kind") == "live_url":
+                shost = _host(subj.get("url", ""))
+                for anid, ahost in artifact_hosts.items():
+                    if shost and ahost and shost == ahost:
+                        edge(anid, sid, "tested_in", "tested in")
+            elif subj.get("kind") == "flow":
+                session_tokens = _tokens(subj.get("label"), subj.get("id"))
+                for step in s.get("steps") or []:
+                    action = step.get("action") or {}
+                    state = step.get("state") or {}
+                    session_tokens |= _tokens(action.get("target"), action.get("detail"),
+                                              state.get("screen"), state.get("title"), step.get("monologue"))
+                for aid, toks in asset_token_map.items():
+                    if session_tokens & toks:
+                        edge(aid, sid, "uses_material", "screen used", {"source": "session.steps"})
+
+    for te in plan_judgment_edges(graph.get("plan"), seen):
+        edge(te["from_study"], te["to_study"], te["type"], te.get("label", ""), te)
+
+    parked_nodes = {
+        normalize_trace_ref(ref, seen)
+        for rec in (graph.get("plan") or {}).get("parked_refs") or []
+        for ref in rec.get("refs") or []
+    }
+    parked_nodes.discard("")
+
+    council_ids = [n["study_id"] for n in sorted(nodes, key=lambda n: n.get("created_at", ""))
+                   if str(n.get("study_id", "")).startswith("council:")]
+    first_council = council_ids[0] if council_ids else ""
+    if first_council:
+        for aid in artifact_nodes.values():
+            if aid in parked_nodes:
+                continue
+            if not any(e.get("from_study") == aid or e.get("to_study") == aid for e in edges):
+                edge(aid, first_council, "uses_material", "material",
+                     {"provenance": "inferred", "source": "outline.material_fallback"})
+
+    study_kinds = set(("coun" + "cil", "survey", "hypothesis", "session", "report", "decision"))
+    first_study = next((n["study_id"] for n in sorted(nodes, key=lambda n: n.get("created_at", ""))
+                        if str(n.get("study_id", "")).split(":", 1)[0] in study_kinds), "")
+    if first_study:
+        for o in graph.get("open_questions") or []:
+            oid = _node_id("open_question", o["id"])
+            if oid in parked_nodes:
+                continue
+            if not any(e.get("from_study") == oid or e.get("to_study") == oid for e in edges):
+                edge(oid, first_study, "derived_from", "frames",
+                     {"provenance": "inferred", "source": "outline.open_question_fallback"})
+
+    return edges
 
 
 def normalize_trace_ref(ref: Any, known_nodes: set[str]) -> str:
@@ -102,10 +271,8 @@ def plan_judgment_edges(plan: dict[str, Any] | None, known_nodes: set[str]) -> l
             for dst in targets:
                 if src == dst:
                     continue
-                out.append({"from_study": src, "to_study": dst, "type": meta.type,
-                            "label": meta.label, "provenance": meta.provenance,
-                            "source": meta.source, "task_id": task["id"],
-                            "gate_tag": j.get("gate_tag", "")})
+                out.append(trace_edge(src, dst, meta.type, task_id=task["id"],
+                                      gate_tag=j.get("gate_tag", "")))
     return out
 
 
@@ -140,14 +307,24 @@ def _terminal_plan_nodes(plan: dict[str, Any] | None, known_nodes: set[str]) -> 
     return out
 
 
+def _parked_plan_nodes(plan: dict[str, Any] | None, known_nodes: set[str]) -> set[str]:
+    out: set[str] = set()
+    for rec in (plan or {}).get("parked_refs") or []:
+        for ref in rec.get("refs") or []:
+            nid = normalize_trace_ref(ref, known_nodes)
+            if nid:
+                out.add(nid)
+    return out
+
+
 def trace_node_health(nodes: list[dict[str, Any]], edges: list[dict[str, Any]],
                       plan: dict[str, Any] | None = None) -> dict[str, str]:
     """Deterministic lifecycle state for visible project nodes.
 
     A node without outputs is acceptable while the plan is still open; after the
     plan is complete, middle/source evidence must either be consumed, terminal
-    or explicitly parked (parked edges land in a later slice). This is the
-    substrate for quiet UI warnings and assess_project gaps.
+    or explicitly parked. This is the substrate for quiet UI warnings and
+    assess_project gaps.
     """
     known = {str(n.get("study_id")) for n in nodes if n.get("study_id")}
     incoming: dict[str, int] = {nid: 0 for nid in known}
@@ -158,6 +335,7 @@ def trace_node_health(nodes: list[dict[str, Any]], edges: list[dict[str, Any]],
             outgoing[a] = outgoing.get(a, 0) + 1
             incoming[b] = incoming.get(b, 0) + 1
     terminal_nodes = _terminal_plan_nodes(plan, known)
+    parked_nodes = _parked_plan_nodes(plan, known)
     complete = _plan_complete(plan)
     out: dict[str, str] = {}
     for n in nodes:
@@ -167,6 +345,8 @@ def trace_node_health(nodes: list[dict[str, Any]], edges: list[dict[str, Any]],
         kind = _kind_of(n)
         if outgoing.get(nid, 0):
             out[nid] = "source" if incoming.get(nid, 0) == 0 and kind in START_KINDS else "consumed"
+        elif nid in parked_nodes:
+            out[nid] = "parked"
         elif kind in TERMINAL_KINDS or nid in terminal_nodes:
             out[nid] = "terminal"
         elif complete:

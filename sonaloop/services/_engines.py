@@ -314,6 +314,11 @@ def record_judgment(project_id, task_id, gate_tag, decided, rationale,
                                  evidence_refs, store=store)
 
 
+def park_evidence(project_id: str, refs: list[Any], reason: str, task_id: str = "",
+                  store: Store | None = None) -> dict[str, Any]:
+    return _plan.park_evidence(project_id, refs, reason, task_id, store=store)
+
+
 
 def export_plan_md(project_id: str, store: Store | None = None) -> str:
     store = store or Store()
@@ -579,8 +584,31 @@ def run_journal(run_id: str, store: Store | None = None) -> dict[str, Any]:
     return r
 
 
+_RUN_STEP_TRACE_LIST_FIELDS = (
+    "consume_refs",
+    "optional_context_refs",
+    "produced_refs",
+    "downstream_refs",
+    "open_questions",
+    "parked_refs",
+)
+
+
+def _trace_list(value: Any) -> list[Any]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    return [value]
+
+
 def checkpoint_step(run_id: str, step: dict[str, Any], store: Store | None = None) -> dict[str, Any]:
-    """Append a completed step to the journal (ids + a 1-line summary). Returns the new cursor."""
+    """Append a completed step to the journal (ids + a 1-line summary). Returns the new cursor.
+
+    The original `evidence` field stays for old callers. The explicit trace fields let autonomous
+    authors record the I/O contract they actually fulfilled, so later UI/assessment can distinguish
+    "new evidence not consumed yet" from "forgotten evidence".
+    """
     store = store or Store()
     r = store.get_run(run_id)
     if not r:
@@ -588,6 +616,12 @@ def checkpoint_step(run_id: str, step: dict[str, Any], store: Store | None = Non
     entry = {"idx": len(r["steps"]), "task_id": step.get("task_id", ""), "bucket": step.get("bucket", ""),
              "key": step.get("key", ""), "evidence": step.get("evidence", []),
              "summary": str(step.get("summary", ""))[:300]}
+    for field in _RUN_STEP_TRACE_LIST_FIELDS:
+        entry[field] = _trace_list(step.get(field))
+    if not entry["produced_refs"] and step.get("evidence"):
+        entry["produced_refs"] = _trace_list(step.get("evidence"))
+    if "expected_output_kind" in step:
+        entry["expected_output_kind"] = str(step.get("expected_output_kind") or "")
     r["steps"].append(entry)
     r["cursor"] = len(r["steps"])
     r["updated_at"] = utc_now_iso()
@@ -698,9 +732,38 @@ def _rl_summary(project_id: str, store: Store) -> dict[str, Any]:
             "total_sessions": len(sessions)}
 
 
-def _rl_dispatch(run: dict[str, Any], n: dict[str, Any]) -> dict[str, Any]:
+def _ref_token(ref: dict[str, Any]) -> str:
+    kind, rid = str((ref or {}).get("kind", "")), str((ref or {}).get("id", ""))
+    return f"{kind}:{rid}" if kind and rid else rid
+
+
+def _rl_trace_contract(project_id: str, task_id: str, store: Store) -> dict[str, Any]:
+    plan = _plan.get_plan(project_id, store=store) or {}
+    tasks = {str(t.get("id")): t for t in plan.get("tasks") or []}
+    t = tasks.get(task_id) or {}
+    consumes = [str(c) for c in (t.get("consumes") or [])]
+    consume_refs: list[str] = []
+    optional_context_refs: list[str] = []
+    open_questions: list[str] = []
+    for cid in consumes:
+        ct = tasks.get(cid) or {}
+        if ct.get("frame"):
+            consume_refs.append(f"frame:{cid}")
+            optional_context_refs.extend(str(r) for r in (ct["frame"].get("memory_refs") or []) if str(r).strip())
+            open_questions.extend(str(q) for q in (ct["frame"].get("questions") or []) if str(q).strip())
+        else:
+            consume_refs.extend(_ref_token(r) for r in (ct.get("produces") or []) if _ref_token(r))
+    expected = "frame" if t.get("bucket") == "analyze" else str(t.get("capability") or t.get("bucket") or "")
+    return {"consume_task_ids": consumes, "consume_refs": consume_refs,
+            "optional_context_refs": optional_context_refs, "open_questions": open_questions,
+            "expected_output_kind": expected,
+            "must_link_before_complete": t.get("bucket") in ("act", "verify")}
+
+
+def _rl_dispatch(run: dict[str, Any], n: dict[str, Any], store: Store) -> dict[str, Any]:
+    trace = _rl_trace_contract(run["project_id"], n["task"], store)
     return {"kind": n["bucket"], "step_id": n["task"], "key": run_key(run["run_id"], n["task"]),
-            "next_action": n, "directive": n.get("instructions", "")}
+            "next_action": n, "directive": n.get("instructions", ""), **trace}
 
 
 def run_step(run_id: str, store: Store | None = None) -> dict[str, Any]:
@@ -725,7 +788,7 @@ def run_step(run_id: str, store: Store | None = None) -> dict[str, Any]:
     if rec in ("frame", "act", "converge"):
         n = next_action(pid, store=store)
         if not n.get("complete"):
-            return _rl_dispatch(run, n)
+            return _rl_dispatch(run, n, store)
     if rec == "finish" or (a["complete"] and not a["finish"]["finished"]):
         if not a["finish"].get("organized"):
             derive_sections(pid, store=store)              # noqa: F821 (bound)

@@ -15,33 +15,53 @@
       "id": "discover", "name": "Discover", "tags": ["explore", "problem-landscape"],
       "intent": "Empathize broadly across DISTINCT ANGLES (e.g. the trigger moment, the mental model / language barrier, money reality, trust, a premise-check, the provider/insider view). Run a FEW real MULTI-persona councils — several segment-diverse personas reacting to each other — NOT one council per persona. Surface real lived problems, feelings, frictions; no solutions; anti-steering is strongest here (include a disconfirmation angle that tests whether the premise even holds).",
       "strategy": "pain-discovery", "diverge_by": "persona_subset",
-      "produces": {"role": "problem-landscape"}
+      "produces": {"role": "problem-landscape"},
+      "presentation": {
+        "formats": ["Council: Discovery", "Council: Red-Team"],
+        "library": ["Councils", "Notes", "Open questions"]
+      }
     },
     {
       "id": "define", "name": "Define", "tags": ["decide", "cluster", "key-problems"],
       "intent": "Affinity-cluster the many problem explorations into themes; name the KEY PROBLEM(S) and a sharp Point-of-View. Author payload.clusters [{label, member_node_ids, insight}] + payload.key_problems.",
       "strategy": "tension", "consumes": ["discover"],
       "requires": {"min_inputs": 2, "gate_tag": "divergence_complete"},
-      "produces": {"role": "key-problems"}
+      "produces": {"role": "key-problems"},
+      "presentation": {
+        "formats": ["Council: Discovery", "Council: Head-to-Head"],
+        "library": ["Councils", "Reports", "Open questions"]
+      }
     },
     {
       "id": "ideate", "name": "Ideate (Lo-Fi)", "tags": ["explore", "build", "solution-options"],
       "intent": "Generate many distinct solution concepts — push for genuine NON-OBVIOUS innovation, not incremental UX tweaks. Apply the creativity lenses in next_action.act.ideation_lenses (cross-domain analogy, make-the-invisible-EXPERIENCEABLE via an interactive model/simulation, provocation/reversal, extreme-user, mechanism-transfer, hybrid, subtract-the-obvious, honest anti-goal); at least ONE concept must carry a mechanism you did not expect at the start. Then build SEVERAL lo-fi prototypes DIVERSE IN KIND (next_action.act.artifact_palette: a guided flow, a comparison, an overview, a card interface, an interactive MODEL the persona steers — not N forms), including >=1 deliberately extreme 'dark-horse'. Go broad before judging.",
       "strategy": "positive-deepdive", "consumes": ["define"], "diverge_by": "solution_candidate",
-      "produces": {"role": "solution-options", "artifact_type": "prototype", "more_tags": ["lofi"]}
+      "produces": {"role": "solution-options", "artifact_type": "prototype", "more_tags": ["lofi"]},
+      "presentation": {
+        "formats": ["Council: Ideation", "Council: Head-to-Head"],
+        "library": ["Councils", "Prototypes", "Notes"]
+      }
     },
     {
       "id": "lofi_select", "name": "Lo-Fi Test & Down-Select", "tags": ["decide", "test", "solution-shortlist"],
       "intent": "Have personas USE the lo-fi prototypes (real sessions), then down-select. Author payload.ranking [{prototype_id, score_rationale}] + payload.shortlist (prototype_ids to carry to mid-fi).",
       "strategy": "goal", "consumes": ["ideate"],
       "requires": {"min_inputs": 2, "gate_tag": "divergence_complete", "session_of_tags": ["lofi"]},
-      "produces": {"role": "solution-shortlist"}
+      "produces": {"role": "solution-shortlist"},
+      "presentation": {
+        "formats": ["Session: Prototype test", "Council: Head-to-Head"],
+        "library": ["Sessions", "Councils", "Reports"]
+      }
     },
     {
       "id": "refine", "name": "Refine (Mid-Fi)", "tags": ["explore", "build", "solution-options"],
       "intent": "Build mid-fi prototype(s) of the shortlist and explore concrete refinements/variants. One exploration per refinement angle.",
       "strategy": "positive-deepdive", "consumes": ["lofi_select"], "diverge_by": "solution_candidate",
-      "produces": {"role": "solution-options", "artifact_type": "prototype", "more_tags": ["midfi"]}
+      "produces": {"role": "solution-options", "artifact_type": "prototype", "more_tags": ["midfi"]},
+      "presentation": {
+        "formats": ["Council: Discovery", "Council: Head-to-Head"],
+        "library": ["Councils", "Prototypes", "Notes"]
+      }
     },
     {
       "id": "deliver", "name": "Deliver (Solution Presentation)", "tags": ["decide", "test", "synthesize", "solution-presentation"],
@@ -49,7 +69,11 @@
       "strategy": "tension", "consumes": ["refine"],
       "requires": {"min_inputs": 2, "gate_tag": "divergence_complete", "session_of_tags": ["midfi"]},
       "produces": {"role": "solution-presentation"},
-      "loop_back": "refine"
+      "loop_back": "refine",
+      "presentation": {
+        "formats": ["Session: Prototype test", "Council: Red-Team"],
+        "library": ["Sessions", "Councils", "Reports", "Decisions"]
+      }
     }
   ]
 }

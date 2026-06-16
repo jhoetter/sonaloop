@@ -98,6 +98,38 @@ An LLM cannot silently create a new Library primitive by hallucinating a `kind`.
 It can still supply a semantically poor subtype value where a service normalizes
 or infers, so host instructions and UI labels should use the product taxonomy.
 
+## Trace contract for agents
+
+Project trace is the visible input/output graph of a study. It is not inferred
+from prose after the fact; agents must write the links while they run the plan.
+
+Every `run_step` / `next_action` dispatch carries:
+
+- `consume_refs`: required upstream evidence or frames to read;
+- `optional_context_refs`: useful context that is not required evidence;
+- `open_questions`: framed questions that the step is expected to address;
+- `expected_output_kind`: the output shape the step is likely to produce;
+- `must_link_before_complete`: `true` for `act` and `verify` tasks.
+
+For `act` and `verify` tasks, do this sequence:
+
+1. Author and persist the output primitive: e.g. council, survey, prototype,
+   session, synthesis, decision, reference or asset.
+2. Call `link_evidence(project_id, task_id, kind, evidence_id)` for every output
+   that should count as produced evidence for that task.
+3. If a produced item should remain visible but deliberately not feed a gate,
+   call `park_evidence(project_id, refs, reason, task_id)` with a concrete
+   reason.
+4. Only then call `complete_task(project_id, task_id)`.
+5. Call `checkpoint_step(run_id, {...})` with `consume_refs`, `produced_refs`,
+   `downstream_refs`, `open_questions` and `parked_refs` so the run journal can
+   be audited later.
+
+If `complete_task` returns `trace_nudge.code == TRACE_LINK_MISSING`, the task was
+completed without non-frame produced evidence linked to the plan. Treat that as a
+repair instruction: record or identify the output, call `link_evidence`, or park
+it explicitly before continuing the run.
+
 ## Product rules
 
 The Library must stay a complete cross-project browser for these primitives.

@@ -165,6 +165,7 @@ def register_assets(app) -> None:
             icon="file", kind=t("asset_kind"),
             pills=[asset_kind_pill(a), asset_direction_pill(a)],
             body=body, prop_rows=prop_rows,
+            rel_study_id=f"asset:{a['id']}", rel_proj_id=proj["id"],
             rail_sections=([("sec-excerpt", t("asset_excerpt_h"))] if excerpt else [])
                           + [("sec-provenance", t("provenance_h"))],
             star=("asset", a["id"], title[:60], f'/assets/{a["id"]}'))

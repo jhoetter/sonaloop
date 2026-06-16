@@ -13,9 +13,9 @@ def test_assets_present_and_app_builds():
     assert "/projects" in paths
 
 
-def test_sidebar_is_exactly_four_workspace_items():
-    """The 4-item sidebar (ux-contract §3.5, seeded in _nav_seed.py via the same public
-    registry an extension uses): Projects · Personas · Library · Activity. Runs and the
+def test_sidebar_is_exactly_five_workspace_items():
+    """The 5-item sidebar (ux-contract §3.5, seeded in _nav_seed.py via the same public
+    registry an extension uses): Projects · Methodologies · Personas · Library · Activity. Runs and the
     8 library kinds left the nav — they live on the project-header chip and /library;
     Documentation is a visible sidebar FOOTER row (W7)."""
     import re
@@ -24,7 +24,9 @@ def test_sidebar_is_exactly_four_workspace_items():
     html = TestClient(web.create_app()).get("/?lang=en").text
     sidebar = html.split('class="sl-sidebar"')[1].split("</aside>")[0]
     nav = "".join(re.findall(r'<nav class="sl-nav">.*?</nav>', sidebar, re.S))
-    assert re.findall(r'href="([^"]+)"', nav) == ["/projects", "/personas", "/library", "/activity"]
+    assert re.findall(r'href="([^"]+)"', nav) == [
+        "/projects", "/methodologies", "/personas", "/library", "/activity",
+    ]
     assert STRINGS["en"]["library_h"] in nav
     # the retired items answer elsewhere: Documentation as a VISIBLE footer row (W7),
     # Runs only via the run chip/palette — neither in the nav groups

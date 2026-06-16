@@ -177,6 +177,13 @@ def _env(tool: str, data: Any, started: float) -> dict[str, Any]:
         if isinstance(rs, dict) and rs.get("active_run") is False:
             nxt = {"name": "start_run",
                    "reason": rs.get("note") or "no active run — govern the loop before continuing"}
+        trace_nudge = data.get("trace_nudge")
+        if isinstance(trace_nudge, dict) and trace_nudge.get("next_tool"):
+            nxt = {"name": trace_nudge["next_tool"],
+                   "reason": trace_nudge.get("message") or "repair the task's trace link before continuing"}
+        elif data.get("must_link_before_complete"):
+            nxt = {"name": "link_evidence",
+                   "reason": "after recording the task output, link it to this task before complete_task"}
     env: dict[str, Any] = {
         "ok": True,
         "data": data,

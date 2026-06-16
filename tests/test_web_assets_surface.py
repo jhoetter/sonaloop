@@ -107,7 +107,7 @@ def test_unknown_asset_renders_not_found(store):
 def test_library_assets_tab_rows_with_project_and_direction(store, project, both_directions):
     html = _client().get("/assets?lang=en").text
     # the scoped primitive tab is active, both directions render as compact FILE rows (V9).
-    assert 'class="libnav-kind is-active"' in html and ">Assets<" in html
+    assert 'class="sl-libnav-kind sl-is-active"' in html and ">Assets<" in html
     assert html.count('class="sl-file sl-file--row"') == 2
     for a in (both_directions["in"], both_directions["out"]):
         assert f'data-drawer="/assets/{a["id"]}"' in html      # slide-over armed (the card body)

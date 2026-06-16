@@ -18,7 +18,7 @@ assignment to run a Sonaloop research project end-to-end:
    FIRST (simulate days/months) — councils are only as deep as the lives behind them.
 2. **Project**: `start_project(title, goal=<the question>, methodology=…, persona_ids=[…])`.
 3. **Governed loop**: `start_run(project_id)`, then loop `run_step(run_id)` — execute each
-   dispatch (author the step, persist via MCP, `checkpoint_step`) until it returns
+   dispatch (author the step, persist via MCP, link every produced evidence ref, `checkpoint_step`) until it returns
    `kind=='done'` (CLI: `run-start` / `run-step` / `run-checkpoint`). Only the engine ends the run (`assess_project.finish.finished` + the
    completeness critic) — never your own sense of "enough", and never at a phase boundary.
 4. **Hand-off**: point the user at the inspector (http://127.0.0.1:8787) + the Deliver
@@ -233,6 +233,16 @@ Memory & multi-resolution simulation (gather → author → write-back):
   Tag-agnostic: it enforces only the DAG (`consumes`), integer `min_inputs`, tag-equality references,
   and evidence-backed judgment PRESENCE — never tag membership. Shape (diverge/converge/diamonds/
   branches/loops) is DERIVED from the task DAG + recorded evidence.
+- Project trace contract for agents: every `run_step`/`next_action` dispatch carries
+  `consume_refs`, `optional_context_refs`, `open_questions`, `expected_output_kind` and
+  `must_link_before_complete`. For `act` and `verify`, first record the output primitive
+  (council, survey, prototype, session, synthesis, decision, asset/reference as appropriate),
+  then call `link_evidence(project_id, task_id, kind, evidence_id)` before `complete_task`.
+  If output should stay visible but deliberately not feed a downstream gate, call
+  `park_evidence(refs, reason)` instead of leaving it stranded. `complete_task` returns a
+  `TRACE_LINK_MISSING` nudge when evidence was completed without a trace link; repair that before
+  moving on. `checkpoint_step` should echo `consume_refs`, `produced_refs`, `downstream_refs`,
+  `open_questions` and `parked_refs` so the run journal can explain what happened later.
 - ESV — exhaustive, self-verifying runs (`spec/exhaustive-self-verifying-runs.md`). The autonomous loop
   is a **deterministic RunLoop engine** the host skill executes: `start_run`(resumable run object +
   journal) → loop `run_step` (the brain: assess + next_action + the deterministic finish work + the

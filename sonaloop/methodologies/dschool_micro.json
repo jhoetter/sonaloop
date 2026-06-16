@@ -15,20 +15,32 @@
       "id": "understand_observe", "name": "Understand & Observe", "tags": ["explore", "problem-landscape"],
       "intent": "Build empathy: observe and surface user needs, contexts and frictions broadly.",
       "strategy": "pain-discovery", "diverge_by": "persona_subset",
-      "produces": {"role": "problem-landscape"}
+      "produces": {"role": "problem-landscape"},
+      "presentation": {
+        "formats": ["Council: Discovery", "Council: Red-Team"],
+        "library": ["Councils", "Notes", "Open questions"]
+      }
     },
     {
       "id": "define_pov", "name": "Define POV", "tags": ["decide", "point-of-view"],
       "intent": "Consolidate observations into a single Point-of-View statement (user + need + insight).",
       "strategy": "goal", "consumes": ["understand_observe"],
       "requires": {"min_inputs": 2, "gate_tag": "divergence_complete"},
-      "produces": {"role": "point-of-view"}
+      "produces": {"role": "point-of-view"},
+      "presentation": {
+        "formats": ["Council: Discovery"],
+        "library": ["Councils", "Reports", "Open questions"]
+      }
     },
     {
       "id": "ideate", "name": "Ideate", "tags": ["explore", "build", "solution-options"],
       "intent": "Generate many diverse solution concepts; build a prototype for the most promising.",
       "strategy": "positive-deepdive", "consumes": ["define_pov"], "diverge_by": "solution_candidate",
-      "produces": {"role": "solution-options", "artifact_type": "prototype"}
+      "produces": {"role": "solution-options", "artifact_type": "prototype"},
+      "presentation": {
+        "formats": ["Council: Ideation", "Council: Head-to-Head"],
+        "library": ["Councils", "Prototypes", "Notes"]
+      }
     },
     {
       "id": "prototype_test", "name": "Prototype & Test", "tags": ["decide", "test", "spec"],
@@ -36,7 +48,11 @@
       "strategy": "tension", "consumes": ["ideate"],
       "requires": {"min_inputs": 2, "gate_tag": "divergence_complete", "session_of_tags": ["prototype"]},
       "produces": {"role": "spec"},
-      "loop_back": "ideate"
+      "loop_back": "ideate",
+      "presentation": {
+        "formats": ["Session: Prototype test"],
+        "library": ["Sessions", "Reports", "Decisions"]
+      }
     }
   ]
 }

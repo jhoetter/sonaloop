@@ -15,20 +15,32 @@
       "id": "discover", "name": "Discover", "tags": ["explore", "problem-landscape"],
       "intent": "Surface the real, lived pains broadly across personas and angles. No solutions yet. Anti-steering is strongest here.",
       "strategy": "pain-discovery", "diverge_by": "persona_subset",
-      "produces": {"role": "problem-landscape"}
+      "produces": {"role": "problem-landscape"},
+      "presentation": {
+        "formats": ["Council: Discovery", "Council: Red-Team"],
+        "library": ["Councils", "Notes", "Open questions"]
+      }
     },
     {
       "id": "define", "name": "Define", "tags": ["decide", "point-of-view"],
       "intent": "Cluster the breadth into ONE core problem and a sharp Point-of-View (who + needs what + surprising insight). Frame the next How-Might-We.",
       "strategy": "goal", "consumes": ["discover"],
       "requires": {"min_inputs": 2, "gate_tag": "divergence_complete"},
-      "produces": {"role": "point-of-view"}
+      "produces": {"role": "point-of-view"},
+      "presentation": {
+        "formats": ["Council: Discovery", "Council: Head-to-Head"],
+        "library": ["Councils", "Reports", "Open questions"]
+      }
     },
     {
       "id": "develop", "name": "Develop", "tags": ["explore", "build", "solution-options"],
       "intent": "Generate multiple solution candidates from the POV and build at least one real, minimal prototype to test.",
       "strategy": "positive-deepdive", "consumes": ["define"], "diverge_by": "solution_candidate",
-      "produces": {"role": "solution-options", "artifact_type": "prototype"}
+      "produces": {"role": "solution-options", "artifact_type": "prototype"},
+      "presentation": {
+        "formats": ["Council: Discovery", "Council: Head-to-Head"],
+        "library": ["Councils", "Prototypes", "Notes"]
+      }
     },
     {
       "id": "deliver", "name": "Deliver", "tags": ["decide", "test", "spec"],
@@ -36,7 +48,11 @@
       "strategy": "tension", "consumes": ["develop"],
       "requires": {"min_inputs": 2, "gate_tag": "divergence_complete", "session_of_tags": ["prototype"]},
       "produces": {"role": "spec"},
-      "loop_back": "develop"
+      "loop_back": "develop",
+      "presentation": {
+        "formats": ["Session: Prototype test", "Council: Red-Team"],
+        "library": ["Sessions", "Councils", "Reports", "Decisions"]
+      }
     }
   ]
 }

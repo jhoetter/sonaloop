@@ -264,6 +264,120 @@
       "rejected": [{"kind": "council", "key": "trust-council", "note": "Rejected a broad dashboard rollout because the panel asked for a smaller trust-building pilot."}]
     }
   ],
+  "plan": {
+    "methodology": "showcase_trace",
+    "tasks": [
+      {
+        "id": "frame__tour",
+        "title": "Frame the onboarding proof",
+        "bucket": "analyze",
+        "capability": "frame",
+        "status": "done",
+        "consumes": [],
+        "produces": [{"kind": "frame", "id": "frame__tour"}],
+        "frame": {
+          "questions": [
+            "Would teams trust a weekly pulse check if follow-up is visible?",
+            "Which artifact proves enough value for a capped pilot?",
+            "Where would frontline managers abandon the first-run flow?"
+          ],
+          "hypotheses": ["Visible follow-up plus privacy explanation unlocks a capped pilot."],
+          "memory_refs": ["note:privacy-before-value", "note:owner-loop"]
+        }
+      },
+      {
+        "id": "act__materials",
+        "title": "Collect reference material",
+        "bucket": "act",
+        "capability": "material",
+        "status": "done",
+        "consumes": ["frame__tour"],
+        "produces": [
+          {"kind": "url_artifact", "key": "marketing-site"},
+          {"kind": "url_artifact", "key": "external-prototype"},
+          {"kind": "url_artifact", "key": "variant-privacy-first"},
+          {"kind": "asset", "key": "screen_intro"},
+          {"kind": "asset", "key": "screen_action"},
+          {"kind": "asset", "key": "field_note"},
+          {"kind": "note", "key": "privacy-note"},
+          {"kind": "note", "key": "owner-note"}
+        ]
+      },
+      {
+        "id": "act__ask",
+        "title": "Ask the trust council and survey",
+        "bucket": "act",
+        "capability": "ask",
+        "status": "done",
+        "consumes": ["frame__tour"],
+        "produces": [
+          {"kind": "council", "key": "trust-council"},
+          {"kind": "hypothesis", "key": "visible-followup"},
+          {"kind": "survey", "key": "pilot-readiness"}
+        ]
+      },
+      {
+        "id": "act__test",
+        "title": "Test flow, prototype and live reference",
+        "bucket": "act",
+        "capability": "test",
+        "status": "done",
+        "consumes": ["frame__tour"],
+        "produces": [
+          {"kind": "prototype", "key": "first-run-prototype"},
+          {"kind": "session", "key": "lead-flow-walk"},
+          {"kind": "session", "key": "ops-prototype-click"},
+          {"kind": "session", "key": "hr-live-reference"}
+        ]
+      },
+      {
+        "id": "verify__handoff",
+        "title": "Conclude the pilot handoff",
+        "bucket": "verify",
+        "capability": "synthesize",
+        "status": "done",
+        "consumes": ["frame__tour"],
+        "produces": [
+          {"kind": "synthesis", "key": "artifact-map"},
+          {"kind": "decision", "key": "pilot-decision"}
+        ],
+        "requires": {"min_inputs": 3, "gate_tag": "showcase_complete"}
+      }
+    ],
+    "judgments": [
+      {
+        "task_id": "verify__handoff",
+        "gate_tag": "showcase_complete",
+        "decided": true,
+        "rationale": "The showcase deliberately connects material, ask, test and conclude artifacts for onboarding.",
+        "created_at": "2026-06-14T12:19:00Z",
+        "evidence_refs": [
+          {"kind": "url_artifact", "key": "marketing-site"},
+          {"kind": "url_artifact", "key": "external-prototype"},
+          {"kind": "url_artifact", "key": "variant-privacy-first"},
+          {"kind": "asset", "key": "screen_intro"},
+          {"kind": "asset", "key": "screen_action"},
+          {"kind": "asset", "key": "field_note"},
+          {"kind": "note", "key": "privacy-note"},
+          {"kind": "note", "key": "owner-note"},
+          {"kind": "council", "key": "trust-council"},
+          {"kind": "hypothesis", "key": "visible-followup"},
+          {"kind": "survey", "key": "pilot-readiness"},
+          {"kind": "prototype", "key": "first-run-prototype"},
+          {"kind": "session", "key": "lead-flow-walk"},
+          {"kind": "session", "key": "ops-prototype-click"},
+          {"kind": "session", "key": "hr-live-reference"}
+        ]
+      }
+    ],
+    "parked_refs": [
+      {
+        "reason": "Variant D is retained as an explicit alternative, but the gate chose the privacy-first path for the first tour.",
+        "created_at": "2026-06-14T12:18:00Z",
+        "refs": [{"kind": "url_artifact", "key": "variant-dashboard-first"}]
+      }
+    ]
+  },
   "notes": [
     {"key": "privacy-note", "title": "Privacy before value", "text": "The first screen must explain anonymity before asking for feedback.", "created_at": "2026-06-03T09:00:00Z"},
     {"key": "owner-note", "title": "Owner loop", "text": "Every result view should name one follow-up owner and due date.", "created_at": "2026-06-03T09:30:00Z"}
