@@ -72,13 +72,14 @@ def _decision_row(d: dict, store, by_id: dict, *, title_href: str | None = None,
 def register_decisions(app) -> None:
     @app.get("/decisions", response_class=HTMLResponse)
     def decisions_list(project: str = Query(default=""), status: str = Query(default=""),
-                       subtype: str = Query(default=""), q: str = Query(default="")) -> str:
+                       subtype: str = Query(default=""), trace: str = Query(default=""),
+                       q: str = Query(default="")) -> str:
         """Every decision record across all projects — the Library's Decisions tab
         (ux-contract §3.5): one status-pilled row per record, the audit trail of what
         the research changed; the full ADR card lives on the detail page (full page or
         slide-over). Filterable by project + status (U10, the shared FilterBar grammar)."""
         from .library import library_filters, library_page
-        return library_page("decisions", flt=library_filters(project, status, subtype=subtype),
+        return library_page("decisions", flt=library_filters(project, status, subtype=subtype, trace=trace),
                             base="/decisions", q=q)
 
     @app.get("/decisions/{decision_id}", response_class=HTMLResponse)

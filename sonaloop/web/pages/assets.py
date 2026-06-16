@@ -113,11 +113,11 @@ def register_assets(app) -> None:
     @app.get("/assets", response_class=HTMLResponse)
     def assets_list(project: str = Query(default=""), status: str = Query(default=""),
                     direction: str = Query(default=""), subtype: str = Query(default=""),
-                    q: str = Query(default="")) -> str:
+                    trace: str = Query(default=""), q: str = Query(default="")) -> str:
         # The Library's Assets tab under the canonical URL (ux-contract §3.5), with the
         # shared FilterBar (U10): project + status + direction, same URL grammar.
         from .library import library_filters, library_page
-        return library_page("assets", flt=library_filters(project, status, direction, subtype),
+        return library_page("assets", flt=library_filters(project, status, direction, subtype, trace),
                             base="/assets", q=q)
 
     @app.get("/assets/{asset_id}", response_class=HTMLResponse)

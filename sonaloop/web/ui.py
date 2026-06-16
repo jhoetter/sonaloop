@@ -297,6 +297,10 @@ def primitive_row(kind: str, record: dict, store: Any = None, *, href: str | Non
         if status in labels:
             badges.append(raw(_label(labels[status],
                                      "var(--amber)" if status == "open" else "var(--green)")))
+    if rec.get("trace_health") == "orphaned":
+        badges.append(raw(_label(t("chip_unused_after_phase_close"), "var(--amber)")))
+    elif rec.get("trace_health") == "parked":
+        badges.append(raw(_label(t("chip_parked"), "var(--muted)")))
     return entity_row(title, href=href, visual=visual, badges=badges,
                       desc=desc if desc is not None else kind_desc,
                       meta=[m for m in meta if m], drawer=drawer)

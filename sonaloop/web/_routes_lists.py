@@ -171,19 +171,21 @@ def register_lists(app) -> None:
 
     @app.get("/prototypes", response_class=HTMLResponse)
     def prototypes_list(project: str = Query(default=""), status: str = Query(default=""),
-                        subtype: str = Query(default=""), q: str = Query(default="")) -> str:
+                        subtype: str = Query(default=""), trace: str = Query(default=""),
+                        q: str = Query(default="")) -> str:
         # The Library's Prototypes tab under the canonical URL (ux-contract §3.5),
         # filterable by project (U10, the shared FilterBar grammar).
         from .pages.library import library_filters, library_page
-        return library_page("prototypes", flt=library_filters(project, status, subtype=subtype),
+        return library_page("prototypes", flt=library_filters(project, status, subtype=subtype, trace=trace),
                             base="/prototypes", q=q)
 
     @app.get("/notes", response_class=HTMLResponse)
     def notes_list(project: str = Query(default=""), status: str = Query(default=""),
-                   subtype: str = Query(default=""), q: str = Query(default="")) -> str:
+                   subtype: str = Query(default=""), trace: str = Query(default=""),
+                   q: str = Query(default="")) -> str:
         # The Library's Notes tab — ONE note entity (concepts merged in).
         from .pages.library import library_filters, library_page
-        return library_page("notes", flt=library_filters(project, status, subtype=subtype),
+        return library_page("notes", flt=library_filters(project, status, subtype=subtype, trace=trace),
                             base="/notes", q=q)
 
 # Co-located CSS (spec/roadmap.md R3): the shared linear list rows used by every index page.

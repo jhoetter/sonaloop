@@ -133,6 +133,20 @@ def test_outline_trace_facet_filters_orphaned_rows(store):
     assert "Unconsumed survey" in html and "unused" in html
 
 
+def test_library_trace_facet_uses_project_trace_states(store):
+    ids = _seed(store)
+    pid = ids["project_id"]
+    client = _client()
+    full = client.get(f"/councils?project={pid}&lang=en").text
+    assert "Trace" in full and "used" in full
+    html = client.get(f"/councils?project={pid}&trace=consumed&lang=en").text
+    assert "Would you pay for this?" in html
+    html = client.get(f"/decisions?project={pid}&trace=terminal&lang=en").text
+    assert "Pick A" in html
+    html = client.get(f"/surveys?project={pid}&trace=consumed&lang=en").text
+    assert "Nothing matches these filters" in html
+
+
 def test_outline_facet_menu_carries_counts_over_the_unfiltered_set(store):
     ids = _seed(store)
     pid = ids["project_id"]

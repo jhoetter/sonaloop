@@ -148,6 +148,87 @@ def _tab_entries(key: str, store: Store, sessions: list | None = None) -> list[d
     return []
 
 
+def _entry_trace_keys(x: dict) -> set[str]:
+    rec = x.get("rec") or {}
+    kind = str(x.get("kind") or "")
+    rid = str(rec.get("id") or "")
+    if not kind or not rid:
+        return set()
+    keys = {rid, f"{kind}:{rid}"}
+    if kind == "synthesis":
+        keys.update((f"report:{rid}",))
+    if kind == "url_artifact":
+        keys.update((f"artifact:{rid}",))
+    return keys
+
+
+def _library_trace_lookup(store: Store, project_ids: set[str]) -> dict[str, dict[str, str]]:
+    """Project outline trace states, keyed for Library rows.
+
+    The Library is cross-project, but trace is project-local. Compute it from the same
+    augmented graph the project outline/detail pages use, then only project it onto the flat
+    Library rows. This keeps the Library from inventing a second relationship model.
+    """
+    if not project_ids:
+        return {}
+    from .._graph_outline_sessions import outline_session_groups
+    from .._project_graph_view import augment_project_graph
+    from ...project_trace import trace_node_health
+
+    out: dict[str, dict[str, str]] = {}
+    for pid in project_ids:
+        graph = services.get_project_graph(pid, store=store)
+        proto_ids = {p.get("id") for p in graph.get("prototypes") or []}
+        prototype_sessions = [
+            s for s in store.list_prototype_sessions()
+            if s.get("prototype_id") in proto_ids
+        ]
+        sessions = outline_session_groups(
+            services.list_usability_sessions(project_id=pid, store=store),
+            store, prototype_sessions=prototype_sessions,
+        )
+        full_graph = augment_project_graph(
+            graph, sessions=sessions,
+            decisions=services.list_decisions(pid, store=store),
+            hypotheses=services.list_hypotheses(pid, store=store),
+            surveys=services.list_surveys(project_id=pid, store=store),
+            assets=services.list_assets(pid, store=store),
+        )
+        health = trace_node_health(full_graph["nodes"], full_graph["edges"], graph.get("plan"))
+        by_key: dict[str, str] = {}
+        for node in full_graph["nodes"]:
+            sid = str(node.get("study_id") or "")
+            if not sid:
+                continue
+            state = health.get(sid, "")
+            if not state:
+                continue
+            by_key[sid] = state
+            kind, rid = sid.split(":", 1) if ":" in sid else ("", sid)
+            by_key.setdefault(rid, state)
+            if kind == "report":
+                by_key.setdefault(f"synthesis:{rid}", state)
+            if kind == "url_artifact":
+                by_key.setdefault(f"artifact:{rid}", state)
+        out[pid] = by_key
+    return out
+
+
+def _annotate_library_trace(entries: list[dict], store: Store) -> list[dict]:
+    lookup = _library_trace_lookup(store, {x["project_id"] for x in entries if x.get("project_id")})
+    out = []
+    for x in entries:
+        state = next((lookup.get(x.get("project_id", ""), {}).get(k)
+                      for k in _entry_trace_keys(x)
+                      if lookup.get(x.get("project_id", ""), {}).get(k)), "")
+        if not state:
+            out.append(x)
+            continue
+        rec = {**(x.get("rec") or {}), "trace_health": state}
+        out.append({**x, "rec": rec, "trace_health": state})
+    return out
+
+
 def _find_open_question(store: Store, question_id: str) -> tuple[dict | None, dict | None]:
     for proj in store.list_research_projects():
         for o in store.list_open_questions(proj["id"]):
@@ -171,6 +252,12 @@ def _reference_status_pill(ref: dict) -> str:
     return _label(t("artifact_capture_failed"), "var(--muted)")
 
 
+def _trace_filter_label(state: str) -> str:
+    return t(f"trace_{state}") if state in {
+        "source", "active", "consumed", "terminal", "parked", "orphaned"
+    } else state
+
+
 def _library_facets(entries: list[dict], store: Store, *, with_direction: bool) -> list[dict]:
     """The tab's facet model for the FilterBar (U10 §8.5): project + status everywhere they
     actually occur, + direction (in/out) on the Assets tab. Counts over the unfiltered set;
@@ -182,6 +269,8 @@ def _library_facets(entries: list[dict], store: Store, *, with_direction: bool) 
     status_lbl: dict[str, str] = {}
     subtype_n: Counter = Counter()
     dir_n: Counter = Counter()
+    trace_n: Counter = Counter()
+    trace_lbl: dict[str, str] = {}
     for x in entries:
         st = record_status(x["kind"], x["rec"])
         if st:
@@ -192,6 +281,10 @@ def _library_facets(entries: list[dict], store: Store, *, with_direction: bool) 
             subtype_n[sub] += 1
         if with_direction:
             dir_n[asset_direction(x["rec"])] += 1
+        tr = str(x.get("trace_health") or "")
+        if tr:
+            trace_n[tr] += 1
+            trace_lbl.setdefault(tr, _trace_filter_label(tr))
     facets = [
         {"key": "project", "label": t("project"), "icon": "projects",
          "options": [{"value": p, "label": projects.get(p, p), "count": n}
@@ -202,6 +295,9 @@ def _library_facets(entries: list[dict], store: Store, *, with_direction: bool) 
         {"key": "subtype", "label": t("subtype_h"), "icon": "tag",
          "options": [{"value": s, "label": subtype_label(s), "count": n}
                      for s, n in subtype_n.most_common()]},
+        {"key": "trace", "label": t("trace_h"), "icon": "link",
+         "options": [{"value": s, "label": trace_lbl[s], "count": n}
+                     for s, n in trace_n.most_common()]},
     ]
     if with_direction:
         dir_label = {"in": t("asset_dir_in"), "out": t("asset_dir_out")}
@@ -362,7 +458,7 @@ def library_page(tab: str = "questions", store: Store | None = None, *,
     base0 = base or f"/library?tab={tab}"
     base = base0 + (("&" if "?" in base0 else "?") + f"q={quote(q)}" if q else "")
     selected = {k: v for k, v in (flt or {}).items()}
-    entries = _tab_entries(tab, store, sessions=sessions)
+    entries = _annotate_library_trace(_tab_entries(tab, store, sessions=sessions), store)
     facets = _library_facets(entries, store, with_direction=tab == "assets")
     subforms = _active_subform_guide(tab, tab_kind, base0)
     bar = (str(filter_bar(base, facets, selected,
@@ -379,6 +475,8 @@ def library_page(tab: str = "questions", store: Store | None = None, *,
             if active.get("subtype") and subtype_value(x["kind"], x["rec"]) not in active["subtype"]:
                 return False
             if active.get("direction") and asset_direction(x["rec"]) not in active["direction"]:
+                return False
+            if active.get("trace") and x.get("trace_health") not in active["trace"]:
                 return False
             if q and not _q_match(q, _entry_blob(x, store)):
                 return False
@@ -407,30 +505,34 @@ def library_page(tab: str = "questions", store: Store | None = None, *,
 
 
 def library_filters(project: str = "", status: str = "", direction: str = "",
-                    subtype: str = "") -> dict:
+                    subtype: str = "", trace: str = "") -> dict:
     """Parse the shared Library filter params (?project=…&status=…&direction=… — comma = OR)
     into the `flt` dict library_page applies; the canonical tab routes all funnel through
     this so the URL grammar stays identical everywhere."""
     return {"project": parse_multi(project), "status": parse_multi(status),
-            "direction": parse_multi(direction), "subtype": parse_multi(subtype)}
+            "direction": parse_multi(direction), "subtype": parse_multi(subtype),
+            "trace": parse_multi(trace)}
 
 
 def register_library(app) -> None:
     @app.get("/library", response_class=HTMLResponse)
     def library(tab: str = Query(default="questions"), project: str = Query(default=""),
                 status: str = Query(default=""), direction: str = Query(default=""),
-                subtype: str = Query(default=""), q: str = Query(default="")) -> str:
-        return library_page(tab, flt=library_filters(project, status, direction, subtype), q=q)
+                subtype: str = Query(default=""), trace: str = Query(default=""),
+                q: str = Query(default="")) -> str:
+        return library_page(tab, flt=library_filters(project, status, direction, subtype, trace), q=q)
 
     @app.get("/open-questions", response_class=HTMLResponse)
     def open_questions_list(project: str = Query(default=""), status: str = Query(default=""),
-                            subtype: str = Query(default=""), q: str = Query(default="")) -> str:
-        return library_page("questions", flt=library_filters(project, status, subtype=subtype), base="/open-questions", q=q)
+                            subtype: str = Query(default=""), trace: str = Query(default=""),
+                            q: str = Query(default="")) -> str:
+        return library_page("questions", flt=library_filters(project, status, subtype=subtype, trace=trace), base="/open-questions", q=q)
 
     @app.get("/references", response_class=HTMLResponse)
     def references_list(project: str = Query(default=""), status: str = Query(default=""),
-                        subtype: str = Query(default=""), q: str = Query(default="")) -> str:
-        return library_page("references", flt=library_filters(project, status, subtype=subtype), base="/references", q=q)
+                        subtype: str = Query(default=""), trace: str = Query(default=""),
+                        q: str = Query(default="")) -> str:
+        return library_page("references", flt=library_filters(project, status, subtype=subtype, trace=trace), base="/references", q=q)
 
     @app.get("/open-questions/{question_id}", response_class=HTMLResponse)
     def open_question_view(question_id: str) -> str:
