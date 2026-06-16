@@ -130,6 +130,23 @@ def artifact_type_meta(type_tag: str) -> dict[str, Any]:
     return _hints().get(type_tag, {})
 
 
+def default_discriminator(type_tag: str) -> str:
+    """Best-effort data default for a type's discriminator.
+
+    Prefer the discriminator whose template equals the type default; otherwise use the
+    first discriminator declared under that type. This keeps UI fallbacks data-derived.
+    """
+    default_template = (_hints().get(type_tag) or {}).get("default_template")
+    fallback = ""
+    for tag, meta in _hints().items():
+        if meta.get("_parent") != type_tag:
+            continue
+        fallback = fallback or tag
+        if default_template and meta.get("template") == default_template:
+            return tag
+    return fallback
+
+
 def discriminator_tags(type_tag: str) -> list[str]:
     """Tags declared as discriminators of an artifact type (data-driven; e.g. the fidelity
     ladder lofi/midfi/hifi under `prototype`). No fidelity vocabulary is hardcoded in code."""

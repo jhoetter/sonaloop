@@ -6,7 +6,7 @@ sonaloop-research would, so downstream sections sit beside these (ordered by `or
 Imported for its side effects by _components (the render side lives in _nav there).
 
 Four workspace items, period (spec/ux-contract.md §3.5): Projects and Personas are the
-inputs/containers, the Library is ONE browser over every produced primitive (council/
+inputs/containers, Methodologies explain the process a project runs through, the Library is ONE browser over every produced primitive (council/
 report/prototype/session/survey/hypothesis/decision/note — tabs on /library, the old
 list routes render it with their tab active), Activity is the live feed. Runs retired
 from the nav (the project-header run chip + /runs journal carry it); Documentation
@@ -22,6 +22,7 @@ register_nav_section("workspace", label=None, order=0)
 _CORE_NAV = {
     "workspace": [
         ("/projects", "projects", "projects", lambda: t("projects")),
+        ("/methodologies", "methodologies", "target", lambda: t("methodologies_h")),
         ("/personas", "personas", "personas", lambda: t("personas")),
         ("/library", "library", "book", lambda: t("library_h")),
         # The live feed of recorded events (ticket live-event-stream): a workspace

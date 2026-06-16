@@ -35,20 +35,13 @@ The three are **orthogonal axes, not competing lists**: a Job runs *through* a F
 
 ## Frameworks (real methodology keys)
 
-Each Framework id maps 1:1 to a methodology `key` shipped under `sonaloop/methodologies/`.
+Each Framework id maps 1:1 to a methodology `key` shipped under `sonaloop/methodologies/`. The
+current catalogue is data-driven and visible in the inspector's **Methodologies** tab; this document
+only defines the layer and its contracts.
 
-| Framework id / `key` | Name |
-|----------------------|------|
-| `double_diamond` | Double Diamond |
-| `double_diamond_deep` | Double Diamond (Deep) |
-| `dschool_micro` | d.school Micro-Cycle |
-| `lean_jtbd` | Lean / Jobs-to-be-Done |
-
-Each Framework is documented in plain language (what it is, when to use it, its diverge→converge
-stages) in [`docs/frameworks.md`](frameworks.md). The structured descriptions
-(`{id, name, what, when, stages}`) are exposed via `sonaloop.job_taxonomy.framework_descriptions()`
-and the `list_frameworks` / `describe_framework` MCP tools, so the website "how it works" page and
-the job presets draw on one source.
+Frameworks are exposed as structured data (`{id, name, what, when, stages}`) via
+`sonaloop.job_taxonomy.framework_descriptions()` and the `list_frameworks` / `describe_framework`
+MCP tools, so the website "how it works" page and the job presets draw on one source.
 
 ## Formats
 
@@ -255,7 +248,8 @@ Downstream tickets reference this artifact directly:
   (framework + formats + coverage, derived live from this taxonomy) plus the deterministic
   `sharpen_question` helper that turns a fuzzy goal into a well-formed study spec. MCP surface:
   `list_job_presets` / `get_job_preset` / `sharpen_question` / `start_job_study`.
-- **Methodology surface** — Frameworks here are the real `key`s already in `sonaloop/methodologies/`.
+- **Methodology surface** — Frameworks here are the real `key`s already in `sonaloop/methodologies/`;
+  the inspector exposes them under `/methodologies` with one page per Framework.
 
 ## Naming + stable ids
 

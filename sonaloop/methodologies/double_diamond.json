@@ -3,6 +3,11 @@
   "name": "Double Diamond",
   "description": "Problem space (Discover fan -> Define waist) then solution space (Develop fan + prototype -> Deliver waist). Frame an ambiguous problem and take it to a buildable solution.",
   "when_to_use": "When you have a 'How Might We' question and want a rigorous problem framing plus a tested, buildable solution spec.",
+  "presentation": {
+    "icon": "exchange",
+    "summary": "Frame the problem, then build the solution.",
+    "jobs": "Ambiguous HMW questions, positioning work, and buildable solution specs."
+  },
   "steps": [
     {
       "id": "discover", "name": "Discover", "tags": ["explore", "problem-landscape"],

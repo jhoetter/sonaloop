@@ -3,6 +3,11 @@
   "name": "Lean / Jobs-to-be-Done",
   "description": "Problem-explore (fan) -> Problem-pick (waist) -> Solution-explore (fan + prototype) -> Validate (waist). Lean-startup framing around the customer's job-to-be-done.",
   "when_to_use": "When you want to anchor on the customer's job, find the highest-value problem, then validate a minimal solution.",
+  "presentation": {
+    "icon": "target",
+    "summary": "Anchor on the job-to-be-done, pick the strongest problem, validate a minimal answer.",
+    "jobs": "Demand, pricing, churn, and MVP questions where the customer job is the anchor."
+  },
   "steps": [
     {
       "id": "problem_explore", "name": "Problem Explore", "tags": ["explore", "problem-landscape"],

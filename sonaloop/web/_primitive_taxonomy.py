@@ -11,6 +11,7 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import Any
 
+from .. import presentation as _pres
 from ._i18n import t
 
 
@@ -95,7 +96,7 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
                 return value
         return str(rec.get("mode") or "discovery")
     if kind == "prototype":
-        return str(rec.get("fidelity") or "midfi")
+        return str(rec.get("fidelity") or _pres.default_discriminator(kind))
     if kind == "session":
         subject = rec.get("subject") or {}
         sk = subject.get("kind") or ""

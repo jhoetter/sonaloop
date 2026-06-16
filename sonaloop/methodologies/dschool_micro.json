@@ -3,6 +3,11 @@
   "name": "d.school Micro-Cycle",
   "description": "Stanford d.school micro-cycle: Understand/Observe (fan) -> Define POV (waist) -> Ideate (fan + prototype) -> Prototype & Test (waist).",
   "when_to_use": "Human-centered design when you want empathy-first divergence and rapid prototype testing.",
+  "presentation": {
+    "icon": "compass",
+    "summary": "Empathy-first divergence, a sharp POV, then rapid prototype testing.",
+    "jobs": "Fast human-centered concept work and continuous discovery loops."
+  },
   "steps": [
     {
       "id": "understand_observe", "name": "Understand & Observe", "tags": ["explore", "problem-landscape"],

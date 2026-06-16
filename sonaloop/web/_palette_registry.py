@@ -184,11 +184,20 @@ def _reference_rows(store: Store) -> Iterator[Row]:
                    f'/references/{a["id"]}', _date(a))
 
 
+def _methodology_rows(store: Store) -> Iterator[Row]:
+    from .. import methodology as _meth
+    for spec in _meth.list_methodologies(store=store):
+        yield (spec.get("name", ""), spec.get("when_to_use", "") or spec.get("description", ""),
+               f'/methodologies/{str(spec.get("key", "")).replace("_", "-")}', "")
+
+
 # ------------------------------------------------- the searchable entity types (ordered)
 
 SEARCH_SOURCES: dict[str, SearchSource] = {
     "project": SearchSource(lambda: t("projects"), "projects", "#7a5ed1", "/projects", _project_rows),
     "persona": SearchSource(lambda: t("personas"), "personas", "#3d7fc4", "/personas", _persona_rows),
+    "methodology": SearchSource(lambda: t("methodologies_h"), "target", "#5e6ad2", "/methodologies",
+                                _methodology_rows),
     "council": SearchSource(lambda: t("councils"), "councils", "var(--accent)", "/councils", _council_rows),
     "synthesis": SearchSource(lambda: t("syntheses"), "syntheses", "#9a8cff", "/syntheses", _synthesis_rows),
     "prototype": SearchSource(lambda: t("prototypes_h"), "prototype", "#00897b", "/prototypes", _prototype_rows),

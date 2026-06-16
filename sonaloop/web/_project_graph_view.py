@@ -10,6 +10,7 @@ from copy import deepcopy
 from typing import Any
 from urllib.parse import urlparse
 
+from .. import presentation as _pres
 from ..project_trace import plan_judgment_edges, trace_node_health
 from ._i18n import t
 from ._primitive_taxonomy import primitive_color, subtype_label, subtype_value
@@ -121,7 +122,8 @@ def augment_project_graph(graph: dict, *, sessions: dict[str, dict], decisions: 
     for p in out.get("prototypes") or []:
         pid = _add(nodes, seen, kind="prototype", rid=p["id"], title=p.get("name", ""),
                    created_at=p.get("created_at", ""), href=f'/prototypes/{p.get("slug", p["id"])}',
-                   subtype=str(p.get("fidelity") or "midfi"), phase=_phase(out, p.get("created_at", "")))
+                   subtype=str(p.get("fidelity") or _pres.default_discriminator("prototype")),
+                   phase=_phase(out, p.get("created_at", "")))
         for n in nodes:
             if p["id"] in (n.get("prototype_ids") or []):
                 edge(str(n.get("study_id")), pid, "informs", "builds")
