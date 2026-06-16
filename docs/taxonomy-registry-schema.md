@@ -93,6 +93,8 @@ Optional fields:
 
 - `parameters`: references to orthogonal attributes such as fidelity or stance.
 - `aggregators`: deterministic calculations over the form payload.
+- `classifier`: compatibility rules that map existing stored rows to this form.
+- `renderer.requires`: structural renderer capabilities required by this form.
 
 Example:
 
@@ -198,6 +200,24 @@ Workspace custom forms are allowed only after registration. A custom form must:
 This gives customers room to make their own council or session forms without
 letting arbitrary text fragment the Library model.
 
+## Council form bridge
+
+Council forms are the first registry-backed bridge over existing stored data.
+Existing CouncilSession rows are not migrated. Instead, `services.council_form()`
+classifies them through the registry:
+
+- `discovery` -> `council/open_discussion`
+- `evaluation` -> `council/proposal_reaction`
+- `decision` -> `council/vote`
+- `head_to_head` block -> `council/option_comparison`
+- `red_team` block -> `council/objection_review`
+- `price_ladder` block -> `council/ladder_review`
+- `ideation` block -> `council/idea_review`
+
+Every registered council form must declare `classifier.mode_alias` and
+`renderer.requires`, so the UI can show structural descriptions while preserving
+familiar product aliases.
+
 ## Lint contract
 
 `registry_errors()` checks:
@@ -209,5 +229,6 @@ letting arbitrary text fragment the Library model.
 - required form schema, renderer and protocol fields;
 - at least one registered form per family;
 - parameter references to registered orthogonal attributes;
+- council classifiers and renderer requirements;
 - edge forms backed by relationship types;
 - default custom-form policy is `reject_unknown`.

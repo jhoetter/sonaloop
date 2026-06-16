@@ -104,6 +104,12 @@ def registry_errors(registry: dict[str, Any] | None = None) -> list[str]:
         renderer = form.get("renderer") or {}
         if not renderer.get("library") or not renderer.get("detail"):
             errors.append(f"{where}: renderer needs library and detail")
+        if primitive == "council":
+            classifier = form.get("classifier") or {}
+            if not classifier.get("mode_alias"):
+                errors.append(f"{where}: council forms need classifier.mode_alias")
+            if not renderer.get("requires"):
+                errors.append(f"{where}: council forms need renderer.requires")
         schema = form.get("schema") or {}
         if schema.get("type") != "object":
             errors.append(f"{where}: schema.type must be 'object'")

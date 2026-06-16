@@ -21,6 +21,7 @@ from ..config import (
 )
 from ._authoring import MARKDOWN_CONTRACT, PRIMITIVES_CONTRACT
 from .. import artifacts as _artifacts
+from .. import primitive_taxonomy_registry as _taxonomy_registry
 from ..models import (
     CalendarEvent,
     CouncilSession,
@@ -260,6 +261,36 @@ def council_mode(council: dict[str, Any]) -> str:
     if has_prop:
         return "evaluation"
     return "discovery"
+
+
+def council_form(council: dict[str, Any]) -> str:
+    """Classify an existing CouncilSession through the primitive/form registry.
+
+    Stored data stays unchanged: specialized formats still ride their current
+    blocks (`head_to_head`, `red_team`, `price_ladder`, `ideation`) and base
+    councils still derive from proposal/votes. This helper is the bridge from
+    historic product aliases to structural form ids.
+    """
+    for marker, alias in (
+        ("head_to_head", "head_to_head"),
+        ("red_team", "red_team"),
+        ("price_ladder", "price_ladder"),
+        ("ideation", "ideation"),
+    ):
+        if council.get(marker):
+            form = _taxonomy_registry.resolve_form("council", alias)
+            return str((form or {}).get("id") or alias)
+    mode = council_mode(council)
+    form = _taxonomy_registry.resolve_form("council", mode)
+    return str((form or {}).get("id") or mode)
+
+
+def council_form_definition(council: dict[str, Any]) -> dict[str, Any]:
+    form_id = council_form(council)
+    form = _taxonomy_registry.resolve_form("council", form_id)
+    if form is None:
+        raise KeyError(f"No registered council form '{form_id}'")
+    return form
 
 
 def record_council(project_id: str, prompt: str, persona_ids: list[str],

@@ -216,8 +216,9 @@
       "label": "Open discussion",
       "description": "Moderator asks open questions; personas answer from memory.",
       "aliases": ["discovery"],
+      "classifier": {"mode_alias": "discovery", "requires_absent": ["proposal", "votes", "head_to_head", "red_team", "price_ladder", "ideation"]},
       "schema": {"type": "object", "required": ["questions", "statements"], "fields": {"questions": "array", "statements": "array"}},
-      "renderer": {"library": "row", "detail": "council_detail"},
+      "renderer": {"library": "row", "detail": "council_detail", "requires": ["transcript"]},
       "protocol": {"kind": "ask", "inputs": ["prompt"], "outputs": ["statements", "findings"]},
       "aggregators": []
     },
@@ -227,8 +228,9 @@
       "label": "Proposal reaction",
       "description": "Personas react to a proposal without a hard vote.",
       "aliases": ["evaluation"],
+      "classifier": {"mode_alias": "evaluation", "requires_present": ["proposal"], "requires_absent": ["votes", "head_to_head", "red_team", "price_ladder", "ideation"]},
       "schema": {"type": "object", "required": ["proposal", "statements"], "fields": {"proposal": "string", "statements": "array"}},
-      "renderer": {"library": "row", "detail": "council_detail"},
+      "renderer": {"library": "row", "detail": "council_detail", "requires": ["transcript"]},
       "protocol": {"kind": "ask", "inputs": ["proposal"], "outputs": ["statements", "findings"]}
     },
     {
@@ -237,8 +239,9 @@
       "label": "Vote",
       "description": "Personas react to a proposal and record vote stances.",
       "aliases": ["decision_council", "council_decision", "decision"],
+      "classifier": {"mode_alias": "decision", "requires_present": ["proposal", "votes"], "requires_absent": ["head_to_head", "red_team", "price_ladder", "ideation"]},
       "schema": {"type": "object", "required": ["proposal", "votes"], "fields": {"proposal": "string", "votes": "array"}},
-      "renderer": {"library": "row", "detail": "council_detail"},
+      "renderer": {"library": "row", "detail": "council_detail", "requires": ["transcript", "vote_result"]},
       "protocol": {"kind": "ask", "inputs": ["proposal"], "outputs": ["votes", "statements", "findings"]},
       "aggregators": [{"type": "stance_tally", "field": "votes"}]
     },
@@ -248,8 +251,9 @@
       "label": "Option comparison",
       "description": "Personas compare labelled options and force a preference.",
       "aliases": ["head_to_head", "ab_test"],
+      "classifier": {"mode_alias": "head_to_head", "requires_present": ["head_to_head"]},
       "schema": {"type": "object", "required": ["options", "preferences"], "fields": {"options": "array", "preferences": "array", "variant_meta": "object?"}},
-      "renderer": {"library": "row", "detail": "head_to_head_detail"},
+      "renderer": {"library": "row", "detail": "head_to_head_detail", "requires": ["option_comparison"]},
       "protocol": {"kind": "ask", "inputs": ["options"], "outputs": ["preferences", "segment_splits"]},
       "aggregators": [{"type": "preference_tally", "field": "preferences"}]
     },
@@ -259,9 +263,10 @@
       "label": "Objection review",
       "description": "Personas argue blockers and severity to falsify or stress-test an idea.",
       "aliases": ["red_team"],
+      "classifier": {"mode_alias": "red_team", "requires_present": ["red_team"]},
       "parameters": [{"id": "stance_mode", "attribute": "stance_mode"}],
       "schema": {"type": "object", "required": ["objections"], "fields": {"objections": "array", "endorsements": "array?", "stance": "attribute:stance_mode"}},
-      "renderer": {"library": "row", "detail": "red_team_detail"},
+      "renderer": {"library": "row", "detail": "red_team_detail", "requires": ["objection_review"]},
       "protocol": {"kind": "ask", "inputs": ["proposal"], "outputs": ["objections"]},
       "aggregators": [{"type": "group_by", "field": "theme"}, {"type": "max_enum", "field": "severity"}]
     },
@@ -271,8 +276,9 @@
       "label": "Ladder review",
       "description": "Personas respond to a fixed ladder of values, usually price points.",
       "aliases": ["price_ladder"],
+      "classifier": {"mode_alias": "price_ladder", "requires_present": ["price_ladder"]},
       "schema": {"type": "object", "required": ["price_points", "responses"], "fields": {"price_points": "array", "responses": "array"}},
-      "renderer": {"library": "row", "detail": "price_ladder_detail"},
+      "renderer": {"library": "row", "detail": "price_ladder_detail", "requires": ["ladder_review"]},
       "protocol": {"kind": "ask", "inputs": ["ladder"], "outputs": ["responses", "range"]},
       "aggregators": [{"type": "ladder_acceptance", "field": "responses"}]
     },
@@ -282,8 +288,9 @@
       "label": "Idea review",
       "description": "Structured ideation against HMW questions and idea records.",
       "aliases": ["ideation"],
+      "classifier": {"mode_alias": "ideation", "requires_present": ["ideation"]},
       "schema": {"type": "object", "required": ["ideas"], "fields": {"ideas": "array", "shortlist": "array?"}},
-      "renderer": {"library": "row", "detail": "ideation_detail"},
+      "renderer": {"library": "row", "detail": "ideation_detail", "requires": ["idea_review"]},
       "protocol": {"kind": "ask", "inputs": ["open_question"], "outputs": ["ideas", "shortlist"]},
       "aggregators": [{"type": "ranked_shortlist", "field": "shortlist"}]
     },

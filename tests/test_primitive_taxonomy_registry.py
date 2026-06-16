@@ -90,3 +90,27 @@ def test_material_boundary_keeps_stimuli_separate_from_results():
     assert variant and "result lives in an ask/test form" in variant["description"]
     assert external and "stays a reference" in external["description"]
     assert reg.resolve_form("prototype", "midfi") is None
+
+
+def test_council_forms_document_classifiers_and_renderers():
+    data = reg.load_registry()
+    council_forms = [f for f in data["forms"] if f["primitive"] == "council"]
+    by_id = {f["id"]: f for f in council_forms}
+    assert set(by_id) == {
+        "open_discussion", "proposal_reaction", "vote", "option_comparison",
+        "objection_review", "ladder_review", "idea_review",
+    }
+    expected_aliases = {
+        "open_discussion": "discovery",
+        "proposal_reaction": "evaluation",
+        "vote": "decision",
+        "option_comparison": "head_to_head",
+        "objection_review": "red_team",
+        "ladder_review": "price_ladder",
+        "idea_review": "ideation",
+    }
+    for form_id, alias in expected_aliases.items():
+        form = by_id[form_id]
+        assert alias in form["aliases"]
+        assert form["classifier"]["mode_alias"] == alias
+        assert form["renderer"]["requires"]
