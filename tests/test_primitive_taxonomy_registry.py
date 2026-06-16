@@ -77,3 +77,16 @@ def test_web_taxonomy_helpers_are_registry_backed():
     assert not {"lofi", "midfi", "hifi"} & prototype_forms
     assert subtype_value("prototype", {"type": "model", "fidelity": "midfi"}) == "model"
     assert subtype_label("model") == "Model prototype"
+
+
+def test_material_boundary_keeps_stimuli_separate_from_results():
+    data = reg.load_registry()
+    primitives = {p["id"]: p for p in data["primitives"]}
+    variant = reg.resolve_form("url_artifact", "ab_variant")
+    external = reg.resolve_form("url_artifact", "external_prototype")
+    assert primitives["url_artifact"]["family"] == "material"
+    assert primitives["prototype"]["family"] == "material"
+    assert variant and "stimulus" in variant["description"]
+    assert variant and "result lives in an ask/test form" in variant["description"]
+    assert external and "stays a reference" in external["description"]
+    assert reg.resolve_form("prototype", "midfi") is None
