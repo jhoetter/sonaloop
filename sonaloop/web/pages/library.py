@@ -424,6 +424,7 @@ def register_library(app) -> None:
             prop_rows=[("projects", t("project"), h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"])),
                        ("flag", t("status_h"), status_label),
                        ("dot", t("created"), ui.fmt_date(oq.get("created_at") or ""))],
+            rel_study_id=f"open_question:{oq['id']}", rel_proj_id=proj["id"],
             rail_sections=[("sec-question", t("open_question_kind"))],
             star=("open_question", oq["id"], title, f'/open-questions/{oq["id"]}'))
 
@@ -459,6 +460,7 @@ def register_library(app) -> None:
                        ("tag", t("variant_label_h"), ref.get("label", "")),
                        ("link", t("url_h"), h("a", {"href": ref.get("url", "#"), "target": "_blank", "rel": "noopener"}, ref.get("url", ""))),
                        ("dot", t("created"), ui.fmt_date(ref.get("created_at") or ""))],
+            rel_study_id=f"url_artifact:{ref['id']}", rel_proj_id=proj["id"],
             rail_sections=[("sec-snapshot", t("reference_snapshot_h"))],
             star=("reference", ref["id"], title, f'/references/{ref["id"]}'))
 

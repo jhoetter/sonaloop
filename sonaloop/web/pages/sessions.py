@@ -419,7 +419,8 @@ def _proto_session_detail(store: Store, sess: dict) -> str:
         active="projects" if proj else "library",
         hero=_hero(title, icon="activity", sub=sub, hid="sec-head",
                    top=detail_eyebrow(t("session_kind_prototype"), pills)),
-        body=body, prop_rows=prop_rows, rel_proj_id=proto.get("project_id") or None,
+        body=body, prop_rows=prop_rows,
+        rel_study_id=f"session:{sess['id']}", rel_proj_id=proto.get("project_id") or None,
         rail_sections=rail_sections,
         star=("session", sess["id"], str(title)[:60], f'/sessions/{sess["id"]}'))
 
@@ -674,7 +675,8 @@ def register_sessions(app) -> None:
             hero=_hero(title, icon="activity", sub=sub, hid="sec-head",
                        top=detail_eyebrow(kind_label, pills)),
             body=body,
-            prop_rows=prop_rows, rel_proj_id=sess.get("project_id") or None,
+            prop_rows=prop_rows,
+            rel_study_id=f"session:{session_id}", rel_proj_id=sess.get("project_id") or None,
             rail_sections=rail_sections,
             star=("session", session_id, title[:60], f"/sessions/{session_id}"))
 

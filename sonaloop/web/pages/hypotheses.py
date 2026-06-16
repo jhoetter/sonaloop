@@ -153,5 +153,6 @@ def register_hypotheses(app) -> None:
             icon="target", kind=t("hypothesis_kind"),
             pills=[hypothesis_status_pill(hx.get("status", "open"))],
             hid="sec-head", body=body, prop_rows=prop_rows,
+            rel_study_id=f"hypothesis:{hx['id']}", rel_proj_id=(proj["id"] if proj else None),
             rail_sections=[("sec-bet", t("hypothesis_kind"))],
             star=("hypothesis", hx["id"], hx.get("text", "")[:60], f'/hypotheses/{hx["id"]}'))

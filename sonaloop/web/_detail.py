@@ -35,6 +35,26 @@ register_css(".rail:not(.rail--slide) .sl-prop--tier{flex-wrap:wrap;row-gap:4px}
 _TIER_CHARS = 28
 
 
+def _detail_trace_graph(store, proj_id: str) -> dict | None:
+    try:
+        g = services.get_project_graph(proj_id, store=store)
+        from ._graph_outline_sessions import outline_session_groups
+        from ._project_graph_view import augment_project_graph
+        proto_ids = {p.get("id") for p in (g.get("prototypes") or [])}
+        proto_sessions = [s for s in store.list_prototype_sessions() if s.get("prototype_id") in proto_ids]
+        sessions = outline_session_groups(
+            services.list_usability_sessions(project_id=proj_id, store=store), store,
+            prototype_sessions=proto_sessions)
+        return augment_project_graph(
+            g, sessions=sessions,
+            decisions=services.list_decisions(proj_id, store=store),
+            hypotheses=services.list_hypotheses(proj_id, store=store),
+            surveys=services.list_surveys(project_id=proj_id, store=store),
+            assets=list(g.get("assets") or []))
+    except Exception:
+        return None
+
+
 def detail_eyebrow(kind: str, pills=()) -> str:
     """The first line of EVERY detail header (ux-contract §8.2): the kind eyebrow ("COUNCIL",
     "DECISION", "PROTOTYPE SESSION", …) followed by the record's status pills. Pages pass the
@@ -53,16 +73,20 @@ def _relations_html(store, study_id: str, proj_id: str | None,
     incoming, outgoing = list(extra_in or []), list(extra_out or [])
     if proj_id:
         try:
-            g = services.get_project_graph(proj_id, store=store)
+            g = _detail_trace_graph(store, proj_id)
         except Exception:
             g = None
         if g:
             nmap = {n["study_id"]: n for n in g["nodes"]}
             for e in g.get("edges", []):
                 if e.get("to_study") == study_id and e.get("from_study") in nmap:
-                    incoming.append(nmap[e["from_study"]])
+                    n = dict(nmap[e["from_study"]])
+                    n["rel_label"] = e.get("label") or e.get("type", "")
+                    incoming.append(n)
                 elif e.get("from_study") == study_id and e.get("to_study") in nmap:
-                    outgoing.append(nmap[e["to_study"]])
+                    n = dict(nmap[e["to_study"]])
+                    n["rel_label"] = e.get("label") or e.get("type", "")
+                    outgoing.append(n)
             cur = nmap.get(study_id)
             for pid in (cur or {}).get("prototype_ids", []):  # a built note → its prototype(s) (not a graph edge)
                 pr = next((p for p in g.get("prototypes", []) if p["id"] == pid), None)
@@ -77,7 +101,9 @@ def _relations_html(store, study_id: str, proj_id: str | None,
             h("a", {"class_": "relrow", "href": n.get("href", "")},
               h("span", {"class_": "ol-dot", "style": f"background:{n.get('color', '#9aa0a6')}"}),
               h("span", {"class_": "relt"}, n.get("title", "")),
-              h("span", {"class_": "muted small"}, n.get("kind_label", n.get("kind", ""))))
+              h("span", {"class_": "muted small"},
+                " · ".join(x for x in (n.get("kind_label", n.get("kind", "")),
+                                        n.get("rel_label", "")) if x)))
             for n in ns))
         return h("div", {"class_": "relgrp"}, h("div", {"class_": "rellbl"}, label), rows)
 

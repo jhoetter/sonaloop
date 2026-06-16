@@ -123,5 +123,6 @@ def register_decisions(app) -> None:
             icon="flag", kind=t("decision_kind"),
             pills=[decision_status_pill(d.get("status", "proposed"))],
             hid="sec-head", body=body, prop_rows=prop_rows,
+            rel_study_id=f"decision:{d['id']}", rel_proj_id=(proj["id"] if proj else None),
             rail_sections=[("sec-decision", t("decision_kind"))],
             star=("decision", d["id"], d.get("title", "")[:60], f'/decisions/{d["id"]}'))

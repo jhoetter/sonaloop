@@ -231,6 +231,7 @@ def register_surveys(app) -> None:
             prop_rows=[("projects", t("project"), proj_link),
                        ("personas", t("respondents_h"), str(results["respondents"])),
                        ("clock", t("created"), ui.fmt_date(s.get("created_at", "")))],
+            rel_study_id=f"survey:{s['id']}", rel_proj_id=(proj["id"] if proj else None),
             rail_sections=[("sec-questions", t("n_questions", n=len(s["questions"]))),
                            ("sec-responses", t("n_responses", n=n_resp))],
             star=("survey", s["id"], s["title"], f'/surveys/{s["id"]}'),
