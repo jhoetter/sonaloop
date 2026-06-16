@@ -13,7 +13,7 @@ from ._i18n import t
 from ._primitive_taxonomy import primitive_color
 
 
-def outline_session_groups(sessions: list[dict], store) -> dict[str, dict]:
+def outline_session_groups(sessions: list[dict], store, prototype_sessions: list[dict] | None = None) -> dict[str, dict]:
     """Group a project's recorded usability sessions by subject key — the route-side seam. Each
     group: the subject, its sessions chronological (each enriched with a persona card for the
     child row's avatar chip), and at ≥2 walks the cross-session funnel (services.get_session_funnel)
@@ -27,6 +27,26 @@ def outline_session_groups(sessions: list[dict], store) -> dict[str, dict]:
         g = groups.setdefault(key, {"subject": subj, "sessions": []})
         p = store.get_persona(s.get("persona_id", "")) or {}
         sess = dict(s)
+        sess["persona"] = {"id": p.get("id") or s.get("persona_id", "x"),
+                           "display_name": p.get("display_name") or s.get("persona_id", "—"),
+                           "avatar": p.get("avatar")}
+        g["sessions"].append(sess)
+    for s in sorted(prototype_sessions or [], key=lambda x: x.get("created_at", "")):
+        proto = store.get_prototype(s.get("prototype_id", "")) or {}
+        if not proto:
+            continue
+        key = proto["id"]
+        subj = {"kind": "prototype", "id": proto["id"], "label": proto.get("name") or proto["id"]}
+        g = groups.setdefault(key, {"subject": subj, "sessions": []})
+        p = store.get_persona(s.get("persona_id", "")) or {}
+        reaction = s.get("reaction") or {}
+        steps = list(reaction.get("steps") or [])
+        if not steps and reaction.get("friction"):
+            steps = [{"friction": {"level": "hesitation", "note": str(reaction["friction"][0])}}]
+        sess = dict(s)
+        sess["subject"] = subj
+        sess["outcome"] = {"completed": True, "summary": reaction.get("summary", "")}
+        sess["steps"] = steps
         sess["persona"] = {"id": p.get("id") or s.get("persona_id", "x"),
                            "display_name": p.get("display_name") or s.get("persona_id", "—"),
                            "avatar": p.get("avatar")}

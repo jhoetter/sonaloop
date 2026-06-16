@@ -91,10 +91,19 @@ def _projects_page(page: int = 1, q: str = "") -> str:
     for p in visible:
         def _cnt(n: int, one_key: str, many: str) -> str:      # "1 Prototype", "4 Prototypes"
             return t(one_key) if n == 1 else f"{n} {many}"
+        def _kind_cnt(n: int, one: str, many: str) -> str:
+            return f"1 {one}" if n == 1 else f"{n} {many}"
         counts = fragment(                                     # the project's real contents (non-zero only)
             h("span", {}, _cnt(p["councils"], "councils_one", t("councils"))) if p.get("councils") else None,
             h("span", {}, _cnt(p["studies"], "syntheses_one", t("syntheses"))) if p["studies"] else None,
             h("span", {}, _cnt(p["prototypes"], "prototypes_h_one", t("prototypes_h"))) if p.get("prototypes") else None,
+            h("span", {}, _kind_cnt(p["sessions"], t("session_kind"), t("sessions"))) if p.get("sessions") else None,
+            h("span", {}, _kind_cnt(p["surveys"], t("survey_kind"), t("surveys_h"))) if p.get("surveys") else None,
+            h("span", {}, _kind_cnt(p["hypotheses"], t("hypothesis_kind"), t("hypotheses_h"))) if p.get("hypotheses") else None,
+            h("span", {}, _kind_cnt(p["decisions"], t("decision_kind"), t("decisions_h"))) if p.get("decisions") else None,
+            h("span", {}, _kind_cnt(p["open_questions"], t("open_question_kind"), t("open_questions_h"))) if p.get("open_questions") else None,
+            h("span", {}, _kind_cnt(p["references"], t("reference_kind"), t("references_h"))) if p.get("references") else None,
+            h("span", {}, _kind_cnt(p["assets"], t("asset_kind"), t("assets_h"))) if p.get("assets") else None,
             h("span", {}, _cnt(p["notes"], "notes_one", t("notes"))) if p.get("notes") else None)
         # a project with open work and no driver is invisible-silent otherwise — badge it
         stalled = (p.get("run_state") or {}).get("state") == "stalled"

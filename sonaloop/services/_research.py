@@ -131,6 +131,10 @@ def list_research_projects(store: Store | None = None) -> list[dict[str, Any]]:
     out = []
     for p in store.list_research_projects():
         graph = get_project_graph(p["id"], store=store)
+        protos = graph.get("prototypes") or []
+        proto_ids = {pr.get("id") for pr in protos}
+        proto_sessions = [s for s in store.list_prototype_sessions()
+                          if s.get("prototype_id") in proto_ids]
         try:
             rs = _plan.project_run_state(p["id"], store=store)
         except Exception:
@@ -144,7 +148,15 @@ def list_research_projects(store: Store | None = None) -> list[dict[str, Any]]:
                     "studies": sum(1 for n in graph["nodes"] if n.get("kind") == "synthesis"),
                     "councils": sum(1 for n in graph["nodes"] if n.get("kind") == "council"),
                     "notes": sum(1 for n in graph["nodes"] if n.get("kind") == "note"),
-                    "prototypes": len(graph.get("prototypes") or []),
+                    "prototypes": len(protos),
+                    "sessions": (len(store.list_usability_sessions(project_id=p["id"]))
+                                 + len(proto_sessions)),
+                    "surveys": len(store.list_surveys(p["id"])),
+                    "hypotheses": len(store.list_hypotheses(p["id"])),
+                    "decisions": len(store.list_decisions(p["id"])),
+                    "open_questions": len(graph.get("open_questions") or []),
+                    "references": len(graph.get("artifacts") or []),
+                    "assets": len(graph.get("assets") or []),
                     "edges": graph["counts"].get("edges", 0),
                     "themes": p.get("themes", [])})
     return out

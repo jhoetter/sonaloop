@@ -218,8 +218,11 @@ def register_projects(app) -> None:
         # row (tracker: project-page-sessions-live-under-their-subject-in-the-outlin) — grouped here
         # (the route owns the Store), rendered by _outline_html. The flat section stays on /sessions
         # and the persona/prototype pages only.
+        proto_ids = {p.get("id") for p in protos}
+        proto_sessions = [s for s in store.list_prototype_sessions() if s.get("prototype_id") in proto_ids]
         sess_groups = outline_session_groups(
-            services.list_usability_sessions(project_id=proj["id"], store=store), store)
+            services.list_usability_sessions(project_id=proj["id"], store=store), store,
+            prototype_sessions=proto_sessions)
         # UX P2 (§3.4): the absorbed kinds enter the outline as phase rows — the page route
         # fetches the lists (it holds the Store), _graph_outline_extras places them. The phase
         # group headers carry the honest counts (C8); the appendix sections + jump chips retired.

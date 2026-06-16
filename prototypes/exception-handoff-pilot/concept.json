@@ -1,0 +1,52 @@
+{
+  "title": "Exception Handoff Pilot",
+  "summary": "A mid-fi shift handover queue that captures unresolved exceptions, owner, urgency, and next action.",
+  "start": "queue",
+  "screens": [
+    {
+      "id": "queue",
+      "title": "Open exceptions",
+      "body": "Shift-critical exceptions with owner and next action.",
+      "elements": [
+        {
+          "id": "blocker",
+          "kind": "text",
+          "text": "Forklift battery fault — Owner: Nina — Next: confirm replacement charger before 14:00"
+        },
+        {
+          "id": "add",
+          "kind": "button",
+          "label": "Add exception",
+          "goto": "capture",
+          "action": "capture"
+        }
+      ]
+    },
+    {
+      "id": "capture",
+      "title": "Capture exception",
+      "body": "Name the blocker, owner, and next action in under one minute.",
+      "elements": [
+        {
+          "id": "owner",
+          "kind": "input",
+          "label": "Owner",
+          "placeholder": "Who owns the next action?"
+        },
+        {
+          "id": "next",
+          "kind": "input",
+          "label": "Next action",
+          "placeholder": "What must happen next?"
+        },
+        {
+          "id": "save",
+          "kind": "button",
+          "label": "Save handoff",
+          "goto": "queue",
+          "action": "queue"
+        }
+      ]
+    }
+  ]
+}
