@@ -176,10 +176,6 @@ _register("hypothesis", _hypothesis_chips)
 _register("open_question", _open_question_chips)
 # Assets left the chip vocabulary with V9: they render as `.sl-file--row` FILE rows
 # (direction pill + size live ON the file row — _presence.file_card), not as olrows.
-# Declared chip-less — each reason names the affordance that already carries the signal:
-_register("live_url", NoChips("the funnel chip + its session child rows carry the signal"))
-_register("flow", NoChips("the funnel chip + its session child rows carry the signal"))
-
 
 def chips_html(item: dict) -> str:
     """The single consult point for an outline row: its declared chips wrapped in the .ol-chips

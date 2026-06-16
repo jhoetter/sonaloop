@@ -6,7 +6,7 @@ folds the prepared groups in via merge_session_items. Split out of _graph_outlin
 tests/test_loc_budget.py)."""
 from __future__ import annotations
 
-from urllib.parse import quote, urlsplit
+from urllib.parse import quote
 
 from .. import services
 from ._i18n import t
@@ -54,24 +54,17 @@ def _funnel_chip(group: dict, key: str) -> dict | None:
     return {"text": f'{t("sessions_n", n=f["sessions"])} · {tail}', "href": href}
 
 
-def _subject_parent_item(group: dict, key: str, pk, pmeta: dict) -> dict:
-    """A synthesized artifact-style parent row for a subject the outline doesn't already show: a
-    live_url gets the page title from the first recorded step (else the URL host), the live-surface
-    kind label and an external link; a flow (or an unstored prototype) a plain row carrying
-    subject.label. Sits in the slot prototypes use (the ideation phase, round 0)."""
+def _subject_slot(group: dict, key: str, pk, pmeta: dict) -> dict:
+    """The ordering slot for sessions whose subject is not an existing prototype row.
+    The slot is not itself rendered as a row; it only lets the session sit where the
+    tested thing belongs without inventing another visible primitive."""
     subj, sessions = group["subject"], group["sessions"]
     ts = sessions[0].get("created_at", "")
     po, plabel = pmeta.get(pk, (99, ""))
     it = {"oid": f"subject:{key}", "color": "#9aa0a6", "title": subj.get("label") or key,
-          "kind": t("walkthrough_surface"), "href": "", "plabel": plabel, "po": po, "round": 0,
-          "order": ts, "ts": ts, "indent": 0, "last_child": False, "pk": pk or "",
-          "rkind": subj.get("kind", "")}      # chip contract: live_url/flow/prototype, all declared
-    if subj.get("kind") == "live_url":
-        title = next((st["state"]["title"] for s in sessions for st in (s.get("steps") or [])
-                      if (st.get("state") or {}).get("title")), "")
-        it.update({"title": title or urlsplit(subj.get("url", "")).netloc or subj.get("url", ""),
-                   "kind": t("live_surface"), "color": "var(--green)",
-                   "href": subj.get("url", ""), "external": True})
+          "kind": t("sessions"), "href": "", "plabel": plabel, "po": po, "round": 0,
+          "order": ts, "ts": ts, "indent": -1, "last_child": False, "pk": pk or "",
+          "rkind": subj.get("kind", "")}
     it["plabel"] = it["plabel"] or it["kind"]      # plan-less: the kind stands in for the phase column
     return it
 
@@ -84,11 +77,8 @@ def _session_child_item(sess: dict, parent: dict, seq: int, last: bool) -> dict:
     The lead avatar rides the ONE avatar_group anatomy (ux-contract §10 W11) — a group of one,
     the same classes every persona-participation surface renders."""
     from . import ui
-    fid = sess.get("fidelity", "")
-    kind = (t("session_kind_live") if fid == "live" else
-            t("session_kind_artifact") if fid == "artifact" else t("session_kind_prototype"))
-    title = (parent["title"] if parent.get("rkind") == "flow" and parent.get("indent", 0) < 0
-             else sess["persona"]["display_name"])
+    kind = t("sessions").rstrip("s")
+    title = (parent["title"] if parent.get("indent", 0) < 0 else sess["persona"]["display_name"])
     return {"oid": sess["id"], "color": "#9aa0a6", "title": title,
             "kind": kind, "href": f'/sessions/{sess["id"]}', "plabel": parent["plabel"],
             "po": parent["po"], "round": parent["round"], "order": f'{parent["order"]}#s{seq:03d}',
@@ -99,18 +89,14 @@ def _session_child_item(sess: dict, parent: dict, seq: int, last: bool) -> dict:
 
 def merge_session_items(items: list[dict], groups: dict[str, dict], ideation, pmeta: dict,
                         proto_of: dict[str, str]) -> None:
-    """Fold the session groups into the outline items IN PLACE: a prototype subject's sessions nest
-    under the existing prototype row (matched by id or slug); live_url/flow subjects get a
-    synthesized parent row first; at ≥2 sessions the parent carries the funnel chip."""
+    """Fold the session groups into the outline items IN PLACE. A prototype subject's
+    sessions nest under the existing prototype row. Other subjects render directly as
+    session rows so they do not create new visible artifact categories."""
     for key, grp in groups.items():
         oid = proto_of.get(key, "")
         parent = next((it for it in items if oid and it["oid"] == oid), None)
         if parent is None:
-            parent = _subject_parent_item(grp, key, ideation, pmeta)
-            if (grp.get("subject") or {}).get("kind") == "flow":
-                parent["indent"] = -1
-            else:
-                items.append(parent)
+            parent = _subject_slot(grp, key, ideation, pmeta)
         chip = _funnel_chip(grp, key)
         if chip:
             parent["chip"] = chip

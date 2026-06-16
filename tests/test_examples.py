@@ -152,6 +152,11 @@ def test_onboarding_showcase_loads_every_tour_artifact(store):
     for shot in shots:
         data, _meta = services.get_asset_content(out["project_id"], shot["id"], store=store)
         assert data.startswith(b"\x89PNG\r\n\x1a\n"), shot["filename"]
+    html = _client().get(f'{out["url"]}?lang=en').text
+    assert 'data-rkind="flow"' not in html
+    assert 'data-rkind="live_url"' not in html
+    assert "WALKTHROUGH" not in html and "LIVE SURFACE" not in html
+    assert ">Flow<" not in html
 
 
 def test_double_load_is_idempotent_for_both_examples(store):

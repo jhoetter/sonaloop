@@ -200,8 +200,8 @@ def test_project_outline_nests_sessions_under_their_subject(store):
     # indent classes (the note→prototype nesting mechanics)
     assert html.index(f'data-oid="{proto["id"]}"') < html.index(f'data-oid="{sess["id"]}"')
     assert f'class="olrow ol-tw ol-last" data-oid="{sess["id"]}"' in html
-    # child row content: persona name, fidelity kind label, outcome chip, replay href
-    assert "Greta Tester" in html and "Prototype session" in html and "Completed" in html
+    # child row content: persona name, generic session kind, outcome chip, replay href
+    assert "Greta Tester" in html and "Session" in html and "Completed" in html
     assert f'href="/sessions/{sess["id"]}"' in html
     # a single session earns no funnel chip (the class still appears in the inlined CSS)
     assert 'class="ol-funnel"' not in html
@@ -226,7 +226,7 @@ def test_project_outline_parent_row_carries_funnel_chip(store):
     assert "Dropped at step 1" in html and "1× friction" in html
 
 
-def test_project_outline_synthesizes_live_url_parent_row(store):
+def test_project_outline_renders_live_url_use_as_a_session_row(store):
     proj = services.create_research_project("L", store=store)
     pid = create_persona(store, "Lena Live")
     subj = {"kind": "live_url", "url": "https://example.test/checkout", "label": "Checkout live"}
@@ -236,11 +236,10 @@ def test_project_outline_synthesizes_live_url_parent_row(store):
         {"completed": True, "dropoff_step": None, "summary": "done", "predicted_behaviors": []},
         project_id=proj["id"], store=store)["usability_session"]
     html = _client().get(f'/projects/{proj["id"]}?lang=en').text
-    # synthesized parent row: the recorded page title, the live-surface kind, an external target
-    assert "Checkout Example" in html and "Live surface" in html
-    assert 'href="https://example.test/checkout" target="_blank"' in html
-    # its child row deep-links into the replay with the live fidelity kind label
-    assert f'href="/sessions/{sess["id"]}"' in html and "Live session" in html
+    # No synthesized LIVE SURFACE parent: the replay itself is the visible primitive.
+    assert 'data-rkind="live_url"' not in html
+    assert "Live surface" not in html
+    assert f'href="/sessions/{sess["id"]}"' in html and "Session" in html
 
 
 def test_planless_project_outline_shows_study_nodes_and_compacts(store):

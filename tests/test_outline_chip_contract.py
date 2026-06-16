@@ -87,10 +87,9 @@ def _record(store, pid, persona_id, subject, fidelity, key, completed=True):
 
 
 def _every_kind_project(store) -> str:
-    """One project whose outline emits EVERY row kind: plan-based council + synthesis, a plain
-    note + a built concept note (paired prototype), a standalone prototype with two walks (the
-    funnel chip), a live_url subject, a flow subject, a report — and the UX-P2 absorbed kinds
-    (decision, survey, hypothesis, open question, evidence + deliverable assets)."""
+    """One project whose outline emits every visible row kind: plan-based council + synthesis,
+    notes, prototypes, sessions against prototype/live-url/flow subjects, a report, and the
+    UX-P2 absorbed kinds (decision, survey, hypothesis, open question, evidence assets)."""
     proj = services.create_research_project("Chip contract", goal="g", store=store)
     pid = proj["id"]
     P.save_plan(P.new_plan(pid, goal="hmw?", methodology="double_diamond_deep", tasks=[
@@ -355,22 +354,26 @@ def test_seeded_chip_counts_render(store):
     assert "2 sessions" in html
 
 
-def test_child_rows_leave_the_phase_column_to_the_parent(store):
-    """Polish bundled with the contract: an indented child row renders an EMPTY phase label —
-    the parent carries it (no 'LIVE SURFACE' repeated down a session group)."""
+def test_only_prototype_sessions_are_outline_children(store):
+    """Prototype sessions nest under the prototype. Flow/live-url subjects render directly as
+    SESSION rows, so the outline never invents WALKTHROUGH or LIVE SURFACE row kinds."""
     pid = _every_kind_project(store)
     html = _client().get(f"/projects/{pid}?lang=en").text
-    parent_seen = child_seen = False
+    top_level_session = child_seen = False
+    assert 'data-rkind="flow"' not in html
+    assert 'data-rkind="live_url"' not in html
+    assert "WALKTHROUGH" not in html and "LIVE SURFACE" not in html
     for chunk in html.split('class="olrow')[1:]:
         ptag = re.search(r'<span class="ol-ptag[^"]*">([^<]*)</span>', chunk)
         assert ptag is not None
-        if 'data-rkind="live_url"' in chunk.split(">", 1)[0]:
-            assert ptag.group(1) != ""               # the parent carries the label
-            parent_seen = True
         if 'data-rkind="session"' in chunk.split(">", 1)[0]:
-            assert ptag.group(1) == ""               # children never repeat it
-            child_seen = True
-    assert parent_seen and child_seen
+            if chunk.startswith(' ol-tw'):
+                assert ptag.group(1) == ""           # prototype child rows inherit the parent label
+                child_seen = True
+            else:
+                assert ptag.group(1) == "Session"
+                top_level_session = True
+    assert top_level_session and child_seen
 
 
 def test_same_kind_runs_keep_the_full_label_in_the_faint_tone(store):
