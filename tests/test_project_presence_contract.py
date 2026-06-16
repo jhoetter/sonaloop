@@ -167,6 +167,7 @@ def test_experimental_graph_view_contains_absorbed_project_primitives(store):
     assert [p["label"] for p in data["phases"]] == ["Input", "Ask", "Test", "Conclude"]
     kinds = {n.get("tags", [""])[0] for n in data["nodes"] if n.get("tags")}
     assert {"open_question", "url_artifact", "asset", "survey"} <= kinds
+    assert not any(k.startswith("synthesis_") for k in kinds)
     labels = {n["label"] for n in data["nodes"]}
     assert {"What about pricing?", "Landing A", "Field note", "Pricing survey"} <= labels
     subs = {n.get("sub", "") for n in data["nodes"]}

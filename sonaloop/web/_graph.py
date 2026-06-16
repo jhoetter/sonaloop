@@ -332,7 +332,15 @@ def _graph_interactive(graph: dict) -> str:
     jnodes = []
     for n in nodes:
         # node TYPE (council/synthesis/concept/note) is a first-class, filterable tag (Q4).
-        ntype = n.get("note_kind") if str(n["study_id"]).startswith("note:") else str(n["study_id"]).split(":", 1)[0]
+        sid = str(n["study_id"])
+        if n.get("kind"):
+            ntype = str(n["kind"])
+        elif n.get("note_kind") and sid.startswith("note:"):
+            ntype = n.get("note_kind")
+        elif sid.startswith("synthesis_"):
+            ntype = "synthesis"
+        else:
+            ntype = sid.split(":", 1)[0]
         tags = list(dict.fromkeys([ntype] + (n.get("theme_tags", []) or []))) if ntype else n.get("theme_tags", [])
         x, y = pos[n["study_id"]]
         sent = max(n.get("sentiment", {}).items(), key=lambda kv: kv[1])[0] if n.get("sentiment") else "—"
