@@ -231,10 +231,10 @@ def _taxonomy_context(tab: str, kind: str) -> str:
     purpose = primitive_purpose(kind)
     if not purpose:
         return ""
-    return h("div", {"class_": "taxctx", "data-family": family},
-             h("span", {"class_": "taxctx__family"}, family_label(family)),
-             h("span", {"class_": "taxctx__dot"}, "·"),
-             h("span", {"class_": "taxctx__purpose"}, purpose))
+    return h("div", {"class_": "sl-taxctx", "data-family": family},
+             h("span", {"class_": "sl-taxctx__family"}, family_label(family)),
+             h("span", {"class_": "sl-taxctx__dot"}, "·"),
+             h("span", {"class_": "sl-taxctx__purpose"}, purpose))
 
 
 def _library_nav(active_tab: str) -> str:
@@ -255,18 +255,18 @@ def _library_nav(active_tab: str) -> str:
         first = items[0]
         route = first[1]
         on = fam == active_family
-        primary.append(h("a", {"class_": "libnav-family is-active" if on else "libnav-family",
+        primary.append(h("a", {"class_": "sl-libnav-family sl-is-active" if on else "sl-libnav-family",
                                "href": route, "aria-current": "page" if on else None},
                          raw(_icon(family_icon(fam))), h("span", {}, family_label(fam))))
     secondary = []
     for row in next(items for fam, items in families if fam == active_family):
         key, route, icon, label, *_ = row
         on = key == active_tab
-        secondary.append(h("a", {"class_": "libnav-kind is-active" if on else "libnav-kind",
+        secondary.append(h("a", {"class_": "sl-libnav-kind sl-is-active" if on else "sl-libnav-kind",
                                  "href": route, "aria-current": "page" if on else None},
                            raw(_icon(icon)), h("span", {}, label())))
-    return fragment(h("div", {"class_": "libnav libnav--family"}, fragment(*primary)),
-                    h("div", {"class_": "libnav libnav--kind"}, fragment(*secondary)))
+    return fragment(h("div", {"class_": "sl-libnav sl-libnav--family"}, fragment(*primary)),
+                    h("div", {"class_": "sl-libnav sl-libnav--kind"}, fragment(*secondary)))
 
 
 def library_page(tab: str = "questions", store: Store | None = None, *,
@@ -581,25 +581,25 @@ def register_library(app) -> None:
 
 
 register_css(
-    ".libnav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}"
-    ".libnav--family{margin:0 0 8px;padding:4px;background:var(--panel-2);"
+    ".sl-libnav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}"
+    ".sl-libnav--family{margin:0 0 8px;padding:4px;background:var(--panel-2);"
     "border:1px solid var(--line);border-radius:8px;width:max-content;max-width:100%}"
-    ".libnav-family{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;"
+    ".sl-libnav-family{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;"
     "border-radius:6px;color:var(--muted);font-size:var(--t-sm);font-weight:600;"
     "text-decoration:none;white-space:nowrap}"
-    ".libnav-family svg{width:15px;height:15px;color:var(--faint)}"
-    ".libnav-family.is-active{background:var(--panel);color:var(--ink);box-shadow:0 0 0 1px var(--line)}"
-    ".libnav-family.is-active svg{color:var(--accent)}"
-    ".libnav--kind{margin:0 0 6px;border-bottom:1px solid var(--line)}"
-    ".libnav-kind{display:inline-flex;align-items:center;gap:6px;padding:8px 2px 9px;"
+    ".sl-libnav-family svg{width:15px;height:15px;color:var(--faint)}"
+    ".sl-libnav-family.sl-is-active{background:var(--panel);color:var(--ink);box-shadow:0 0 0 1px var(--line)}"
+    ".sl-libnav-family.sl-is-active svg{color:var(--accent)}"
+    ".sl-libnav--kind{margin:0 0 6px;border-bottom:1px solid var(--line)}"
+    ".sl-libnav-kind{display:inline-flex;align-items:center;gap:6px;padding:8px 2px 9px;"
     "margin-right:22px;color:var(--muted);font-size:var(--t-sm);font-weight:650;"
     "text-decoration:none;border-bottom:2px solid transparent;white-space:nowrap}"
-    ".libnav-kind svg{width:15px;height:15px;color:var(--faint)}"
-    ".libnav-kind.is-active{color:var(--accent);border-bottom-color:var(--accent)}"
-    ".libnav-kind.is-active svg{color:var(--accent)}"
-    ".taxctx{display:flex;align-items:center;gap:7px;margin:10px 0 0;color:var(--muted);"
+    ".sl-libnav-kind svg{width:15px;height:15px;color:var(--faint)}"
+    ".sl-libnav-kind.sl-is-active{color:var(--accent);border-bottom-color:var(--accent)}"
+    ".sl-libnav-kind.sl-is-active svg{color:var(--accent)}"
+    ".sl-taxctx{display:flex;align-items:center;gap:7px;margin:10px 0 0;color:var(--muted);"
     "font-size:var(--t-sm);line-height:1.45;flex-wrap:wrap}"
-    ".taxctx__family{color:var(--ink);font-weight:650}"
-    ".taxctx__dot{color:var(--faint)}"
-    ".taxctx__purpose{max-width:78ch}"
+    ".sl-taxctx__family{color:var(--ink);font-weight:650}"
+    ".sl-taxctx__dot{color:var(--faint)}"
+    ".sl-taxctx__purpose{max-width:78ch}"
 )

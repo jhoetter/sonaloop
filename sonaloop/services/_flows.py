@@ -99,7 +99,7 @@ def flow_screens_brief(project_id: str, flow_id: str,
 
 def brief_flow_walkthrough(persona_id: str, project_id: str, flow_id: str,
                            store: Store | None = None) -> dict[str, Any]:
-    """GATHER one persona's artifact walkthrough of a defined flow: the loaded persona
+    """GATHER one persona's screen-sequence session for a defined flow: the loaded persona
     context (via the usability-session brief) + the ordered screens. The host LOOKS at
     every screen (view_asset) and authors one timeline step per screen — honest friction,
     would_continue, the drop-off where THIS persona would actually bail — then persists
@@ -113,7 +113,7 @@ def brief_flow_walkthrough(persona_id: str, project_id: str, flow_id: str,
     screens = flow_screens_brief(project_id, flow["id"], store=store)
     brief["flow"] = {"id": flow["id"], "title": flow["title"], "steps": screens}
     brief["how_to_drive"] = (
-        "ARTIFACT WALKTHROUGH — no live browser. Walk the screens IN ORDER: for each step call "
+        "SCREEN-SEQUENCE SESSION — no live browser. Walk the screens IN ORDER: for each step call "
         "the listed view_asset(...) and LOOK at the real screen before reacting; author one "
         "timeline step per screen (state.screen = the asset id + what is actually visible). "
         "React as THIS persona: friction on the canonical scale, would_continue honestly — set "

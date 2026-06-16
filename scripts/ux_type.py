@@ -78,7 +78,6 @@ SELECTORS: list[tuple[str, str]] = [
     ("pill", ".pill"),
     ("mchip", ".mchip"),
     ("srcchip", ".srcchip"),
-    ("ol-kind", ".olrow .ol-kind"),
     ("label-chip", ".lbl"),
     ("kbd", ".sl-kbd"),
     ("axchip", ".axchip"),

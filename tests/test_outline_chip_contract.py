@@ -128,7 +128,7 @@ def _every_kind_project(store) -> str:
     subj = {"kind": "prototype", "id": solo["id"], "label": "Solo proto"}
     _record(store, pid, "p1", subj, "prototype", key="walkA")
     _record(store, pid, "p2", subj, "prototype", key="walkB", completed=False)
-    # synthesized live_url + flow parent rows, one session child each
+    # live_url + scripted-path subjects render as top-level SESSION rows, not as new artifact kinds
     _record(store, pid, "p1", {"kind": "live_url", "url": "https://example.test/x",
                                "label": "Live x"}, "live", key="walkL")
     _record(store, pid, "p2", {"kind": "flow", "id": "flow-1", "label": "Signup flow"},
@@ -217,7 +217,7 @@ def test_every_row_kind_opens_a_resolving_slideover(store):
     ?slide=1 fragment variant resolves as a bare content fragment (no app shell) — so
     pushState always lands on a REAL address. Assets included since UX U8 (/assets/{id};
     the row's download chip keeps the file one click away). External/synthesized rows
-    (url_artifact, live_url/flow subjects) and inline open questions legitimately carry none."""
+    (url_artifact) and inline open questions legitimately carry none."""
     import re as _re
     pid = _every_kind_project(store)
     client = _client()
@@ -367,11 +367,12 @@ def test_only_prototype_sessions_are_outline_children(store):
         ptag = re.search(r'<span class="ol-ptag[^"]*">([^<]*)</span>', chunk)
         assert ptag is not None
         if 'data-rkind="session"' in chunk.split(">", 1)[0]:
+            assert ptag.group(1) == "Session"
+            assert 'class="sl-avatar-group"' not in chunk.split('<span class="ol-title"', 1)[0]
             if chunk.startswith(' ol-tw'):
-                assert ptag.group(1) == ""           # prototype child rows inherit the parent label
+                assert 'class="ol-kind"' not in chunk
                 child_seen = True
             else:
-                assert ptag.group(1) == "Session"
                 top_level_session = True
     assert top_level_session and child_seen
 

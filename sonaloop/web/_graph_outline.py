@@ -18,13 +18,13 @@ from ._outline_chips import chips_html
 # helper with the ⌘K entity search (V6), so the list filter and the palette never diverge.
 from ._palette_registry import fold as _fold
 
-# Per-kind leading icon (the §3.2 row-atom visual; sessions lead with the persona avatar and
-# assets with a thumb/file icon instead — both ride the item's `lead` slot). Built via dict()
+# Per-kind leading icon (the §3.2 row-atom visual; assets may override with a thumb/file
+# icon instead via the item's `lead` slot). Built via dict()
 # kwargs: the kind-vocabulary grep gates ban kind-literal dict/set heads in web/*.py.
 _KIND_ICONS = dict(council="councils", synthesis="syntheses", report="syntheses",
                    note="panel", prototype="prototype", url_artifact="link",
                    decision="flag", survey="plan", hypothesis="target",
-                   open_question="help", live_url="external", flow="compass")
+                   open_question="help", session="play")
 
 
 def _q_match(q: str, blob: str) -> bool:
@@ -183,9 +183,9 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
                       "indent": 0, "last_child": False, "rkind": "url_artifact", "node": a,
                       "pk": notes_phase or ""})
 
-    # Usability sessions nest under their SUBJECT row (tracker: project-page-sessions-live-under-
-    # their-subject-in-the-outlin): prototype subjects under the existing prototype row (matched by
-    # id or slug), live_url/flow subjects under a synthesized artifact-style parent.
+    # Usability sessions nest only under real prototype rows. Other tested surfaces (a live URL,
+    # a scripted path, an external app) render as SESSION rows; the subject is metadata, not a
+    # visible artifact category.
     if sessions:
         proto_of = {k: p["id"] for p in protos for k in (p.get("id"), p.get("slug")) if k}
         merge_session_items(items, sessions, ideation, pmeta, proto_of)
@@ -377,24 +377,22 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         lead = (raw(it["lead"]) if it.get("lead")           # session/asset rows: avatar / thumb lead
                 else h("span", {"class_": "ol-ico", "style": f'color:{it["color"]}'}, raw(_icon(ic)))
                 if ic else h("span", {"class_": "ol-dot", "style": f'background:{it["color"]}'}))
-        # The label column carries the row's KIND (§3.2 / the §4 mockup: icon · kind · title);
-        # the phase heads the group, so nothing repeats. Child rows (indent ≥1) leave the column
-        # empty — the tree spine says whose child they are — and carry their kind (e.g. the
-        # session fidelity) as a quiet trailing chip instead. Within a contiguous same-kind run
+        # The label column carries the row's KIND (§3.2 / the §4 mockup: icon · kind · title).
+        # Indented rows keep their own kind label too; the tree spine expresses relationship,
+        # not identity. The right edge is reserved for chips and time, never a repeated kind
+        # label. Within a contiguous same-kind run
         # of top-level rows EVERY row keeps its full label; repeats step down to the FAINT tone
         # (round-5 J4 re-do: the round-4 omit-on-repeat read as missing text — "sieht aus als
         # würde der Text fehlen" — so the run quiets by tone, never by absence).
         cells = [lead,
                  h("span", {"class_": "ol-ptag ol-ptag--run"
                             if it.get("kind_run") and not it["indent"] else "ol-ptag"},
-                   "" if it["indent"] else it["kind"]),
+                   it["kind"]),
                  h("span", {"class_": "ol-title"}, it["title"]),
                  h("span", {"class_": "olth-pills"}, fragment(*pills)),
                  crew,
                  raw(chips_html(it)),                       # the chip CONTRACT (_outline_chips registry)
                  h("span", {"class_": "ol-ts", "title": ts_full}, ts_short)]
-        if it["indent"]:
-            cells.append(h("span", {"class_": "ol-kind"}, it["kind"]))
         ext = {"target": "_blank", "rel": "noopener"} if it.get("external") else {}
         chip = it.get("chip")
         if chip:

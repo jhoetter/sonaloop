@@ -67,7 +67,7 @@ REGISTRY: dict[str, Declared] = {
     "note": Declared(OUTLINE_ROW, "an observation/concept row; a built concept pairs its prototype beneath"),
     "prototype": Declared(OUTLINE_ROW, "a standalone row, or nested under the concept note that realises it"),
     "url_artifact": Declared(OUTLINE_ROW, "an artifact-style row with the A/B label + capture-status chips"),
-    "session": Declared(NESTED_CHILD, "an indented child row under its subject (prototype/live_url/flow)"),
+    "session": Declared(OUTLINE_ROW, "a session row; prototype sessions may be indented under the prototype"),
     "section": Declared(OUTLINE_ROW, "the theme filter bar + phase/round groupings OVER the outline "
                                      "(an overlay grouping of nodes, not a row of its own)"),
     "hypothesis": Declared(OUTLINE_ROW, "a row (status pill) in the phase active at created_at; "

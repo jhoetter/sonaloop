@@ -70,21 +70,20 @@ def _subject_slot(group: dict, key: str, pk, pmeta: dict) -> dict:
 
 
 def _session_child_item(sess: dict, parent: dict, seq: int, last: bool) -> dict:
-    """One session as an indented child row under its subject: persona avatar lead + display name,
-    the fidelity as the kind label, the replay as the row target. The outcome/friction chips come
-    from the chip-contract registry (_outline_chips: rkind 'session' reads the `session` payload).
-    The order borrows the parent's slot (the note→prototype pairing trick) so it nests right under it.
-    The lead avatar rides the ONE avatar_group anatomy (ux-contract §10 W11) — a group of one,
-    the same classes every persona-participation surface renders."""
-    from . import ui
+    """One session row.
+
+    Prototype subjects keep sessions as indented executions under the prototype row. Non-prototype
+    subjects use an invisible ordering slot and render as top-level SESSION rows. In both cases
+    the kind column stays type-only: icon + SESSION, never a persona avatar."""
     kind = t("sessions").rstrip("s")
-    title = (parent["title"] if parent.get("indent", 0) < 0 else sess["persona"]["display_name"])
-    return {"oid": sess["id"], "color": "#9aa0a6", "title": title,
+    under_visible_subject = parent.get("indent", 0) >= 0
+    title = sess["persona"]["display_name"] if under_visible_subject else parent["title"]
+    item = {"oid": sess["id"], "color": "#9aa0a6", "title": title,
             "kind": kind, "href": f'/sessions/{sess["id"]}', "plabel": parent["plabel"],
             "po": parent["po"], "round": parent["round"], "order": f'{parent["order"]}#s{seq:03d}',
             "ts": sess.get("created_at", ""), "indent": parent["indent"] + 1, "last_child": last,
-            "lead": str(ui.avatar_group([sess["persona"]])), "rkind": "session", "session": sess,
-            "pk": parent.get("pk", "")}
+            "rkind": "session", "session": sess, "pk": parent.get("pk", "")}
+    return item
 
 
 def merge_session_items(items: list[dict], groups: dict[str, dict], ideation, pmeta: dict,
