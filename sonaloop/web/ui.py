@@ -269,12 +269,6 @@ def primitive_row(kind: str, record: dict, store: Any = None, *, href: str | Non
             badges.append(raw(_label(_pres.present(rec["fidelity"])["short"], "#00897b")))
         meta = [avatar_group(rec.get("personas") or [], total=int(rec.get("voices") or 0)),
                 raw(_label(t("sessions_n", n=int(rec.get("n_sessions") or 0))))]
-    elif kind == "flow":
-        title = rec.get("title") or rec.get("label") or rec.get("id", "")
-        if rec.get("n_sessions") is not None:
-            meta.insert(0, raw(_label(t("sessions_n", n=int(rec.get("n_sessions") or 0)))))
-        if rec.get("steps") is not None:
-            meta.insert(0, raw(_label(t("n_steps", n=int(rec.get("steps") or 0)))))
     elif kind == "url_artifact":
         title = rec.get("title") or rec.get("url") or rec.get("id", "")
         badges.append(raw(_label(t("artifact_kind_" + (rec.get("kind") or "url")), "var(--blue)")))

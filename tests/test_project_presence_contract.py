@@ -20,7 +20,7 @@ from sonaloop.web import _presence as PR
 
 # The audited core inventory (the three tiers): everything project-scoped the default page shows.
 CORE_KINDS = {
-    "council", "synthesis", "report", "note", "prototype", "session", "flow", "section",
+    "council", "synthesis", "report", "note", "prototype", "session", "section",
     "hypothesis", "decision", "open_question", "asset", "survey", "url_artifact",
 }
 
@@ -60,7 +60,6 @@ def test_product_taxonomy_groups_match_user_model():
     assert primitive_family("council") == "ask"
     assert primitive_family("survey") == "ask"
     assert primitive_family("prototype") == "test"
-    assert primitive_family("flow") == "test"
     assert primitive_family("session") == "test"
     assert primitive_family("note") == "capture"
     assert primitive_family("synthesis") == "conclude"

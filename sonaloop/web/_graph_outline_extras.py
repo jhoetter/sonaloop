@@ -31,7 +31,7 @@ from ._i18n import t
 # (A tuple head keeps the kind-vocabulary grep gates clean — no kind-literal set heads in web/.)
 DRAWER_KINDS = frozenset(("council", "synthesis", "report", "note", "prototype", "session",
                           "decision", "survey", "hypothesis", "asset", "url_artifact",
-                          "flow", "open_question"))
+                          "open_question"))
 
 
 def drawer_url(rkind: str, href: str) -> str | None:

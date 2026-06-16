@@ -214,7 +214,21 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
                 "cluster": idea.get("cluster"),
             }], store=store)
 
-    # -- project assets + screenshot flows (artifact-first walkthroughs) --------
+    # -- project assets + screenshot walkthrough scripts -----------------------
+    # Example assets are content-addressed in the same project container. If a
+    # fixture fixes the bytes for a stable filename (for example replacing a bad
+    # screenshot seed with a valid PNG), prune the old fixture-owned records first
+    # so re-loading the example repairs existing local databases instead of
+    # leaving stale same-name assets beside the new ones.
+    fixture_asset_names = {a.get("filename") for a in fx.get("assets", []) if a.get("filename")}
+    if fixture_asset_names:
+        project = store.get_research_project(pid) or {}
+        before = list(project.get("assets") or [])
+        after = [a for a in before if a.get("filename") not in fixture_asset_names]
+        if len(after) != len(before):
+            project["assets"] = after
+            project["updated_at"] = utc_now_iso()
+            store.upsert_research_project(project)
     for a in fx.get("assets", []):
         rec = attach_asset(  # noqa: F821 (bound)
             pid, content_base64=a["content_base64"], filename=a["filename"],

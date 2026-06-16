@@ -10,7 +10,7 @@ the page body, an optional sticky "on this page" rail, and a prev/next footer.
   Overview      — what Sonaloop is + the three guarantees that make it trustworthy
   Concepts      — every artefact, grouped into role bands, in plain language
   How it works  — a visual pipeline from question to answer + how a study stays rigorous
-  Methodology   — a study runs a (pluggable) methodology; Double Diamond is one example; playbooks
+  Methodology   — a study runs a (pluggable) methodology; Double Diamond is one example; recipes
   MCP reference — the live, auto-generated tool catalogue, organized by domain
 
 Content is bilingual (de/en) inline (long prose; keeps the t() table lean) and authored in Markdown so
@@ -28,7 +28,7 @@ from ..doc_schemas import PRIM_JSON, EXAMPLES   # example JSON kept out of the w
 
 from ._docs_content import (
     DOC_PAGES, DOCS_INTRO, PRINCIPLES, DOCS, GROUPS, GROUP_MAP, PRIMITIVES, SCHEMAS, LIFECYCLE,
-    EVIDENCE_PILLS, LOOP_NOTE, RIGOUR_STEPS, INSPECTOR_SECTIONS, DD_PHASES, RHYTHM, PLAYBOOKS,
+    EVIDENCE_PILLS, LOOP_NOTE, RIGOUR_STEPS, INSPECTOR_SECTIONS, DD_PHASES, RHYTHM, RECIPES,
     DOMAIN_META, SUPER_GROUPS)
 
 
@@ -451,12 +451,12 @@ def _doc_methodology() -> str:
           ("All methodologies share the same engine (frame → gather evidence → verify) — only the phases "
            "differ.")))))
 
-    # Playbooks — things you can ask your agent for.
+    # Recipes — things you can ask your agent for.
     play_rows = [h("div", {"class_": "play"},
         h("div", {"class_": "play-l"}, h("span", {"class_": "play-name"}, ti[li]),
           h("code", {"class_": "play-code"}, code)),
-        h("span", {"class_": "play-desc"}, raw(_md_inline(desc[li])))) for ti, code, desc in PLAYBOOKS]
-    playbooks = _anchor_block("playbooks",
+        h("span", {"class_": "play-desc"}, raw(_md_inline(desc[li])))) for ti, code, desc in RECIPES]
+    recipes = _anchor_block("recipes",
         _sub_h("Was du anfragen kannst" if de else "What you can ask for"),
         h("p", {"class_": "doc-p"}, "Fertige Abläufe, die dein Agent direkt fahren kann — vom einzelnen "
           "Council bis zur kompletten Studie." if de else "Ready-made flows your agent can run directly — "
@@ -465,10 +465,10 @@ def _doc_methodology() -> str:
 
     subnav = [("available", "Verfügbare Methodiken" if de else "Available methodologies"),
               ("anatomy", "Der Rhythmus" if de else "The rhythm"),
-              ("playbooks", "Was du anfragen kannst" if de else "What you can ask for")]
+              ("recipes", "Was du anfragen kannst" if de else "What you can ask for")]
     lead = ("Eine Studie fährt eine austauschbare Methodik — Double Diamond ist nur eine davon." if de
             else "A study runs a swappable methodology — Double Diamond is just one of them.")
-    return _docs_shell("methodology", lead, fragment(available, anatomy, playbooks), subnav)
+    return _docs_shell("methodology", lead, fragment(available, anatomy, recipes), subnav)
 
 
 def _doc_mcp() -> str:
@@ -646,5 +646,3 @@ def register_docs(app) -> None:
         if not fn or slug == "":
             raise HTTPException(status_code=404)
         return fn()
-
-

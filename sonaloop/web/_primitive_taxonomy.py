@@ -41,7 +41,6 @@ PRIMITIVES: dict[str, Primitive] = {
     "council": Primitive("council", "ask", "councils", "primitive_council_purpose"),
     "survey": Primitive("survey", "ask", "plan", "primitive_survey_purpose"),
     "prototype": Primitive("prototype", "test", "prototype", "primitive_prototype_purpose"),
-    "flow": Primitive("flow", "test", "compass", "primitive_flow_purpose"),
     "session": Primitive("session", "test", "activity", "primitive_session_purpose"),
     "note": Primitive("note", "capture", "panel", "primitive_note_purpose"),
     "synthesis": Primitive("synthesis", "conclude", "syntheses", "primitive_synthesis_purpose"),
@@ -92,8 +91,6 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
         return str(rec.get("mode") or "discovery")
     if kind == "prototype":
         return str(rec.get("fidelity") or "midfi")
-    if kind == "flow":
-        return "screen_walkthrough"
     if kind == "session":
         subject = rec.get("subject") or {}
         sk = subject.get("kind") or ""

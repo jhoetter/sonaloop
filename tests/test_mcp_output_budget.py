@@ -2,7 +2,7 @@
 tokens (80k chars on the serialized envelope, safety margin under the 25k-token
 directory line) against a REALISTIC fixture — two flagship example projects plus
 one persona with 16 weeks of lived memory, real-sized corpora, a survey with
-responses, a usability session, assets/flows, a plan run and chats.
+responses, a usability session, assets, a walkthrough script, a plan run and chats.
 
 The audit is exhaustive by construction: every `readOnlyHint` tool in the
 annotations registry must be either CALLED (args in _tool_args) or SKIPPED with a

@@ -45,9 +45,6 @@ LIBRARY_TABS: tuple = (
     ("prototypes", "/prototypes", "prototype",
      lambda: t("prototypes_h"), lambda: t("no_prototypes"), lambda: t("prototypes_lead"),
      lambda: t("prototypes_teach")),
-    ("flows", "/playbooks", "compass",
-     lambda: t("flows_h"), lambda: t("no_flows"), lambda: t("flows_lead"),
-     lambda: t("flows_teach")),
     ("sessions", "/sessions", "activity",
      lambda: t("sessions"), lambda: t("no_sessions"), lambda: t("sessions_lead"),
      lambda: t("sessions_teach")),
@@ -76,7 +73,6 @@ TAB_KIND = {
     "councils": "council",
     "reports": "synthesis",
     "prototypes": "prototype",
-    "flows": "flow",
     "sessions": "session",
     "surveys": "survey",
     "hypotheses": "hypothesis",
@@ -119,16 +115,6 @@ def _tab_entries(key: str, store: Store, sessions: list | None = None) -> list[d
         return [e("prototype", {**p, **services.prototype_participation(p, store)},
                   f'/prototypes/{p["slug"]}')
                 for p in store.list_prototypes()]
-    if key == "flows":
-        pairs = []
-        for proj in store.list_research_projects():
-            for f in services.list_flows(proj["id"], store=store):
-                sessions_n = len(services.list_usability_sessions(
-                    project_id=proj["id"], subject={"kind": "flow", "id": f["id"]}, store=store))
-                pairs.append(({**f, "project_id": proj["id"], "n_sessions": sessions_n},
-                              proj["id"]))
-        pairs.sort(key=lambda x: x[0].get("updated_at", ""), reverse=True)
-        return [e("flow", f, f'/playbooks/{f["id"]}', project_id=pid) for f, pid in pairs]
     if key == "sessions":
         if sessions is None:
             # BOTH session kinds (§8.2 — sessions are first-class): usability walks and
@@ -175,33 +161,11 @@ def _find_reference(store: Store, reference_id: str) -> tuple[dict | None, dict 
     return None, None
 
 
-def _find_flow(store: Store, flow_id: str) -> tuple[dict | None, dict | None]:
-    for proj in store.list_research_projects():
-        try:
-            return proj, services.get_flow(proj["id"], flow_id, store=store)
-        except KeyError:
-            continue
-    return None, None
-
-
 def _reference_status_pill(ref: dict) -> str:
     snap = ref.get("snapshot") or {}
     if snap.get("ok"):
         return _label(t("artifact_captured"), "var(--green)")
     return _label(t("artifact_capture_failed"), "var(--muted)")
-
-
-def _flow_steps_html(flow: dict, project: dict) -> str:
-    assets = {a["id"]: a for a in project.get("assets") or []}
-    rows = []
-    for s in flow.get("steps") or []:
-        a = assets.get(s.get("asset_id"), {})
-        title = a.get("title") or a.get("filename") or s.get("asset_id", "")
-        rows.append(h("div", {"class_": "strow"},
-                      h("b", {}, h("a", {"href": f'/assets/{s.get("asset_id", "")}'}, title)),
-                      h("div", {"class_": "muted small"},
-                        t("step_n", n=int(s.get("index", 0)) + 1), " · ", s.get("caption", ""))))
-    return fragment(*rows)
 
 
 def _library_facets(entries: list[dict], store: Store, *, with_direction: bool) -> list[dict]:
@@ -397,12 +361,6 @@ def register_library(app) -> None:
                         subtype: str = Query(default=""), q: str = Query(default="")) -> str:
         return library_page("references", flt=library_filters(project, status, subtype=subtype), base="/references", q=q)
 
-    @app.get("/playbooks", response_class=HTMLResponse)
-    @app.get("/flows", response_class=HTMLResponse)
-    def flows_list(project: str = Query(default=""), status: str = Query(default=""),
-                   subtype: str = Query(default=""), q: str = Query(default="")) -> str:
-        return library_page("flows", flt=library_filters(project, status, subtype=subtype), base="/playbooks", q=q)
-
     @app.get("/open-questions/{question_id}", response_class=HTMLResponse)
     def open_question_view(question_id: str) -> str:
         store = Store()
@@ -463,32 +421,6 @@ def register_library(app) -> None:
                        ("dot", t("created"), ui.fmt_date(ref.get("created_at") or ""))],
             rail_sections=[("sec-snapshot", t("reference_snapshot_h"))],
             star=("reference", ref["id"], title, f'/references/{ref["id"]}'))
-
-    @app.get("/playbooks/{flow_id}", response_class=HTMLResponse)
-    @app.get("/flows/{flow_id}", response_class=HTMLResponse)
-    def flow_view(flow_id: str) -> str:
-        store = Store()
-        proj, flow = _find_flow(store, flow_id)
-        if flow is None:
-            return _layout(t("not_found"), _empty_state(t("flows_h"), t("runtime_maybe_cleared"), icon="compass"), store, active="library")
-        sessions = services.list_usability_sessions(
-            project_id=proj["id"], subject={"kind": "flow", "id": flow["id"]}, store=store)
-        body = fragment(
-            ui.section(t("steps_h"), _flow_steps_html(flow, proj), id="sec-steps"),
-            raw(_sessions_section(store, sessions, sid="sec-replays", shots=True,
-                                  heading=t("replays_h"))))
-        return detail_page(
-            store, title=flow["title"], active="projects",
-            crumbs=[(t("projects"), "/projects"), (proj["title"], f'/projects/{proj["id"]}'),
-                    (t("flows_h"), "/playbooks"), (flow["title"], None)],
-            icon="compass", kind=t("flow_kind"),
-            body=body,
-            prop_rows=[("projects", t("project"), h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"])),
-                       ("list", t("steps_h"), str(len(flow.get("steps") or []))),
-                       ("activity", t("sessions"), str(len(sessions))),
-                       ("dot", t("created"), ui.fmt_date(flow.get("created_at") or ""))],
-            rail_sections=[("sec-steps", t("steps_h")), ("sec-replays", t("replays_h"))],
-            star=("flow", flow["id"], flow["title"], f'/playbooks/{flow["id"]}'))
 
     @app.get("/sections/{section_id}", response_class=HTMLResponse)
     def section_view(section_id: str) -> str:

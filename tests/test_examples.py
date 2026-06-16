@@ -145,7 +145,13 @@ def test_onboarding_showcase_loads_every_tour_artifact(store):
     assert services.list_surveys(out["project_id"], store=store)[0]["response_count"] == 3
     assert services.list_prototypes_artifacts(out["project_id"], store=store)
     assert services.list_usability_sessions(project_id=out["project_id"], store=store)
-    assert len(services.list_assets(out["project_id"], store=store)) == 3
+    assets = services.list_assets(out["project_id"], store=store)
+    assert len(assets) == 3
+    shots = [a for a in assets if a["kind"] == "screenshot"]
+    assert len(shots) == 2
+    for shot in shots:
+        data, _meta = services.get_asset_content(out["project_id"], shot["id"], store=store)
+        assert data.startswith(b"\x89PNG\r\n\x1a\n"), shot["filename"]
 
 
 def test_double_load_is_idempotent_for_both_examples(store):
@@ -258,7 +264,6 @@ def test_every_major_inspector_page_is_non_empty_after_loading_both(store):
         "/syntheses": ["Pricing story", "fair, audit-proof roster"],
         "/surveys": ["TeamPulse pilot readiness"],
         "/prototypes": ["TeamPulse first-run prototype"],
-        "/playbooks": ["TeamPulse first-run flow"],
         "/references": ["External prototype: sonaloop-design app"],
         "/open-questions": ["Would teams trust"],
         "/sessions": ["TeamPulse first-run flow", "External prototype reference"],

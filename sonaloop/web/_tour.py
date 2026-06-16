@@ -49,7 +49,6 @@ def tour_steps() -> list[dict]:
         {"url": url, "sel": '.olrow[data-rkind="council"]', "open": True, "title": t("tour_council_h"), "body": t("tour_council_d")},
         {"url": url, "sel": '.olrow[data-rkind="survey"]', "open": True, "title": t("tour_survey_h"), "body": t("tour_survey_d")},
         {"url": url, "sel": '.olrow[data-rkind="synthesis"]', "open": True, "title": t("tour_report_h"), "body": t("tour_report_d")},
-        {"url": url, "sel": '.olrow[data-rkind="flow"]', "open": True, "title": t("tour_flow_h"), "body": t("tour_flow_d")},
         {"url": url, "sel": '.olrow[data-rkind="prototype"]', "open": True, "title": t("tour_prototype_h"), "body": t("tour_prototype_d")},
         {"url": url, "sel": '.olrow[data-rkind="session"]', "open": True, "title": t("tour_session_h"), "body": t("tour_session_d")},
         {"url": url, "sel": '.olrow[data-rkind="hypothesis"]', "open": True, "title": t("tour_hypothesis_h"), "body": t("tour_hypothesis_d")},

@@ -1,19 +1,18 @@
-# Screen walkthrough playbooks — drop-off testing, artifact-first
+# Screen walkthrough sessions — drop-off testing, artifact-first
 
 The killer use-case: a persona walks through a real onboarding flow or
 prototype and shows exactly where it drops off. ~80% of that value is more
 reliable via reaction-to-artifacts than via live app control, so this path
-needs **no browser anywhere** — the playbook is made of real screens the host
+needs **no browser anywhere** — the walkthrough script is made of real screens the host
 actually looks at.
 
-In UI language this is a **screen walkthrough playbook**: a reusable plan for a
-session. The service/storage name is still `flow` for compatibility, and the
-service fidelity value is
-still `artifact` for compatibility, but it does not mean "any artifact"; the
-playbook is surfaced in `/playbooks`, and its replayable traces surface as
-sessions.
+In product language this is a **walkthrough session**. `define_flow` stores the
+reusable ordered screenshot script under `project["flows"]`; that script is
+internal session setup, not a Library primitive. The service fidelity value is
+still `artifact`, but it does not mean "any artifact"; it means a
+screen-walkthrough session built from real assets.
 
-## The playbook
+## The script
 
 ```
 attach_asset(project, "welcome.png") …            # the screenshots become evidence assets

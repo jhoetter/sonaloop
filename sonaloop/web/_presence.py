@@ -66,7 +66,6 @@ REGISTRY: dict[str, Declared] = {
     "report": Declared(OUTLINE_ROW, "an inline outline row at the end of its round (po=99)"),
     "note": Declared(OUTLINE_ROW, "an observation/concept row; a built concept pairs its prototype beneath"),
     "prototype": Declared(OUTLINE_ROW, "a standalone row, or nested under the concept note that realises it"),
-    "flow": Declared(OUTLINE_ROW, "a session-subject parent row (the live_url idiom) once sessions walk it"),
     "url_artifact": Declared(OUTLINE_ROW, "an artifact-style row with the A/B label + capture-status chips"),
     "session": Declared(NESTED_CHILD, "an indented child row under its subject (prototype/live_url/flow)"),
     "section": Declared(OUTLINE_ROW, "the theme filter bar + phase/round groupings OVER the outline "
@@ -90,7 +89,8 @@ LIST_SOURCES: dict[str, str | NotAnArtifact] = {
     "list_artifacts": "url_artifact",
     "list_assets": "asset",
     "list_decisions": "decision",
-    "list_flows": "flow",
+    "list_flows": NotAnArtifact(
+        "session test-script definition, not a product artifact — surfaced through the sessions that use it"),
     "list_hypotheses": "hypothesis",
     # ideas ARE note records (kind 'idea' on the note primitive — services/_ideation.py);
     # list_ideas is a filtered view over list_notes, so their presence rides the note kind.

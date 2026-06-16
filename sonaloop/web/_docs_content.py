@@ -107,15 +107,6 @@ DOCS = [
               "through and react to."),
      "why": ("Geerdete Reaktionen auf etwas *Echtes* statt auf eine Beschreibung — du siehst, was funktioniert, bevor du baust.",
              "Grounded reactions to something *real*, not a description — you see what works before you build.")},
-    {"art": "flow", "icon": "compass", "name": "flows_h", "group": "evidence",
-     "what": ("Ein wiederverwendbarer Testablauf für Sessions. Das aktuelle Format ist ein "
-              "Screen-Walkthrough aus Screenshot-Assets.",
-              "A reusable test plan for sessions. The current format is a screen walkthrough "
-              "built from screenshot assets."),
-     "why": ("Trennt den Ablauf einer Session vom getesteten Ding: derselbe Testplan kann vor "
-             "einem klickbaren Prototyp schon als Screen-Walkthrough laufen.",
-             "Separates the session plan from the thing being tested: the same plan can run as "
-             "a screen walkthrough before a clickable prototype exists.")},
     {"art": "session", "icon": "activity", "name": "sessions", "group": "evidence",
      "what": ("Eine replaybare Nutzungsspur: was die Persona gesehen, getan, gedacht und entschieden hat — "
               "als Screen-Walkthrough, klickbarer Prototyp oder Live-Oberfläche.",
@@ -135,9 +126,9 @@ DOCS = [
               "Herkunft, Richtung und Download.",
               "A real file in the project: screenshot, document, export or generated deliverable — with "
               "provenance, direction and download."),
-     "why": ("Assets sind das Material, aus dem Playbooks, Evidenz und Deliverables entstehen. Sie sind Dateien, "
+     "why": ("Assets sind das Material für Evidence, Walkthrough-Screens und Deliverables. Sie sind Dateien, "
              "nicht Council-Referenzen.",
-             "Assets are the material behind playbooks, evidence and deliverables. They are files, not council references.")},
+             "Assets are the material behind evidence, walkthrough screens and deliverables. They are files, not council references.")},
     {"art": "hypothesis", "icon": "target", "name": "hypotheses_h", "group": "answer",
      "what": ("Eine falsifizierbare Wette: erwartete Metrik oder Richtung, Konfidenz und später der "
               "beobachtete Wert.",
@@ -337,15 +328,15 @@ INSPECTOR_SECTIONS = [
      ("Die Seitenleiste hat genau **vier** Einträge: **Projekte · Personas · Library · Activity** "
       "(Einstellungen & Doku sitzen im Footer). Das Denkmodell ist überall dasselbe: *Projekt → "
       "Phasen → Zeilen; Klick = Seitenpanel.* Das **Projekt ist das Zuhause** — alles, was eine Studie "
-      "erzeugt oder benutzt (offene Fragen, Referenzen, Councils, Reports, Playbooks, Prototypen, "
+      "erzeugt oder benutzt (offene Fragen, Referenzen, Councils, Reports, Prototypen, "
       "Sessions, Umfragen, Hypothesen, Entscheidungen, Notizen, Assets), ist eine Zeile in "
       "seiner Phase. Die **Library** ist der projektübergreifende Browser über dieselben Primitives. "
       "Sie ist als Arbeitslandkarte gruppiert: **Frame** (offene Fragen, Hypothesen), "
       "**Material** (Referenzen, Assets), **Ask** (Councils, Surveys), **Test** "
-      "(Prototypen, Playbooks, Sessions), **Capture** (Notes) und **Conclude** (Reports, "
+      "(Prototypen, Sessions), **Capture** (Notes) und **Conclude** (Reports, "
       "Decisions). **Formate** verfeinern ein Primitive, ohne neue Dinge zu erfinden: "
       "Red-Team und Head-to-head sind Council-Formate, Website/externer Prototyp/A-B "
-      "sind Referenz-Formate, und Playbooks definieren, wie Sessions ablaufen. "
+      "sind Referenz-Formate, und Sessions können einem wiederverwendbaren Testskript folgen. "
       "Die Namensregel: **Referenzen** sind Websites, externe Prototypen oder A/B-Varianten im Council-Raum; "
       "**Assets** sind echte Dateien; **Sessions** sind Nutzungsspuren. **Assets** — empfangene "
       "Input-Dateien (Evidenz, via MCP angehängt) und von der Software erzeugte Dokumente "
@@ -363,14 +354,14 @@ INSPECTOR_SECTIONS = [
       "The sidebar has exactly **four** items: **Projects · Personas · Library · Activity** "
       "(settings & docs live in the footer). One mental model runs the whole app: *project → "
       "phases → rows; click = slide-over.* The **project is the home** — everything a study produces "
-      "or uses (open questions, references, councils, reports, playbooks, prototypes, sessions, surveys, "
+      "or uses (open questions, references, councils, reports, prototypes, sessions, surveys, "
       "hypotheses, decisions, notes, assets) is a row in its phase. The **Library** is the "
       "cross-project browser over those same primitives. It is grouped as a work map: "
       "**Frame** (open questions, hypotheses), **Material** (references, assets), **Ask** "
-      "(councils, surveys), **Test** (prototypes, playbooks, sessions), **Capture** (notes), "
+      "(councils, surveys), **Test** (prototypes, sessions), **Capture** (notes), "
       "and **Conclude** (reports, decisions). **Formats** refine a primitive without "
       "creating new things: red-team and head-to-head are council formats, website/external "
-      "prototype/A-B are reference formats, and playbooks define how sessions run. "
+      "prototype/A-B are reference formats, and sessions may use a reusable test script. "
       "Naming rule: **References** are websites, "
       "external prototypes or A/B variants in the council room; **Assets** are real files; "
       "**Sessions** are usage traces. **Assets** — input files received (evidence, attached via MCP) and "
@@ -443,12 +434,12 @@ INSPECTOR_SECTIONS = [
      ("Produkt-Tour", "Product tour"),
      ("Die optionale Tour startet **nie von selbst**. Wenn du **„Tour starten“** wählst, lädt sie bei "
       "Bedarf das Showcase-Beispielprojekt und führt dann im Projektkontext durch echte Primitives: "
-      "offene Frage, Referenz, Council, Survey, Report, Playbook, Prototype, Session, Hypothese, "
+      "offene Frage, Referenz, Council, Survey, Report, Prototype, Session, Hypothese, "
       "Entscheidung, Notes, Assets und Library. "
       "`Esc` beendet sie jederzeit.",
       "The optional tour **never auto-starts**. When you choose **“Take the tour”**, it loads the "
       "showcase example project if needed, then walks real primitives in project context: open "
-      "question, reference, council, survey, report, playbook, prototype, session, hypothesis, decision, "
+      "question, reference, council, survey, report, prototype, session, hypothesis, decision, "
       "notes, assets, and the Library. `Esc` "
       "ends it any time.")),
     ("editing", "pencil",
@@ -522,8 +513,8 @@ DD_PHASES = [
 ]
 RHYTHM = {"diverge": ("Öffnen", "Diverge"), "converge": ("Verdichten", "Converge")}
 
-# Ready playbooks — things you can ask your agent for. Shape: ((title_de, title_en), code, (desc_de, desc_en)).
-PLAYBOOKS = [
+# Ready recipes — things you can ask your agent for. Shape: ((title_de, title_en), code, (desc_de, desc_en)).
+RECIPES = [
     (("Council abhalten", "Run a council"), "run_council",
      ("Lass die Personas ein Thema debattieren, geerdet in ihrer Erinnerung.",
       "Have the personas debate a topic, grounded in their memory.")),
@@ -580,7 +571,7 @@ SUPER_GROUPS = [
      "Qualität und Abdeckung prüfen.", "Check quality and coverage.",
      ["eval"]),
     ("Ressourcen & Prompts", "Resources & prompts",
-     "Browsbare Guides und fertige Playbooks.", "Browsable guides and ready playbooks.",
+     "Browsbare Guides und fertige Recipes.", "Browsable guides and ready recipes.",
      ["__extras__"]),
 ]
 
@@ -679,7 +670,7 @@ register_css(r"""
 .cyc-b{color:var(--muted);font-size:var(--t-sm);line-height:1.5}
 .flow-arrow.loopback{font-size:22px;color:var(--accent)}
 
-/* ==== Methodology: catalogue cards + DD phases + playbooks ==== */
+/* ==== Methodology: catalogue cards + DD phases + recipes ==== */
 .methgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
 
 .methcard-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:6px}

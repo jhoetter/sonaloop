@@ -62,9 +62,8 @@ def _subject_parent_item(group: dict, key: str, pk, pmeta: dict) -> dict:
     subj, sessions = group["subject"], group["sessions"]
     ts = sessions[0].get("created_at", "")
     po, plabel = pmeta.get(pk, (99, ""))
-    href = f"/playbooks/{key}" if subj.get("kind") == "flow" else ""
     it = {"oid": f"subject:{key}", "color": "#9aa0a6", "title": subj.get("label") or key,
-          "kind": t("walkthrough_surface"), "href": href, "plabel": plabel, "po": po, "round": 0,
+          "kind": t("walkthrough_surface"), "href": "", "plabel": plabel, "po": po, "round": 0,
           "order": ts, "ts": ts, "indent": 0, "last_child": False, "pk": pk or "",
           "rkind": subj.get("kind", "")}      # chip contract: live_url/flow/prototype, all declared
     if subj.get("kind") == "live_url":
@@ -88,7 +87,9 @@ def _session_child_item(sess: dict, parent: dict, seq: int, last: bool) -> dict:
     fid = sess.get("fidelity", "")
     kind = (t("session_kind_live") if fid == "live" else
             t("session_kind_artifact") if fid == "artifact" else t("session_kind_prototype"))
-    return {"oid": sess["id"], "color": "#9aa0a6", "title": sess["persona"]["display_name"],
+    title = (parent["title"] if parent.get("rkind") == "flow" and parent.get("indent", 0) < 0
+             else sess["persona"]["display_name"])
+    return {"oid": sess["id"], "color": "#9aa0a6", "title": title,
             "kind": kind, "href": f'/sessions/{sess["id"]}', "plabel": parent["plabel"],
             "po": parent["po"], "round": parent["round"], "order": f'{parent["order"]}#s{seq:03d}',
             "ts": sess.get("created_at", ""), "indent": parent["indent"] + 1, "last_child": last,
@@ -106,7 +107,10 @@ def merge_session_items(items: list[dict], groups: dict[str, dict], ideation, pm
         parent = next((it for it in items if oid and it["oid"] == oid), None)
         if parent is None:
             parent = _subject_parent_item(grp, key, ideation, pmeta)
-            items.append(parent)
+            if (grp.get("subject") or {}).get("kind") == "flow":
+                parent["indent"] = -1
+            else:
+                items.append(parent)
         chip = _funnel_chip(grp, key)
         if chip:
             parent["chip"] = chip

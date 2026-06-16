@@ -184,7 +184,7 @@ def test_search_covers_sessions_hypotheses_decisions_surveys(store):
     hit("Ship the pension", "decision", "/decisions")
     hit("Retirement readiness", "survey", "/surveys")
     hit("Pension check walkthrough", "session", "/sessions")
-    hit("Pension proof flow", "flow", "/playbooks")
+    hit("Pension check walkthrough", "session", "/sessions")
     hit("Pension proof reference", "reference", "/references")
     hit("Which pension proof", "open_question", "/open-questions")
 

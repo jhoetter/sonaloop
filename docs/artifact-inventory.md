@@ -9,8 +9,8 @@ Use three layers:
    purpose, a route, a detail page and a presence declaration.
 2. **Subtypes / formats** refine a primitive without creating a new top-level
    entity. Examples: a council can be a red-team or head-to-head format; a
-   reference can be a website, external prototype or A/B variant; a playbook can
-   be a screen walkthrough.
+   reference can be a website, external prototype or A/B variant; a session can
+   run against a screen walkthrough, prototype or live URL.
 3. **Methodology `artifact_type` tags** are open planning/build tags used by
    the methodology engine and prototype renderer registry. They are not
    automatically Library primitives.
@@ -38,16 +38,11 @@ Use three layers:
   instruments for real responses.
 - **Prototypes** (`register_prototype` / `scaffold_prototype`, outline kind
   `prototype`): interactive surfaces personas can actually use.
-- **Playbooks** (`define_flow`, stored for now on legacy
-  `project["flows"]`, outline kind `flow`): reusable test plans that sessions
-  can run. The current persisted format is a screen walkthrough: a fixed screen
-  sequence built from screenshot/image assets. It is not a runnable app; use it
-  when order, copy and drop-off matter before or instead of building an
-  interactive prototype.
 - **Sessions** (`record_usability_session`, outline kind `session`): replayable
-  usage traces against a playbook/screen walkthrough, `prototype` or `live_url`.
-  The old fidelity label `artifact` means a **screen walkthrough**, not a
-  generic artifact type.
+  usage traces against a screen walkthrough, `prototype` or `live_url`.
+  `define_flow` stores a reusable screen-walkthrough test script under
+  `project["flows"]`, but that script is not a Library primitive; it exists so
+  multiple sessions can reuse the same ordered screenshot sequence.
 - **Notes** (`create_note`, outline kind `note`): captured signals, observations
   or concepts. They are intentionally lightweight and may later feed councils,
   prototypes or sections.
@@ -69,8 +64,8 @@ The Library groups primitives as a user-facing work map:
 - **Material**: references and assets — linked or stored material, whether
   evidence in or deliverable out.
 - **Ask**: councils and surveys — ways to ask personas or real respondents.
-- **Test**: prototypes, playbooks and sessions — what can be exercised, how the
-  exercise should run, and the recorded run itself.
+- **Test**: prototypes and sessions — what can be exercised and the recorded
+  run through it.
 - **Capture**: notes — low-friction signals, observations and concepts.
 - **Conclude**: reports and decisions — analysis and commitments.
 - **Structure**: sections — grouping, not evidence.
@@ -94,8 +89,8 @@ Most persisted primitive subtypes are bounded by service validators:
   `url`;
 - assets accept `image | screenshot | document | file`, with kind inferred from
   the filename when omitted or unknown;
-- usability sessions accept subject kinds `flow | prototype | live_url` and
-  fidelities `artifact | prototype | live`;
+- usability sessions accept subject kinds `flow | prototype | live_url`; `flow`
+  means an internal screen-walkthrough script, not a product primitive;
 - surveys, hypotheses and decisions reject unknown lifecycle/question/status
   values.
 
@@ -114,6 +109,5 @@ Do not expose the word **artifact** as a product primitive. Use:
 
 - **Reference** for captured URLs/external prototype links/A-B variants;
 - **Asset** or **File** for uploaded/generated files;
-- **Playbook** for reusable session plans; the current backed format is a
-  screen walkthrough stored under the legacy `flow` kind;
-- **Session** for observed use of a playbook, prototype or live surface.
+- **Session** for observed use of a screen walkthrough, prototype or live
+  surface.
