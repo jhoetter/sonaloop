@@ -107,3 +107,70 @@ def plan_judgment_edges(plan: dict[str, Any] | None, known_nodes: set[str]) -> l
                             "source": meta.source, "task_id": task["id"],
                             "gate_tag": j.get("gate_tag", "")})
     return out
+
+
+START_KINDS = {"note", "open_question", "url_artifact", "asset"}
+TERMINAL_KINDS = {"decision"}
+
+
+def _kind_of(node: dict[str, Any]) -> str:
+    sid = str(node.get("study_id") or "")
+    return str(node.get("kind") or (sid.split(":", 1)[0] if ":" in sid else ""))
+
+
+def _plan_complete(plan: dict[str, Any] | None) -> bool:
+    tasks = (plan or {}).get("tasks") or []
+    return bool(tasks) and all(t.get("status") == "done" for t in tasks)
+
+
+def _terminal_plan_nodes(plan: dict[str, Any] | None, known_nodes: set[str]) -> set[str]:
+    """Synthesis outputs of terminal verify tasks are legitimate endpoints."""
+    if not plan:
+        return set()
+    tasks = {str(t.get("id")): t for t in plan.get("tasks") or []}
+    consumed = {c for t in tasks.values() for c in (t.get("consumes") or [])}
+    out: set[str] = set()
+    for tid, task in tasks.items():
+        if task.get("bucket") != "verify" or tid in consumed:
+            continue
+        for ref in task.get("produces") or []:
+            nid = normalize_trace_ref(ref, known_nodes)
+            if nid:
+                out.add(nid)
+    return out
+
+
+def trace_node_health(nodes: list[dict[str, Any]], edges: list[dict[str, Any]],
+                      plan: dict[str, Any] | None = None) -> dict[str, str]:
+    """Deterministic lifecycle state for visible project nodes.
+
+    A node without outputs is acceptable while the plan is still open; after the
+    plan is complete, middle/source evidence must either be consumed, terminal
+    or explicitly parked (parked edges land in a later slice). This is the
+    substrate for quiet UI warnings and assess_project gaps.
+    """
+    known = {str(n.get("study_id")) for n in nodes if n.get("study_id")}
+    incoming: dict[str, int] = {nid: 0 for nid in known}
+    outgoing: dict[str, int] = {nid: 0 for nid in known}
+    for e in edges:
+        a, b = str(e.get("from_study") or ""), str(e.get("to_study") or "")
+        if a in known and b in known:
+            outgoing[a] = outgoing.get(a, 0) + 1
+            incoming[b] = incoming.get(b, 0) + 1
+    terminal_nodes = _terminal_plan_nodes(plan, known)
+    complete = _plan_complete(plan)
+    out: dict[str, str] = {}
+    for n in nodes:
+        nid = str(n.get("study_id") or "")
+        if not nid:
+            continue
+        kind = _kind_of(n)
+        if outgoing.get(nid, 0):
+            out[nid] = "source" if incoming.get(nid, 0) == 0 and kind in START_KINDS else "consumed"
+        elif kind in TERMINAL_KINDS or nid in terminal_nodes:
+            out[nid] = "terminal"
+        elif complete:
+            out[nid] = "orphaned"
+        else:
+            out[nid] = "active"
+    return out
