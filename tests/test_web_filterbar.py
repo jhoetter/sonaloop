@@ -239,6 +239,40 @@ def test_library_subtype_filter_separates_council_formats(store):
     assert "Red-team" in html
 
 
+def test_legacy_subtype_filter_values_keep_resolving_to_registry_forms(store):
+    ids = _seed(store)
+    pid = ids["project_id"]
+    p = ids["persona_id"]
+    services.add_artifact(pid, "https://example.test/a", kind="variant",
+                          label="A", title="Legacy A/B stimulus", capture=False, store=store)
+    services.record_head_to_head(pid, "Legacy option comparison?", ["A", "B"], key="legacy-h2h", store=store)
+    services.record_survey(pid, "Legacy choice survey",
+                           [{"id": "q1", "kind": "single", "text": "Pick one", "options": ["A", "B"]}],
+                           store=store)
+    proto = services.register_prototype("legacy-filter-proto", "Legacy prototype", ".",
+                                        project_id=pid, store=store)
+    services.record_usability_session(
+        p, {"kind": "prototype", "id": proto["id"], "label": "Legacy prototype"},
+        "artifact", "2026-06-16",
+        [{"index": 0, "action": {"type": "look", "target": "home"},
+          "state": {"screen": "Home"}, "friction": {"level": "none", "note": ""},
+          "verdict": {"would_continue": True, "reason": "clear"}}],
+        {"completed": True, "summary": "completed", "predicted_behaviors": []},
+        project_id=pid, key="legacy-proto-session", store=store)
+
+    client = _client()
+    cases = [
+        ("/references?subtype=ab_variant&lang=en", "Legacy A/B stimulus", "Marketing site"),
+        ("/councils?subtype=head_to_head&lang=en", "Legacy option comparison?", "Would you pay for this?"),
+        ("/surveys?subtype=single_survey&lang=en", "Legacy choice survey", "Pricing survey"),
+        ("/sessions?subtype=prototype_session&lang=en", "Legacy prototype", "No sessions yet"),
+    ]
+    for path, present, absent in cases:
+        html = client.get(path).text
+        assert present in html, path
+        assert absent not in html, path
+
+
 def test_library_explains_primitives_and_subforms(store):
     html = _client().get("/library?tab=councils&lang=en").text
     assert "Forms in this Library tab" in html

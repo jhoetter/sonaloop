@@ -169,6 +169,25 @@ def test_register_methodology_errors_carry_stable_code_over_mcp():
             "steps": [{"id": "a", "name": "A"}, {"id": "b", "name": "B", "consumes": ["a"]}]}}))
 
 
+def test_specialized_mcp_council_tools_remain_registry_compatible():
+    """Old MCP clients can keep calling the specialized tools; the recorded rows still classify
+    through canonical registry forms."""
+    from sonaloop import services
+
+    server = build_server()
+    proj = _call(server, "start_project", {"title": "Compat", "goal": "g"})["data"]
+    h2h = _call(server, "record_head_to_head", {
+        "project_id": proj["id"], "prompt": "A or B?", "options": ["A", "B"], "key": "compat-h2h",
+    })["data"]
+    rt = _call(server, "record_red_team", {
+        "project_id": proj["id"], "prompt": "What breaks?", "objections": [], "key": "compat-rt",
+    })["data"]
+    assert services.council_form(h2h) == "option_comparison"
+    assert services.council_form(rt) == "objection_review"
+    assert _call(server, "get_head_to_head", {"session_id": h2h["id"]})["ok"]
+    assert _call(server, "get_red_team", {"session_id": rt["id"]})["ok"]
+
+
 def test_suggest_stances_matches_scale_data():
     """suggest_stances over MCP returns EXACTLY the scale's terms/values/aliases in +2→−2 order —
     derived live from suggestions/stance_scale.json (drift-proof: edit the JSON, the tool follows)."""
