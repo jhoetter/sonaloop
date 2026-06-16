@@ -32,6 +32,7 @@ def _project_with_studies(store, sids, title="MR"):
     p = store.get_research_project(proj["id"])
     p["study_ids"] = list(sids)
     store.upsert_research_project(p)
+    store.conn.execute("DELETE FROM research_plans WHERE project_id=?", (proj["id"],))
     return proj["id"]
 
 
@@ -95,6 +96,21 @@ def test_delete_persona(store):
     out = services.delete_persona(pid, store=store)
     assert out["deleted"]["personas"] == 1
     assert all(p["id"] != pid for p in services.list_personas(store=store))
+
+
+def test_note_form_classifies_ideas_insights_and_concepts(store):
+    pid = services.create_research_project("Notes", goal="g", store=store)["id"]
+    obs = services.create_note(pid, "raw signal", "Obs", store=store)
+    idea = services.create_note(pid, "try a guided handoff", "Idea", kind="idea", store=store)
+    insight = services.create_note(pid, "handoffs fail at exceptions", "Insight", kind="insight", store=store)
+    concept = services.create_note(
+        pid, "guided handoff concept", "Concept",
+        data={"prototype_id": "proto_1", "artifact_kind": "journey"}, store=store)
+    assert services.note_form(obs) == "observation"
+    assert services.note_form(idea) == "idea"
+    assert services.note_form(insight) == "insight"
+    assert services.note_form(concept) == "concept"
+    assert services.note_form_definition(concept)["id"] == "concept"
 
 
 def test_invalid_outline_rejected(store):

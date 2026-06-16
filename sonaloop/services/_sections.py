@@ -171,6 +171,36 @@ def _notes(project: dict) -> list[dict]:
     return ns
 
 
+def note_form(note: dict[str, Any]) -> str:
+    """Classify a note through the primitive form registry.
+
+    `kind` may carry authored lightweight forms such as `idea` or `insight`.
+    Prototype/artifact linkage in `data` upgrades the row to a `concept`; all
+    other rows are observations.
+    """
+    from .. import primitive_taxonomy_registry as _taxonomy_registry
+
+    data = note.get("data") or {}
+    if data.get("prototype_id") or data.get("prototype_ids") or data.get("artifact_kind"):
+        alias = "concept_note"
+    else:
+        raw = str(note.get("kind") or "note").strip().lower()
+        alias = {"idea": "idea", "insight": "insight", "concept": "concept_note",
+                 "observation": "observation_note", "note": "observation_note"}.get(raw, raw)
+    form = _taxonomy_registry.resolve_form("note", alias)
+    return str((form or {}).get("id") or alias)
+
+
+def note_form_definition(note: dict[str, Any]) -> dict[str, Any]:
+    from .. import primitive_taxonomy_registry as _taxonomy_registry
+
+    form_id = note_form(note)
+    form = _taxonomy_registry.resolve_form("note", form_id)
+    if form is None:
+        raise KeyError(f"No registered note form '{form_id}'")
+    return form
+
+
 def create_note(project_id: str, text: str, title: str = "", kind: str = "note",
                 data: dict[str, Any] | None = None, created_at: str | None = None, store=None) -> dict[str, Any]:
     """Create a lightweight note node in the project graph (no methodology required) — the ONE note

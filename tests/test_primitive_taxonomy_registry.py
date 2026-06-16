@@ -85,6 +85,11 @@ def test_web_taxonomy_helpers_are_registry_backed():
     assert subtype_value("survey", {"questions": [{"kind": "scale", "stance_mapped": True}]}) == "scale_survey"
     assert subtype_value("survey", {"questions": []}) == ""
 
+    note_forms = {doc.value for doc in primitive_subtypes("note")}
+    assert {"observation_note", "insight", "idea", "concept_note"} <= note_forms
+    assert subtype_value("note", {"kind": "idea", "data": {}}) == "idea"
+    assert subtype_value("note", {"kind": "note", "data": {"prototype_id": "p1"}}) == "concept_note"
+
 
 def test_material_boundary_keeps_stimuli_separate_from_results():
     data = reg.load_registry()
@@ -147,3 +152,22 @@ def test_survey_forms_are_registry_backed_without_mixed_pseudoform():
     assert reg.resolve_form("survey", "text_survey")["id"] == "text"
     assert reg.resolve_form("survey", "ranking_survey")["id"] == "ranking"
     assert reg.resolve_form("survey", "mixed_survey") is None
+
+
+def test_note_and_conclude_forms_keep_statuses_orthogonal():
+    data = reg.load_registry()
+    by_primitive = {}
+    for form in data["forms"]:
+        by_primitive.setdefault(form["primitive"], set()).add(form["id"])
+    assert {"observation", "insight", "idea", "concept"} <= by_primitive["note"]
+    assert by_primitive["synthesis"] == {"synthesis", "brief"}
+    assert by_primitive["report"] == {"report"}
+    assert by_primitive["decision"] == {"decision"}
+    assert by_primitive["hypothesis"] == {"hypothesis"}
+
+    attrs = {a["id"]: a for a in data["orthogonal_attributes"]}
+    assert attrs["decision_status"]["kind"] == "status"
+    assert attrs["hypothesis_status"]["kind"] == "status"
+    assert attrs["synthesis_status"]["kind"] == "status"
+    assert reg.resolve_form("decision", "adopted") is None
+    assert reg.resolve_form("hypothesis", "validated") is None

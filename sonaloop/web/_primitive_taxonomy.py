@@ -246,7 +246,7 @@ _LIBRARY_VALUE_PRIORITY: dict[str, tuple[str, ...]] = {
                 "red_team", "price_ladder", "ideation"),
     "survey": ("single_survey", "multi_survey", "scale_survey", "text_survey", "ranking_survey"),
     "session": ("walkthrough_session", "prototype_session", "live_session"),
-    "note": ("observation_note", "concept_note"),
+    "note": ("observation_note", "insight", "idea", "concept_note"),
     "asset": ("image", "screenshot", "document", "file"),
     # `prototype` is the compatibility alias for the registered app form. Fidelity
     # (lofi/midfi/hifi) is now an orthogonal parameter, not a Library form.
@@ -378,7 +378,9 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
         data = rec.get("data") or {}
         if data.get("prototype_id") or data.get("prototype_ids") or data.get("artifact_kind"):
             return "concept_note"
-        return "observation_note"
+        raw = str(rec.get("kind") or "note").strip().lower()
+        return {"idea": "idea", "insight": "insight", "concept": "concept_note",
+                "observation": "observation_note", "note": "observation_note"}.get(raw, "observation_note")
     return ""
 
 

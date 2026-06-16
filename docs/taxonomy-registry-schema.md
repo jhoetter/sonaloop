@@ -271,6 +271,32 @@ Scale surveys keep their existing `stance_mapped` behavior as a question-level
 parameter. It is not a separate form, because the renderer still uses the scale
 distribution plus the predicted-vs-actual strip.
 
+## Note and conclude form bridge
+
+Capture/conclude forms stay intentionally coarse. They exist only where schema
+or rendering differs; lifecycle values stay orthogonal statuses.
+
+Notes classify through `services.note_form()`:
+
+- empty/default `kind` -> `note/observation`
+- `kind == "insight"` -> `note/insight`
+- `kind == "idea"` -> `note/idea`
+- prototype or artifact linkage in `data` -> `note/concept`
+
+Conclusion objects use one conservative form per durable record shape:
+
+- `hypothesis/hypothesis`; `open`, `validated`, `refuted`, `inconclusive` and
+  `dropped` are `hypothesis_status` values.
+- `synthesis/synthesis` or `synthesis/brief`; `in_progress` and `done` are
+  `synthesis_status` values.
+- `report/report`; report sections are structure/content, not report forms.
+- `decision/decision`; `proposed`, `adopted` and `superseded` are
+  `decision_status` values.
+
+Section kinds remain open structure tags for now. They group existing nodes and
+must not create new primitives or forms unless a later renderer/schema needs a
+specific section form.
+
 ## Lint contract
 
 `registry_errors()` checks:
