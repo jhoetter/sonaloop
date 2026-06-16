@@ -25,6 +25,8 @@ TRACE_EDGE_TYPES: dict[str, TraceEdgeType] = {
     "based_on": TraceEdgeType("based_on", "authored", "*.based_on", "based on"),
     "tested_in": TraceEdgeType("tested_in", "system", "session.subject", "tested in"),
     "uses_material": TraceEdgeType("uses_material", "authored", "*.refs", "uses material"),
+    "refines": TraceEdgeType("refines", "authored", "study.edge.refines", "refines"),
+    "informs": TraceEdgeType("informs", "system", "plan.verify_spine", "informs"),
     "task_consumes": TraceEdgeType("task_consumes", "system", "plan.task.consumes", "consumes"),
     "task_produces": TraceEdgeType("task_produces", "system", "plan.task.produces", "produces"),
     "judgment_evidence": TraceEdgeType(
@@ -32,6 +34,22 @@ TRACE_EDGE_TYPES: dict[str, TraceEdgeType] = {
     "follow_up": TraceEdgeType("follow_up", "authored", "*.open_questions", "follow-up"),
     "parked": TraceEdgeType("parked", "authored", "*.parked_refs", "parked"),
 }
+
+
+def trace_edge(from_study: str, to_study: str, edge_type: str, **overrides: Any) -> dict[str, Any]:
+    """Build a visible trace edge from the registry.
+
+    Rendering code should not mint ad-hoc edge vocabulary. When a relation needs a new
+    type, it has to be declared in TRACE_EDGE_TYPES first so provenance and labels stay
+    inspectable.
+    """
+    meta = TRACE_EDGE_TYPES.get(edge_type)
+    if not meta:
+        raise ValueError(f"Unknown project trace edge type: {edge_type}")
+    edge = {"from_study": from_study, "to_study": to_study, "type": meta.type,
+            "label": meta.label, "provenance": meta.provenance, "source": meta.source}
+    edge.update({k: v for k, v in overrides.items() if v is not None and v != ""})
+    return edge
 
 
 def _node_id(kind: str, rid: str) -> str:
@@ -102,10 +120,8 @@ def plan_judgment_edges(plan: dict[str, Any] | None, known_nodes: set[str]) -> l
             for dst in targets:
                 if src == dst:
                     continue
-                out.append({"from_study": src, "to_study": dst, "type": meta.type,
-                            "label": meta.label, "provenance": meta.provenance,
-                            "source": meta.source, "task_id": task["id"],
-                            "gate_tag": j.get("gate_tag", "")})
+                out.append(trace_edge(src, dst, meta.type, task_id=task["id"],
+                                      gate_tag=j.get("gate_tag", "")))
     return out
 
 

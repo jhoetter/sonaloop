@@ -246,6 +246,40 @@ def test_project_outline_surfaces_plan_judgment_trace_edges(store):
     assert f"synthesis:{deliver_syn['id']}" in rel_out(sess["id"])
 
 
+def test_project_trace_edges_are_registered(store):
+    from sonaloop.project_trace import TRACE_EDGE_TYPES
+    from sonaloop.web._graph_outline_sessions import outline_session_groups
+    from sonaloop.web._project_graph_view import augment_project_graph
+
+    project = services.start_project("Registered trace", "How might we keep edge types fixed?",
+                                     methodology="double_diamond", store=store)
+    council = services.record_council(project["id"], "What matters?", [], store=store)
+    survey = services.record_survey(
+        project["id"], "Evidence survey",
+        [{"id": "q1", "text": "Which signal matters most?", "kind": "single",
+          "options": ["A", "B"]}],
+        derived_from=[{"kind": "council", "id": council["id"]}], status="open", store=store)["survey"]
+    synthesis = services.record_synthesis("Evidence summary", "What matters?",
+                                           council_ids=[council["id"]],
+                                           project_id=project["id"], store=store)
+    services.record_decision(project["id"], "Use evidence", "Proceed.",
+                             based_on=[{"kind": "synthesis", "id": synthesis["id"]}],
+                             status="adopted", store=store)
+    services.record_judgment(project["id"], "verify__define", "trace_closed", True,
+                             "Survey evidence converged.",
+                             evidence_refs=[f"survey:{survey['id']}"], store=store)
+    graph = services.get_project_graph(project["id"], store=store)
+    full_graph = augment_project_graph(
+        graph, sessions=outline_session_groups([], store),
+        decisions=services.list_decisions(project["id"], store=store),
+        hypotheses=services.list_hypotheses(project["id"], store=store),
+        surveys=services.list_surveys(project_id=project["id"], store=store),
+        assets=services.list_assets(project["id"], store=store),
+    )
+    emitted = {e.get("type") for e in full_graph["edges"]}
+    assert emitted <= set(TRACE_EDGE_TYPES), emitted - set(TRACE_EDGE_TYPES)
+
+
 def test_project_outline_marks_orphaned_trace_nodes_after_plan_completion(store):
     project = services.create_research_project("Trace health", goal="Understand orphaned evidence",
                                                store=store)

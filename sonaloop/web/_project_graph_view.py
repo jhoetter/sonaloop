@@ -11,7 +11,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from .. import presentation as _pres
-from ..project_trace import plan_judgment_edges
+from ..project_trace import plan_judgment_edges, trace_edge
 from ._i18n import t
 from ._primitive_taxonomy import primitive_color, subtype_label, subtype_value
 
@@ -98,14 +98,12 @@ def augment_project_graph(graph: dict, *, sessions: dict[str, dict], decisions: 
     seen = {str(n.get("study_id")) for n in nodes if n.get("study_id")}
     edges = list(out.get("edges") or [])
 
-    def edge(a: str, b: str, typ: str = "informs", label: str = "",
+    def edge(a: str, b: str, typ: str, label: str = "",
              extra: dict[str, Any] | None = None) -> None:
         if a and b and a != b and a in seen and b in seen:
-            e = {"from_study": a, "to_study": b, "type": typ}
-            if label:
-                e["label"] = label
-            if extra:
-                e.update(extra)
+            extra_clean = {k: v for k, v in (extra or {}).items()
+                           if k not in {"from_study", "to_study", "type", "label"}}
+            e = trace_edge(a, b, typ, label=label, **extra_clean)
             if e not in edges:
                 edges.append(e)
 
@@ -126,7 +124,8 @@ def augment_project_graph(graph: dict, *, sessions: dict[str, dict], decisions: 
                    phase=_phase(out, p.get("created_at", "")))
         for n in nodes:
             if p["id"] in (n.get("prototype_ids") or []):
-                edge(str(n.get("study_id")), pid, "informs", "builds")
+                edge(str(n.get("study_id")), pid, "derived_from", "builds",
+                     {"source": "prototype.prototype_ids"})
 
     artifact_nodes: dict[str, str] = {}
     artifact_hosts: dict[str, str] = {}
@@ -157,21 +156,21 @@ def augment_project_graph(graph: dict, *, sessions: dict[str, dict], decisions: 
                    subtype=subtype_value("survey", s), phase=_phase(out, s.get("created_at", "")),
                    extra={"status": s.get("status", "draft")})
         for ref in s.get("derived_from") or []:
-            edge(_ref_node_id(ref, seen), sid, "informs", "derives")
+            edge(_ref_node_id(ref, seen), sid, "derived_from", "derived from")
 
     for h in hypotheses:
         hid = _add(nodes, seen, kind="hypothesis", rid=h["id"], title=h.get("text", ""),
                    created_at=h.get("created_at", ""), href=f'/hypotheses/{h["id"]}',
                    phase=_phase(out, h.get("created_at", "")), extra={"status": h.get("status", "open")})
         for ref in h.get("derived_from") or []:
-            edge(_ref_node_id(ref, seen), hid, "informs", "derives")
+            edge(_ref_node_id(ref, seen), hid, "derived_from", "derived from")
 
     for d in decisions:
         did = _add(nodes, seen, kind="decision", rid=d["id"], title=d.get("title", ""),
                    created_at=d.get("created_at", ""), href=f'/decisions/{d["id"]}',
                    phase=_phase(out, d.get("created_at", "")), extra={"status": d.get("status", "proposed")})
         for ref in d.get("based_on") or []:
-            edge(_ref_node_id(ref, seen), did, "answers", "based on")
+            edge(_ref_node_id(ref, seen), did, "based_on", "based on")
 
     proto_keys = {p.get("id"): _node_id("prototype", p["id"]) for p in out.get("prototypes") or []}
     proto_keys.update({p.get("slug"): _node_id("prototype", p["id"]) for p in out.get("prototypes") or [] if p.get("slug")})
@@ -183,12 +182,12 @@ def augment_project_graph(graph: dict, *, sessions: dict[str, dict], decisions: 
                        created_at=s.get("created_at", ""), href=f'/sessions/{s["id"]}',
                        subtype=subtype_value("session", s), phase=_phase(out, s.get("created_at", "")),
                        extra={"persona_id": s.get("persona_id", ""), "subject": subj})
-            edge(subj_node, sid, "informs", "tested in")
+            edge(subj_node, sid, "tested_in", "tested in")
             if subj.get("kind") == "live_url":
                 shost = _host(subj.get("url", ""))
                 for anid, ahost in artifact_hosts.items():
                     if shost and ahost and shost == ahost:
-                        edge(anid, sid, "informs", "tested in")
+                        edge(anid, sid, "tested_in", "tested in")
             elif subj.get("kind") == "flow":
                 session_tokens = _tokens(subj.get("label"), subj.get("id"))
                 for step in s.get("steps") or []:
@@ -198,7 +197,7 @@ def augment_project_graph(graph: dict, *, sessions: dict[str, dict], decisions: 
                                               state.get("screen"), state.get("title"), step.get("monologue"))
                 for aid, toks in asset_token_map.items():
                     if session_tokens & toks:
-                        edge(aid, sid, "informs", "screen used")
+                        edge(aid, sid, "uses_material", "screen used", {"source": "session.steps"})
 
     for te in plan_judgment_edges(out.get("plan"), seen):
         edge(te["from_study"], te["to_study"], te["type"], te.get("label", ""), te)
@@ -212,7 +211,8 @@ def augment_project_graph(graph: dict, *, sessions: dict[str, dict], decisions: 
     if first_council:
         for aid in artifact_nodes.values():
             if not any(e.get("from_study") == aid or e.get("to_study") == aid for e in edges):
-                edge(aid, first_council, "informs", "material")
+                edge(aid, first_council, "uses_material", "material",
+                     {"provenance": "inferred", "source": "outline.material_fallback"})
     # Open questions frame the early research. Link unanswered questions to the first study node
     # when they are not already cited by surveys/hypotheses/decisions.
     first_study = next((n["study_id"] for n in sorted(nodes, key=lambda n: n.get("created_at", ""))
@@ -222,7 +222,8 @@ def augment_project_graph(graph: dict, *, sessions: dict[str, dict], decisions: 
         for o in out.get("open_questions") or []:
             oid = _node_id("open_question", o["id"])
             if not any(e.get("from_study") == oid or e.get("to_study") == oid for e in edges):
-                edge(oid, first_study, "informs", "frames")
+                edge(oid, first_study, "derived_from", "frames",
+                     {"provenance": "inferred", "source": "outline.open_question_fallback"})
 
     out["nodes"] = sorted(nodes, key=lambda n: (n.get("created_at", ""), n.get("study_id", "")))
     out["edges"] = edges
