@@ -180,11 +180,6 @@ SUBTYPE_DOCS: dict[str, tuple[SubtypeDoc, ...]] = {
                    "Eine Survey, deren dominanter Fragetyp Freitext ist.",
                    "Most common question.kind == 'text'.",
                    "Haeufigster question.kind == 'text'."),
-        SubtypeDoc("survey", "subtype_survey",
-                   "A survey with no questions yet, or no dominant typed question.",
-                   "Eine Survey ohne Fragen oder ohne dominanten typisierten Fragetyp.",
-                   "No question kind can be derived.",
-                   "Es kann kein question.kind abgeleitet werden."),
     ),
     "hypothesis": (
         SubtypeDoc("hypothesis", "hypotheses_h",
@@ -249,7 +244,7 @@ _LIBRARY_VALUE_PRIORITY: dict[str, tuple[str, ...]] = {
     "url_artifact": ("website", "external_prototype", "ab_variant"),
     "council": ("discovery", "evaluation", "decision", "head_to_head",
                 "red_team", "price_ladder", "ideation"),
-    "survey": ("single_survey", "multi_survey", "scale_survey", "text_survey", "survey"),
+    "survey": ("single_survey", "multi_survey", "scale_survey", "text_survey", "ranking_survey"),
     "session": ("walkthrough_session", "prototype_session", "live_session"),
     "note": ("observation_note", "concept_note"),
     "asset": ("image", "screenshot", "document", "file"),
@@ -294,6 +289,8 @@ def _registry_subtype_docs() -> dict[str, tuple[SubtypeDoc, ...]]:
         existing = {doc.value for doc in grouped.get(kind, [])}
         for doc in docs:
             if kind == "prototype" and doc.value in {"lofi", "midfi", "hifi"}:
+                continue
+            if kind == "survey" and doc.value == "survey":
                 continue
             if doc.value not in existing:
                 grouped.setdefault(kind, []).append(doc)
@@ -372,8 +369,11 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
         if questions:
             kinds = Counter(q.get("kind") for q in questions if q.get("kind"))
             if kinds:
-                return f"{kinds.most_common(1)[0][0]}_survey"
-        return "survey"
+                survey_kind = str(kinds.most_common(1)[0][0])
+                return {"single": "single_survey", "multi": "multi_survey",
+                        "scale": "scale_survey", "text": "text_survey",
+                        "ranking": "ranking_survey"}.get(survey_kind, "")
+        return ""
     if kind == "note":
         data = rec.get("data") or {}
         if data.get("prototype_id") or data.get("prototype_ids") or data.get("artifact_kind"):

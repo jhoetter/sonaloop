@@ -18,10 +18,12 @@ import csv
 import io
 import json
 import re
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
 from .. import artifacts as _A
+from .. import primitive_taxonomy_registry as _taxonomy_registry
 from ..config import content_language, prototype_templates_dir, utc_now_iso
 from ..models import Survey, SurveyResponse
 from ..storage import Store
@@ -31,6 +33,35 @@ from ._common import _require_research_project, slugify, stable_id, write_export
 
 _QUESTION_KINDS = ("single", "multi", "scale", "text")
 _SURVEY_STATUSES = ("draft", "open", "closed")
+
+
+def survey_form(survey: dict[str, Any]) -> str:
+    """Classify a survey through the primitive form registry.
+
+    A multi-question survey exposes its dominant question kind for filtering and
+    explanation. It does not become a separate `mixed` form; if no question kind
+    is available, there is no form facet to show.
+    """
+    questions = survey.get("questions") or []
+    kinds = Counter(q.get("kind") for q in questions if isinstance(q, dict) and q.get("kind"))
+    if not kinds:
+        return ""
+    kind = str(kinds.most_common(1)[0][0])
+    alias = {"single": "single_survey", "multi": "multi_survey",
+             "scale": "scale_survey", "text": "text_survey",
+             "ranking": "ranking_survey"}.get(kind, kind)
+    form = _taxonomy_registry.resolve_form("survey", alias)
+    return str((form or {}).get("id") or alias)
+
+
+def survey_form_definition(survey: dict[str, Any]) -> dict[str, Any] | None:
+    form_id = survey_form(survey)
+    if not form_id:
+        return None
+    form = _taxonomy_registry.resolve_form("survey", form_id)
+    if form is None:
+        raise KeyError(f"No registered survey form '{form_id}'")
+    return form
 
 
 def _require_survey(store: Store, survey_id: str) -> dict[str, Any]:

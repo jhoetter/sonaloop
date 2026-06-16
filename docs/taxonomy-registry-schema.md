@@ -146,6 +146,11 @@ Required compatibility aliases include:
 - `session/prototype_session` -> `session/prototype_use`
 - `session/live_session` -> `session/live_use`
 - `session/variant_test` -> `session/variant_test`
+- `survey/single_survey` -> `survey/choice`
+- `survey/multi_survey` -> `survey/choice`
+- `survey/scale_survey` -> `survey/scale`
+- `survey/text_survey` -> `survey/text`
+- `survey/ranking_survey` -> `survey/ranking`
 
 ## Orthogonal attributes
 
@@ -245,6 +250,26 @@ Every registered session form must declare `classifier.mode_alias`, either
 `classifier.subject_kind` or compatibility fields, and `renderer.requires`.
 This lets the UI explain the difference between test object and test run, and
 lets compatibility rows keep rendering without creating new subtype labels.
+
+## Survey form bridge
+
+Survey forms describe the dominant question structure of a questionnaire. They
+are not domain labels such as pricing, NPS or onboarding, and multi-question
+surveys do not create a separate `mixed` form unless a future renderer/protocol
+needs one.
+
+Existing survey rows classify through `services.survey_form()`:
+
+- dominant `question.kind == "single"` -> `survey/choice`
+- dominant `question.kind == "multi"` -> `survey/choice`
+- dominant `question.kind == "scale"` -> `survey/scale`
+- dominant `question.kind == "text"` -> `survey/text`
+- future stored `question.kind == "ranking"` -> `survey/ranking`
+- no question kind -> no form facet is shown
+
+Scale surveys keep their existing `stance_mapped` behavior as a question-level
+parameter. It is not a separate form, because the renderer still uses the scale
+distribution plus the predicted-vs-actual strip.
 
 ## Lint contract
 

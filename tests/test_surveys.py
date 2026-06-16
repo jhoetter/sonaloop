@@ -62,6 +62,26 @@ def _form_payload(survey, *, key="r_abc123", value="support"):
             "source": "html_form"}
 
 
+def test_survey_form_classifies_dominant_question_kind_without_mixed_form(store):
+    proj = _project(store)
+    choice = _record(store, proj["id"], questions=[
+        {"text": "Pick one", "kind": "single", "options": ["A", "B"]},
+        {"text": "Pick many", "kind": "multi", "options": ["A", "B"]},
+    ])
+    scale = _record(store, proj["id"], title="Scale", questions=[
+        {"text": "Rate it", "kind": "scale", "options": ["oppose", "neutral", "support"]},
+        {"text": "Explain", "kind": "text"},
+    ])
+    text = _record(store, proj["id"], title="Text", questions=[
+        {"text": "Explain", "kind": "text"},
+    ])
+    assert services.survey_form(choice) == "choice"
+    assert services.survey_form(scale) == "scale"
+    assert services.survey_form(text) == "text"
+    assert services.survey_form({"questions": []}) == ""
+    assert services.survey_form_definition(choice)["id"] == "choice"
+
+
 # --------------------------------------------------------------- record: validation + persistence
 
 def test_record_get_roundtrip_and_slug(store):

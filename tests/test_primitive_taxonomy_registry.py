@@ -78,6 +78,13 @@ def test_web_taxonomy_helpers_are_registry_backed():
     assert subtype_value("prototype", {"type": "model", "fidelity": "midfi"}) == "model"
     assert subtype_label("model") == "Model prototype"
 
+    survey_forms = {doc.value for doc in primitive_subtypes("survey")}
+    assert {"single_survey", "multi_survey", "scale_survey", "text_survey", "ranking_survey"} <= survey_forms
+    assert "survey" not in survey_forms
+    assert subtype_value("survey", {"questions": [{"kind": "single"}, {"kind": "multi"}]}) == "single_survey"
+    assert subtype_value("survey", {"questions": [{"kind": "scale", "stance_mapped": True}]}) == "scale_survey"
+    assert subtype_value("survey", {"questions": []}) == ""
+
 
 def test_material_boundary_keeps_stimuli_separate_from_results():
     data = reg.load_registry()
@@ -128,3 +135,15 @@ def test_session_forms_document_classifiers_and_renderers():
     assert {"variants", "assignment", "order_shown"} <= set(by_id["variant_test"]["classifier"]["compat_fields"])
     for form in by_id.values():
         assert form["renderer"]["requires"]
+
+
+def test_survey_forms_are_registry_backed_without_mixed_pseudoform():
+    data = reg.load_registry()
+    by_id = {f["id"]: f for f in data["forms"] if f["primitive"] == "survey"}
+    assert set(by_id) == {"choice", "scale", "text", "ranking"}
+    assert reg.resolve_form("survey", "single_survey")["id"] == "choice"
+    assert reg.resolve_form("survey", "multi_survey")["id"] == "choice"
+    assert reg.resolve_form("survey", "scale_survey")["id"] == "scale"
+    assert reg.resolve_form("survey", "text_survey")["id"] == "text"
+    assert reg.resolve_form("survey", "ranking_survey")["id"] == "ranking"
+    assert reg.resolve_form("survey", "mixed_survey") is None
