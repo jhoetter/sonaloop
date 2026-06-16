@@ -190,18 +190,16 @@ def test_contract_catches_an_undeclared_kind(store):
     OC.UNDECLARED_KINDS.clear()                      # leave no state behind for other tests
 
 
-def test_planless_fallback_rows_carry_chips(store):
-    """The plan-less study_ids path (hand-built data) must satisfy the same contract — its
-    synthesis rows carry the findings chip."""
-    store.upsert_synthesis({
-        "id": "syn0", "title": "Pains", "created_at": "2026-06-01T00:00:00+00:00",
-        "council_ids": [], "gesamtbild": "big picture", "statements": [],
-        "findings": [{"text": "f1", "kind": "cluster"}, {"text": "f2", "kind": "key_problem"}],
-        "status": "done"})
-    proj = services.create_research_project("Plan-less", store=store)
-    p = store.get_research_project(proj["id"])
-    p["study_ids"] = ["syn0"]
-    store.upsert_research_project(p)
+def test_freeform_project_synthesis_rows_carry_chips(store):
+    """A project-bound synthesis row carries its findings chip even when the project only has the
+    default freeform frame plan."""
+    proj = services.create_research_project("Freeform", store=store)
+    services.record_synthesis(
+        "Pains", "What hurts?", project_id=proj["id"], synthesis_id="syn0",
+        payload={"status": "done", "gesamtbild": "big picture",
+                 "findings": [{"text": "f1", "kind": "cluster"},
+                              {"text": "f2", "kind": "key_problem"}]},
+        store=store)
     OC.UNDECLARED_KINDS.clear()
     html = _client().get(f'/projects/{proj["id"]}?lang=en').text
     _assert_chip_contract(html)

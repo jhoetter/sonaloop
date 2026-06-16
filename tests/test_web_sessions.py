@@ -242,17 +242,13 @@ def test_project_outline_renders_live_url_use_as_a_session_row(store):
     assert f'href="/sessions/{sess["id"]}"' in html and "Session" in html
 
 
-def test_planless_project_outline_shows_study_nodes_and_compacts(store):
-    # hand-built plan-less project (no methodology plan): a synthesis attached via study_ids must
-    # still render as an outline row — parity with the ?view=graph view.
-    store.upsert_synthesis({
-        "id": "syn0", "title": "Pains", "created_at": "2026-06-01T00:00:00+00:00",
-        "council_ids": [], "gesamtbild": "big picture", "statements": [], "findings": [],
-        "status": "done"})
-    proj = services.create_research_project("Plan-less", store=store)
-    p = store.get_research_project(proj["id"])
-    p["study_ids"] = ["syn0"]
-    store.upsert_research_project(p)
+def test_freeform_project_outline_shows_project_synthesis_nodes_and_compacts(store):
+    # A project-bound synthesis must render as an outline row even when the project only has the
+    # default freeform frame plan.
+    proj = services.create_research_project("Freeform", store=store)
+    services.record_synthesis("Pains", "What hurts?", project_id=proj["id"],
+                              payload={"status": "done", "gesamtbild": "big picture"},
+                              synthesis_id="syn0", store=store)
     html = _client().get(f'/projects/{proj["id"]}?lang=en').text
     assert "Pains" in html and 'href="/syntheses/syn0"' in html
     # a near-empty outline sizes to content instead of pinning a viewport-high dead zone

@@ -164,7 +164,9 @@ def test_experimental_graph_view_contains_absorbed_project_primitives(store):
     m = re.search(r'<script type="application/json" id="rgdata">(.*?)</script>', page, re.S)
     assert m, "graph view did not render rgdata"
     data = json.loads(html.unescape(m.group(1)))
-    assert data["phases"] == []                              # no invented phases on a freeform project
+    phase_labels = {p.get("label") for p in data["phases"]}
+    assert "Frame the inquiry" in phase_labels               # freeform has one real plan step
+    assert not {"Input", "Ask", "Test", "Conclude"} & phase_labels
     kinds = {n.get("tags", [""])[0] for n in data["nodes"] if n.get("tags")}
     assert {"open_question", "url_artifact", "asset", "survey"} <= kinds
     assert not any(k.startswith("synthesis_") for k in kinds)
@@ -179,7 +181,7 @@ def test_experimental_graph_view_contains_absorbed_project_primitives(store):
                 {"from": e["from"], "to": e["to"], "label": e.get("label")} for e in data["edges"]]
 
 
-def test_planless_project_outline_is_explicitly_freeform_not_fake_lanes(store):
+def test_freeform_project_outline_uses_its_plan_not_fake_lanes(store):
     pid = _seed_tier3(store)
     council = services.record_council(pid, "Review landing context", [], store=store)
     services.record_hypothesis(pid, "If pricing is clear, support increases",
@@ -190,7 +192,8 @@ def test_planless_project_outline_is_explicitly_freeform_not_fake_lanes(store):
 
     html = _client().get(f"/projects/{pid}?lang=en").text
     assert 'class="ol-flat"' not in html
-    assert ">freeform<" in html
+    assert "Methodology · freeform" in html
+    assert services.get_plan(pid, store=store)["tasks"][0]["id"] == "frame__root"
     for fake in (">Input<", ">Ask<", ">Test<", ">Conclude<"):
         assert fake not in html
     for kind in ("url_artifact", "survey", "hypothesis", "decision"):

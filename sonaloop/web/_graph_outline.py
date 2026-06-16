@@ -92,6 +92,7 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
     ordered = sorted(steps, key=lambda s: depth[s["key"]])
     pmeta = {s["key"]: (i, (s.get("name") or s["key"]).split("·")[-1].strip() or s["key"])
              for i, s in enumerate(ordered)}
+    notes_phase = ordered[0]["key"] if ordered else ""
     protos = graph.get("prototypes") or []
     # ONE note entity: a BUILT note (data.prototype_id) pairs with its prototype, indented beneath it
     # (the former concept→prototype pairing); plain notes are standalone observation rows.
@@ -122,12 +123,16 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
     for n in nodes:
         if str(n["study_id"]).startswith("note:"):  # notes (phase-free) added below
             continue
-        if n.get("phase", "") not in pmeta and not planless:   # plan graphs: phase-less rows have no slot
-            continue
+        pk = n.get("phase", "")
+        if pk not in pmeta and not planless:
+            if not pk and notes_phase:
+                pk = notes_phase
+            else:
+                continue
         kind = n.get("kind_label") or (t("synthesis_kind") if planless else n.get("kind", ""))
         href = n.get("href") or (f'/syntheses/{n["study_id"]}' if planless else "")
-        add(n["study_id"], n.get("color", ""), n.get("title", ""), kind, href,
-            n.get("phase", ""), node_round[n["study_id"]], n.get("created_at", ""), n.get("created_at", ""),
+        add(n["study_id"], n.get("color", ""), n.get("title", ""), kind, href, pk,
+            node_round[n["study_id"]], n.get("created_at", ""), n.get("created_at", ""),
             plabel=kind if planless else None, rkind=n.get("kind", ""), node=n)
     # A standalone prototype sits in the phase whose act task built it (the plan's produces ref —
     # the same linkage the evidence nodes use), falling back to the ideation/build step.
@@ -140,7 +145,6 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
                 rkind="prototype", node=p)
     # Notes (phase-free): a CONCEPT (built, or carrying an artifact_kind) sits at the ideation/develop phase;
     # a plain observation at the FIRST (discover) phase, so the phase column reads meaningfully.
-    notes_phase = ordered[0]["key"] if ordered else ""
     # Sequence the note→prototype pairs so each prototype sorts IMMEDIATELY after ITS note. The prototype
     # keeps its OWN created_at for DISPLAY (ts) but borrows the note's slot for SORT (order) — versions are
     # ordered by their own created_at (v0.1 before v0.2), nested under the concept they realise.

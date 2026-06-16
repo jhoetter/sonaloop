@@ -85,6 +85,11 @@ def create_research_project(title: str, goal: str = "", persona_ids: list[str] |
         status="active", created_at=now, updated_at=now, council_ids=[],
     ).to_dict()
     store.upsert_research_project(project)
+    root = {"id": "frame__root", "title": "Frame the inquiry", "bucket": "analyze",
+            "capability": "frame", "consumes": [],
+            "intent": "Understand before concluding: read persona memory + author the research "
+                      "questions/hypotheses this inquiry needs before any council runs."}
+    _plan.save_plan(_plan.new_plan(pid, goal, "", [root]), store=store)
     # The answer to "where can I look at this?" rides every creation result —
     # remote hosts (MCP connectors) surface it to the user.
     from ._common import web_url
