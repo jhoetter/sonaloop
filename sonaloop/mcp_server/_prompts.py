@@ -145,7 +145,8 @@ Run a Double-Diamond design-thinking project on: {how_might_we}
 Use the plan engine as the spine, on the GOVERNED loop: start_project(title, goal=the HMW,
 methodology="double_diamond") (or freeform), then start_run(project_id) and loop run_step(run_id) —
 execute each dispatch (analyze|act|verify: author the step grounded in its next_action, record it via
-record_frame / link_evidence / record_judgment -> complete_task, then checkpoint_step; critic: author
+record_frame / record output primitive + link_evidence / record_judgment -> complete_task, then checkpoint_step
+with consume_refs + produced_refs + downstream_refs; critic: author
 the completeness verdict via record_completeness_critic + record_critic_round) until run_step returns
 kind=='done'. The engine — not your judgment — ends the run: gates passed != finished, and "Discover
 and Define are complete" is the midpoint, not an ending. assess_project is the pulse along the way.
@@ -176,7 +177,8 @@ request: {request}
 2. Seed it: start_project(title, goal=request, methodology=... or freeform) and add_task as needed.
 3. Run it to a documented result on the GOVERNED loop: start_run(project_id), then loop
    run_step(run_id) -> execute each dispatch (author the step grounded in cited persona memory + prior
-   syntheses -> record + judge behind evidence gates -> checkpoint_step; critic dispatches author the
+   syntheses -> record the output primitive -> link_evidence before complete_task -> checkpoint_step
+   with consume_refs + produced_refs + downstream_refs; critic dispatches author the
    completeness verdict) until run_step returns kind=='done'. Do NOT freestyle next_action and stop
    when it feels answered: gates passed != finished — done means `assess_project.finish.finished` is
    true and the critic passed. Organize with sections; conclude with a synthesis/report. If the
@@ -199,9 +201,11 @@ Resume/continue the autonomous run of project {project_id} until the ENGINE says
    - s.kind == 'done'   -> the run is over (finished | capped | stopped). Only THIS ends the run.
    - s.kind == 'critic' -> author the completeness verdict from s.brief (independent judgment) ->
      record_completeness_critic + record_critic_round; the engine injects each missing gap as work.
-   - else (analyze|act|verify) -> author ONE step grounded in s.next_action (frame -> record_frame;
-     act -> councils/prototypes + link_evidence + complete_task; verify -> a RICH record_synthesis +
-     record_judgment + complete_task), then checkpoint_step(run_id, {{...}}).
+   - else (analyze|act|verify) -> author ONE step grounded in s.next_action. Analyze: record_frame.
+     Act/verify: record the output primitive, link_evidence every produced ref to s.step_id (or
+     park_evidence with a reason), then complete_task. Verify also records the gate judgment. Finally
+     checkpoint_step(run_id, {{consume_refs:s.consume_refs, produced_refs:[...], downstream_refs:[...],
+     open_questions:s.open_questions, parked_refs:[...]}}).
 4. Gates passed != finished: keep looping until `assess_project.finish.finished` is true (organized
    sections + a substantial terminal synthesis + the meta-report) AND the critic passes.
 

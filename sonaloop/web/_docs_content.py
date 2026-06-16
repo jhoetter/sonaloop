@@ -463,13 +463,13 @@ INSPECTOR_SECTIONS = [
     ("filtering", "filter",
      ("Filtern wie in Linear", "Filtering, Linear-style"),
      ("Projekt-Outline und Library tragen eine **Filterleiste**: „Filter“ öffnet das Facetten-Menü "
-      "(Typ, Phase, Persona, Status — in der Library Projekt, Status, bei Assets Richtung) mit "
+      "(Typ, Phase, Persona, Status, Trace — in der Library Projekt, Status, bei Assets Richtung) mit "
       "ehrlichen Treffer-Zahlen pro Wert. Innerhalb einer Facette gilt ODER, zwischen Facetten "
       "UND. Aktive Filter erscheinen als Chips mit ×; der Zustand lebt in der **URL** "
       "(`?kind=council,decision&phase=…`) — teilbar, verlinkbar, Reload-fest. Trifft ein Filter "
       "nichts, sagt die Seite das und bietet „zurücksetzen“ an.",
       "The project outline and the Library carry a **filter bar**: “Filter” opens the facet menu "
-      "(kind, phase, persona, status — in the Library project, status, plus direction on Assets) "
+      "(kind, phase, persona, status, trace — in the Library project, status, plus direction on Assets) "
       "with honest per-value counts. Within a facet values OR, across facets they AND. Active "
       "filters become chips with ×; the state lives in the **URL** "
       "(`?kind=council,decision&phase=…`) — shareable, linkable, reload-proof. When a filter "
