@@ -270,7 +270,7 @@ def _library_taxonomy_map(active_tab: str) -> str:
             "Library-Primitives, z. B. Red-Team als CouncilSession mit `red_team`-Block." if de else
             "Subforms are not new top-level artifacts. They are record variants inside a Library "
             "primitive, for example Red-team as a CouncilSession carrying a `red_team` block.")
-    return h("details", {"class_": "sl-libmap", "open": True},
+    return h("details", {"class_": "sl-libmap"},
              h("summary", {}, h("span", {}, summary), h("small", {}, lead)),
              h("div", {"class_": "sl-libmap-grid"}, fragment(*rows)))
 
@@ -365,13 +365,13 @@ def library_page(tab: str = "questions", store: Store | None = None, *,
                           empty_action=(t("clear_filter"), base0, "filter"),
                           active="library",
                           pre=(str(tabs_html) + _taxonomy_context(tab, tab_kind)
-                               + _library_taxonomy_map(tab) + bar + pre_extra),
+                               + bar + pre_extra + _library_taxonomy_map(tab)),
                           count=0)
     return _list_page(store, title=t("library_h"), lead=lead(), rows=rows,
                       empty_icon=icon, empty_msg=empty_msg(), empty_teach=teach(),
                       active="library",
                       pre=(str(tabs_html) + _taxonomy_context(tab, tab_kind)
-                           + _library_taxonomy_map(tab) + bar + pre_extra),
+                           + bar + pre_extra + _library_taxonomy_map(tab)),
                       count=len(rows))
 
 
