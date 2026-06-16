@@ -296,7 +296,6 @@
           {"kind": "url_artifact", "key": "marketing-site"},
           {"kind": "url_artifact", "key": "external-prototype"},
           {"kind": "url_artifact", "key": "variant-privacy-first"},
-          {"kind": "url_artifact", "key": "variant-dashboard-first"},
           {"kind": "asset", "key": "screen_intro"},
           {"kind": "asset", "key": "screen_action"},
           {"kind": "asset", "key": "field_note"},
@@ -356,7 +355,6 @@
           {"kind": "url_artifact", "key": "marketing-site"},
           {"kind": "url_artifact", "key": "external-prototype"},
           {"kind": "url_artifact", "key": "variant-privacy-first"},
-          {"kind": "url_artifact", "key": "variant-dashboard-first"},
           {"kind": "asset", "key": "screen_intro"},
           {"kind": "asset", "key": "screen_action"},
           {"kind": "asset", "key": "field_note"},
@@ -370,6 +368,13 @@
           {"kind": "session", "key": "ops-prototype-click"},
           {"kind": "session", "key": "hr-live-reference"}
         ]
+      }
+    ],
+    "parked_refs": [
+      {
+        "reason": "Variant D is retained as an explicit alternative, but the gate chose the privacy-first path for the first tour.",
+        "created_at": "2026-06-14T12:18:00Z",
+        "refs": [{"kind": "url_artifact", "key": "variant-dashboard-first"}]
       }
     ]
   },

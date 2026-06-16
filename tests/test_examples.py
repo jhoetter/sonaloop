@@ -188,6 +188,7 @@ def test_onboarding_showcase_loads_every_tour_artifact(store):
     )
     health = trace_node_health(full_graph["nodes"], full_graph["edges"], plan)
     assert {k: v for k, v in health.items() if v == "orphaned"} == {}
+    assert "parked" in set(health.values())
 
 
 def test_onboarding_showcase_timeline_is_authored_not_load_time(store):

@@ -11,7 +11,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from .. import presentation as _pres
-from ..project_trace import plan_judgment_edges, trace_edge
+from ..project_trace import normalize_trace_ref, plan_judgment_edges, trace_edge
 from ._i18n import t
 from ._primitive_taxonomy import primitive_color, subtype_label, subtype_value
 
@@ -202,6 +202,13 @@ def augment_project_graph(graph: dict, *, sessions: dict[str, dict], decisions: 
     for te in plan_judgment_edges(out.get("plan"), seen):
         edge(te["from_study"], te["to_study"], te["type"], te.get("label", ""), te)
 
+    parked_nodes = {
+        normalize_trace_ref(ref, seen)
+        for rec in (out.get("plan") or {}).get("parked_refs") or []
+        for ref in rec.get("refs") or []
+    }
+    parked_nodes.discard("")
+
     # References are explicitly the council material pool. When no narrower ref edge exists,
     # connect them to the first recorded council as weak context so material does not appear as
     # random debris while still avoiding a fake chronological chain.
@@ -210,6 +217,8 @@ def augment_project_graph(graph: dict, *, sessions: dict[str, dict], decisions: 
     first_council = council_ids[0] if council_ids else ""
     if first_council:
         for aid in artifact_nodes.values():
+            if aid in parked_nodes:
+                continue
             if not any(e.get("from_study") == aid or e.get("to_study") == aid for e in edges):
                 edge(aid, first_council, "uses_material", "material",
                      {"provenance": "inferred", "source": "outline.material_fallback"})
@@ -221,6 +230,8 @@ def augment_project_graph(graph: dict, *, sessions: dict[str, dict], decisions: 
     if first_study:
         for o in out.get("open_questions") or []:
             oid = _node_id("open_question", o["id"])
+            if oid in parked_nodes:
+                continue
             if not any(e.get("from_study") == oid or e.get("to_study") == oid for e in edges):
                 edge(oid, first_study, "derived_from", "frames",
                      {"provenance": "inferred", "source": "outline.open_question_fallback"})
