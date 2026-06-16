@@ -206,6 +206,13 @@ Workspace custom forms are allowed only after registration. A custom form must:
 This gives customers room to make their own council or session forms without
 letting arbitrary text fragment the Library model.
 
+Custom forms v1 are workspace-local and live in
+`<DATA_DIR>/primitive_custom_forms.json` (or the active request partition in
+multi-tenant hosts). `register_custom_form()` currently accepts council forms
+that extend a built-in council form and inherit its standard schema, renderer,
+protocol, parameters and aggregators unless explicitly overridden. No custom
+Python or JavaScript renderer code is loaded in v1.
+
 ## Council form bridge
 
 Council forms are the first registry-backed bridge over existing stored data.

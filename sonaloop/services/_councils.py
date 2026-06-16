@@ -271,6 +271,11 @@ def council_form(council: dict[str, Any]) -> str:
     councils still derive from proposal/votes. This helper is the bridge from
     historic product aliases to structural form ids.
     """
+    stamped = council.get("form") or {}
+    if stamped.get("primitive") == "council" and stamped.get("id"):
+        form = _taxonomy_registry.resolve_form("council", str(stamped["id"]))
+        if form is not None:
+            return str(form["id"])
     for marker, alias in (
         ("head_to_head", "head_to_head"),
         ("red_team", "red_team"),

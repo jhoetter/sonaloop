@@ -266,7 +266,7 @@ def _form_values_for_library(form: dict[str, Any]) -> list[str]:
 
 def _registry_subtype_docs() -> dict[str, tuple[SubtypeDoc, ...]]:
     grouped: dict[str, list[SubtypeDoc]] = {}
-    for form in _REGISTRY["forms"]:
+    for form in _registry.list_forms():
         primitive = str(form.get("primitive") or "")
         if primitive == "edge":
             continue
@@ -334,7 +334,21 @@ def primitive_subtypes(kind: str) -> tuple[SubtypeDoc, ...]:
     the live row classifier; the catalogue explains every value the UI should
     make understandable to humans.
     """
-    return SUBTYPE_DOCS.get(kind, ())
+    docs = list(SUBTYPE_DOCS.get(kind, ()))
+    existing = {doc.value for doc in docs}
+    for form in _registry.list_forms(kind):
+        if not form.get("custom") or form.get("id") in existing:
+            continue
+        form_id = str(form.get("id") or "")
+        label = str(form.get("label") or form_id.replace("_", " ").title())
+        meaning = str(form.get("description") or label)
+        docs.append(SubtypeDoc(
+            form_id, f"subtype_{form_id}", meaning, meaning,
+            f"Workspace custom form {kind}/{form_id}; extends {form.get('extends')}.",
+            f"Workspace-Custom-Form {kind}/{form_id}; erweitert {form.get('extends')}."))
+        _SUBTYPE_LABELS[form_id] = label
+        existing.add(form_id)
+    return tuple(docs)
 
 
 def subtype_value(kind: str, rec: dict[str, Any]) -> str:
@@ -348,6 +362,9 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
     if kind == "asset":
         return str(rec.get("kind") or "file")
     if kind == ("coun" + "cil"):
+        stamped = rec.get("form") or {}
+        if stamped.get("primitive") == "council" and stamped.get("id"):
+            return str(stamped["id"])
         for marker, value in (
             ("head_to_head", "head_to_head"),
             ("red_team", "red_team"),

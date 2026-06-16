@@ -62,3 +62,32 @@ def test_record_council_form_validates_registry_payload(store):
         services.record_council_form(project["id"], "made_up_form", {}, [], store=store)
     with pytest.raises(ValueError, match="missing required fields"):
         services.record_council_form(project["id"], "option_comparison", {"options": []}, [], store=store)
+
+
+def test_custom_council_form_uses_standard_renderer_and_records(store):
+    custom = services.register_custom_form({
+        "id": "risk_probe",
+        "primitive": "council",
+        "extends": "open_discussion",
+        "label": "Risk probe",
+        "description": "A custom discovery-style council focused on risks.",
+    })
+    assert custom["custom"] is True
+    assert custom["renderer"]["detail"] == "council_detail"
+    assert services.get_form("council", "risk_probe")["extends"] == "open_discussion"
+    assert any(f["id"] == "risk_probe" for f in services.list_forms("council"))
+
+    from sonaloop.web._primitive_taxonomy import primitive_subtypes, subtype_value
+
+    assert "risk_probe" in {doc.value for doc in primitive_subtypes("council")}
+
+    project = services.create_research_project("Custom council", goal="g", store=store)
+    out = services.record_council_form(
+        project["id"], "risk_probe",
+        {"questions": ["What risk would block this?"], "statements": []},
+        [], prompt="Risk probe", key="risk-probe", store=store)
+    stored = services.get_council(out["id"], store=store)
+    assert stored["form"]["id"] == "risk_probe"
+    assert services.council_form(stored) == "risk_probe"
+    assert subtype_value("council", stored) == "risk_probe"
+    assert services.export_custom_forms()["forms"][0]["id"] == "risk_probe"

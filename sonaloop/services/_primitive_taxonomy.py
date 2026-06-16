@@ -21,3 +21,15 @@ def get_form(primitive: str, form_id: str) -> dict[str, Any]:
 
 def suggest_forms(primitive: str) -> dict[str, Any]:
     return _registry.suggest_forms(primitive)
+
+
+def register_custom_form(form: dict[str, Any]) -> dict[str, Any]:
+    return _registry.register_custom_form(form)
+
+
+def export_custom_forms() -> dict[str, Any]:
+    return _registry.export_custom_forms()
+
+
+def import_custom_forms(forms: list[dict[str, Any]]) -> dict[str, Any]:
+    return _registry.import_custom_forms(forms)

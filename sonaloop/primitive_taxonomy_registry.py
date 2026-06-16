@@ -12,7 +12,7 @@ import re
 from functools import lru_cache
 from typing import Any
 
-from .config import PACKAGE_DIR
+from .config import PACKAGE_DIR, partition_dir
 
 REGISTRY_SCHEMA = "sonaloop.primitive_taxonomy.registry"
 _ID = re.compile(r"^[a-z][a-z0-9_]*$")
@@ -20,6 +20,10 @@ _ID = re.compile(r"^[a-z][a-z0-9_]*$")
 
 def registry_path():
     return PACKAGE_DIR / "primitive_taxonomy.json"
+
+
+def custom_forms_path():
+    return partition_dir() / "primitive_custom_forms.json"
 
 
 @lru_cache(maxsize=1)
@@ -155,8 +159,7 @@ def assert_valid_registry(registry: dict[str, Any] | None = None) -> dict[str, A
 
 
 def forms_for_primitive(primitive_id: str) -> list[dict[str, Any]]:
-    reg = load_registry()
-    return [form for form in reg.get("forms", []) if form.get("primitive") == primitive_id]
+    return [form for form in list_forms(primitive_id)]
 
 
 def list_primitives() -> list[dict[str, Any]]:
@@ -167,6 +170,7 @@ def list_primitives() -> list[dict[str, Any]]:
 def list_forms(primitive: str | None = None) -> list[dict[str, Any]]:
     """Read-only form catalogue, optionally filtered by primitive id."""
     forms = [dict(f) for f in load_registry().get("forms") or []]
+    forms.extend(load_custom_forms())
     if primitive:
         forms = [f for f in forms if f.get("primitive") == primitive]
     return forms
@@ -189,6 +193,82 @@ def suggest_forms(primitive: str) -> dict[str, Any]:
         "forms": list_forms(primitive),
         "custom_form_policy": dict(load_registry().get("custom_form_policy") or {}),
     }
+
+
+def load_custom_forms() -> list[dict[str, Any]]:
+    path = custom_forms_path()
+    if not path.exists():
+        return []
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(data, dict):
+        data = data.get("forms") or []
+    return [dict(f) for f in data if isinstance(f, dict)]
+
+
+def _write_custom_forms(forms: list[dict[str, Any]]) -> None:
+    path = custom_forms_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"forms": forms}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def normalize_custom_form(form: dict[str, Any]) -> dict[str, Any]:
+    raw = dict(form or {})
+    primitive = str(raw.get("primitive") or "council")
+    fid = str(raw.get("id") or "")
+    if not _ID.match(fid):
+        raise ValueError("custom form id must be lower_snake_case")
+    if primitive != "council":
+        raise ValueError("custom forms v1 supports primitive='council'")
+    extends = str(raw.get("extends") or "")
+    base = resolve_form(primitive, extends)
+    if base is None or base.get("custom"):
+        raise ValueError(f"custom form must extend a built-in {primitive} form")
+    if resolve_form(primitive, fid) is not None:
+        raise ValueError(f"custom form {primitive}/{fid} collides with an existing form or alias")
+    out = {
+        "id": fid,
+        "primitive": primitive,
+        "label": str(raw.get("label") or fid.replace("_", " ").title()),
+        "description": str(raw.get("description") or base.get("description") or ""),
+        "aliases": [str(a) for a in raw.get("aliases") or []],
+        "extends": str(base["id"]),
+        "custom": True,
+        "schema": raw.get("schema") or base.get("schema"),
+        "renderer": raw.get("renderer") or base.get("renderer"),
+        "protocol": raw.get("protocol") or base.get("protocol"),
+        "parameters": raw.get("parameters", base.get("parameters", [])),
+        "aggregators": raw.get("aggregators", base.get("aggregators", [])),
+    }
+    for field in ("label", "description", "schema", "renderer", "protocol"):
+        if not out.get(field):
+            raise ValueError(f"custom form {primitive}/{fid} missing {field}")
+    renderer = out["renderer"] or {}
+    if not renderer.get("library") or not renderer.get("detail"):
+        raise ValueError(f"custom form {primitive}/{fid} needs a standard renderer")
+    for alias in out["aliases"]:
+        if not _ID.match(alias):
+            raise ValueError(f"custom form alias {alias!r} must be lower_snake_case")
+        if resolve_form(primitive, alias) is not None:
+            raise ValueError(f"custom form alias {alias!r} collides with an existing form or alias")
+    return out
+
+
+def register_custom_form(form: dict[str, Any]) -> dict[str, Any]:
+    normalized = normalize_custom_form(form)
+    forms = [f for f in load_custom_forms()
+             if not (f.get("primitive") == normalized["primitive"] and f.get("id") == normalized["id"])]
+    forms.append(normalized)
+    _write_custom_forms(forms)
+    return normalized
+
+
+def export_custom_forms() -> dict[str, Any]:
+    return {"forms": load_custom_forms()}
+
+
+def import_custom_forms(forms: list[dict[str, Any]]) -> dict[str, Any]:
+    registered = [register_custom_form(form) for form in forms]
+    return {"forms": registered}
 
 
 def resolve_form(primitive_id: str, value: str) -> dict[str, Any] | None:
