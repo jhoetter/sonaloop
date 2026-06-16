@@ -96,9 +96,11 @@ def project_graph_view_data(graph: dict, *, sessions: dict[str, dict], decisions
     seen = {str(n.get("study_id")) for n in nodes if n.get("study_id")}
     edges = list(out.get("edges") or [])
 
-    def edge(a: str, b: str, typ: str = "informs") -> None:
+    def edge(a: str, b: str, typ: str = "informs", label: str = "") -> None:
         if a and b and a != b and a in seen and b in seen:
             e = {"from_study": a, "to_study": b, "type": typ}
+            if label:
+                e["label"] = label
             if e not in edges:
                 edges.append(e)
 
@@ -118,7 +120,7 @@ def project_graph_view_data(graph: dict, *, sessions: dict[str, dict], decisions
                    subtype=str(p.get("fidelity") or "midfi"), phase=_phase(out, p.get("created_at", "")))
         for n in nodes:
             if p["id"] in (n.get("prototype_ids") or []):
-                edge(str(n.get("study_id")), pid, "informs")
+                edge(str(n.get("study_id")), pid, "informs", "builds")
 
     artifact_nodes: dict[str, str] = {}
     artifact_hosts: dict[str, str] = {}
@@ -149,21 +151,21 @@ def project_graph_view_data(graph: dict, *, sessions: dict[str, dict], decisions
                    subtype=subtype_value("survey", s), phase=_phase(out, s.get("created_at", "")),
                    extra={"status": s.get("status", "draft")})
         for ref in s.get("derived_from") or []:
-            edge(_ref_node_id(ref, seen), sid, "informs")
+            edge(_ref_node_id(ref, seen), sid, "informs", "derives")
 
     for h in hypotheses:
         hid = _add(nodes, seen, kind="hypothesis", rid=h["id"], title=h.get("text", ""),
                    created_at=h.get("created_at", ""), href=f'/hypotheses/{h["id"]}',
                    phase=_phase(out, h.get("created_at", "")), extra={"status": h.get("status", "open")})
         for ref in h.get("derived_from") or []:
-            edge(_ref_node_id(ref, seen), hid, "informs")
+            edge(_ref_node_id(ref, seen), hid, "informs", "derives")
 
     for d in decisions:
         did = _add(nodes, seen, kind="decision", rid=d["id"], title=d.get("title", ""),
                    created_at=d.get("created_at", ""), href=f'/decisions/{d["id"]}',
                    phase=_phase(out, d.get("created_at", "")), extra={"status": d.get("status", "proposed")})
         for ref in d.get("based_on") or []:
-            edge(_ref_node_id(ref, seen), did, "answers")
+            edge(_ref_node_id(ref, seen), did, "answers", "based on")
 
     proto_keys = {p.get("id"): _node_id("prototype", p["id"]) for p in out.get("prototypes") or []}
     proto_keys.update({p.get("slug"): _node_id("prototype", p["id"]) for p in out.get("prototypes") or [] if p.get("slug")})
@@ -175,12 +177,12 @@ def project_graph_view_data(graph: dict, *, sessions: dict[str, dict], decisions
                        created_at=s.get("created_at", ""), href=f'/sessions/{s["id"]}',
                        subtype=subtype_value("session", s), phase=_phase(out, s.get("created_at", "")),
                        extra={"persona_id": s.get("persona_id", ""), "subject": subj})
-            edge(subj_node, sid, "informs")
+            edge(subj_node, sid, "informs", "tested in")
             if subj.get("kind") == "live_url":
                 shost = _host(subj.get("url", ""))
                 for anid, ahost in artifact_hosts.items():
                     if shost and ahost and shost == ahost:
-                        edge(anid, sid, "informs")
+                        edge(anid, sid, "informs", "tested in")
             elif subj.get("kind") == "flow":
                 session_tokens = _tokens(subj.get("label"), subj.get("id"))
                 for step in s.get("steps") or []:
@@ -190,7 +192,7 @@ def project_graph_view_data(graph: dict, *, sessions: dict[str, dict], decisions
                                               state.get("screen"), state.get("title"), step.get("monologue"))
                 for aid, toks in asset_token_map.items():
                     if session_tokens & toks:
-                        edge(aid, sid, "informs")
+                        edge(aid, sid, "informs", "screen used")
 
     # References are explicitly the council material pool. When no narrower ref edge exists,
     # connect them to the first recorded council as weak context so material does not appear as
@@ -201,7 +203,7 @@ def project_graph_view_data(graph: dict, *, sessions: dict[str, dict], decisions
     if first_council:
         for aid in artifact_nodes.values():
             if not any(e.get("from_study") == aid or e.get("to_study") == aid for e in edges):
-                edge(aid, first_council, "informs")
+                edge(aid, first_council, "informs", "material")
     # Open questions frame the early research. Link unanswered questions to the first study node
     # when they are not already cited by surveys/hypotheses/decisions.
     first_study = next((n["study_id"] for n in sorted(nodes, key=lambda n: n.get("created_at", ""))
@@ -211,7 +213,7 @@ def project_graph_view_data(graph: dict, *, sessions: dict[str, dict], decisions
         for o in out.get("open_questions") or []:
             oid = _node_id("open_question", o["id"])
             if not any(e.get("from_study") == oid or e.get("to_study") == oid for e in edges):
-                edge(oid, first_study, "informs")
+                edge(oid, first_study, "informs", "frames")
 
     out["nodes"] = sorted(nodes, key=lambda n: (n.get("created_at", ""), n.get("study_id", "")))
     out["edges"] = edges

@@ -56,6 +56,8 @@ svg.ic{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke
    barely-there — relationships light UP on hover/select via .on, dim via .off. */
 .rge{transition:opacity .16s,stroke-width .12s;opacity:.42}
 .rge.dash{opacity:.16}
+.rgel{font-size:var(--t-xs);font-weight:650;fill:var(--muted);paint-order:stroke;stroke:var(--panel);stroke-width:5px;stroke-linejoin:round;opacity:.72;pointer-events:none}
+.rgel.off{opacity:.10}.rgel.on{opacity:1;fill:var(--ink)}
 .rgn:hover>rect:first-of-type{stroke:var(--accent)}
 .rgn.off,.rge.off{opacity:.10}
 .rgn.on>rect:first-of-type{stroke:var(--accent)}
@@ -414,7 +416,7 @@ _RGRAPH_JS = """<script>
       var t=el('text',{x:p.x,y:p.top,'class':'rgphase-label','text-anchor':'middle'});
       t.textContent=p.i+'. '+p.label; gP.appendChild(t);
       var g=el('text',{x:p.x,y:p.top+18,'class':'rgphase-sub','text-anchor':'middle'});
-      g.textContent=p.is_fan?'divergieren':'konvergieren'; gP.appendChild(g);
+      g.textContent=p.sub || (p.is_fan?'divergieren':'konvergieren'); gP.appendChild(g);
       var gw=0; try{gw=g.getComputedTextLength();}catch(_){}
       var gi=iconEl(p.is_fan?'diamond':'diamondFilled', p.x-gw/2-15, p.top+18-9, 11);
       if(gi) gP.appendChild(gi);
@@ -454,21 +456,32 @@ _RGRAPH_JS = """<script>
 
   // ---- edges (bezier, depth-aware) ----
   var edgeEls=[];
-  D.edges.forEach(function(ed){ var a={fill:'none',stroke:ed.color,'stroke-width':'2','marker-end':'url(#rgah-'+ed.mid+')','class':ed.dashed?'rge dash':'rge'}; if(ed.dashed){a['stroke-dasharray']='6 5'; a['stroke-width']='1.6';} var p=el('path',a); gE.appendChild(p); edgeEls.push({ed:ed,p:p}); });
+  D.edges.forEach(function(ed){
+    var a={fill:'none',stroke:ed.color,'stroke-width':'2','marker-end':'url(#rgah-'+ed.mid+')','class':ed.dashed?'rge dash':'rge'};
+    if(ed.dashed){a['stroke-dasharray']='6 5'; a['stroke-width']='1.6';}
+    var p=el('path',a); gE.appendChild(p);
+    var txt=null;
+    if(ed.label){ txt=el('text',{'class':'rgel','text-anchor':'middle'}); txt.textContent=ed.label; gE.appendChild(txt); }
+    edgeEls.push({ed:ed,p:p,t:txt});
+  });
   function route(){ edgeEls.forEach(function(o){ var a=byId[o.ed.from], b=byId[o.ed.to]; if(!a||!b) return;
     o.p.style.display=(a.hidden||b.hidden)?'none':'';
+    if(o.t) o.t.style.display=(a.hidden||b.hidden)?'none':'';
     var aw=a.w||NW, ah=a.h||NH, bw=b.w||NW, bh=b.h||NH;
-    var sx,sy,ex,ey,d;
+    var sx,sy,ex,ey,d,lx,ly;
     if(Math.abs(b.x-a.x)<NW*0.6){
       sx=a.x+aw/2; ex=b.x+bw/2;
       if(b.y>=a.y){ sy=a.y+ah; ey=b.y; } else { sy=a.y; ey=b.y+bh; }
       var cv=(ey-sy)*0.5; d='M'+sx+' '+sy+' C '+sx+' '+(sy+cv)+' '+ex+' '+(ey-cv)+' '+ex+' '+ey;
+      lx=(sx+ex)/2+18; ly=(sy+ey)/2;
     } else {
       if(b.x>=a.x){ sx=a.x+aw; ex=b.x; } else { sx=a.x; ex=b.x+bw; }
       sy=a.y+ah/2; ey=b.y+bh/2; var ch=(ex-sx)*0.5;
       d='M'+sx+' '+sy+' C '+(sx+ch)+' '+sy+' '+(ex-ch)+' '+ey+' '+ex+' '+ey;
+      lx=(sx+ex)/2; ly=(sy+ey)/2-7;
     }
     o.p.setAttribute('d',d);
+    if(o.t){ o.t.setAttribute('x',lx); o.t.setAttribute('y',ly); }
   }); drawMini(); }
 
   // ---- theme filter ----
@@ -479,10 +492,10 @@ _RGRAPH_JS = """<script>
 
   // ---- neighborhood highlight + selection ----
   function neigh(id){ var s={}; s[id]=1; D.edges.forEach(function(e){ if(e.from===id)s[e.to]=1; if(e.to===id)s[e.from]=1; }); return s; }
-  function highlight(id){ if(!id){ D.nodes.forEach(function(n){ n.el.classList.remove('on','off'); }); edgeEls.forEach(function(o){ o.p.classList.remove('on','off'); }); return; }
+  function highlight(id){ if(!id){ D.nodes.forEach(function(n){ n.el.classList.remove('on','off'); }); edgeEls.forEach(function(o){ o.p.classList.remove('on','off'); if(o.t)o.t.classList.remove('on','off'); }); return; }
     var nb=neigh(id);
     D.nodes.forEach(function(n){ var on=!!nb[n.id]; n.el.classList.toggle('on',on); n.el.classList.toggle('off',!on); });
-    edgeEls.forEach(function(o){ var on=(o.ed.from===id||o.ed.to===id); o.p.classList.toggle('on',on); o.p.classList.toggle('off',!on); }); }
+    edgeEls.forEach(function(o){ var on=(o.ed.from===id||o.ed.to===id); o.p.classList.toggle('on',on); o.p.classList.toggle('off',!on); if(o.t){o.t.classList.toggle('on',on); o.t.classList.toggle('off',!on);} }); }
   var selId=null;
   function select(id){ selId=id; D.nodes.forEach(function(n){ n.el.classList.toggle('sel',n.id===id); }); highlight(id); }
   function deselect(){ selId=null; D.nodes.forEach(function(n){ n.el.classList.remove('sel'); }); highlight(null); }

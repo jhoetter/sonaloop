@@ -164,6 +164,7 @@ def test_experimental_graph_view_contains_absorbed_project_primitives(store):
     m = re.search(r'<script type="application/json" id="rgdata">(.*?)</script>', page, re.S)
     assert m, "graph view did not render rgdata"
     data = json.loads(html.unescape(m.group(1)))
+    assert [p["label"] for p in data["phases"]] == ["Input", "Ask", "Test", "Conclude"]
     kinds = {n.get("tags", [""])[0] for n in data["nodes"] if n.get("tags")}
     assert {"open_question", "url_artifact", "asset", "survey"} <= kinds
     labels = {n["label"] for n in data["nodes"]}
@@ -172,8 +173,9 @@ def test_experimental_graph_view_contains_absorbed_project_primitives(store):
     assert any("Reference" in s and "Website" in s for s in subs)
     by_kind_label = {(n.get("tags", [""])[0], n["label"]): n["id"] for n in data["nodes"] if n.get("tags")}
     assert {"from": by_kind_label[("url_artifact", "Landing A")],
-            "to": by_kind_label[("session", "Landing A")]} in [
-                {"from": e["from"], "to": e["to"]} for e in data["edges"]]
+            "to": by_kind_label[("session", "Landing A")],
+            "label": "tested in"} in [
+                {"from": e["from"], "to": e["to"], "label": e.get("label")} for e in data["edges"]]
 
 
 def test_empty_kinds_render_no_chrome(store):

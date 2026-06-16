@@ -45,10 +45,53 @@ def _graph_layout(graph: dict) -> dict:
     return pos
 
 
+def _experimental_project_layout(graph: dict) -> dict:
+    """Readable full-project layout for the removable graph experiment.
+
+    The normal graph layout is a pure longest-path DAG. That is honest but hard to read for
+    project inventories because uncited material becomes one tall source column. This layout keeps
+    the same nodes/edges, but gives the product model explicit lanes: Input → Ask → Test → Conclude.
+    """
+    lane_of = {
+        "open_question": 0, "url_artifact": 0, "asset": 0, "note": 0,
+        "council": 1, "survey": 1,
+        "prototype": 2, "session": 2, "hypothesis": 2,
+        "synthesis": 3, "report": 3, "decision": 3,
+    }
+    lanes = [
+        {"key": "input", "label": t("graph_lane_input"), "sub": t("graph_lane_input_sub")},
+        {"key": "ask", "label": t("graph_lane_ask"), "sub": t("graph_lane_ask_sub")},
+        {"key": "test", "label": t("graph_lane_test"), "sub": t("graph_lane_test_sub")},
+        {"key": "conclude", "label": t("graph_lane_conclude"), "sub": t("graph_lane_conclude_sub")},
+    ]
+    X0, COLW, Y0, ROWH = 40, 430, 120, 92
+    buckets: dict[int, list[dict]] = {i: [] for i in range(len(lanes))}
+    for n in graph["nodes"]:
+        kind = str(n.get("kind") or n.get("note_kind") or n["study_id"].split(":", 1)[0])
+        buckets.setdefault(lane_of.get(kind, 0), []).append(n)
+    pos: dict[str, tuple] = {}
+    for lane, ns in buckets.items():
+        for i, n in enumerate(sorted(ns, key=lambda x: (x.get("created_at", ""), x.get("study_id", "")))):
+            pos[n["study_id"]] = (X0 + lane * COLW, Y0 + i * ROWH)
+    phases = [{"label": lane["label"], "sub": lane["sub"], "x": X0 + i * COLW + _NW / 2,
+               "is_fan": i in (0, 1, 2), "i": i + 1, "top": 54}
+              for i, lane in enumerate(lanes)]
+    return {"pos": pos, "phase_cols": phases}
+
+
 # node box dimensions (must match _RGRAPH_JS NW/NH)
 _NW, _NH = 320, 64
 # Saved drag-layouts in localStorage are keyed by this; bump on any layout-algorithm change.
-_LAYOUT_VERSION = 7
+_LAYOUT_VERSION = 8
+
+
+def _edge_label(kind: str) -> str:
+    return {
+        "refines": "synthesizes",
+        "informs": "informs",
+        "answers": "answers",
+        "artifact": "tested at",
+    }.get(kind or "", kind or "")
 
 
 def _convex_hull(points: list[tuple]) -> list[tuple]:
@@ -272,7 +315,8 @@ def _graph_interactive(graph: dict) -> str:
         return h("p", {"class_": "muted"}, t("no_synthesis"))
     vocab = graph["project"].get("themes", [])
     ml = _methodology_layout(graph)
-    pos = ml["pos"] if ml else _graph_layout(graph)
+    xl = _experimental_project_layout(graph) if not ml and graph.get("experimental_full_graph") else None
+    pos = ml["pos"] if ml else xl["pos"] if xl else _graph_layout(graph)
     diamonds = ml["diamonds"] if ml else []
     # If an idea has a prototype that feeds the convergence, route THROUGH the prototype:
     # suppress the idea's direct edge to that convergence so there's one clear path.
@@ -314,6 +358,7 @@ def _graph_interactive(graph: dict) -> str:
         if e["from_study"] in pos and e["to_study"] in pos:
             col = _EDGE_COLORS.get(e["type"], "#9aa0a6")
             jedges.append({"from": e["from_study"], "to": e["to_study"], "color": col, "type": e["type"],
+                           "label": e.get("label") or _edge_label(e.get("type", "")),
                            "mid": _colorlist.index(col) if col in _colorlist else 0})
     # Artifact nodes (placed in their build step) + dashed "tested-at" edges. Every label, glyph
     # and color is resolved from DATA (the artifact's type/tags + presentation hints) — nothing
@@ -397,7 +442,7 @@ def _graph_interactive(graph: dict) -> str:
         if phase_sections:
             diamonds = []                              # one mechanism: labeled phases replace diamonds
     jsections = phase_sections + jsections             # phases behind, user themes on top
-    jphases = (ml.get("phase_cols") if ml else None) or []
+    jphases = (ml.get("phase_cols") if ml else xl.get("phase_cols") if xl else None) or []
     jrounds = (ml.get("round_lanes") if ml else None) or []
     # Icon path bodies for the notation/markers the graph JS renders inline (glyph icon
     # names arrive on nodes/sections; the renderer looks each up here). Single source of
