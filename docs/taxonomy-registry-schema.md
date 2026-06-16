@@ -10,6 +10,11 @@ migrations can render and validate from data instead of hardcoded branches.
 The data source is `sonaloop/primitive_taxonomy.json`; the loader and linter are
 in `sonaloop/primitive_taxonomy_registry.py`.
 
+Current integration: `sonaloop/web/_primitive_taxonomy.py` consumes the registry
+for Library families, primitive presentation and active primitive form cards.
+Storage semantics are unchanged; compatibility aliases keep old subtype URL
+filters such as `red_team`, `ab_variant` and `prototype_session` working.
+
 ## Top-level document
 
 ```json

@@ -55,3 +55,25 @@ def test_registry_rejects_unknown_custom_forms_by_default():
     data = reg.load_registry()
     assert data["custom_form_policy"]["default"] == "reject_unknown"
     assert reg.resolve_form("council", "totally_new_llm_format") is None
+
+
+def test_web_taxonomy_helpers_are_registry_backed():
+    from sonaloop.web._primitive_taxonomy import (
+        FAMILIES,
+        PRIMITIVES,
+        primitive_family,
+        primitive_subtypes,
+        subtype_label,
+        subtype_value,
+    )
+
+    data = reg.load_registry()
+    assert [f["id"] for f in data["families"]] == [f[0] for f in FAMILIES]
+    assert set(reg.primitive_ids()) <= set(PRIMITIVES)
+    assert primitive_family("prototype") == "material"
+
+    prototype_forms = {doc.value for doc in primitive_subtypes("prototype")}
+    assert {"prototype", "flow", "dashboard", "cards", "comparison", "model", "journey"} <= prototype_forms
+    assert not {"lofi", "midfi", "hifi"} & prototype_forms
+    assert subtype_value("prototype", {"type": "model", "fidelity": "midfi"}) == "model"
+    assert subtype_label("model") == "Model prototype"

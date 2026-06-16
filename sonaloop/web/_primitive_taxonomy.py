@@ -11,8 +11,10 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import Any
 
-from .. import presentation as _pres
+from .. import primitive_taxonomy_registry as _registry
 from ._i18n import t
+
+_REGISTRY = _registry.assert_valid_registry()
 
 
 @dataclass(frozen=True)
@@ -22,6 +24,7 @@ class Primitive:
     icon: str
     purpose_key: str
     color: str
+    description: str = ""
 
 
 @dataclass(frozen=True)
@@ -34,31 +37,17 @@ class SubtypeDoc:
     rule_de: str
 
 
-FAMILIES: tuple[tuple[str, str, str], ...] = (
-    ("frame", "primitive_family_frame", "help"),
-    ("material", "primitive_family_material", "file"),
-    ("ask", "primitive_family_ask", "councils"),
-    ("test", "primitive_family_test", "prototype"),
-    ("capture", "primitive_family_capture", "panel"),
-    ("conclude", "primitive_family_conclude", "syntheses"),
-    ("structure", "primitive_family_structure", "squareGrid"),
+FAMILIES: tuple[tuple[str, str, str], ...] = tuple(
+    (str(f["id"]), f"primitive_family_{f['id']}", str(f.get("icon") or "square"))
+    for f in _REGISTRY["families"]
 )
 
 
 PRIMITIVES: dict[str, Primitive] = {
-    "open_question": Primitive("open_question", "frame", "help", "primitive_open_question_purpose", "#c98218"),
-    "hypothesis": Primitive("hypothesis", "frame", "target", "primitive_hypothesis_purpose", "#e0820a"),
-    "url_artifact": Primitive("url_artifact", "material", "link", "primitive_url_artifact_purpose", "#3a7bd5"),
-    "asset": Primitive("asset", "material", "file", "primitive_asset_purpose", "#5f6f7a"),
-    "council": Primitive("council", "ask", "councils", "primitive_council_purpose", "#6d5ef0"),
-    "survey": Primitive("survey", "ask", "plan", "primitive_survey_purpose", "#6b7cff"),
-    "prototype": Primitive("prototype", "test", "prototype", "primitive_prototype_purpose", "#0f9d8f"),
-    "session": Primitive("session", "test", "activity", "primitive_session_purpose", "#3d7fc4"),
-    "note": Primitive("note", "capture", "panel", "primitive_note_purpose", "#ff9800"),
-    "synthesis": Primitive("synthesis", "conclude", "syntheses", "primitive_synthesis_purpose", "#6d5ef0"),
-    "report": Primitive("report", "conclude", "syntheses", "primitive_report_purpose", "#6d5ef0"),
-    "decision": Primitive("decision", "conclude", "flag", "primitive_decision_purpose", "#c0476b"),
-    "section": Primitive("section", "structure", "squareGrid", "primitive_section_purpose", "#8a6d3b"),
+    str(p["id"]): Primitive(str(p["id"]), str(p["family"]), str(p.get("icon") or "square"),
+                            f"primitive_{p['id']}_purpose", str(p.get("color") or "#9aa0a6"),
+                            str(p.get("description") or ""))
+    for p in _REGISTRY["primitives"]
 }
 
 
@@ -248,6 +237,73 @@ SUBTYPE_DOCS: dict[str, tuple[SubtypeDoc, ...]] = {
 }
 
 
+_LEGACY_SUBTYPE_DOCS = SUBTYPE_DOCS
+_LEGACY_BY_KIND_VALUE: dict[str, dict[str, SubtypeDoc]] = {
+    kind: {doc.value: doc for doc in docs} for kind, docs in _LEGACY_SUBTYPE_DOCS.items()
+}
+_SUBTYPE_LABELS: dict[str, str] = {}
+_SUBTYPE_LABEL_KEYS: dict[str, str] = {
+    doc.value: doc.label_key for docs in _LEGACY_SUBTYPE_DOCS.values() for doc in docs
+}
+_LIBRARY_VALUE_PRIORITY: dict[str, tuple[str, ...]] = {
+    "url_artifact": ("website", "external_prototype", "ab_variant"),
+    "council": ("discovery", "evaluation", "decision", "head_to_head",
+                "red_team", "price_ladder", "ideation"),
+    "survey": ("single_survey", "multi_survey", "scale_survey", "text_survey", "survey"),
+    "session": ("walkthrough_session", "prototype_session", "live_session"),
+    "note": ("observation_note", "concept_note"),
+    "asset": ("image", "screenshot", "document", "file"),
+    # `prototype` is the compatibility alias for the registered app form. Fidelity
+    # (lofi/midfi/hifi) is now an orthogonal parameter, not a Library form.
+    "prototype": ("prototype", "flow", "dashboard", "cards", "comparison", "model", "journey"),
+}
+
+
+def _form_values_for_library(form: dict[str, Any]) -> list[str]:
+    primitive = str(form.get("primitive") or "")
+    candidates = [str(form.get("id") or "")] + [str(a) for a in form.get("aliases") or []]
+    priority = _LIBRARY_VALUE_PRIORITY.get(primitive, ())
+    values = [value for value in priority if value in candidates]
+    if values:
+        return values
+    return [str(form.get("id") or "")]
+
+
+def _registry_subtype_docs() -> dict[str, tuple[SubtypeDoc, ...]]:
+    grouped: dict[str, list[SubtypeDoc]] = {}
+    for form in _REGISTRY["forms"]:
+        primitive = str(form.get("primitive") or "")
+        if primitive == "edge":
+            continue
+        form_id = str(form.get("id") or "")
+        aliases = [str(a) for a in form.get("aliases") or []]
+        alias_text = ", ".join(aliases) if aliases else form_id
+        for value in _form_values_for_library(form):
+            legacy = _LEGACY_BY_KIND_VALUE.get(primitive, {}).get(value)
+            if legacy:
+                doc = legacy
+            else:
+                label = str(form.get("label") or value.replace("_", " ").title())
+                meaning = str(form.get("description") or label)
+                rule_en = f"Registry form {primitive}/{form_id}; accepted tokens: {alias_text}."
+                rule_de = f"Registry-Form {primitive}/{form_id}; akzeptierte Tokens: {alias_text}."
+                doc = SubtypeDoc(value, f"subtype_{value}", meaning, meaning, rule_en, rule_de)
+            grouped.setdefault(primitive, []).append(doc)
+            _SUBTYPE_LABELS[value] = str(form.get("label") or value.replace("_", " ").title())
+    for kind, docs in _LEGACY_SUBTYPE_DOCS.items():
+        existing = {doc.value for doc in grouped.get(kind, [])}
+        for doc in docs:
+            if kind == "prototype" and doc.value in {"lofi", "midfi", "hifi"}:
+                continue
+            if doc.value not in existing:
+                grouped.setdefault(kind, []).append(doc)
+                _SUBTYPE_LABELS.setdefault(doc.value, doc.value.replace("_", " ").title())
+    return {kind: tuple(docs) for kind, docs in grouped.items()}
+
+
+SUBTYPE_DOCS = _registry_subtype_docs()
+
+
 def family_label(family: str) -> str:
     if family not in {value for value, _label, _icon in FAMILIES}:
         return family
@@ -268,7 +324,10 @@ def primitive_color(kind: str) -> str:
 
 def primitive_purpose(kind: str) -> str:
     p = PRIMITIVES.get(kind)
-    return t("primitive_" + p.kind + "_purpose") if p and p.purpose_key else ""
+    if not p or not p.purpose_key:
+        return ""
+    label = t("primitive_" + p.kind + "_purpose")
+    return p.description if label == "primitive_" + p.kind + "_purpose" else label
 
 
 def primitive_subtypes(kind: str) -> tuple[SubtypeDoc, ...]:
@@ -302,7 +361,7 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
                 return value
         return str(rec.get("mode") or "discovery")
     if kind == "prototype":
-        return str(rec.get("fidelity") or _pres.default_discriminator(kind))
+        return str(rec.get("type") or "prototype")
     if kind == "session":
         subject = rec.get("subject") or {}
         sk = subject.get("kind") or ""
@@ -326,5 +385,8 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
 def subtype_label(value: str) -> str:
     if not value:
         return ""
-    label = t("subtype_" + value)
-    return value.replace("_", " ").title() if label == "subtype_" + value else label
+    raw_key = "subtype_" + value
+    label = t("subtype_" + value) if value in _SUBTYPE_LABEL_KEYS else raw_key
+    if label == raw_key and value in _SUBTYPE_LABELS:
+        return _SUBTYPE_LABELS[value]
+    return value.replace("_", " ").title() if label == raw_key else label

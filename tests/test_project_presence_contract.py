@@ -62,7 +62,7 @@ def test_product_taxonomy_groups_match_user_model():
     assert primitive_family("url_artifact") == "material"
     assert primitive_family("council") == "ask"
     assert primitive_family("survey") == "ask"
-    assert primitive_family("prototype") == "test"
+    assert primitive_family("prototype") == "material"
     assert primitive_family("session") == "test"
     assert primitive_family("note") == "capture"
     assert primitive_family("synthesis") == "conclude"
