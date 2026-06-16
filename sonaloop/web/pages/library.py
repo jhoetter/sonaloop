@@ -14,7 +14,7 @@ from ._ctx import *  # noqa: F401,F403  (shared render toolkit)
 from .sessions import _sessions_section
 from .. import ui
 from .._html import register_css
-from .._filterbar import filter_bar, parse_multi
+from .._filterbar import filter_bar, filter_url, parse_multi
 from .._forms import overflow_delete
 from .edit import note_actions, section_actions
 from .._presence import asset_direction, record_status, status_filter_label
@@ -278,6 +278,33 @@ def _library_taxonomy_map(active_tab: str) -> str:
              h("div", {"class_": "sl-libmap-grid"}, fragment(*rows)))
 
 
+def _active_subform_guide(tab: str, kind: str, base: str) -> str:
+    """Always-visible guide for the active Library primitive.
+
+    This is the lightweight layer users need while operating the Library:
+    "what forms can this current primitive take?" The full all-primitive map
+    remains available below as a collapsed reference.
+    """
+    docs = primitive_subtypes(kind)
+    if not docs:
+        return ""
+    de = _lang() == "de"
+    title = ("Formen in diesem Library-Tab" if de else "Forms in this Library tab")
+    cards = []
+    for d in docs:
+        href = filter_url(base, {"subtype": [d.value]})
+        cards.append(h("a", {"class_": "sl-subform", "href": href},
+                       h("span", {"class_": "sl-subform__label"}, subtype_label(d.value)),
+                       h("span", {"class_": "sl-subform__body"}, d.meaning_de if de else d.meaning_en)))
+    return h("section", {"class_": "sl-subforms", "data-tab": tab},
+             h("div", {"class_": "sl-subforms__head"},
+               raw(_icon("tag")),
+               h("b", {}, title),
+               h("span", {}, "·"),
+               h("span", {}, t("subtype_h"))),
+             h("div", {"class_": "sl-subforms__grid"}, fragment(*cards)))
+
+
 def _library_nav(active_tab: str) -> str:
     """Two-level Library navigation: users first choose the role a primitive plays, then the
     specific primitive inside that role. This keeps the mental model visible instead of showing
@@ -337,6 +364,7 @@ def library_page(tab: str = "questions", store: Store | None = None, *,
     selected = {k: v for k, v in (flt or {}).items()}
     entries = _tab_entries(tab, store, sessions=sessions)
     facets = _library_facets(entries, store, with_direction=tab == "assets")
+    subforms = _active_subform_guide(tab, tab_kind, base0)
     bar = (str(filter_bar(base, facets, selected,
                           search={"value": q,
                                   "placeholder": t("search_tab_ph", tab=tab_label())}))
@@ -368,13 +396,13 @@ def library_page(tab: str = "questions", store: Store | None = None, *,
                           empty_action=(t("clear_filter"), base0, "filter"),
                           active="library",
                           pre=(str(tabs_html) + _taxonomy_context(tab, tab_kind)
-                               + bar + pre_extra + _library_taxonomy_map(tab)),
+                               + subforms + bar + pre_extra + _library_taxonomy_map(tab)),
                           count=0)
     return _list_page(store, title=t("library_h"), lead=lead(), rows=rows,
                       empty_icon=icon, empty_msg=empty_msg(), empty_teach=teach(),
                       active="library",
                       pre=(str(tabs_html) + _taxonomy_context(tab, tab_kind)
-                           + bar + pre_extra + _library_taxonomy_map(tab)),
+                           + subforms + bar + pre_extra + _library_taxonomy_map(tab)),
                       count=len(rows))
 
 
@@ -647,6 +675,18 @@ register_css(
     ".sl-taxctx__family{color:var(--ink);font-weight:650}"
     ".sl-taxctx__dot{color:var(--faint)}"
     ".sl-taxctx__purpose{max-width:78ch}"
+    ".sl-subforms{margin:10px 0 12px;padding:10px;border:1px solid var(--line);border-radius:var(--radius);"
+    "background:var(--panel)}"
+    ".sl-subforms__head{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:var(--t-sm);"
+    "margin-bottom:8px}"
+    ".sl-subforms__head svg{width:15px;height:15px;color:var(--accent)}"
+    ".sl-subforms__head b{color:var(--ink)}"
+    ".sl-subforms__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}"
+    ".sl-subform{display:grid;gap:4px;text-decoration:none;color:inherit;border:1px solid var(--line);"
+    "border-radius:var(--radius-sm);background:var(--bg);padding:9px}"
+    ".sl-subform:hover{border-color:color-mix(in srgb,var(--accent) 42%,var(--line));background:var(--panel-2)}"
+    ".sl-subform__label{font-weight:700;color:var(--ink);font-size:var(--t-sm)}"
+    ".sl-subform__body{color:var(--muted);font-size:var(--t-xs);line-height:1.35}"
     ".sl-libmap{margin:12px 0 12px;border:1px solid var(--line);border-radius:var(--radius);"
     "background:var(--panel);overflow:hidden}"
     ".sl-libmap>summary{display:flex;gap:10px;align-items:baseline;justify-content:space-between;"

@@ -202,6 +202,7 @@ def test_library_subtype_filter_separates_council_formats(store):
 
 def test_library_explains_primitives_and_subforms(store):
     html = _client().get("/library?tab=councils&lang=en").text
+    assert "Forms in this Library tab" in html
     assert "Library primitives and their real subforms" in html
     assert "Red-team" in html and "red_team" in html
     assert "Head-to-head" in html and "head_to_head" in html
