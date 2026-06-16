@@ -24,7 +24,8 @@ def register_projects(app) -> None:
     def project_detail(project_id: str, view: str = "list",
                        kind: str = Query(default=""), phase: str = Query(default=""),
                        persona: str = Query(default=""), status: str = Query(default=""),
-                       theme: str = Query(default=""), q: str = Query(default="")) -> str:
+                       theme: str = Query(default=""), trace: str = Query(default=""),
+                       q: str = Query(default="")) -> str:
         if view == "files":
             # The project FILES lens (UX U8 §8.3): all assets chronologically, in + out —
             # reachable from the header's "N files" chip; same scaffold, same rows.
@@ -80,7 +81,7 @@ def register_projects(app) -> None:
         from .._filterbar import filter_bar, parse_multi
         selected = {"kind": parse_multi(kind), "phase": parse_multi(phase),
                     "persona": parse_multi(persona), "status": parse_multi(status),
-                    "theme": parse_multi(theme)}
+                    "theme": parse_multi(theme), "trace": parse_multi(trace)}
         facets: list = []
         display_graph = dict(graph)
         display_graph["outline_edges"] = augment_project_graph(

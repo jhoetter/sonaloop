@@ -108,6 +108,31 @@ def test_outline_status_persona_and_phase_facets_are_honest(store):
     assert "council" in _rkinds(html)                           # the discover-phase council
 
 
+def test_outline_trace_facet_filters_consumed_rows(store):
+    ids = _seed(store)
+    pid = ids["project_id"]
+    client = _client()
+    full = client.get(f"/projects/{pid}?lang=en").text
+    assert "Trace" in full and "used" in full                    # the trace facet is advertised
+    html = client.get(f"/projects/{pid}?trace=consumed&lang=en").text
+    assert "council" in _rkinds(html)                            # council feeds the decision
+    assert "Pick A" not in html                                  # terminal decision is not consumed
+    assert "sl-filter-chip" in html and "Trace" in html
+
+
+def test_outline_trace_facet_filters_orphaned_rows(store):
+    proj = services.create_research_project("Trace filter", goal="g", store=store)
+    services.record_survey(
+        proj["id"], "Unconsumed survey",
+        [{"id": "q1", "text": "Still useful?", "kind": "single", "options": ["yes", "no"]}],
+        status="open", store=store)
+    services.record_frame(proj["id"], "frame__root", ["What needs tracing?"],
+                          memory_refs=["note:seed"], store=store)
+    html = _client().get(f'/projects/{proj["id"]}?trace=orphaned&lang=en').text
+    assert _rkinds(html) == {"survey"}
+    assert "Unconsumed survey" in html and "unused" in html
+
+
 def test_outline_facet_menu_carries_counts_over_the_unfiltered_set(store):
     ids = _seed(store)
     pid = ids["project_id"]

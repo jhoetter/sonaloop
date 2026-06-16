@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import html
+import re
+
 from starlette.testclient import TestClient
 
 from sonaloop import services, web
@@ -26,9 +29,14 @@ def test_detail_relations_use_augmented_project_trace_edges(store):
     services.record_judgment(pid, verify["id"], "trace_closed", True, "survey proves it",
                              evidence_refs=[f"survey:{survey['id']}"], store=store)
 
-    html = TestClient(web.create_app()).get(f"/surveys/{survey['id']}?lang=en").text
-    assert "Relations" in html
-    assert "Feeds into" in html
-    assert "Trace report" in html
-    assert "used by gate" in html
+    client = TestClient(web.create_app())
+    outline = client.get(f"/projects/{pid}?lang=en").text
+    m = re.search(rf'data-oid="{re.escape(survey["id"])}"[^>]*data-rel-out="([^"]*)"', outline)
+    assert m, "survey row is missing its outline trace relation"
+    assert f"synthesis:{syn['id']}" in html.unescape(m.group(1))
 
+    detail = client.get(f"/surveys/{survey['id']}?lang=en").text
+    assert "Relations" in detail
+    assert "Feeds into" in detail
+    assert "Trace report" in detail
+    assert "used by gate" in detail

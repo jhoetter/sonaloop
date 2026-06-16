@@ -49,7 +49,7 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
     (absorbed as phase rows via _graph_outline_extras) — all built by the page route which holds the
     Store, and optional so other callers keep the bare signature.
 
-    U10/V1 (ux-contract §8.5, §9 V1): `filters` = {kind/phase/persona/status/theme -> [values]}
+    U10/V1 (ux-contract §8.5, §9 V1): `filters` = {kind/phase/persona/status/theme/trace -> [values]}
     applies the Linear-grade facet filter SERVER-SIDE (OR within a facet, AND across; rows and
     phase groups that filter to zero disappear, group counts stay honest); `q` is the text
     search (title + chip text, case/diacritic-insensitive) composing with the facets;
@@ -254,11 +254,40 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
     def _fthemes(it: dict) -> list[str]:
         return [themes[ti]["id"] for ti in node_themes.get(it["oid"], [])]
 
+    def _rel_keys(it: dict) -> set[str]:
+        oid, rk = str(it.get("oid", "")), str(it.get("rkind", ""))
+        keys = {oid} if oid else set()
+        if oid and rk and ":" not in oid:
+            keys.add(f"{rk}:{oid}")
+        if rk == "report" and oid:
+            keys.add(f"synthesis:{oid}")
+        if rk == "synthesis" and oid and ":" not in oid:
+            keys.add(f"report:{oid}")
+        return keys
+
+    edge_source = graph.get("outline_edges") or graph.get("edges") or []
+    trace_health = graph.get("trace_health") or trace_node_health(
+        [{"study_id": k, "kind": it.get("rkind", "")}
+         for it in items for k in _rel_keys(it)],
+        edge_source, graph.get("plan"))
+    for it in items:
+        keys = sorted(_rel_keys(it), key=lambda k: (":" not in k, k))
+        it["trace_health"] = next((trace_health[k] for k in keys
+                                   if k in trace_health), "")
+
+    def _ftrace(it: dict) -> str:
+        return str(it.get("trace_health") or "")
+
+    def _trace_label(state: str) -> str:
+        return t(f"trace_{state}") if state in {
+            "source", "active", "consumed", "terminal", "parked", "orphaned"
+        } else state
+
     flt = {k: v for k, v in (filters or {}).items() if v}
     if facets_out is not None:
         kinds: Counter = Counter(); phases: Counter = Counter()
         crew_n: Counter = Counter(); statuses: Counter = Counter()
-        theme_n: Counter = Counter()
+        theme_n: Counter = Counter(); traces: Counter = Counter()
         flabel: dict[tuple, str] = {}
         for it in items:
             fk = _fkind(it)
@@ -279,6 +308,10 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
                 flabel.setdefault(("status", st), status_filter_label(it.get("rkind", ""), st))
             for tid in _fthemes(it):
                 theme_n[tid] += 1
+            tr = _ftrace(it)
+            if tr:
+                traces[tr] += 1
+                flabel.setdefault(("trace", tr), _trace_label(tr))
         facets_out.extend([
             {"key": "kind", "label": t("type_h"), "icon": "square",
              "options": [{"value": k, "label": flabel[("kind", k)], "count": n}
@@ -299,6 +332,9 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
             {"key": "status", "label": t("status_h"), "icon": "flag",
              "options": [{"value": s, "label": flabel[("status", s)], "count": n}
                          for s, n in statuses.most_common()]},
+            {"key": "trace", "label": t("trace_h"), "icon": "link",
+             "options": [{"value": s, "label": flabel[("trace", s)], "count": n}
+                         for s, n in traces.most_common()]},
         ])
     if flt or q:
         import re as _re
@@ -322,6 +358,8 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
                 return False
             if flt.get("theme") and not set(_fthemes(it)) & set(flt["theme"]):
                 return False
+            if flt.get("trace") and _ftrace(it) not in flt["trace"]:
+                return False
             if q and not _q_match(q, _blob(it)):
                 return False
             return True
@@ -331,30 +369,10 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
                          empty_filter_state(clear_href or "?")))
     # -----------------------------------------------------------------------------------
 
-    def _rel_keys(it: dict) -> set[str]:
-        oid, rk = str(it.get("oid", "")), str(it.get("rkind", ""))
-        keys = {oid} if oid else set()
-        if oid and rk and ":" not in oid:
-            keys.add(f"{rk}:{oid}")
-        if rk == "report" and oid:
-            keys.add(f"synthesis:{oid}")
-        if rk == "synthesis" and oid and ":" not in oid:
-            keys.add(f"report:{oid}")
-        return keys
-
     rel_lookup: dict[str, str] = {}
     for it in items:
         for k in _rel_keys(it):
             rel_lookup[k] = str(it["oid"])
-    edge_source = graph.get("outline_edges") or graph.get("edges") or []
-    trace_health = graph.get("trace_health") or trace_node_health(
-        [{"study_id": k, "kind": it.get("rkind", "")}
-         for it in items for k in _rel_keys(it)],
-        edge_source, graph.get("plan"))
-    for it in items:
-        keys = sorted(_rel_keys(it), key=lambda k: (":" not in k, k))
-        it["trace_health"] = next((trace_health[k] for k in keys
-                                   if k in trace_health), "")
     rel_in: dict[str, set[str]] = {str(it["oid"]): set() for it in items}
     rel_out: dict[str, set[str]] = {str(it["oid"]): set() for it in items}
     for e in edge_source:
