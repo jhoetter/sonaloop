@@ -144,7 +144,7 @@ def test_persona_create_stays_mcp_only():
 def test_persona_catalog_link_page_and_pull(monkeypatch):
     monkeypatch.setattr(services, "catalog_search", lambda *a, **k: {
         "items": [{"slug": "amelie-duval", "display_name": "Amelie Duval",
-                   "role": "Commodity Director", "has_avatar": False, "tier": "free",
+                   "role": "Commodity Director", "has_avatar": True, "tier": "free",
                    "facets": {"tier": ["free"]}}],
         "total": 1,
         "has_more": False,
@@ -165,6 +165,8 @@ def test_persona_catalog_link_page_and_pull(monkeypatch):
     assert "Persona catalog" in cat_html
     assert "Amelie Duval" in cat_html
     assert "free" in cat_html
+    assert 'class="catalog-avatar"' in cat_html
+    assert 'width="28" height="28"' in cat_html
     r = _post(client, "/personas/catalog/pull", slug="amelie-duval")
     assert r.status_code == 303 and r.headers["location"] == "/personas/persona_amelie"
 
