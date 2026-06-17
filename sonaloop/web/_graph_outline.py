@@ -280,9 +280,15 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         return str(it.get("trace_health") or "")
 
     def _trace_label(state: str) -> str:
-        return t(f"trace_{state}") if state in {
-            "source", "active", "consumed", "terminal", "parked", "orphaned"
-        } else state
+        labels = {
+            "source": t("trace_source"),
+            "active": t("trace_active"),
+            "consumed": t("trace_consumed"),
+            "terminal": t("trace_terminal"),
+            "parked": t("trace_parked"),
+            "orphaned": t("trace_orphaned"),
+        }
+        return labels.get(state, state)
 
     flt = {k: v for k, v in (filters or {}).items() if v}
     if facets_out is not None:

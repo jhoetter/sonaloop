@@ -15,6 +15,7 @@ from sonaloop import artifacts, browser, services
 _FLOW = {"kind": "flow", "id": "flow-signup", "label": "Signup flow"}
 _PROTO = {"kind": "prototype", "id": "proto-signup", "label": "Signup prototype"}
 _LIVE = {"kind": "live_url", "url": "https://example.test/signup", "label": "Signup live"}
+_VARIANT = {"kind": "variant", "id": "variant-a", "label": "Signup variant A"}
 
 
 def _step(i, *, friction="none", would_continue=True, reason="", screen=None, **state):
@@ -38,6 +39,19 @@ def _record(store, subject, fidelity, steps=None, outcome=None, **kw):
         "pX", subject, fidelity, "2026-06-10",
         steps if steps is not None else [_step(0), _step(1)],
         outcome if outcome is not None else _outcome(), store=store, **kw)
+
+
+def test_session_form_classifies_subjects_and_legacy_reactions():
+    assert services.session_form({"subject": _FLOW}) == "walkthrough"
+    assert services.session_form({"subject": _PROTO}) == "prototype_use"
+    assert services.session_form({"subject": _LIVE}) == "live_use"
+    assert services.session_form({"prototype_id": "proto_1"}) == "prototype_use"
+    assert services.session_form({
+        "subject": _VARIANT,
+        "variants": ["A", "B"],
+        "assignment": {"persona": "A"},
+        "order_shown": ["A", "B"],
+    }) == "variant_test"
 
 
 # --------------------------------------------------------------- round-trip across the three rungs

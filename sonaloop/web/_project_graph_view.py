@@ -108,10 +108,10 @@ def augment_project_graph(graph: dict, *, sessions: dict[str, dict], decisions: 
              subtype=subtype_value("survey", s), phase=_phase(out, s.get("created_at", "")),
              extra={"status": s.get("status", "draft")})
 
-    for h in hypotheses:
-        _add(nodes, seen, kind="hypothesis", rid=h["id"], title=h.get("text", ""),
-             created_at=h.get("created_at", ""), href=f'/hypotheses/{h["id"]}',
-             phase=_phase(out, h.get("created_at", "")), extra={"status": h.get("status", "open")})
+    for hyp in hypotheses:
+        _add(nodes, seen, kind="hypothesis", rid=hyp["id"], title=hyp.get("text", ""),
+             created_at=hyp.get("created_at", ""), href=f'/hypotheses/{hyp["id"]}',
+             phase=_phase(out, hyp.get("created_at", "")), extra={"status": hyp.get("status", "open")})
 
     for d in decisions:
         _add(nodes, seen, kind="decision", rid=d["id"], title=d.get("title", ""),

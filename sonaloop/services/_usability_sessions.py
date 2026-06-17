@@ -15,6 +15,7 @@ from typing import Any
 
 from .. import artifacts as _A
 from .. import browser as _browser
+from .. import primitive_taxonomy_registry as _taxonomy_registry
 from .. import prototypes as _proto
 from .. import walk_policy as _wp
 from .. import config
@@ -26,7 +27,7 @@ from ._authoring import PRIMITIVES_CONTRACT
 from ._common import _require_persona, stable_id
 
 
-_SUBJECT_KINDS = ("flow", "prototype", "live_url")
+_SUBJECT_KINDS = ("flow", "prototype", "live_url", "variant")
 _FIDELITIES = ("artifact", "prototype", "live")
 _ACTION_TYPES = ("look", "click", "type", "select", "scroll", "key", "navigate", "back",
                  "wait", "give_up")
@@ -56,6 +57,36 @@ def _validate_subject(subject: Any) -> dict[str, Any]:
 
 def _subject_key(subject: dict[str, Any]) -> str:
     return str(subject.get("id") or subject.get("url") or "")
+
+
+def session_form(session: dict[str, Any]) -> str:
+    """Classify usability/prototype-session records through the form registry.
+
+    A `flow` subject is material; the test run form is `walkthrough`. Legacy
+    PrototypeSession records have `prototype_id` rather than a `subject`, and
+    still resolve to `prototype_use`.
+    """
+    subject = session.get("subject") or {}
+    if session.get("variants") or subject.get("kind") == "variant":
+        alias = "variant_test"
+    elif session.get("prototype_id") and not subject:
+        alias = "prototype_session"
+    else:
+        alias = {
+            "flow": "walkthrough_session",
+            "prototype": "prototype_session",
+            "live_url": "live_session",
+        }.get(str(subject.get("kind") or ""), str(subject.get("kind") or ""))
+    form = _taxonomy_registry.resolve_form("session", alias)
+    return str((form or {}).get("id") or alias)
+
+
+def session_form_definition(session: dict[str, Any]) -> dict[str, Any]:
+    form_id = session_form(session)
+    form = _taxonomy_registry.resolve_form("session", form_id)
+    if form is None:
+        raise KeyError(f"No registered session form '{form_id}'")
+    return form
 
 
 def _require_fidelity(fidelity: str) -> None:

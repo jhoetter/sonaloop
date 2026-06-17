@@ -82,6 +82,8 @@ def test_expected_tools_registered():
         "get_hypothesis", "list_hypotheses",
         # authoring vocabularies (the stance scale is the CLOSED set every stance resolves onto):
         "suggest_stances", "suggest_finding_kinds",
+        # primitive/form taxonomy registry:
+        "list_primitives", "list_forms", "get_form", "suggest_forms",
     }
     missing = expected - names
     assert not missing, f"MCP tools missing: {sorted(missing)}"
@@ -165,6 +167,25 @@ def test_register_methodology_errors_carry_stable_code_over_mcp():
         asyncio.run(server.call_tool("register_methodology", {"spec": {
             "key": "double_diamond", "name": "Shadow", "description": "d", "when_to_use": "w",
             "steps": [{"id": "a", "name": "A"}, {"id": "b", "name": "B", "consumes": ["a"]}]}}))
+
+
+def test_specialized_mcp_council_tools_remain_registry_compatible():
+    """Old MCP clients can keep calling the specialized tools; the recorded rows still classify
+    through canonical registry forms."""
+    from sonaloop import services
+
+    server = build_server()
+    proj = _call(server, "start_project", {"title": "Compat", "goal": "g"})["data"]
+    h2h = _call(server, "record_head_to_head", {
+        "project_id": proj["id"], "prompt": "A or B?", "options": ["A", "B"], "key": "compat-h2h",
+    })["data"]
+    rt = _call(server, "record_red_team", {
+        "project_id": proj["id"], "prompt": "What breaks?", "objections": [], "key": "compat-rt",
+    })["data"]
+    assert services.council_form(h2h) == "option_comparison"
+    assert services.council_form(rt) == "objection_review"
+    assert _call(server, "get_head_to_head", {"session_id": h2h["id"]})["ok"]
+    assert _call(server, "get_red_team", {"session_id": rt["id"]})["ok"]
 
 
 def test_suggest_stances_matches_scale_data():

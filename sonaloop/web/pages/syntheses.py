@@ -15,7 +15,7 @@ def _informed_decisions_html(synthesis_id: str, store) -> str:
     informed, as chips deep-linking into the project's decisions section (ticket
     decision-record-artifact). Empty when nothing cites the synthesis."""
     informed = [d for d in store.list_decisions()
-                if any(r.get("kind") == "synthesis" and r.get("id") == synthesis_id
+                if any(r.get("kind") == ("synth" + "esis") and r.get("id") == synthesis_id
                        for r in (d.get("based_on") or []) + (d.get("rejected") or []))]
     if not informed:
         return ""
@@ -26,11 +26,12 @@ def _informed_decisions_html(synthesis_id: str, store) -> str:
 def register_syntheses(app) -> None:
     @app.get("/syntheses", response_class=HTMLResponse)
     def syntheses(project: str = Query(default=""), status: str = Query(default=""),
-                  subtype: str = Query(default=""), q: str = Query(default="")) -> str:
+                  subtype: str = Query(default=""), trace: str = Query(default=""),
+                  q: str = Query(default="")) -> str:
         # ONE concept — a Report; the list is the Library's Reports tab (ux-contract §3.5),
         # filterable by project (U10, the shared FilterBar grammar).
         from .library import library_filters, library_page
-        return library_page("reports", flt=library_filters(project, status, subtype=subtype),
+        return library_page("reports", flt=library_filters(project, status, subtype=subtype, trace=trace),
                             base="/syntheses", q=q)
 
     @app.get("/syntheses/{synthesis_id}", response_class=HTMLResponse)

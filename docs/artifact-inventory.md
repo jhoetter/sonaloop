@@ -130,6 +130,22 @@ completed without non-frame produced evidence linked to the plan. Treat that as 
 repair instruction: record or identify the output, call `link_evidence`, or park
 it explicitly before continuing the run.
 
+### Task ownership vs. visible trace
+
+`task.produces` is plan provenance, not a project primitive. The project outline
+does **not** render task nodes or `task_produces` edges as visible rows because that
+would introduce an orchestration vocabulary next to user-facing primitives. Instead:
+
+- the task remains visible in the Plan drawer;
+- the produced primitive appears as its own Library/outline row;
+- `link_evidence` records ownership in `task.produces`;
+- `record_judgment(..., evidence_refs=[...])` creates visible `judgment_evidence`
+  edges from real evidence primitives to the convergence output.
+
+In short: tasks explain how the run was governed; trace edges explain how artifacts
+flowed. If an output is produced but should not feed a later gate, park it explicitly
+with a reason rather than inventing a task-only visual edge.
+
 ## Product rules
 
 The Library must stay a complete cross-project browser for these primitives.

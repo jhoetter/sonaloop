@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Exception Handoff Pilot</title>
+<title>Exception handoff pilot</title>
 <style>
   :root{--ink:#1c1e21;--muted:#6b7177;--line:#e7e7e3;--panel:#fff;--bg:#f7f7f5;--accent:#2f6f9f;}
   *{box-sizing:border-box}
@@ -30,11 +30,11 @@
 </style>
 </head>
 <body>
-<header><h1 id="apptitle">Exception Handoff Pilot</h1><div class="sub" id="appsummary">A mid-fi shift handover queue that captures unresolved exceptions, owner, urgency, and next action.</div></header>
+<header><h1 id="apptitle">Exception handoff pilot</h1><div class="sub" id="appsummary">A two-screen flow for shift leads to capture one exception and see owner/date/status follow-up.</div></header>
 <nav id="nav"></nav>
 <main id="screens"></main>
 <div id="toast"></div>
-<script id="concept" type="application/json">{"title": "Exception Handoff Pilot", "summary": "A mid-fi shift handover queue that captures unresolved exceptions, owner, urgency, and next action.", "start": "queue", "screens": [{"id": "queue", "title": "Open exceptions", "body": "Shift-critical exceptions with owner and next action.", "elements": [{"id": "blocker", "kind": "text", "text": "Forklift battery fault — Owner: Nina — Next: confirm replacement charger before 14:00"}, {"id": "add", "kind": "button", "label": "Add exception", "goto": "capture", "action": "capture"}]}, {"id": "capture", "title": "Capture exception", "body": "Name the blocker, owner, and next action in under one minute.", "elements": [{"id": "owner", "kind": "input", "label": "Owner", "placeholder": "Who owns the next action?"}, {"id": "next", "kind": "input", "label": "Next action", "placeholder": "What must happen next?"}, {"id": "save", "kind": "button", "label": "Save handoff", "goto": "queue", "action": "queue"}]}]}</script>
+<script id="concept" type="application/json">{"title": "Exception handoff pilot", "summary": "A two-screen flow for shift leads to capture one exception and see owner/date/status follow-up.", "start": "capture", "screens": [{"id": "capture", "title": "Capture exception", "elements": [{"id": "intro", "kind": "text", "text": "Capture one exception that the next shift must not reconstruct."}, {"id": "issue", "kind": "input", "label": "Issue summary"}, {"id": "previous_action", "kind": "input", "label": "Previous action"}, {"id": "consequence", "kind": "input", "label": "Operational consequence"}, {"id": "owner", "kind": "select", "label": "Owner", "options": ["Nina", "Tarek", "Janine"]}, {"id": "due_date", "kind": "input", "label": "Due date"}, {"id": "privacy", "kind": "text", "text": "Do not enter names from small groups unless follow-up owner needs them."}, {"id": "submit", "kind": "button", "label": "Create follow-up", "goto": "followup", "action": "followup"}]}, {"id": "followup", "title": "Follow-up list", "elements": [{"id": "summary", "kind": "text", "text": "Owner, due date, status and previous action are visible to the next shift."}, {"id": "status", "kind": "select", "label": "Status", "options": ["Open", "In progress", "Closed"]}, {"id": "fix_marker", "kind": "text", "text": "Visible fix required within one week for the pilot to count."}, {"id": "back", "kind": "button", "label": "Edit exception", "goto": "capture", "action": "capture"}]}]}</script>
 <script>
 (function(){
   var C = JSON.parse(document.getElementById('concept').textContent);

@@ -146,6 +146,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("taxonomy-lint", help="Validate taxonomy.json structural completeness (framework/"
                    "format keys, coverage, protocol blocks, doc sections). Exit code 1 on problems.")
+    sub.add_parser("primitive-list", help="List registered Library primitives from primitive_taxonomy.json.")
+    p = sub.add_parser("form-list", help="List registered primitive forms, optionally for one primitive.")
+    p.add_argument("--primitive")
+    p = sub.add_parser("form-get", help="Inspect one registered primitive form by primitive and form/alias id.")
+    p.add_argument("primitive")
+    p.add_argument("form_id")
+    p = sub.add_parser("forms-suggest", help="Show forms and payload shapes for one primitive.")
+    p.add_argument("primitive")
 
     _cli_hooks.add_hook_parsers(sub)
     _cli_substrate.add_substrate_parsers(sub)
@@ -506,6 +514,14 @@ def main(argv: list[str] | None = None) -> int:
             _print({"ok": not problems, "problems": problems})
             if problems:
                 sys.exit(1)
+        elif args.command == "primitive-list":
+            _print(services.list_primitives())
+        elif args.command == "form-list":
+            _print(services.list_forms(args.primitive))
+        elif args.command == "form-get":
+            _print(services.get_form(args.primitive, args.form_id))
+        elif args.command == "forms-suggest":
+            _print(services.suggest_forms(args.primitive))
         elif args.command in _cli_hooks.COMMANDS:
             _print(_cli_hooks.run_hook_command(args))
         elif args.command in _cli_substrate.COMMANDS:

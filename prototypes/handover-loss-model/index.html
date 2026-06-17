@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Handover loss model</title>
+<style>
+  *{box-sizing:border-box}
+  :root{--bg:#f6f7f9;--panel:#fff;--ink:#1c1e21;--muted:#697077;--line:#e6e8eb;--accent:#5b6cff;--accent-ink:#fff;--good:#0aa37f;--warn:#f29900;--r:10px;--sh:0 1px 2px rgba(16,18,28,.06);--ff:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  body[data-fidelity=lofi]{--panel:#fffef9;--line:#cfcabb;--ink:#2b2b2b;--muted:#7a756a;--accent:#5f6368;--r:14px;--sh:none;--ff:"Comic Sans MS","Segoe Print","Bradley Hand",cursive}
+  body[data-fidelity=hifi]{--bg:#fbfbfd;--panel:#fff;--ink:#0c0d12;--muted:#6b7280;--line:#ececf1;--accent:#5e6ad2;--r:8px;--sh:0 1px 3px rgba(16,18,40,.08),0 0 0 1px rgba(16,18,40,.03);--ff:Inter,-apple-system,Segoe UI,Roboto,sans-serif}
+  body{margin:0;font:15px/1.5 var(--ff);color:var(--ink);background:var(--bg)}
+  body[data-fidelity=lofi] input,body[data-fidelity=lofi] select,body[data-fidelity=lofi] .step,body[data-fidelity=lofi] .barwrap{border-style:dashed}
+  #lofi-banner{display:none}
+  body[data-fidelity=lofi] #lofi-banner{display:block;background:#fff3cd;color:#7a5b00;text-align:center;padding:5px;font-size:12px;border-bottom:1px dashed #cfcabb}
+  header{padding:16px 22px;background:var(--panel);border-bottom:1px solid var(--line)}
+  h1{font-size:18px;margin:0}.sub{color:var(--muted);font-size:13px;margin-top:2px}
+  main{max-width:680px;margin:0 auto;padding:26px 22px}
+  .rail{display:flex;align-items:center;gap:8px;margin:0 0 22px;flex-wrap:wrap}
+  .dot{display:flex;align-items:center;gap:7px;cursor:pointer;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:4px 11px 4px 4px;font-size:12px;color:var(--muted)}
+  .dot .n{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--bg);font-size:11px;font-weight:600;color:var(--muted)}
+  .dot.active{color:var(--ink);border-color:var(--accent)}.dot.active .n{background:var(--accent);color:#fff}
+  .step{display:none;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:22px}
+  .step.active{display:block}
+  .step h2{font-size:19px;margin:0 0 16px}
+  .el{margin:0 0 16px}.el label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .el p{margin:0;max-width:62ch;color:var(--ink)}
+  input,select{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:var(--r);width:100%;background:var(--bg);color:var(--ink)}
+  input[type=range]{padding:0;accent-color:var(--accent)}
+  .rangerow{display:flex;align-items:center;gap:12px}.rangerow input[type=range]{flex:1}.rangeval{font-variant-numeric:tabular-nums;font-weight:600;min-width:5ch;text-align:right}
+  .computed{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 14px;background:var(--bg);border:1px solid var(--line);border-radius:var(--r)}
+  .computed .clabel{color:var(--muted);font-size:13px}.computed .cval{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+  .barwrap{background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+  .barhead{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:7px}.barhead b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .bartrack{height:12px;background:var(--line);border-radius:999px;overflow:hidden}
+  .barfill{height:100%;background:var(--accent);border-radius:999px;transition:width .18s ease}
+  .btn{font:inherit;border:1px solid transparent;background:var(--accent);color:#fff;border-radius:var(--r);padding:10px 17px;cursor:pointer;box-shadow:var(--sh)}
+  .btn.secondary{background:var(--panel);color:var(--ink);border-color:var(--line)}
+  .nav-row{display:flex;justify-content:space-between;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div id="lofi-banner">Lo-Fi · zum Testen, nicht final</div>
+<header><h1 id="apptitle">Handover loss model</h1><div class="sub" id="appsummary">A steerable model that shows how many minutes a team loses when exceptions lack owner, due date and previous action.</div></header>
+<main><div class="rail" id="rail"></div><div id="steps"></div></main>
+<script id="concept" type="application/json">{"title": "Handover loss model", "summary": "A steerable model that shows how many minutes a team loses when exceptions lack owner, due date and previous action.", "start": "model", "fidelity": "midfi", "screens": [{"id": "model", "title": "Make handover loss visible", "elements": [{"id": "exceptions", "kind": "range", "label": "Exceptions per week", "min": 0, "max": 20, "step": 1, "value": 8}, {"id": "reconstruct", "kind": "range", "label": "Minutes to reconstruct each missing handoff", "min": 0, "max": 45, "step": 5, "value": 15}, {"id": "handoff_quality", "kind": "range", "label": "Percent resolved by owner/date/status loop", "min": 0, "max": 100, "step": 10, "value": 60}, {"id": "minutes_lost", "kind": "computed", "label": "Weekly minutes still lost", "formula": "exceptions * reconstruct * (1 - handoff_quality / 100)"}, {"id": "hours_lost", "kind": "computed", "label": "Weekly hours still lost", "formula": "minutes_lost / 60"}, {"id": "loss_bar", "kind": "bar", "label": "Remaining handover loss", "formula": "minutes_lost", "max": 900}, {"id": "verdict", "kind": "verdict", "cases": [{"when": "minutes_lost <= 60", "text": "Pilot likely pays back inside a week."}, {"when": "minutes_lost <= 180", "text": "Pilot value depends on strict owner follow-up."}, {"when": "minutes_lost > 180", "text": "Handover loss is large enough to justify a capped operational trial."}]}]}]}</script>
+<script>
+(function(){
+  var C = JSON.parse(document.getElementById('concept').textContent);
+  document.body.dataset.fidelity = C.fidelity || 'midfi';
+  document.getElementById('apptitle').textContent = C.title || 'Model';
+  document.getElementById('appsummary').textContent = C.summary || '';
+  var screens = C.screens || [], ids = screens.map(function(s){return s.id;});
+  var state = {};                      // live numeric/string inputs the model computes over
+  var computedEls = [];                // {el, node} for every computed/bar across all screens
+
+  // --- safe formula evaluator (recursive descent; NO eval): + - * / % ^, parens, unary, vars,
+  //     and min/max/round/abs/pow/floor/ceil. Variables resolve to current `state` values. ---
+  function evalFormula(expr){
+    if(typeof expr!=='string') return Number(expr)||0;
+    var toks = expr.match(/\d+\.?\d*|[A-Za-z_][A-Za-z0-9_]*|[-+*/(),%^]/g) || [];
+    var pos=0, FUNCS={min:Math.min,max:Math.max,round:Math.round,abs:Math.abs,pow:Math.pow,floor:Math.floor,ceil:Math.ceil};
+    function peek(){return toks[pos];} function next(){return toks[pos++];}
+    function add(){var v=mul();while(peek()==='+'||peek()==='-'){var o=next();var r=mul();v=o==='+'?v+r:v-r;}return v;}
+    function mul(){var v=pw();while(peek()==='*'||peek()==='/'||peek()==='%'){var o=next();var r=pw();v=o==='*'?v*r:o==='/'?(r?v/r:0):(r?v%r:0);}return v;}
+    function pw(){var v=un();if(peek()==='^'){next();return Math.pow(v,pw());}return v;}
+    function un(){if(peek()==='-'){next();return -un();}if(peek()==='+'){next();return un();}return atom();}
+    function atom(){
+      var t=peek();
+      if(t==='('){next();var v=add();if(peek()===')')next();return v;}
+      if(t!==undefined && /^\d/.test(t)){next();return parseFloat(t);}
+      if(t!==undefined && /^[A-Za-z_]/.test(t)){
+        next();
+        if(peek()==='('){next();var a=[];if(peek()!==')'){a.push(add());while(peek()===','){next();a.push(add());}}if(peek()===')')next();var f=FUNCS[t];return f?f.apply(null,a):0;}
+        return (t in state)?(Number(state[t])||0):0;
+      }
+      next();return 0;
+    }
+    try{ var r=add(); return isFinite(r)?r:0; }catch(e){ return 0; }
+  }
+  function fmt(v, el){
+    var d = (el.decimals!=null)?el.decimals:0;
+    var s = Number(v).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d});
+    return (el.prefix||'') + s + (el.suffix||'');
+  }
+  function recompute(){
+    computedEls.forEach(function(c){
+      var v = evalFormula(c.el.formula);
+      if(c.el.kind==='computed'){ c.node.textContent = fmt(v, c.el); }
+      else { // bar
+        var max = evalFormula(c.el.max!=null?c.el.max:100) || 1;
+        var pct = Math.max(0, Math.min(100, (v/max)*100));
+        c.fill.style.width = pct+'%';
+        c.val.textContent = fmt(v, c.el);
+      }
+    });
+  }
+
+  function show(id){
+    var cur=ids.indexOf(id);
+    document.querySelectorAll('.step').forEach(function(s){s.classList.toggle('active', s.dataset.id===id);});
+    document.querySelectorAll('.dot').forEach(function(d,i){d.classList.toggle('active', d.dataset.id===id);});
+  }
+  function renderEl(el){
+    var w=document.createElement('div'); w.className='el';
+    if(el.kind==='text'){ var p=document.createElement('p'); p.textContent=el.label||''; w.appendChild(p); }
+    else if(el.kind==='range'){
+      var l=document.createElement('label'); l.textContent=el.label||el.id; w.appendChild(l);
+      var row=document.createElement('div'); row.className='rangerow';
+      var r=document.createElement('input'); r.type='range'; r.id=el.id; r.min=el.min!=null?el.min:0; r.max=el.max!=null?el.max:100; r.step=el.step!=null?el.step:1; r.value=el.value!=null?el.value:r.min; r.setAttribute('aria-label',el.label||el.id);
+      var out=document.createElement('span'); out.className='rangeval'; out.textContent=fmt(Number(r.value), el);
+      state[el.id]=Number(r.value);
+      r.addEventListener('input',function(){state[el.id]=Number(r.value); out.textContent=fmt(Number(r.value), el); recompute();});
+      row.appendChild(r); row.appendChild(out); w.appendChild(row);
+    }
+    else if(el.kind==='number'){
+      var l2=document.createElement('label'); l2.textContent=el.label||el.id; w.appendChild(l2);
+      var n=document.createElement('input'); n.type='number'; n.id=el.id; if(el.min!=null)n.min=el.min; if(el.max!=null)n.max=el.max; if(el.step!=null)n.step=el.step; n.value=el.value!=null?el.value:0; n.setAttribute('aria-label',el.label||el.id);
+      state[el.id]=Number(n.value);
+      n.addEventListener('input',function(){state[el.id]=Number(n.value); recompute();}); w.appendChild(n);
+    }
+    else if(el.kind==='input'){
+      var l3=document.createElement('label'); l3.textContent=el.label||el.id; w.appendChild(l3);
+      var inp=document.createElement('input'); inp.id=el.id; if(el.placeholder)inp.placeholder=el.placeholder; inp.setAttribute('aria-label',el.label||el.id);
+      inp.addEventListener('input',function(){state[el.id]=inp.value;}); w.appendChild(inp);
+    }
+    else if(el.kind==='select'){
+      var l4=document.createElement('label'); l4.textContent=el.label||el.id; w.appendChild(l4);
+      var sel=document.createElement('select'); sel.id=el.id; (el.options||[]).forEach(function(o){var op=document.createElement('option');op.value=o;op.textContent=o;sel.appendChild(op);});
+      state[el.id]=(el.options||[])[0]||''; sel.setAttribute('aria-label',el.label||el.id);
+      sel.addEventListener('change',function(){state[el.id]=sel.value; recompute();}); w.appendChild(sel);
+    }
+    else if(el.kind==='computed'){
+      var c=document.createElement('div'); c.className='computed';
+      var cl=document.createElement('span'); cl.className='clabel'; cl.textContent=el.label||el.id;
+      var cv=document.createElement('b'); cv.className='cval'; cv.id=el.id;
+      c.appendChild(cl); c.appendChild(cv); w.appendChild(c);
+      computedEls.push({el:el, node:cv});
+    }
+    else if(el.kind==='bar'){
+      var bw=document.createElement('div'); bw.className='barwrap';
+      var bh=document.createElement('div'); bh.className='barhead';
+      var bl=document.createElement('span'); bl.textContent=el.label||el.id;
+      var bv=document.createElement('b'); bv.id=el.id;
+      bh.appendChild(bl); bh.appendChild(bv);
+      var track=document.createElement('div'); track.className='bartrack';
+      var fill=document.createElement('div'); fill.className='barfill'; track.appendChild(fill);
+      bw.appendChild(bh); bw.appendChild(track); w.appendChild(bw);
+      computedEls.push({el:el, node:bv, fill:fill, val:bv});
+    }
+    else if(el.kind==='link'){
+      var a=document.createElement('a'); a.href='#'; a.id=el.id; a.textContent=el.label||el.id;
+      if(el.goto){a.addEventListener('click',function(e){e.preventDefault();show(el.goto);});} w.appendChild(a);
+    }
+    else { // button
+      var b=document.createElement('button'); b.className='btn'+(el.variant==='secondary'?' secondary':''); b.id=el.id; b.textContent=el.label||el.id; b.setAttribute('aria-label',el.label||el.id);
+      if(el.goto){b.addEventListener('click',function(){show(el.goto);});} w.appendChild(b);
+    }
+    return w;
+  }
+  var rail=document.getElementById('rail'), root=document.getElementById('steps');
+  screens.forEach(function(scr,i){
+    var d=document.createElement('div'); d.className='dot'; d.dataset.id=scr.id;
+    d.innerHTML='<span class="n">'+(i+1)+'</span>'; d.appendChild(document.createTextNode(scr.title||scr.id));
+    d.addEventListener('click',function(){show(scr.id);}); rail.appendChild(d);
+    var sec=document.createElement('div'); sec.className='step'; sec.dataset.id=scr.id;
+    var h=document.createElement('h2'); h.textContent=scr.title||scr.id; sec.appendChild(h);
+    (scr.elements||[]).forEach(function(el){ sec.appendChild(renderEl(el)); });
+    if(screens.length>1){
+      var row=document.createElement('div'); row.className='nav-row';
+      var back=document.createElement('button'); back.className='btn secondary'; back.id='step-back'; back.textContent='← Zurück'; back.disabled=i===0; back.addEventListener('click',function(){if(i>0)show(ids[i-1]);});
+      var nx=document.createElement('button'); nx.className='btn'; nx.id='step-next'; nx.textContent=i===screens.length-1?'Fertig ✓':'Weiter →'; nx.addEventListener('click',function(){if(i<screens.length-1)show(ids[i+1]);});
+      row.appendChild(back); row.appendChild(nx); sec.appendChild(row);
+    }
+    root.appendChild(sec);
+  });
+  if(rail.children.length<=1) rail.style.display='none';
+  recompute();
+  show(C.start || (screens[0]||{}).id);
+})();
+</script>
+</body>
+</html>

@@ -26,6 +26,19 @@ def test_full_statement_keeps_fields():
     assert st["relevance"] == "strong" and st["meta"]["input"] == "ctx"
 
 
+def test_session_ref_resolves_prototype_session_when_needed():
+    class Store:
+        def get_usability_session(self, _):
+            return None
+
+        def get_prototype_session(self, sid):
+            return {"id": sid, "reaction": {"summary": "grounded"}, "created_at": "2026-06-16"}
+
+    out = A.resolve_ref({"kind": "session", "id": "protosession_1"}, Store())
+    assert out["exists"]
+    assert out["href"] == "/sessions/protosession_1"
+
+
 def test_stance_alias_resolution_covers_legacy_vocab():
     # every legacy vote/stance/sentiment token resolves to a canonical value
     cases = {"SUPPORT": 2, "dafür": 2, "positiv": 2, "MAYBE": 1, "bedingt": 1,

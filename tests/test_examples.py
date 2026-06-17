@@ -188,9 +188,11 @@ def test_onboarding_showcase_loads_every_tour_artifact(store):
     )
     health = trace_node_health(full_graph["nodes"], full_graph["edges"], plan)
     assert {k: v for k, v in health.items() if v == "orphaned"} == {}
-    assert "parked" in set(health.values())
+    assert {"source", "consumed", "terminal", "parked"} <= set(health.values())
 
-    from sonaloop.web.pages.library import LIBRARY_TABS, TAB_KIND, _tab_entries
+    from sonaloop.web.pages.library import (
+        LIBRARY_TABS, TAB_KIND, _annotate_library_trace, _entry_trace_keys, _tab_entries,
+    )
 
     outline_kinds = {n.get("kind") for n in full_graph["nodes"] if n.get("kind")}
     library_tabs = {TAB_KIND[key]: key for key, *_ in LIBRARY_TABS}
@@ -203,6 +205,33 @@ def test_onboarding_showcase_loads_every_tour_artifact(store):
         if x.get("project_id") == out["project_id"]
     }
     assert outline_kinds <= library_kinds
+
+    outline_health_by_key = {}
+    for n in full_graph["nodes"]:
+        sid = n.get("study_id")
+        if not sid:
+            continue
+        state = health.get(sid)
+        if not state:
+            continue
+        outline_health_by_key[sid] = state
+        kind, rid = sid.split(":", 1) if ":" in sid else ("", sid)
+        outline_health_by_key.setdefault(rid, state)
+        if kind == "report":
+            outline_health_by_key.setdefault(f"synthesis:{rid}", state)
+        if kind == "url_artifact":
+            outline_health_by_key.setdefault(f"artifact:{rid}", state)
+    library_entries = _annotate_library_trace(
+        [x for key, *_ in LIBRARY_TABS for x in _tab_entries(key, store)
+         if x.get("project_id") == out["project_id"]],
+        store,
+    )
+    for x in library_entries:
+        expected = next((outline_health_by_key[k] for k in _entry_trace_keys(x)
+                         if k in outline_health_by_key), "")
+        if expected:
+            assert x.get("trace_health") == expected, x
+    assert "parked" in {x.get("trace_health") for x in library_entries}
 
 
 def test_onboarding_showcase_timeline_is_authored_not_load_time(store):

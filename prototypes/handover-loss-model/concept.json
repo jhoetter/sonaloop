@@ -1,0 +1,78 @@
+{
+  "title": "Handover loss model",
+  "summary": "A steerable model that shows how many minutes a team loses when exceptions lack owner, due date and previous action.",
+  "start": "model",
+  "fidelity": "midfi",
+  "screens": [
+    {
+      "id": "model",
+      "title": "Make handover loss visible",
+      "elements": [
+        {
+          "id": "exceptions",
+          "kind": "range",
+          "label": "Exceptions per week",
+          "min": 0,
+          "max": 20,
+          "step": 1,
+          "value": 8
+        },
+        {
+          "id": "reconstruct",
+          "kind": "range",
+          "label": "Minutes to reconstruct each missing handoff",
+          "min": 0,
+          "max": 45,
+          "step": 5,
+          "value": 15
+        },
+        {
+          "id": "handoff_quality",
+          "kind": "range",
+          "label": "Percent resolved by owner/date/status loop",
+          "min": 0,
+          "max": 100,
+          "step": 10,
+          "value": 60
+        },
+        {
+          "id": "minutes_lost",
+          "kind": "computed",
+          "label": "Weekly minutes still lost",
+          "formula": "exceptions * reconstruct * (1 - handoff_quality / 100)"
+        },
+        {
+          "id": "hours_lost",
+          "kind": "computed",
+          "label": "Weekly hours still lost",
+          "formula": "minutes_lost / 60"
+        },
+        {
+          "id": "loss_bar",
+          "kind": "bar",
+          "label": "Remaining handover loss",
+          "formula": "minutes_lost",
+          "max": 900
+        },
+        {
+          "id": "verdict",
+          "kind": "verdict",
+          "cases": [
+            {
+              "when": "minutes_lost <= 60",
+              "text": "Pilot likely pays back inside a week."
+            },
+            {
+              "when": "minutes_lost <= 180",
+              "text": "Pilot value depends on strict owner follow-up."
+            },
+            {
+              "when": "minutes_lost > 180",
+              "text": "Handover loss is large enough to justify a capped operational trial."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

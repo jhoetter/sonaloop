@@ -14,6 +14,7 @@ import pytest
 
 from sonaloop import methodology as M
 from sonaloop import plan as PL
+from sonaloop import primitive_taxonomy_registry as TX
 from sonaloop import services
 
 
@@ -29,7 +30,7 @@ def test_builtins_load_and_validate(store):
 
 def test_builtin_stage_guides_use_library_primitives(store):
     """Stage guides are user-facing. They may name Library primitives and explicit
-    Council/Session subtypes, but not raw engine roles like problem-landscape."""
+    Council/Session subtypes, but the shown forms must resolve through the registry."""
     library = {
         "Open questions", "References", "Councils", "Reports", "Prototypes", "Sessions",
         "Surveys", "Hypotheses", "Decisions", "Notes", "Assets",
@@ -43,6 +44,11 @@ def test_builtin_stage_guides_use_library_primitives(store):
                 assert item in library, (spec["key"], step["id"], item)
             for item in pres.get("formats") or []:
                 assert item == "Council" or item.startswith(prefixes), (spec["key"], step["id"], item)
+            registered = pres.get("registered_forms") or []
+            assert registered, (spec["key"], step["id"])
+            for ref in registered:
+                assert TX.get_form(ref["primitive"], ref["form"])
+                assert ref["label"] == f"{ref['primitive_label']} / {ref['form_label']}"
 
 
 def test_no_hardcoded_vocabularies_in_engine_source():
@@ -77,6 +83,7 @@ def test_invented_capability_and_gate_tags_load_and_seed(store):
     M.register_methodology(spec, store=store)
     got = M.get_methodology("invented", store=store)
     assert [s["tags"] for s in got["steps"]] == [["divine-the-vibe"], ["crystallize"]]
+    assert [s["presentation"].get("registered_forms") for s in got["steps"]] == [None, None]
     proj = services.start_project("Inv", "g", methodology="invented", store=store)   # forwards to start_project
     plan = services.get_plan(proj["id"], store=store)
     frame = PL.task(plan, "frame__scout")

@@ -93,18 +93,19 @@ DOCS = [
      "why": ("Echte, nachvollziehbare Reaktionen statt Meinungen: jede Aussage führt zurück auf die Erinnerung dahinter.",
              "Real, traceable reactions instead of opinions: any statement leads back to the memory behind it.")},
     {"art": "reference", "icon": "link", "name": "references_h", "group": "evidence",
-     "what": ("Eine Website, ein externer Prototyp oder eine A/B-Variante, die in einem Council **im Raum** "
-              "liegt — inklusive Capture-Status und Snapshot, wenn erfassbar.",
-              "A website, external prototype or A/B variant placed **in the room** for a council — with "
-              "capture status and a snapshot when available."),
+     "what": ("Eine Website, ein externer Prototyp oder eine A/B-Variante als **Stimulus** — "
+              "inklusive Capture-Status und Snapshot, wenn erfassbar.",
+              "A website, external prototype or A/B variant as a **stimulus** — with capture status "
+              "and a snapshot when available."),
      "why": ("Personas reagieren auf echtes Material, nicht auf eine Nacherzählung. Referenzen sind Links/Snapshots, "
-             "keine hochgeladenen Dateien.",
-             "Personas react to real material, not a retelling. References are links/snapshots, not uploaded files.")},
+             "keine hochgeladenen Dateien und kein Testergebnis; das Ergebnis lebt in Council oder Session.",
+             "Personas react to real material, not a retelling. References are links/snapshots, not uploaded files "
+             "and not a test result; the result lives in a council or session.")},
     {"art": "prototype", "icon": "prototype", "name": "prototypes_h", "group": "evidence",
-     "what": ("Ein lauffähiger Mock — von der groben Skizze bis zum ausgefeilten Build —, den Personas "
-              "tatsächlich anklicken und auf den sie reagieren.",
-              "A runnable mock — from a rough sketch to a polished build — that personas actually click "
-              "through and react to."),
+     "what": ("Ein testbares Projektobjekt — App, Flow, Dashboard, Cards, Comparison, Model oder Journey —, "
+              "das Sonaloop ausführen, rendern und mit Sessions verbinden kann.",
+              "A testable project object — app, flow, dashboard, cards, comparison, model or journey — "
+              "that Sonaloop can run, render and connect to sessions."),
      "why": ("Geerdete Reaktionen auf etwas *Echtes* statt auf eine Beschreibung — du siehst, was funktioniert, bevor du baust.",
              "Grounded reactions to something *real*, not a description — you see what works before you build.")},
     {"art": "session", "icon": "activity", "name": "sessions", "group": "evidence",
@@ -332,13 +333,17 @@ INSPECTOR_SECTIONS = [
       "Sessions, Umfragen, Hypothesen, Entscheidungen, Notizen, Assets), ist eine Zeile in "
       "seiner Phase. Die **Library** ist der projektübergreifende Browser über dieselben Primitives. "
       "Sie ist als Arbeitslandkarte gruppiert: **Frame** (offene Fragen, Hypothesen), "
-      "**Material** (Referenzen, Assets), **Ask** (Councils, Surveys), **Test** "
-      "(Prototypen, Sessions), **Capture** (Notes) und **Conclude** (Reports, "
+      "**Material** (Referenzen, Assets, Prototypen), **Ask** (Councils, Surveys), **Test** "
+      "(Sessions), **Capture** (Notes) und **Conclude** (Reports, "
       "Decisions). **Formate** verfeinern ein Primitive, ohne neue Dinge zu erfinden: "
       "Red-Team und Head-to-head sind Council-Formate, Website/externer Prototyp/A-B "
-      "sind Referenz-Formate, und Sessions können einem wiederverwendbaren Testskript folgen. "
-      "Die Namensregel: **Referenzen** sind Websites, externe Prototypen oder A/B-Varianten im Council-Raum; "
-      "**Assets** sind echte Dateien; **Sessions** sind Nutzungsspuren. **Assets** — empfangene "
+      "sind Referenz-Formate, und Prototyp-Formen sind Apps, Flows, Dashboards, Cards, "
+      "Comparisons, Models oder Journeys. Die Namensregel: **Referenzen** sind Quellenlinks oder "
+      "Snapshots im Raum; ein externer Prototyp bleibt eine Referenz, wenn Sonaloop nur darauf "
+      "zeigt. **Prototypen** sind testbare Projektobjekte, die Sonaloop ausführen, rendern "
+      "und mit Sessions verbinden kann. **A/B-Varianten** sind Stimuli; das eigentliche "
+      "Testergebnis lebt in Council oder Session. **Assets** sind echte Dateien; **Sessions** "
+      "sind Nutzungsspuren. **Assets** — empfangene "
       "Input-Dateien (Evidenz, via MCP angehängt) und von der Software erzeugte Dokumente "
       "(Deliverables) — erscheinen überall als **Datei-Karten**: Typ-Badge oder Vorschaubild, "
       "Dateiname mit Endung, Größe · Datum, genau ein Download/Öffnen-Symbol; sie haben eigene "
@@ -357,14 +362,16 @@ INSPECTOR_SECTIONS = [
       "or uses (open questions, references, councils, reports, prototypes, sessions, surveys, "
       "hypotheses, decisions, notes, assets) is a row in its phase. The **Library** is the "
       "cross-project browser over those same primitives. It is grouped as a work map: "
-      "**Frame** (open questions, hypotheses), **Material** (references, assets), **Ask** "
-      "(councils, surveys), **Test** (prototypes, sessions), **Capture** (notes), "
+      "**Frame** (open questions, hypotheses), **Material** (references, assets, prototypes), **Ask** "
+      "(councils, surveys), **Test** (sessions), **Capture** (notes), "
       "and **Conclude** (reports, decisions). **Formats** refine a primitive without "
       "creating new things: red-team and head-to-head are council formats, website/external "
-      "prototype/A-B are reference formats, and sessions may use a reusable test script. "
-      "Naming rule: **References** are websites, "
-      "external prototypes or A/B variants in the council room; **Assets** are real files; "
-      "**Sessions** are usage traces. **Assets** — input files received (evidence, attached via MCP) and "
+      "prototype/A-B are reference formats, and prototype forms include apps, flows, dashboards, "
+      "cards, comparisons, models and journeys. Naming rule: **References** are source links or "
+      "snapshots placed in the room; an external prototype stays a reference when Sonaloop only "
+      "points at it. **Prototypes** are testable project objects Sonaloop can run, render or pair "
+      "with sessions. **A/B variants** are stimuli; the actual test result lives in a council or "
+      "session. **Assets** are real files; **Sessions** are usage traces. **Assets** — input files received (evidence, attached via MCP) and "
       "documents the software generated (deliverables) — show up everywhere as **file cards**: "
       "type badge or image thumbnail, filename with extension, size · date, exactly one "
       "download/open icon; they have their own detail pages with provenance (source, direction, "

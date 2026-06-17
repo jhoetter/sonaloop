@@ -11,8 +11,11 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import Any
 
-from .. import presentation as _pres
+from .. import presentation as _presentation
+from .. import primitive_taxonomy_registry as _registry
 from ._i18n import t
+
+_REGISTRY = _registry.assert_valid_registry()
 
 
 @dataclass(frozen=True)
@@ -22,6 +25,7 @@ class Primitive:
     icon: str
     purpose_key: str
     color: str
+    description: str = ""
 
 
 @dataclass(frozen=True)
@@ -34,31 +38,17 @@ class SubtypeDoc:
     rule_de: str
 
 
-FAMILIES: tuple[tuple[str, str, str], ...] = (
-    ("frame", "primitive_family_frame", "help"),
-    ("material", "primitive_family_material", "file"),
-    ("ask", "primitive_family_ask", "councils"),
-    ("test", "primitive_family_test", "prototype"),
-    ("capture", "primitive_family_capture", "panel"),
-    ("conclude", "primitive_family_conclude", "syntheses"),
-    ("structure", "primitive_family_structure", "squareGrid"),
+FAMILIES: tuple[tuple[str, str, str], ...] = tuple(
+    (str(f["id"]), f"primitive_family_{f['id']}", str(f.get("icon") or "square"))
+    for f in _REGISTRY["families"]
 )
 
 
 PRIMITIVES: dict[str, Primitive] = {
-    "open_question": Primitive("open_question", "frame", "help", "primitive_open_question_purpose", "#c98218"),
-    "hypothesis": Primitive("hypothesis", "frame", "target", "primitive_hypothesis_purpose", "#e0820a"),
-    "url_artifact": Primitive("url_artifact", "material", "link", "primitive_url_artifact_purpose", "#3a7bd5"),
-    "asset": Primitive("asset", "material", "file", "primitive_asset_purpose", "#5f6f7a"),
-    "council": Primitive("council", "ask", "councils", "primitive_council_purpose", "#6d5ef0"),
-    "survey": Primitive("survey", "ask", "plan", "primitive_survey_purpose", "#6b7cff"),
-    "prototype": Primitive("prototype", "test", "prototype", "primitive_prototype_purpose", "#0f9d8f"),
-    "session": Primitive("session", "test", "activity", "primitive_session_purpose", "#3d7fc4"),
-    "note": Primitive("note", "capture", "panel", "primitive_note_purpose", "#ff9800"),
-    "synthesis": Primitive("synthesis", "conclude", "syntheses", "primitive_synthesis_purpose", "#6d5ef0"),
-    "report": Primitive("report", "conclude", "syntheses", "primitive_report_purpose", "#6d5ef0"),
-    "decision": Primitive("decision", "conclude", "flag", "primitive_decision_purpose", "#c0476b"),
-    "section": Primitive("section", "structure", "squareGrid", "primitive_section_purpose", "#8a6d3b"),
+    str(p["id"]): Primitive(str(p["id"]), str(p["family"]), str(p.get("icon") or "square"),
+                            f"primitive_{p['id']}_purpose", str(p.get("color") or "#9aa0a6"),
+                            str(p.get("description") or ""))
+    for p in _REGISTRY["primitives"]
 }
 
 
@@ -137,21 +127,6 @@ SUBTYPE_DOCS: dict[str, tuple[SubtypeDoc, ...]] = {
                    "Ein lauffaehiger Prototyp ohne feineren Fidelity-Discriminator.",
                    "rec.fidelity is empty, so default_discriminator('prototype') is used.",
                    "rec.fidelity ist leer, daher wird default_discriminator('prototype') genutzt."),
-        SubtypeDoc("lofi", "subtype_lofi",
-                   "A low-fidelity prototype, usually rough and fast for early exploration.",
-                   "Ein Low-Fidelity-Prototyp, meist grob und schnell fuer fruehe Exploration.",
-                   "rec.fidelity == 'lofi' or the tag is the selected discriminator.",
-                   "rec.fidelity == 'lofi' oder der Tag ist der ausgewaehlte Discriminator."),
-        SubtypeDoc("midfi", "subtype_midfi",
-                   "A mid-fidelity prototype used after down-selection for concrete refinement.",
-                   "Ein Mid-Fidelity-Prototyp nach Down-Selection fuer konkrete Verfeinerung.",
-                   "rec.fidelity == 'midfi' or the tag is the selected discriminator.",
-                   "rec.fidelity == 'midfi' oder der Tag ist der ausgewaehlte Discriminator."),
-        SubtypeDoc("hifi", "subtype_hifi",
-                   "A high-fidelity prototype close enough to production to test fine detail.",
-                   "Ein High-Fidelity-Prototyp, nah genug an Produktion fuer Detailtests.",
-                   "rec.fidelity == 'hifi' or the tag is the selected discriminator.",
-                   "rec.fidelity == 'hifi' oder der Tag ist der ausgewaehlte Discriminator."),
     ),
     "session": (
         SubtypeDoc("walkthrough_session", "subtype_walkthrough_session",
@@ -191,11 +166,6 @@ SUBTYPE_DOCS: dict[str, tuple[SubtypeDoc, ...]] = {
                    "Eine Survey, deren dominanter Fragetyp Freitext ist.",
                    "Most common question.kind == 'text'.",
                    "Haeufigster question.kind == 'text'."),
-        SubtypeDoc("survey", "subtype_survey",
-                   "A survey with no questions yet, or no dominant typed question.",
-                   "Eine Survey ohne Fragen oder ohne dominanten typisierten Fragetyp.",
-                   "No question kind can be derived.",
-                   "Es kann kein question.kind abgeleitet werden."),
     ),
     "hypothesis": (
         SubtypeDoc("hypothesis", "hypotheses_h",
@@ -248,6 +218,76 @@ SUBTYPE_DOCS: dict[str, tuple[SubtypeDoc, ...]] = {
 }
 
 
+_LEGACY_SUBTYPE_DOCS = SUBTYPE_DOCS
+_LEGACY_BY_KIND_VALUE: dict[str, dict[str, SubtypeDoc]] = {
+    kind: {doc.value: doc for doc in docs} for kind, docs in _LEGACY_SUBTYPE_DOCS.items()
+}
+_SUBTYPE_LABELS: dict[str, str] = {}
+_SUBTYPE_LABEL_KEYS: dict[str, str] = {
+    doc.value: doc.label_key for docs in _LEGACY_SUBTYPE_DOCS.values() for doc in docs
+}
+_LIBRARY_VALUE_PRIORITY: dict[str, tuple[str, ...]] = {
+    "url_artifact": ("website", "external_prototype", "ab_variant"),
+    "council": ("discovery", "evaluation", "decision", "head_to_head",
+                "red_team", "price_ladder", "ideation"),
+    "survey": ("single_survey", "multi_survey", "scale_survey", "text_survey", "ranking_survey"),
+    "session": ("walkthrough_session", "prototype_session", "live_session"),
+    "note": ("observation_note", "insight", "idea", "concept_note"),
+    "asset": ("image", "screenshot", "document", "file"),
+    # `prototype` is the compatibility alias for the registered app form. Fidelity
+    # rungs are now orthogonal parameters, not Library forms.
+    "prototype": ("prototype", "flow", "dashboard", "cards", "comparison", "model", "journey"),
+}
+_PROTOTYPE_DISCRIMINATORS = frozenset(_presentation.discriminator_tags("prototype"))
+
+
+def _form_values_for_library(form: dict[str, Any]) -> list[str]:
+    primitive = str(form.get("primitive") or "")
+    candidates = [str(form.get("id") or "")] + [str(a) for a in form.get("aliases") or []]
+    priority = _LIBRARY_VALUE_PRIORITY.get(primitive, ())
+    values = [value for value in priority if value in candidates]
+    if values:
+        return values
+    return [str(form.get("id") or "")]
+
+
+def _registry_subtype_docs() -> dict[str, tuple[SubtypeDoc, ...]]:
+    grouped: dict[str, list[SubtypeDoc]] = {}
+    for form in _registry.list_forms():
+        primitive = str(form.get("primitive") or "")
+        if primitive == "edge":
+            continue
+        form_id = str(form.get("id") or "")
+        aliases = [str(a) for a in form.get("aliases") or []]
+        alias_text = ", ".join(aliases) if aliases else form_id
+        for value in _form_values_for_library(form):
+            legacy = _LEGACY_BY_KIND_VALUE.get(primitive, {}).get(value)
+            if legacy:
+                doc = legacy
+            else:
+                label = str(form.get("label") or value.replace("_", " ").title())
+                meaning = str(form.get("description") or label)
+                rule_en = f"Registry form {primitive}/{form_id}; accepted tokens: {alias_text}."
+                rule_de = f"Registry-Form {primitive}/{form_id}; akzeptierte Tokens: {alias_text}."
+                doc = SubtypeDoc(value, f"subtype_{value}", meaning, meaning, rule_en, rule_de)
+            grouped.setdefault(primitive, []).append(doc)
+            _SUBTYPE_LABELS[value] = str(form.get("label") or value.replace("_", " ").title())
+    for kind, docs in _LEGACY_SUBTYPE_DOCS.items():
+        existing = {doc.value for doc in grouped.get(kind, [])}
+        for doc in docs:
+            if kind == "prototype" and doc.value in _PROTOTYPE_DISCRIMINATORS:
+                continue
+            if kind == "survey" and doc.value == "survey":
+                continue
+            if doc.value not in existing:
+                grouped.setdefault(kind, []).append(doc)
+                _SUBTYPE_LABELS.setdefault(doc.value, doc.value.replace("_", " ").title())
+    return {kind: tuple(docs) for kind, docs in grouped.items()}
+
+
+SUBTYPE_DOCS = _registry_subtype_docs()
+
+
 def family_label(family: str) -> str:
     if family not in {value for value, _label, _icon in FAMILIES}:
         return family
@@ -268,7 +308,10 @@ def primitive_color(kind: str) -> str:
 
 def primitive_purpose(kind: str) -> str:
     p = PRIMITIVES.get(kind)
-    return t("primitive_" + p.kind + "_purpose") if p and p.purpose_key else ""
+    if not p or not p.purpose_key:
+        return ""
+    label = t("primitive_" + p.kind + "_purpose")
+    return p.description if label == "primitive_" + p.kind + "_purpose" else label
 
 
 def primitive_subtypes(kind: str) -> tuple[SubtypeDoc, ...]:
@@ -278,7 +321,21 @@ def primitive_subtypes(kind: str) -> tuple[SubtypeDoc, ...]:
     the live row classifier; the catalogue explains every value the UI should
     make understandable to humans.
     """
-    return SUBTYPE_DOCS.get(kind, ())
+    docs = list(SUBTYPE_DOCS.get(kind, ()))
+    existing = {doc.value for doc in docs}
+    for form in _registry.list_forms(kind):
+        if not form.get("custom") or form.get("id") in existing:
+            continue
+        form_id = str(form.get("id") or "")
+        label = str(form.get("label") or form_id.replace("_", " ").title())
+        meaning = str(form.get("description") or label)
+        docs.append(SubtypeDoc(
+            form_id, f"subtype_{form_id}", meaning, meaning,
+            f"Workspace custom form {kind}/{form_id}; extends {form.get('extends')}.",
+            f"Workspace-Custom-Form {kind}/{form_id}; erweitert {form.get('extends')}."))
+        _SUBTYPE_LABELS[form_id] = label
+        existing.add(form_id)
+    return tuple(docs)
 
 
 def subtype_value(kind: str, rec: dict[str, Any]) -> str:
@@ -286,12 +343,15 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
     has no useful subtype facet. The values are stable URL query tokens."""
     rec = rec or {}
     if kind == "url_artifact":
-        raw = rec.get("kind") or "url"
+        raw_kind = rec.get("kind") or "url"
         return {"url": "website", "prototype": "external_prototype",
-                "variant": "ab_variant"}.get(str(raw), "website")
+                "variant": "ab_variant"}.get(str(raw_kind), "website")
     if kind == "asset":
         return str(rec.get("kind") or "file")
     if kind == ("coun" + "cil"):
+        stamped = rec.get("form") or {}
+        if stamped.get("primitive") == ("coun" + "cil") and stamped.get("id"):
+            return str(stamped["id"])
         for marker, value in (
             ("head_to_head", "head_to_head"),
             ("red_team", "red_team"),
@@ -302,7 +362,7 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
                 return value
         return str(rec.get("mode") or "discovery")
     if kind == "prototype":
-        return str(rec.get("fidelity") or _pres.default_discriminator(kind))
+        return str(rec.get("type") or "prototype")
     if kind == "session":
         subject = rec.get("subject") or {}
         sk = subject.get("kind") or ""
@@ -313,18 +373,26 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
         if questions:
             kinds = Counter(q.get("kind") for q in questions if q.get("kind"))
             if kinds:
-                return f"{kinds.most_common(1)[0][0]}_survey"
-        return "survey"
+                survey_kind = str(kinds.most_common(1)[0][0])
+                return {"single": "single_survey", "multi": "multi_survey",
+                        "scale": "scale_survey", "text": "text_survey",
+                        "ranking": "ranking_survey"}.get(survey_kind, "")
+        return ""
     if kind == "note":
         data = rec.get("data") or {}
         if data.get("prototype_id") or data.get("prototype_ids") or data.get("artifact_kind"):
             return "concept_note"
-        return "observation_note"
+        note_kind = str(rec.get("kind") or "note").strip().lower()
+        return {"idea": "idea", "insight": "insight", "concept": "concept_note",
+                "observation": "observation_note", "note": "observation_note"}.get(note_kind, "observation_note")
     return ""
 
 
 def subtype_label(value: str) -> str:
     if not value:
         return ""
-    label = t("subtype_" + value)
-    return value.replace("_", " ").title() if label == "subtype_" + value else label
+    raw_key = "subtype_" + value
+    label = t("subtype_" + value) if value in _SUBTYPE_LABEL_KEYS else raw_key
+    if label == raw_key and value in _SUBTYPE_LABELS:
+        return _SUBTYPE_LABELS[value]
+    return value.replace("_", " ").title() if label == raw_key else label

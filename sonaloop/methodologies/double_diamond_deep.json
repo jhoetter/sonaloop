@@ -17,6 +17,7 @@
       "strategy": "pain-discovery", "diverge_by": "persona_subset",
       "produces": {"role": "problem-landscape"},
       "presentation": {
+        "forms": ["council/open_discussion", "council/objection_review"],
         "formats": ["Council: Discovery", "Council: Red-Team"],
         "library": ["Councils", "Notes", "Open questions"]
       }
@@ -28,6 +29,7 @@
       "requires": {"min_inputs": 2, "gate_tag": "divergence_complete"},
       "produces": {"role": "key-problems"},
       "presentation": {
+        "forms": ["council/open_discussion", "council/option_comparison"],
         "formats": ["Council: Discovery", "Council: Head-to-Head"],
         "library": ["Councils", "Reports", "Open questions"]
       }
@@ -38,6 +40,7 @@
       "strategy": "positive-deepdive", "consumes": ["define"], "diverge_by": "solution_candidate",
       "produces": {"role": "solution-options", "artifact_type": "prototype", "more_tags": ["lofi"]},
       "presentation": {
+        "forms": ["council/idea_review", "council/option_comparison"],
         "formats": ["Council: Ideation", "Council: Head-to-Head"],
         "library": ["Councils", "Prototypes", "Notes"]
       }
@@ -49,6 +52,7 @@
       "requires": {"min_inputs": 2, "gate_tag": "divergence_complete", "session_of_tags": ["lofi"]},
       "produces": {"role": "solution-shortlist"},
       "presentation": {
+        "forms": ["session/prototype_use", "council/option_comparison"],
         "formats": ["Session: Prototype test", "Council: Head-to-Head"],
         "library": ["Sessions", "Councils", "Reports"]
       }
@@ -59,6 +63,7 @@
       "strategy": "positive-deepdive", "consumes": ["lofi_select"], "diverge_by": "solution_candidate",
       "produces": {"role": "solution-options", "artifact_type": "prototype", "more_tags": ["midfi"]},
       "presentation": {
+        "forms": ["council/open_discussion", "council/option_comparison"],
         "formats": ["Council: Discovery", "Council: Head-to-Head"],
         "library": ["Councils", "Prototypes", "Notes"]
       }
@@ -71,6 +76,7 @@
       "produces": {"role": "solution-presentation"},
       "loop_back": "refine",
       "presentation": {
+        "forms": ["session/prototype_use", "council/objection_review"],
         "formats": ["Session: Prototype test", "Council: Red-Team"],
         "library": ["Sessions", "Councils", "Reports", "Decisions"]
       }

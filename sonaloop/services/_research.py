@@ -613,8 +613,10 @@ def get_research_frontier(project_id: str, store: Store | None = None) -> dict[s
 
 
 def delete_research_project(project_id: str, store: Store | None = None) -> dict[str, Any]:
-    """Delete a project container + its graph metadata (edges/open questions).
-    The syntheses stay (they are independent studies)."""
+    """Delete a project container and every project-scoped artifact row.
+
+    Personas and their memory remain global; project outputs do not.
+    """
     store = store or Store()
     p = _require_research_project(store, project_id)
     return {"deleted": store.delete_research_project(p["id"]), "project_id": p["id"]}

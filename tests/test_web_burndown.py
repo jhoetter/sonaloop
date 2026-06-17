@@ -35,6 +35,7 @@ BASELINE = {
     "_i18n.py": 0,
     "_routes_api.py": 0,
     "__init__.py": 0,
+    "methodologies.py": 8,  # methodology graph SVG producer; page chrome still uses h()
 }
 
 

@@ -14,6 +14,7 @@ from ._catalogue import catalogue_data  # public: API-docs / tool-reference gene
 tool_response = _env
 from ._tools_personas import register_personas
 from ._tools_catalog import register_catalog
+from ._tools_taxonomy import register_taxonomy
 from ._tools_simulation import register_simulation
 from ._tools_eval import register_eval
 from ._tools_research import register_research
@@ -71,6 +72,7 @@ def build_server():
 
     register_personas(mcp)
     register_catalog(mcp)
+    register_taxonomy(mcp)
     register_simulation(mcp)
     register_eval(mcp)
     register_research(mcp)

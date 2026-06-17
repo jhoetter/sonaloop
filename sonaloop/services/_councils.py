@@ -21,6 +21,7 @@ from ..config import (
 )
 from ._authoring import MARKDOWN_CONTRACT, PRIMITIVES_CONTRACT
 from .. import artifacts as _artifacts
+from .. import primitive_taxonomy_registry as _taxonomy_registry
 from ..models import (
     CalendarEvent,
     CouncilSession,
@@ -260,6 +261,137 @@ def council_mode(council: dict[str, Any]) -> str:
     if has_prop:
         return "evaluation"
     return "discovery"
+
+
+def council_form(council: dict[str, Any]) -> str:
+    """Classify an existing CouncilSession through the primitive/form registry.
+
+    Stored data stays unchanged: specialized formats still ride their current
+    blocks (`head_to_head`, `red_team`, `price_ladder`, `ideation`) and base
+    councils still derive from proposal/votes. This helper is the bridge from
+    historic product aliases to structural form ids.
+    """
+    stamped = council.get("form") or {}
+    if stamped.get("primitive") == "council" and stamped.get("id"):
+        form = _taxonomy_registry.resolve_form("council", str(stamped["id"]))
+        if form is not None:
+            return str(form["id"])
+    for marker, alias in (
+        ("head_to_head", "head_to_head"),
+        ("red_team", "red_team"),
+        ("price_ladder", "price_ladder"),
+        ("ideation", "ideation"),
+    ):
+        if council.get(marker):
+            form = _taxonomy_registry.resolve_form("council", alias)
+            return str((form or {}).get("id") or alias)
+    mode = council_mode(council)
+    form = _taxonomy_registry.resolve_form("council", mode)
+    return str((form or {}).get("id") or mode)
+
+
+def council_form_definition(council: dict[str, Any]) -> dict[str, Any]:
+    form_id = council_form(council)
+    form = _taxonomy_registry.resolve_form("council", form_id)
+    if form is None:
+        raise KeyError(f"No registered council form '{form_id}'")
+    return form
+
+
+def _validate_council_form_payload(form: dict[str, Any], payload: dict[str, Any]) -> None:
+    if not isinstance(payload, dict):
+        raise ValueError("payload must be a dict")
+    renderer = form.get("renderer") or {}
+    if not renderer.get("library") or not renderer.get("detail"):
+        raise ValueError(f"council form {form.get('id')} lacks a compatible renderer")
+    required = (form.get("schema") or {}).get("required") or []
+    missing = [field for field in required if field not in payload]
+    if missing:
+        raise ValueError(f"payload for council/{form.get('id')} missing required fields: {', '.join(missing)}")
+
+
+def record_council_form(project_id: str, form_id: str, payload: dict[str, Any],
+                        persona_ids: list[str], prompt: str = "",
+                        summary: str = "", exec_summary: str = "",
+                        selection_reason: str = "", key: str | None = None,
+                        findings: list | None = None, created_at: str | None = None,
+                        store: Store | None = None) -> dict[str, Any]:
+    """Record a registered council form through one generic API.
+
+    Existing specialized tools remain wrappers/presets over the same persisted
+    CouncilSession shape. This function validates the requested form against the
+    registry, normalizes the payload into `record_council`, and stamps form
+    metadata so readers can distinguish structural form from historic mode.
+    """
+    store = store or Store()
+    form = _taxonomy_registry.resolve_form("council", form_id)
+    if form is None:
+        raise KeyError(f"No registered council form '{form_id}'")
+    _validate_council_form_payload(form, payload)
+    canonical = str(form["id"])
+    structural = str(form.get("extends") or canonical)
+    prompt = str(prompt or payload.get("prompt") or payload.get("proposal") or "Council form").strip()
+    statements = payload.get("statements") or []
+    questions = payload.get("questions") or []
+    proposal = str(payload.get("proposal") or "")
+    votes = payload.get("votes") or []
+
+    def _stamp(session: dict[str, Any]) -> dict[str, Any]:
+        stored = store.get_council_session(session["id"]) or dict(session)
+        stored["form"] = {"primitive": "council", "id": canonical, "label": form.get("label", ""),
+                          "source": "generic"}
+        stored["form_payload"] = dict(payload)
+        store.insert_council_session(stored)
+        return {**stored, "url": web_url(f"/councils/{stored['id']}"),  # noqa: F821 (bound)
+                "project_url": web_url(f"/projects/{project_id}")}  # noqa: F821 (bound)
+
+    # For built-in structured forms, delegate to the existing recorders so the
+    # specialized blocks are complete (result/case_against/derived ladder/etc.).
+    # A partial `head_to_head` or `red_team` marker would trigger detail renderers
+    # that expect the deterministic aggregate to be present.
+    if structural == "option_comparison":
+        return _stamp(record_head_to_head(  # noqa: F821 (bound after services package import)
+            project_id, prompt, payload.get("options") or [], payload.get("preferences") or [],
+            persona_ids, statements=statements, summary=summary, exec_summary=exec_summary,
+            selection_reason=selection_reason, findings=findings, key=key,
+            variant_meta=payload.get("variant_meta"), created_at=created_at, store=store))
+    if structural == "objection_review":
+        return _stamp(record_red_team(  # noqa: F821
+            project_id, prompt, objections=payload.get("objections") or [],
+            endorsements=payload.get("endorsements") or [],
+            stance=str(payload.get("stance") or payload.get("stance_mode") or "against"),
+            persona_ids=persona_ids, statements=statements, summary=summary,
+            exec_summary=exec_summary, selection_reason=selection_reason,
+            findings=findings, key=key, created_at=created_at, store=store))
+    if structural == "ladder_review":
+        return _stamp(record_price_ladder(  # noqa: F821
+            project_id, prompt, payload.get("price_points") or payload.get("rungs") or [],
+            responses=payload.get("responses") or [], persona_ids=persona_ids,
+            statements=statements, summary=summary, exec_summary=exec_summary,
+            selection_reason=selection_reason, findings=findings, key=key,
+            created_at=created_at, store=store))
+    if structural == "idea_review":
+        return _stamp(record_ideation_summary(  # noqa: F821
+            project_id, str(payload.get("problem") or prompt),
+            payload.get("shortlist") or [], statements=statements, summary=summary,
+            exec_summary=exec_summary, selection_reason=selection_reason,
+            key=key, created_at=created_at, store=store))
+
+    if structural == "open_discussion":
+        questions = questions or [prompt]
+    elif structural == "proposal_reaction":
+        if not proposal:
+            proposal = prompt
+    elif structural == "vote":
+        if not proposal:
+            proposal = prompt
+
+    out = record_council(
+        project_id, prompt, persona_ids, statements=statements, votes=votes,
+        proposal=proposal, summary=summary, exec_summary=exec_summary,
+        selection_reason=selection_reason or f"generic council form: {canonical}",
+        questions=questions, key=key, findings=findings, created_at=created_at, store=store)
+    return _stamp(out)
 
 
 def record_council(project_id: str, prompt: str, persona_ids: list[str],

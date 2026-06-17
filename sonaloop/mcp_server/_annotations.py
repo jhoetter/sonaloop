@@ -68,6 +68,12 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     "catalog_status": R("Check catalog sync status", open_world=True),
     "catalog_pull": W("Pull catalog personas", open_world=True),
 
+    # ---- primitive/form taxonomy (_tools_taxonomy) ----
+    "list_primitives": R("List primitive taxonomy"),
+    "list_forms": R("List primitive forms"),
+    "get_form": R("Get primitive form"),
+    "suggest_forms": R("Suggest primitive forms"),
+
     # ---- councils & reports (_tools_council) ----
     "add_artifact": W("Add artifact", open_world=True),  # captures a live URL snapshot
     "list_artifacts": R("List artifacts"),
@@ -216,6 +222,7 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     "add_task": W("Add plan task"),
     "record_frame": W("Record frame"),
     "link_evidence": W("Link evidence"),
+    "park_evidence": W("Park evidence"),
     "complete_task": W("Complete task"),
     "iterate_task": W("Iterate task"),
     "assess_progress": W("Record progress assessment"),  # records the assessment

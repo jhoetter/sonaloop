@@ -545,7 +545,7 @@ def test_ungrounded_proband_session_warns_and_blocks_gate(store, tmp_path, monke
     assert any("UNVERIFIED_SESSION" in w for w in out.get("warnings", []))
     # a verify task requiring a session of `lofi` is blocked while only the ungrounded session exists
     vtask = {"id": "v", "bucket": "verify", "capability": "decide", "consumes": [],
-             "requires": {"session_of_tags": ["lofi"]}}
+             "requires": {"min_inputs": 0, "session_of_tags": ["lofi"]}}
     plan = {"project_id": pid, "tasks": [vtask]}
     PL.validate_plan(plan)
     unmet = PL.verify_unmet(plan, PL.task(plan, "v"), store)
@@ -556,6 +556,33 @@ def test_ungrounded_proband_session_warns_and_blocks_gate(store, tmp_path, monke
         "created_at": "2026-06-05T00:00:00+00:00", "grounded_verified": True})
     unmet2 = PL.verify_unmet(plan, PL.task(plan, "v"), store)
     assert not any("GROUNDED" in u for u in unmet2), unmet2
+
+
+def test_usability_session_satisfies_session_of_tag_gate(store, tmp_path, monkeypatch):
+    """The current Session primitive is usability_sessions. A session_of_tags gate must count a
+    usability session whose subject is a tagged prototype in the project."""
+    import sonaloop.prototypes as proto_mod
+    monkeypatch.setattr(proto_mod, "prototypes_dir", lambda: tmp_path / "protos")
+    from sonaloop import browser
+    monkeypatch.setattr(browser, "available", lambda: False)
+    proj = services.start_project("G", "hmw?", None, persona_ids=["p1"], store=store)
+    pid = proj["id"]
+    concept = {"title": "P", "summary": "", "start": "a", "screens": [
+        {"id": "a", "title": "A", "elements": [{"kind": "text", "id": "t", "label": "x"}]}]}
+    art = services.scaffold_artifact("session-gate-proto", "Gate proto", concept, type="prototype",
+                                     tags=["lofi"], project_id=pid, store=store)
+    services.record_usability_session("p1", {"kind": "prototype", "id": art["id"], "label": "Gate proto"},
+        "prototype", "2026-06-05",
+        [{"index": 0, "action": {"type": "look", "target": "screen"},
+          "state": {"screen": "A"}, "friction": {"level": "none", "note": ""},
+          "verdict": {"would_continue": True, "reason": "clear"}}],
+        {"completed": True, "summary": "used it", "predicted_behaviors": []},
+        project_id=pid, store=store)
+    vtask = {"id": "v", "bucket": "verify", "capability": "decide", "consumes": [],
+             "requires": {"min_inputs": 0, "session_of_tags": ["lofi"]}}
+    plan = {"project_id": pid, "tasks": [vtask]}
+    P.validate_plan(plan)
+    assert not P.verify_unmet(plan, P.task(plan, "v"), store)
 
 
 def test_next_action_act_surfaces_artifact_palette_and_divergence_nudges(store):

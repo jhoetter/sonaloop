@@ -115,15 +115,49 @@ class ResearchMixin:
 
     # ---- Granular deletes (D in CRUD; all via MCP/CLI, never the read-only UI) ----
     def delete_research_project(self, project_id: str) -> dict[str, int]:
-        """Delete a project container + its graph metadata (edges, open questions).
-        The syntheses (incl. project-scope reports) are independent studies and are kept."""
+        """Delete a project container and every project-scoped artifact row.
+
+        Personas and persona memory are global and remain. Research outputs with this
+        project_id do not: leaving them behind makes Library/global views point at a
+        missing project and breaks trace annotation.
+        """
         p = self.get_research_project(project_id)
         if not p:
             return {}
         pid = p["id"]
         deleted: dict[str, int] = {}
-        for table in ("research_open_questions", "methodology_judgments"):
+        # Delete prototype sessions before prototypes; prototype_sessions has no project_id.
+        proto_rows = self.conn.execute("SELECT id FROM prototypes WHERE project_id=?", (pid,)).fetchall()
+        proto_ids = [r["id"] for r in proto_rows]
+        if proto_ids:
+            qmarks = ",".join("?" for _ in proto_ids)
+            cur = self.conn.execute(f"DELETE FROM prototype_sessions WHERE prototype_id IN ({qmarks})", proto_ids)
+            deleted["prototype_sessions"] = cur.rowcount
+
+        # Survey responses hang off surveys, not project_id.
+        survey_rows = self.conn.execute("SELECT id FROM surveys WHERE project_id=?", (pid,)).fetchall()
+        survey_ids = [r["id"] for r in survey_rows]
+        if survey_ids:
+            qmarks = ",".join("?" for _ in survey_ids)
+            cur = self.conn.execute(f"DELETE FROM survey_responses WHERE survey_id IN ({qmarks})", survey_ids)
+            deleted["survey_responses"] = cur.rowcount
+
+        for table in (
+            "research_open_questions",
+            "methodology_judgments",
+            "research_plans",
+            "runs",
+            "prototypes",
+            "surveys",
+            "hypotheses",
+            "decision_records",
+            "usability_sessions",
+        ):
             cur = self.conn.execute(f"DELETE FROM {table} WHERE project_id=?", (pid,))
+            deleted[table] = cur.rowcount
+        for table in ("council_sessions", "syntheses"):
+            cur = self.conn.execute(
+                f"DELETE FROM {table} WHERE json_extract(data, '$.project_id')=?", (pid,))
             deleted[table] = cur.rowcount
         cur = self.conn.execute("DELETE FROM research_projects WHERE id=?", (pid,))
         deleted["research_projects"] = cur.rowcount

@@ -1,0 +1,361 @@
+# Primitive taxonomy registry schema
+
+Status: contract, 2026-06-16
+
+The primitive taxonomy registry is the machine-readable contract behind the
+Library and research graph vocabulary. It does not replace the current UI
+helpers yet. Its job is to make the product model explicit enough that later
+migrations can render and validate from data instead of hardcoded branches.
+
+The data source is `sonaloop/primitive_taxonomy.json`; the loader and linter are
+in `sonaloop/primitive_taxonomy_registry.py`.
+
+Current integration: `sonaloop/web/_primitive_taxonomy.py` consumes the registry
+for Library families, primitive presentation and active primitive form cards.
+Storage semantics are unchanged; compatibility aliases keep old subtype URL
+filters such as `red_team`, `ab_variant` and `prototype_session` working.
+
+## Top-level document
+
+```json
+{
+  "schema": "sonaloop.primitive_taxonomy.registry",
+  "version": 1,
+  "custom_form_policy": {},
+  "families": [],
+  "primitives": [],
+  "forms": [],
+  "orthogonal_attributes": [],
+  "relationship_types": []
+}
+```
+
+## Families
+
+Families are the high-level learning buckets in the product. They are not
+methodology phases and they are not stored content records.
+
+Required fields:
+
+- `id`: lower_snake_case stable id.
+- `label`: display label.
+- `description`: one-sentence purpose.
+- `icon`: design-system icon token.
+
+The initial families are `frame`, `material`, `ask`, `test`, `capture`,
+`conclude` and `structure`.
+
+## Primitives
+
+A primitive is a stable object users can learn and navigate. It changes rarely.
+
+Required fields:
+
+- `id`: lower_snake_case stable id.
+- `family`: one registered family id.
+- `label`: display label.
+- `description`: one-sentence purpose.
+- `icon`: design-system icon token.
+- `color`: stable hex color for rows, graph nodes and relationship highlights.
+
+Example:
+
+```json
+{
+  "id": "council",
+  "family": "ask",
+  "label": "Council",
+  "description": "A moderated persona round.",
+  "icon": "councils",
+  "color": "#6d5ef0"
+}
+```
+
+## Forms
+
+A form is a concrete structure of a primitive: protocol, payload schema,
+renderers and optional aggregators. A product feature is not a form until it is
+registered here or as a validated workspace custom form.
+
+Minimum required fields:
+
+- `id`: lower_snake_case form id, unique within its primitive.
+- `primitive`: one registered primitive id.
+- `label`: display label.
+- `description`: one-sentence purpose.
+- `aliases`: compatibility values that resolve to this form.
+- `schema`: object contract with `type: "object"` and non-empty `fields`.
+- `renderer.library`: renderer template for Library rows, or `none`.
+- `renderer.detail`: renderer template for detail pages.
+- `protocol`: how the form is run and what it outputs.
+
+Optional fields:
+
+- `parameters`: references to orthogonal attributes such as fidelity or stance.
+- `aggregators`: deterministic calculations over the form payload.
+- `classifier`: compatibility rules that map existing stored rows to this form.
+- `renderer.requires`: structural renderer capabilities required by this form.
+
+Example:
+
+```json
+{
+  "id": "objection_review",
+  "primitive": "council",
+  "label": "Objection review",
+  "description": "Personas argue blockers and severity to falsify or stress-test an idea.",
+  "aliases": ["red_team"],
+  "parameters": [{"id": "stance_mode", "attribute": "stance_mode"}],
+  "schema": {
+    "type": "object",
+    "required": ["objections"],
+    "fields": {
+      "objections": "array",
+      "endorsements": "array?",
+      "stance": "attribute:stance_mode"
+    }
+  },
+  "renderer": {"library": "row", "detail": "red_team_detail"},
+  "protocol": {"kind": "ask", "inputs": ["proposal"], "outputs": ["objections"]},
+  "aggregators": [
+    {"type": "group_by", "field": "theme"},
+    {"type": "max_enum", "field": "severity"}
+  ]
+}
+```
+
+## Aliases
+
+Aliases preserve old product/API names while moving the product to structural
+forms. They are resolved only inside their primitive, so `decision` can remain a
+Decision primitive form while `council/decision` maps to `council/vote`.
+
+Required compatibility aliases include:
+
+- `council/discovery` -> `council/open_discussion`
+- `council/evaluation` -> `council/proposal_reaction`
+- `council/decision` -> `council/vote`
+- `council/head_to_head` -> `council/option_comparison`
+- `council/red_team` -> `council/objection_review`
+- `council/price_ladder` -> `council/ladder_review`
+- `council/ideation` -> `council/idea_review`
+- `url_artifact/website` -> `url_artifact/web_reference`
+- `url_artifact/external_prototype` -> `url_artifact/prototype_reference`
+- `url_artifact/ab_variant` -> `url_artifact/variant_reference`
+- `session/walkthrough_session` -> `session/walkthrough`
+- `session/prototype_session` -> `session/prototype_use`
+- `session/live_session` -> `session/live_use`
+- `session/variant_test` -> `session/variant_test`
+- `survey/single_survey` -> `survey/choice`
+- `survey/multi_survey` -> `survey/choice`
+- `survey/scale_survey` -> `survey/scale`
+- `survey/text_survey` -> `survey/text`
+- `survey/ranking_survey` -> `survey/ranking`
+
+## Orthogonal attributes
+
+Orthogonal attributes are values that should not create combinatorial forms.
+They are statuses, parameters or labels.
+
+Examples:
+
+- `prototype_fidelity`: `lofi`, `midfi`, `hifi`
+- `asset_direction`: `evidence`, `deliverable`
+- `stance_mode`: `against`, `for`, `both`
+- `variant_label`: open parameter for `A`, `B`, `C`, ...
+- lifecycle statuses such as `survey_status` or `decision_status`
+- open domain labels and methodology phase labels
+
+The registry linter requires form parameters to reference a registered
+orthogonal attribute.
+
+## Relationships
+
+Relationships are trace edges between nodes. They are not Library primitives in
+the normal user sense, but the registry includes an `edge` structure primitive so
+graph tooling can validate relationship vocabulary.
+
+Registered relationship types include `derived_from`, `based_on`, `tested_in`,
+`uses_material`, `supports`, `contradicts`, `supersedes` and `groups`.
+
+## Methodology compatibility
+
+Methodologies remain tag-driven plan seeds. Their step tags, roles,
+capabilities and gate names are open methodology vocabulary and must not become
+Library primitives or forms just because a framework uses them.
+
+When a methodology page wants to show the concrete artifact forms that usually
+appear in a stage, the methodology spec declares them under
+`step.presentation.forms` as registry references:
+
+```json
+{
+  "presentation": {
+    "forms": ["council/open_discussion", "session/prototype_use"],
+    "library": ["Councils", "Sessions", "Reports"]
+  }
+}
+```
+
+`methodology.get_methodology()` resolves those references against
+`primitive_taxonomy.json` and exposes `presentation.registered_forms` with
+canonical labels. The web UI renders those resolved labels and falls back to old
+`presentation.formats` strings only for un-migrated specs.
+
+This gives frameworks clear stage guidance without constraining custom
+methodology tags:
+
+- `tags: ["explore", "build", "spec"]` are methodology-local words;
+- `forms: ["council/option_comparison"]` points to a real Library form;
+- unknown explicit form refs are rejected at methodology validation time;
+- missing form refs are allowed for custom/open methodology steps.
+
+## Examples by family
+
+| Family | Example form | Why it exists |
+| --- | --- | --- |
+| `frame` | `open_question/open_question` | Captures unresolved research questions. |
+| `material` | `url_artifact/web_reference` | Represents a website/page used as material. |
+| `ask` | `council/objection_review` | Represents the old `red_team` protocol structurally. |
+| `test` | `session/prototype_use` | Represents observed use of a stored prototype. |
+| `capture` | `note/observation` | Represents a lightweight captured signal. |
+| `conclude` | `decision/decision` | Represents an evidence-backed commitment. |
+| `structure` | `edge/derived_from` | Represents a trace relationship between nodes. |
+
+## Unknown and custom forms
+
+The default policy is `reject_unknown`. Unknown LLM-authored values must never
+silently create new primitives or forms.
+
+Workspace custom forms are allowed only after registration. A custom form must:
+
+- extend an existing primitive/form;
+- declare label, description, schema and renderer templates;
+- reference only registered orthogonal attributes;
+- use a renderer whose required fields are present in its schema;
+- keep aliases scoped to its primitive.
+
+This gives customers room to make their own council or session forms without
+letting arbitrary text fragment the Library model.
+
+Custom forms v1 are workspace-local and live in
+`<DATA_DIR>/primitive_custom_forms.json` (or the active request partition in
+multi-tenant hosts). `register_custom_form()` currently accepts council forms
+that extend a built-in council form and inherit its standard schema, renderer,
+protocol, parameters and aggregators unless explicitly overridden. No custom
+Python or JavaScript renderer code is loaded in v1.
+
+## Council form bridge
+
+Council forms are the first registry-backed bridge over existing stored data.
+Existing CouncilSession rows are not migrated. Instead, `services.council_form()`
+classifies them through the registry:
+
+- `discovery` -> `council/open_discussion`
+- `evaluation` -> `council/proposal_reaction`
+- `decision` -> `council/vote`
+- `head_to_head` block -> `council/option_comparison`
+- `red_team` block -> `council/objection_review`
+- `price_ladder` block -> `council/ladder_review`
+- `ideation` block -> `council/idea_review`
+
+Every registered council form must declare `classifier.mode_alias` and
+`renderer.requires`, so the UI can show structural descriptions while preserving
+familiar product aliases.
+
+New generic council writes can use `services.record_council_form(project_id,
+form_id, payload, persona_ids, ...)`. It validates the requested `council/*`
+form against the registry, normalizes the payload into the existing
+CouncilSession shape, and stamps `form` plus `form_payload` metadata. Specialized
+tools such as head-to-head, red-team, price-ladder and ideation remain
+compatibility wrappers/presets over those registered forms; they are not the only
+possible council forms.
+
+## Session form bridge
+
+Session forms separate the object under test from the observed test run. This is
+the boundary that keeps `flow`, `prototype`, `live URL` and `A/B variant` from
+turning into competing Library primitives.
+
+Existing and new session records classify through `services.session_form()`:
+
+- `subject.kind == "flow"` -> `session/walkthrough`
+- `subject.kind == "prototype"` -> `session/prototype_use`
+- legacy `prototype_id` without a subject -> `session/prototype_use`
+- `subject.kind == "live_url"` -> `session/live_use`
+- `subject.kind == "variant"` or a `variants` payload -> `session/variant_test`
+
+The corresponding material/test-object boundary is:
+
+- a `prototype/flow` is material: the designed sequence being evaluated;
+- a `session/walkthrough` is test evidence: the run through that sequence;
+- a `url_artifact/variant_reference` is material: the stimulus or option;
+- a `session/variant_test` is test evidence: assignment, order and observed
+  outcome.
+
+Every registered session form must declare `classifier.mode_alias`, either
+`classifier.subject_kind` or compatibility fields, and `renderer.requires`.
+This lets the UI explain the difference between test object and test run, and
+lets compatibility rows keep rendering without creating new subtype labels.
+
+## Survey form bridge
+
+Survey forms describe the dominant question structure of a questionnaire. They
+are not domain labels such as pricing, NPS or onboarding, and multi-question
+surveys do not create a separate `mixed` form unless a future renderer/protocol
+needs one.
+
+Existing survey rows classify through `services.survey_form()`:
+
+- dominant `question.kind == "single"` -> `survey/choice`
+- dominant `question.kind == "multi"` -> `survey/choice`
+- dominant `question.kind == "scale"` -> `survey/scale`
+- dominant `question.kind == "text"` -> `survey/text`
+- future stored `question.kind == "ranking"` -> `survey/ranking`
+- no question kind -> no form facet is shown
+
+Scale surveys keep their existing `stance_mapped` behavior as a question-level
+parameter. It is not a separate form, because the renderer still uses the scale
+distribution plus the predicted-vs-actual strip.
+
+## Note and conclude form bridge
+
+Capture/conclude forms stay intentionally coarse. They exist only where schema
+or rendering differs; lifecycle values stay orthogonal statuses.
+
+Notes classify through `services.note_form()`:
+
+- empty/default `kind` -> `note/observation`
+- `kind == "insight"` -> `note/insight`
+- `kind == "idea"` -> `note/idea`
+- prototype or artifact linkage in `data` -> `note/concept`
+
+Conclusion objects use one conservative form per durable record shape:
+
+- `hypothesis/hypothesis`; `open`, `validated`, `refuted`, `inconclusive` and
+  `dropped` are `hypothesis_status` values.
+- `synthesis/synthesis` or `synthesis/brief`; `in_progress` and `done` are
+  `synthesis_status` values.
+- `report/report`; report sections are structure/content, not report forms.
+- `decision/decision`; `proposed`, `adopted` and `superseded` are
+  `decision_status` values.
+
+Section kinds remain open structure tags for now. They group existing nodes and
+must not create new primitives or forms unless a later renderer/schema needs a
+specific section form.
+
+## Lint contract
+
+`registry_errors()` checks:
+
+- top-level schema/version;
+- lower_snake_case and uniqueness for ids and aliases;
+- primitive family references;
+- form primitive references;
+- required form schema, renderer and protocol fields;
+- at least one registered form per family;
+- parameter references to registered orthogonal attributes;
+- council classifiers and renderer requirements;
+- session classifiers and renderer requirements;
+- edge forms backed by relationship types;
+- default custom-form policy is `reject_unknown`.

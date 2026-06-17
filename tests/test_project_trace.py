@@ -1,4 +1,4 @@
-from sonaloop.project_trace import trace_node_health
+from sonaloop.project_trace import collect_project_trace_edges, trace_node_health
 
 
 def _plan(status: str = "pending") -> dict:
@@ -48,3 +48,30 @@ def test_trace_start_material_with_output_is_source():
     ]
     edges = [{"from_study": "note:n1", "to_study": "council:c1", "type": "uses_material"}]
     assert trace_node_health(nodes, edges, _plan("pending"))["note:n1"] == "source"
+
+
+def test_plan_trace_resolves_frame_hops_into_prototype_inputs():
+    nodes = [
+        {"study_id": "synthesis:def", "kind": "synthesis"},
+        {"study_id": "prototype:p1", "kind": "prototype"},
+        {"study_id": "session:s1", "kind": "session"},
+        {"study_id": "synthesis:deliver", "kind": "synthesis"},
+    ]
+    plan = {"tasks": [
+        {"id": "verify__define", "bucket": "verify", "status": "done", "consumes": [],
+         "produces": [{"kind": "synthesis", "id": "def"}]},
+        {"id": "frame__develop", "bucket": "analyze", "status": "done",
+         "consumes": ["verify__define"], "produces": [{"kind": "frame", "id": "frame__develop"}]},
+        {"id": "act__build", "bucket": "act", "status": "done", "consumes": ["frame__develop"],
+         "produces": [{"kind": "prototype", "id": "p1"}, {"kind": "session", "id": "s1"}]},
+        {"id": "verify__deliver", "bucket": "verify", "status": "done", "consumes": ["act__build"],
+         "produces": [{"kind": "synthesis", "id": "deliver"}]},
+    ]}
+
+    edges = collect_project_trace_edges({"plan": plan}, nodes)
+    triples = {(e["from_study"], e["to_study"], e["type"]) for e in edges}
+
+    assert ("synthesis:def", "prototype:p1", "task_consumes") in triples
+    assert ("synthesis:def", "session:s1", "task_consumes") in triples
+    assert ("prototype:p1", "synthesis:deliver", "task_consumes") in triples
+    assert ("session:s1", "synthesis:deliver", "task_consumes") in triples

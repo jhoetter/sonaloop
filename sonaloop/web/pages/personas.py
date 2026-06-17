@@ -43,19 +43,19 @@ register_css(r"""
 .mem-pane-h{font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;margin:0 0 8px}
 .mem-hit{padding:7px 0;font-size:var(--t-sm)}.mem-hit+.mem-hit{border-top:1px solid var(--line-2)}
 .cap-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
-.catalog-note{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel-2);padding:9px 12px;margin:0 0 12px;color:var(--muted);font-size:var(--t-sm)}
-.catalog-form{margin-left:auto;display:flex;align-items:center;gap:6px;flex-shrink:0}
-.catalog-form .sl-btn{white-space:nowrap}
-.catalog-row-title{display:flex;align-items:center;gap:8px;min-width:0}
-.catalog-row-title .slug{font-weight:400;color:var(--faint);font-size:var(--t-xs)}
-.catalog-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;background:var(--panel-2);border:1px solid var(--line-2);flex-shrink:0}
-.catalog-facets{display:flex;flex-direction:column;gap:9px;margin:0 0 14px}
-.catalog-facet{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-.catalog-facet__label{min-width:118px;color:var(--muted);font-size:var(--t-xs);font-weight:650;text-transform:uppercase;letter-spacing:.05em}
-.catalog-chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:var(--radius-full);padding:3px 9px;color:var(--muted);font-size:var(--t-xs);text-decoration:none;background:var(--panel)}
-.catalog-chip:hover{background:var(--hover);color:var(--ink)}
-.catalog-chip.is-active{border-color:var(--accent);color:var(--accent);background:var(--accent-weak)}
-.catalog-chip__count{color:var(--faint);font-variant-numeric:tabular-nums}
+.sl-catalog-note{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel-2);padding:9px 12px;margin:0 0 12px;color:var(--muted);font-size:var(--t-sm)}
+.sl-catalog-form{margin-left:auto;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.sl-catalog-form .sl-btn{white-space:nowrap}
+.sl-catalog-row-title{display:flex;align-items:center;gap:8px;min-width:0}
+.sl-catalog-row-title .sl-catalog-slug{font-weight:400;color:var(--faint);font-size:var(--t-xs)}
+.sl-catalog-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;background:var(--panel-2);border:1px solid var(--line-2);flex-shrink:0}
+.sl-catalog-facets{display:flex;flex-direction:column;gap:9px;margin:0 0 14px}
+.sl-catalog-facet{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.sl-catalog-facet__label{min-width:118px;color:var(--muted);font-size:var(--t-xs);font-weight:650;text-transform:uppercase;letter-spacing:.05em}
+.sl-catalog-chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:var(--radius-full);padding:3px 9px;color:var(--muted);font-size:var(--t-xs);text-decoration:none;background:var(--panel)}
+.sl-catalog-chip:hover{background:var(--hover);color:var(--ink)}
+.sl-catalog-chip.is-active{border-color:var(--accent);color:var(--accent);background:var(--accent-weak)}
+.sl-catalog-chip__count{color:var(--faint);font-variant-numeric:tabular-nums}
 """)
 
 
@@ -181,7 +181,7 @@ def _memory_html(store: Store, persona_id: str, as_of: str | None, q: str | None
 
 
 def _catalog_notice(status: str = "") -> str:
-    return h("div", {"class_": "catalog-note"}, status) if status else ""
+    return h("div", {"class_": "sl-catalog-note"}, status) if status else ""
 
 
 def _catalog_tier_label(tier: str) -> str:
@@ -202,7 +202,7 @@ def _catalog_status_label(status: str) -> str:
 def _catalog_avatar(entry: dict) -> str:
     name = entry.get("display_name") or entry.get("slug") or "?"
     if entry.get("has_avatar") and entry.get("slug"):
-        return h("img", {"class_": "catalog-avatar", "src": f'/personas/catalog/avatar/{entry["slug"]}',
+        return h("img", {"class_": "sl-catalog-avatar", "src": f'/personas/catalog/avatar/{entry["slug"]}',
                          "alt": "", "loading": "lazy", "width": "28", "height": "28",
                          "style": "width:28px;height:28px;object-fit:cover"})
     return raw(_avatar({"display_name": name}, 28))
@@ -228,19 +228,19 @@ def _catalog_row(entry: dict, store: Store, local: dict[str, dict], status_by_sl
         if status in {"behind", "possibly_behind"}:
             action = fragment(
                 action,
-                h("form", {"class_": "catalog-form", "method": "post", "action": "/personas/catalog/pull"},
+                h("form", {"class_": "sl-catalog-form", "method": "post", "action": "/personas/catalog/pull"},
                   raw(csrf_field()),
                   h("input", {"type": "hidden", "name": "slug", "value": slug}),
                   h("button", {"class_": "sl-btn", "type": "submit"}, t("catalog_update"))))
     else:
-        action = h("form", {"class_": "catalog-form", "method": "post", "action": "/personas/catalog/pull"},
+        action = h("form", {"class_": "sl-catalog-form", "method": "post", "action": "/personas/catalog/pull"},
                    raw(csrf_field()),
                    h("input", {"type": "hidden", "name": "slug", "value": slug}),
                    h("button", {"class_": "sl-btn sl-btn--primary", "type": "submit"}, t("catalog_add")))
 
-    title = h("span", {"class_": "catalog-row-title"},
+    title = h("span", {"class_": "sl-catalog-row-title"},
               h("span", {}, entry.get("display_name") or slug),
-              h("span", {"class_": "slug"}, slug))
+              h("span", {"class_": "sl-catalog-slug"}, slug))
     return h("div", {"class_": "row"},
              _catalog_avatar(entry),
              h("span", {"class_": "title"}, title,
@@ -295,19 +295,19 @@ def _catalog_facets_html(data: dict, q: str, selected: dict[str, list[str]]) -> 
         chips = []
         for value, count in sorted(vals.items(), key=lambda kv: (-kv[1], kv[0]))[:12]:
             active = value in (selected.get(key) or [])
-            chips.append(h("a", {"class_": "catalog-chip" + (" is-active" if active else ""),
+            chips.append(h("a", {"class_": "sl-catalog-chip" + (" is-active" if active else ""),
                                  "href": _catalog_url(q=q, facets=_catalog_toggle(selected, key, value))},
                            (raw(_icon("check")) if active else None),
                            _catalog_value_label(key, value),
-                           h("span", {"class_": "catalog-chip__count"}, str(count))))
+                           h("span", {"class_": "sl-catalog-chip__count"}, str(count))))
         if chips:
-            groups.append(h("div", {"class_": "catalog-facet"},
-                            h("span", {"class_": "catalog-facet__label"},
+            groups.append(h("div", {"class_": "sl-catalog-facet"},
+                            h("span", {"class_": "sl-catalog-facet__label"},
                               _CATALOG_FACET_LABELS.get(key, key.replace("_", " "))),
                             fragment(*chips)))
     if not groups:
         return ""
-    return h("div", {"class_": "catalog-facets"},
+    return h("div", {"class_": "sl-catalog-facets"},
              fragment(*groups),
              h("a", {"class_": "sl-btn", "href": _catalog_url(q=q, facets={})}, t("clear_filter")))
 
@@ -332,7 +332,7 @@ def _catalog_page(store: Store, *, q: str = "", cursor: str | None = None,
             return h("span", {"class_": "sl-btn", "aria-disabled": "true"}, label)
         return h("a", {"class_": "sl-btn", "href": _catalog_url(q=q, facets=facets, cursor=cur)}, label)
 
-    after = h("nav", {"class_": "pager"},
+    after = h("nav", {"class_": "sl-pager"},
               link(t("pager_next"), data.get("next_cursor"))) if data.get("has_more") else ""
     return _list_page(
         store, title=t("catalog_h"), lead=t("catalog_lead"), rows=rows,

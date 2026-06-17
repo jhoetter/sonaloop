@@ -6,6 +6,7 @@ from __future__ import annotations
 import pytest
 
 from sonaloop import services
+from conftest import create_persona
 
 
 def _seed_studies(store, n=3):
@@ -32,6 +33,7 @@ def _project_with_studies(store, sids, title="MR"):
     p = store.get_research_project(proj["id"])
     p["study_ids"] = list(sids)
     store.upsert_research_project(p)
+    store.conn.execute("DELETE FROM research_plans WHERE project_id=?", (proj["id"],))
     return proj["id"]
 
 
@@ -88,6 +90,49 @@ def test_deletes_cascade_and_detach(store):
     assert store.get_council_session("c1") is None
 
 
+def test_delete_research_project_cascades_project_scoped_outputs(store):
+    persona_id = create_persona(store, "Cascade Casey")
+    proj = services.start_project("Cascade", "How might we remove stale rows?", "double_diamond",
+                                  persona_ids=[persona_id], store=store)
+    pid = proj["id"]
+    council = services.record_council(pid, "What is risky?", [persona_id], key="cascade-council",
+                                      statements=[{"persona_id": persona_id, "text": "Risky.",
+                                                   "stance": {"value": -1}}],
+                                      store=store)
+    services.record_synthesis("Cascade report", "trace", [council["id"]], project_id=pid,
+                              key="cascade-report", store=store)
+    services.record_survey(pid, "Cascade survey",
+                           [{"id": "q1", "kind": "single", "text": "Pick", "options": ["A", "B"]}],
+                           key="cascade-survey", store=store)
+    services.record_hypothesis(pid, "Cascade bet",
+                               {"metric": "completion", "expected_direction": "increase"},
+                               store=store)
+    services.record_decision(pid, "Cascade decision", "Stop stale rows",
+                             [{"kind": "council", "id": council["id"]}],
+                             key="cascade-decision", store=store)
+    proto = services.register_prototype("cascade-proto", "Cascade proto", ".",
+                                        project_id=pid, store=store)
+    services.record_usability_session(
+        persona_id, {"kind": "prototype", "id": proto["id"], "label": "Cascade proto"},
+        "artifact", "2026-06-16",
+        [{"index": 0, "action": {"type": "look", "target": "home"},
+          "state": {"screen": "Home"}, "friction": {"level": "none", "note": ""},
+          "verdict": {"would_continue": True, "reason": "clear"}}],
+        {"completed": True, "summary": "done", "predicted_behaviors": []},
+        project_id=pid, key="cascade-usession", store=store)
+
+    out = services.delete_research_project(pid, store=store)
+    assert out["deleted"]["research_projects"] == 1
+    assert services.list_research_projects(store=store) == []
+    assert [c for c in store.list_council_sessions() if c.get("project_id") == pid] == []
+    assert [s for s in store.list_syntheses() if s.get("project_id") == pid] == []
+    assert store.list_surveys(pid) == []
+    assert store.list_hypotheses(pid) == []
+    assert store.list_decisions(pid) == []
+    assert store.list_prototypes(pid) == []
+    assert store.list_usability_sessions(project_id=pid) == []
+
+
 def test_delete_persona(store):
     from conftest import create_persona
     pid = create_persona(store, "Doomed")
@@ -95,6 +140,21 @@ def test_delete_persona(store):
     out = services.delete_persona(pid, store=store)
     assert out["deleted"]["personas"] == 1
     assert all(p["id"] != pid for p in services.list_personas(store=store))
+
+
+def test_note_form_classifies_ideas_insights_and_concepts(store):
+    pid = services.create_research_project("Notes", goal="g", store=store)["id"]
+    obs = services.create_note(pid, "raw signal", "Obs", store=store)
+    idea = services.create_note(pid, "try a guided handoff", "Idea", kind="idea", store=store)
+    insight = services.create_note(pid, "handoffs fail at exceptions", "Insight", kind="insight", store=store)
+    concept = services.create_note(
+        pid, "guided handoff concept", "Concept",
+        data={"prototype_id": "proto_1", "artifact_kind": "journey"}, store=store)
+    assert services.note_form(obs) == "observation"
+    assert services.note_form(idea) == "idea"
+    assert services.note_form(insight) == "insight"
+    assert services.note_form(concept) == "concept"
+    assert services.note_form_definition(concept)["id"] == "concept"
 
 
 def test_invalid_outline_rejected(store):
