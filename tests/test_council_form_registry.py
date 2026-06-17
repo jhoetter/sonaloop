@@ -52,6 +52,7 @@ def test_record_council_form_preserves_specialized_blocks(store):
         ["p1"], prompt="A or B?", key="generic-h2h", store=store)
     stored = services.get_council(out["id"], store=store)
     assert stored["form"]["id"] == "option_comparison"
+    assert stored["head_to_head"]["result"]["preference"] == "B"
     assert stored["head_to_head"]["preferences"][0]["choice"] == "B"
     assert services.council_form(stored) == "option_comparison"
 

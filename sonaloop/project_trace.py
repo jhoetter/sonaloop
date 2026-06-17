@@ -173,6 +173,8 @@ def collect_project_trace_edges(graph: dict[str, Any], nodes: list[dict[str, Any
 
     for te in plan_judgment_edges(graph.get("plan"), seen):
         edge(te["from_study"], te["to_study"], te["type"], te.get("label", ""), te)
+    for te in plan_task_flow_edges(graph.get("plan"), seen):
+        edge(te["from_study"], te["to_study"], te["type"], te.get("label", ""), te)
 
     parked_nodes = {
         normalize_trace_ref(ref, seen)
@@ -273,6 +275,74 @@ def plan_judgment_edges(plan: dict[str, Any] | None, known_nodes: set[str]) -> l
                     continue
                 out.append(trace_edge(src, dst, meta.type, task_id=task["id"],
                                       gate_tag=j.get("gate_tag", "")))
+    return out
+
+
+def plan_task_flow_edges(plan: dict[str, Any] | None, known_nodes: set[str]) -> list[dict[str, Any]]:
+    """Expose plan task consumption as evidence-to-evidence trace edges.
+
+    The plan DAG often routes work through frame tasks, which are not visible outline nodes.
+    A prototype produced by an act task that consumes `frame__develop` should still show the
+    upstream define synthesis as its input. Resolve those frame hops recursively so generated
+    artifacts do not look like they appeared without prior evidence.
+    """
+    if not plan:
+        return []
+    tasks = {str(t.get("id")): t for t in plan.get("tasks") or []}
+    meta = TRACE_EDGE_TYPES["task_consumes"]
+
+    def direct_outputs(task: dict[str, Any]) -> list[str]:
+        out: list[str] = []
+        for ref in task.get("produces") or []:
+            if ref.get("kind") == "frame":
+                continue
+            nid = normalize_trace_ref(ref, known_nodes)
+            if nid and nid not in out:
+                out.append(nid)
+        return out
+
+    memo: dict[str, list[str]] = {}
+
+    def visible_outputs(task_id: str, visiting: set[str] | None = None) -> list[str]:
+        if task_id in memo:
+            return memo[task_id]
+        visiting = visiting or set()
+        if task_id in visiting:
+            return []
+        task = tasks.get(task_id)
+        if not task:
+            return []
+        direct = direct_outputs(task)
+        if direct:
+            memo[task_id] = direct
+            return direct
+        visiting = {*visiting, task_id}
+        inherited: list[str] = []
+        for consumed_id in task.get("consumes") or []:
+            for nid in visible_outputs(str(consumed_id), visiting):
+                if nid not in inherited:
+                    inherited.append(nid)
+        memo[task_id] = inherited
+        return inherited
+
+    out: list[dict[str, Any]] = []
+    seen_pairs: set[tuple[str, str, str]] = set()
+    for task_id, task in tasks.items():
+        targets = direct_outputs(task)
+        if not targets:
+            continue
+        sources: list[str] = []
+        for consumed_id in task.get("consumes") or []:
+            for nid in visible_outputs(str(consumed_id)):
+                if nid not in sources:
+                    sources.append(nid)
+        for src in sources:
+            for dst in targets:
+                key = (src, dst, meta.type)
+                if src == dst or key in seen_pairs:
+                    continue
+                seen_pairs.add(key)
+                out.append(trace_edge(src, dst, meta.type, label="input", task_id=task_id))
     return out
 
 

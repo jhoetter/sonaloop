@@ -106,9 +106,11 @@ def test_project_header_run_chip_with_popover(store):
     active_html = _client().get(f"/projects/{aid}?lang=en").text
     assert 'class="sl-toolbtn runchip runchip--active"' in active_html
     assert f'{web.STRINGS["en"]["run_chip"]} · {web.STRINGS["en"]["runs_active_h"]}' in active_html
-    # a project without a plan shows no chip — there is no driver to show
+    # New projects now get a minimal frame plan immediately, so there is always
+    # a driver to resume from the project header.
     bare = S.create_research_project("No plan", goal="g", store=store)
-    assert 'class="runchip-wrap"' not in _client().get(f'/projects/{bare["id"]}?lang=en').text
+    bare_html = _client().get(f'/projects/{bare["id"]}?lang=en').text
+    assert 'class="sl-toolbtn runchip runchip--stalled"' in bare_html
 
 
 def test_api_runs_returns_grouped_states(store):

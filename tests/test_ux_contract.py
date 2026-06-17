@@ -59,7 +59,7 @@ def test_inline_style_ratchet():
 ALLOWED_CLASS_TOKENS = {
     # generic text/layout utilities (web_assets.py "generic" block)
     "muted", "small", "lead", "h1", "h1cnt", "page", "grid", "two", "right", "rows", "row",
-    "cnt", "pill", "pills", "sec", "spacer", "title", "sub", "empty", "avatar",
+    "cnt", "pill", "pills", "sec", "title", "sub", "empty", "avatar",
     "quote", "thought", "lbl", "lbl-soft", "ihint", "identity", "cap-row", "rico",
     # project page: outline chrome (the spatial graph view + its toolbar/panel retired)
     "proj", "proj-head", "protoframe", "strow",

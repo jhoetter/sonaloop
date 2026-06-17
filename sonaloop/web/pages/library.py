@@ -636,7 +636,7 @@ def register_library(app) -> None:
         for m in members:
             head = h("a", {"href": m["href"]}, m["title"]) if m["href"] else m["title"]
             rows.append(h("div", {"class_": "strow"}, h("b", {}, head), " ", h("span", {"class_": "muted small"}, m["kind"]),
-                          h("div", {"class_": "muted small", "style": "margin-top:3px"}, (m["summary"] or "")[:240])))
+                          h("div", {"class_": "muted small sl-note-summary"}, (m["summary"] or "")[:240])))
         note_sub = h("p", {"class_": "sub"}, sec.get("note", "")) if sec.get("note") else ""
         sec_sub = fragment(chip, " ", h("span", {"class_": "muted small"}, t("n_nodes", n=len(members))))
         body = fragment(note_sub, h("div", {"style": "margin-top:8px"},
@@ -812,6 +812,7 @@ register_css(
     ".sl-subform:hover{border-color:color-mix(in srgb,var(--accent) 42%,var(--line));background:var(--panel-2)}"
     ".sl-subform__label{font-weight:700;color:var(--ink);font-size:var(--t-sm)}"
     ".sl-subform__body{color:var(--muted);font-size:var(--t-xs);line-height:1.35}"
+    ".sl-note-summary{margin-top:3px}"
     ".sl-libmap{margin:12px 0 12px;border:1px solid var(--line);border-radius:var(--radius);"
     "background:var(--panel);overflow:hidden}"
     ".sl-libmap>summary{display:flex;gap:10px;align-items:baseline;justify-content:space-between;"

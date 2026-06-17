@@ -329,24 +329,60 @@ def record_council_form(project_id: str, form_id: str, payload: dict[str, Any],
         raise KeyError(f"No registered council form '{form_id}'")
     _validate_council_form_payload(form, payload)
     canonical = str(form["id"])
+    structural = str(form.get("extends") or canonical)
     prompt = str(prompt or payload.get("prompt") or payload.get("proposal") or "Council form").strip()
     statements = payload.get("statements") or []
     questions = payload.get("questions") or []
     proposal = str(payload.get("proposal") or "")
     votes = payload.get("votes") or []
 
-    block_by_form = {
-        "option_comparison": "head_to_head",
-        "objection_review": "red_team",
-        "ladder_review": "price_ladder",
-        "idea_review": "ideation",
-    }
-    if canonical == "open_discussion":
+    def _stamp(session: dict[str, Any]) -> dict[str, Any]:
+        stored = store.get_council_session(session["id"]) or dict(session)
+        stored["form"] = {"primitive": "council", "id": canonical, "label": form.get("label", ""),
+                          "source": "generic"}
+        stored["form_payload"] = dict(payload)
+        store.insert_council_session(stored)
+        return {**stored, "url": web_url(f"/councils/{stored['id']}"),  # noqa: F821 (bound)
+                "project_url": web_url(f"/projects/{project_id}")}  # noqa: F821 (bound)
+
+    # For built-in structured forms, delegate to the existing recorders so the
+    # specialized blocks are complete (result/case_against/derived ladder/etc.).
+    # A partial `head_to_head` or `red_team` marker would trigger detail renderers
+    # that expect the deterministic aggregate to be present.
+    if structural == "option_comparison":
+        return _stamp(record_head_to_head(  # noqa: F821 (bound after services package import)
+            project_id, prompt, payload.get("options") or [], payload.get("preferences") or [],
+            persona_ids, statements=statements, summary=summary, exec_summary=exec_summary,
+            selection_reason=selection_reason, findings=findings, key=key,
+            variant_meta=payload.get("variant_meta"), created_at=created_at, store=store))
+    if structural == "objection_review":
+        return _stamp(record_red_team(  # noqa: F821
+            project_id, prompt, objections=payload.get("objections") or [],
+            endorsements=payload.get("endorsements") or [],
+            stance=str(payload.get("stance") or payload.get("stance_mode") or "against"),
+            persona_ids=persona_ids, statements=statements, summary=summary,
+            exec_summary=exec_summary, selection_reason=selection_reason,
+            findings=findings, key=key, created_at=created_at, store=store))
+    if structural == "ladder_review":
+        return _stamp(record_price_ladder(  # noqa: F821
+            project_id, prompt, payload.get("price_points") or payload.get("rungs") or [],
+            responses=payload.get("responses") or [], persona_ids=persona_ids,
+            statements=statements, summary=summary, exec_summary=exec_summary,
+            selection_reason=selection_reason, findings=findings, key=key,
+            created_at=created_at, store=store))
+    if structural == "idea_review":
+        return _stamp(record_ideation_summary(  # noqa: F821
+            project_id, str(payload.get("problem") or prompt),
+            payload.get("shortlist") or [], statements=statements, summary=summary,
+            exec_summary=exec_summary, selection_reason=selection_reason,
+            key=key, created_at=created_at, store=store))
+
+    if structural == "open_discussion":
         questions = questions or [prompt]
-    elif canonical == "proposal_reaction":
+    elif structural == "proposal_reaction":
         if not proposal:
             proposal = prompt
-    elif canonical == "vote":
+    elif structural == "vote":
         if not proposal:
             proposal = prompt
 
@@ -355,16 +391,7 @@ def record_council_form(project_id: str, form_id: str, payload: dict[str, Any],
         proposal=proposal, summary=summary, exec_summary=exec_summary,
         selection_reason=selection_reason or f"generic council form: {canonical}",
         questions=questions, key=key, findings=findings, created_at=created_at, store=store)
-    stored = store.get_council_session(out["id"]) or dict(out)
-    block = block_by_form.get(canonical)
-    if block:
-        stored[block] = dict(payload)
-    stored["form"] = {"primitive": "council", "id": canonical, "label": form.get("label", ""),
-                      "source": "generic"}
-    stored["form_payload"] = dict(payload)
-    store.insert_council_session(stored)
-    return {**stored, "url": web_url(f"/councils/{stored['id']}"),  # noqa: F821 (bound)
-            "project_url": web_url(f"/projects/{project_id}")}  # noqa: F821 (bound)
+    return _stamp(out)
 
 
 def record_council(project_id: str, prompt: str, persona_ids: list[str],

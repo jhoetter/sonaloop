@@ -11,6 +11,7 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import Any
 
+from .. import presentation as _presentation
 from .. import primitive_taxonomy_registry as _registry
 from ._i18n import t
 
@@ -126,21 +127,6 @@ SUBTYPE_DOCS: dict[str, tuple[SubtypeDoc, ...]] = {
                    "Ein lauffaehiger Prototyp ohne feineren Fidelity-Discriminator.",
                    "rec.fidelity is empty, so default_discriminator('prototype') is used.",
                    "rec.fidelity ist leer, daher wird default_discriminator('prototype') genutzt."),
-        SubtypeDoc("lofi", "subtype_lofi",
-                   "A low-fidelity prototype, usually rough and fast for early exploration.",
-                   "Ein Low-Fidelity-Prototyp, meist grob und schnell fuer fruehe Exploration.",
-                   "rec.fidelity == 'lofi' or the tag is the selected discriminator.",
-                   "rec.fidelity == 'lofi' oder der Tag ist der ausgewaehlte Discriminator."),
-        SubtypeDoc("midfi", "subtype_midfi",
-                   "A mid-fidelity prototype used after down-selection for concrete refinement.",
-                   "Ein Mid-Fidelity-Prototyp nach Down-Selection fuer konkrete Verfeinerung.",
-                   "rec.fidelity == 'midfi' or the tag is the selected discriminator.",
-                   "rec.fidelity == 'midfi' oder der Tag ist der ausgewaehlte Discriminator."),
-        SubtypeDoc("hifi", "subtype_hifi",
-                   "A high-fidelity prototype close enough to production to test fine detail.",
-                   "Ein High-Fidelity-Prototyp, nah genug an Produktion fuer Detailtests.",
-                   "rec.fidelity == 'hifi' or the tag is the selected discriminator.",
-                   "rec.fidelity == 'hifi' oder der Tag ist der ausgewaehlte Discriminator."),
     ),
     "session": (
         SubtypeDoc("walkthrough_session", "subtype_walkthrough_session",
@@ -249,9 +235,10 @@ _LIBRARY_VALUE_PRIORITY: dict[str, tuple[str, ...]] = {
     "note": ("observation_note", "insight", "idea", "concept_note"),
     "asset": ("image", "screenshot", "document", "file"),
     # `prototype` is the compatibility alias for the registered app form. Fidelity
-    # (lofi/midfi/hifi) is now an orthogonal parameter, not a Library form.
+    # rungs are now orthogonal parameters, not Library forms.
     "prototype": ("prototype", "flow", "dashboard", "cards", "comparison", "model", "journey"),
 }
+_PROTOTYPE_DISCRIMINATORS = frozenset(_presentation.discriminator_tags("prototype"))
 
 
 def _form_values_for_library(form: dict[str, Any]) -> list[str]:
@@ -288,7 +275,7 @@ def _registry_subtype_docs() -> dict[str, tuple[SubtypeDoc, ...]]:
     for kind, docs in _LEGACY_SUBTYPE_DOCS.items():
         existing = {doc.value for doc in grouped.get(kind, [])}
         for doc in docs:
-            if kind == "prototype" and doc.value in {"lofi", "midfi", "hifi"}:
+            if kind == "prototype" and doc.value in _PROTOTYPE_DISCRIMINATORS:
                 continue
             if kind == "survey" and doc.value == "survey":
                 continue
@@ -356,9 +343,9 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
     has no useful subtype facet. The values are stable URL query tokens."""
     rec = rec or {}
     if kind == "url_artifact":
-        raw = rec.get("kind") or "url"
+        raw_kind = rec.get("kind") or "url"
         return {"url": "website", "prototype": "external_prototype",
-                "variant": "ab_variant"}.get(str(raw), "website")
+                "variant": "ab_variant"}.get(str(raw_kind), "website")
     if kind == "asset":
         return str(rec.get("kind") or "file")
     if kind == ("coun" + "cil"):
@@ -395,9 +382,9 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
         data = rec.get("data") or {}
         if data.get("prototype_id") or data.get("prototype_ids") or data.get("artifact_kind"):
             return "concept_note"
-        raw = str(rec.get("kind") or "note").strip().lower()
+        note_kind = str(rec.get("kind") or "note").strip().lower()
         return {"idea": "idea", "insight": "insight", "concept": "concept_note",
-                "observation": "observation_note", "note": "observation_note"}.get(raw, "observation_note")
+                "observation": "observation_note", "note": "observation_note"}.get(note_kind, "observation_note")
     return ""
 
 
