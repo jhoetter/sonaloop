@@ -140,6 +140,12 @@ def test_start_job_study_seeds_the_plan_from_the_preset(store):
     assert "note" not in out                                     # on-menu framework → no off-menu note
 
 
+def test_start_job_study_accepts_existing_icon(store):
+    out = services.start_job_study("positioning", "Icon study",
+                                   "Does our value land?", icon="positioning", store=store)
+    assert out["project"]["icon"] == {"kind": "regular", "name": "positioning"}
+
+
 def test_start_job_study_framework_is_swappable_never_enforced(store):
     out = services.start_job_study("positioning", "Off-menu", "goal",
                                    framework="dschool_micro", store=store)

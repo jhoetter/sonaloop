@@ -6,6 +6,7 @@ from fastapi.responses import RedirectResponse
 from ._ctx import *  # noqa: F401,F403  (shared render toolkit)
 from .._graph_outline_sessions import outline_session_groups
 from .._project_graph_view import augment_project_graph
+from .._project_icons import project_icon_edit_script, project_icon_html
 # Presence contract (tracker: sonaloop/project-presence-contract) + UX P2 (spec/ux-contract.md
 # §3.4): EVERY project-scoped kind is an outline row in its phase context — decisions, surveys,
 # hypotheses, open questions and assets included (_graph_outline_extras builds their items).
@@ -129,9 +130,13 @@ def register_projects(app) -> None:
         # The FilterBar closes the head so it sits INSIDE the 900px measure (V1 — it used to
         # float at the page's far left), aligned with the title/outline left edge.
         body = h("div", {"class_": "proj"},
-                 h("div", {"class_": "proj-head"}, h("h1", {"class_": "h1"}, proj["title"]),
+                 h("div", {"class_": "proj-head"},
+                   h("h1", {"class_": "h1 project-title"},
+                     raw(project_icon_html(proj, edit_project_id=proj["id"],
+                                           edit_label=t("f_project_icon"))),
+                     proj["title"]),
                    h("p", {"class_": "lead"}, proj.get("goal", "")), chips, bar),
-                 main_view)
+                 main_view) + raw(project_icon_edit_script())
         # Write affordances (web CRUD, V10 §9): the ONE visible "…" overflow — Edit opens the
         # metadata dialog over the page, Delete the typed-confirm modal. No create buttons
         # (notes/sections/projects are created by the MCP/CLI host).

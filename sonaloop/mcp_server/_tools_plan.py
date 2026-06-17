@@ -13,7 +13,8 @@ def register_plan(mcp):
     # brief_next + record_judgment (above) DISPATCH to the plan when a project has one.
     @mcp.tool()
     def start_project(title: str, goal: str, methodology: str | None = None,
-                      persona_ids: list[str] | None = None, description: str = "") -> dict[str, Any]:
+                      persona_ids: list[str] | None = None, description: str = "",
+                      icon: str | dict[str, Any] | None = None) -> dict[str, Any]:
         """THE ENTRY POINT. Create a project + seed its research plan (methodology -> analyze/act/verify
         scaffolding; none -> one dischargeable root frame task); the goal is the How-Might-We.
         MANDATORY NEXT: start_run(project_id), then loop run_step(run_id) until kind=='done' — councils,
@@ -24,7 +25,8 @@ def register_plan(mcp):
         first — see list_personas; a thin cohort pulls from the 300+-persona catalog via
         catalog_search/catalog_recommend → catalog_pull.)"""
         t = time.perf_counter()
-        return _env("start_project", services.start_project(title, goal, methodology, persona_ids, description), t)
+        return _env("start_project", services.start_project(title, goal, methodology, persona_ids,
+                                                            description, icon=icon), t)
 
     @mcp.tool()
     def get_plan(project_id: str) -> dict[str, Any]:

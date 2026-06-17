@@ -54,6 +54,7 @@ def test_expected_tools_registered():
         "evaluate_cohort_diversity", "brief_cohort_critic", "record_cohort_critic",
         # research graph + report (a report IS a project-scope synthesis):
         "create_research_project", "list_research_projects", "get_project_graph",
+        "available_project_icons", "set_project_icon", "generate_project_icon",
         "brief_synthesis_outline", "record_synthesis_outline", "brief_synthesis_section",
         "record_synthesis_section",
         # deletes (CRUD complete via MCP):

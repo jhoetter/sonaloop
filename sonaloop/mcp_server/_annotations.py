@@ -259,6 +259,9 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     # ---- research graph (_tools_research) ----
     "create_research_project": W("Create research project"),
     "list_research_projects": R("List research projects"),
+    "available_project_icons": R("List project icons"),
+    "set_project_icon": W("Set project icon"),
+    "generate_project_icon": W("Generate project icon"),
     "get_project_graph": R("Get project graph"),
     "record_open_questions": W("Record open questions"),
     "get_research_frontier": R("Get research frontier"),

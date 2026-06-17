@@ -11,17 +11,44 @@ def register_research(mcp):
     # ----- Research graph: Project container + typed study edges + theme tags -----
     @mcp.tool()
     def create_research_project(title: str, goal: str = "", persona_ids: list[str] | None = None,
-                                description: str = "") -> dict[str, Any]:
+                                description: str = "",
+                                icon: str | dict[str, Any] | None = None) -> dict[str, Any]:
         """Create a research Project: a themed GRAPH of studies (syntheses). Distinct from
-        the memory get_project (a persona's own work project)."""
+        the memory get_project (a persona's own work project). `icon` may be an existing icon
+        name, 'random', or {kind:'custom', svg:'...'}."""
         t = time.perf_counter()
-        return _env("create_research_project", services.create_research_project(title, goal, persona_ids, description), t)
+        return _env("create_research_project",
+                    services.create_research_project(title, goal, persona_ids, description,
+                                                     icon=icon), t)
 
     @mcp.tool()
     def list_research_projects() -> dict[str, Any]:
         """List research projects (graph containers) with study/edge/theme counts."""
         t = time.perf_counter()
         return _env("list_research_projects", services.list_research_projects(), t)
+
+    @mcp.tool()
+    def available_project_icons() -> dict[str, Any]:
+        """Existing regular icons that Projects/Jobs can choose at initialization or edit time."""
+        t = time.perf_counter()
+        return _env("available_project_icons", services.available_project_icons(), t)
+
+    @mcp.tool()
+    def set_project_icon(project_id: str, icon: str | None = None, svg: str | None = None,
+                         randomize: bool = False) -> dict[str, Any]:
+        """Replace a Project/Job icon. Use `icon=<existing name>`, `randomize=True`, or pass a
+        custom `svg` string; custom SVGs are sanitized, saved under data/project-icons, and
+        assigned to the project."""
+        t = time.perf_counter()
+        return _env("set_project_icon",
+                    services.set_project_icon(project_id, icon, svg=svg, randomize=randomize), t)
+
+    @mcp.tool()
+    def generate_project_icon(project_id: str, prompt: str = "") -> dict[str, Any]:
+        """Create a fitting custom SVG icon for a Project/Job from its title/goal plus an optional
+        prompt, save it as an SVG file, and assign it."""
+        t = time.perf_counter()
+        return _env("generate_project_icon", services.generate_project_icon(project_id, prompt), t)
 
     @mcp.tool()
     def get_project_graph(project_id: str) -> dict[str, Any]:

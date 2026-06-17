@@ -248,6 +248,9 @@ Downstream tickets reference this artifact directly:
   (framework + formats + coverage, derived live from this taxonomy) plus the deterministic
   `sharpen_question` helper that turns a fuzzy goal into a well-formed study spec. MCP surface:
   `list_job_presets` / `get_job_preset` / `sharpen_question` / `start_job_study`.
+  Jobs/Projects also carry visual metadata: pass `icon=<existing name>|"random"` when
+  creating/starting a study, inspect the existing catalogue with `available_project_icons`,
+  replace it with `set_project_icon`, or generate a saved custom SVG via `generate_project_icon`.
 - **Methodology surface** — Frameworks here are the real `key`s already in `sonaloop/methodologies/`;
   the inspector exposes them under `/methodologies` with one page per Framework.
 

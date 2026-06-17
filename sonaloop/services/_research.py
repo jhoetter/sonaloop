@@ -71,7 +71,8 @@ from ._common import *  # noqa: F401,F403  (shared helpers + constants)
 
 
 def create_research_project(title: str, goal: str = "", persona_ids: list[str] | None = None,
-                            description: str = "", store: Store | None = None) -> dict[str, Any]:
+                            description: str = "", store: Store | None = None,
+                            icon: Any | None = None) -> dict[str, Any]:
     store = store or Store()
     now = utc_now_iso()
     pid = stable_id("rproject", title, now)
@@ -84,6 +85,7 @@ def create_research_project(title: str, goal: str = "", persona_ids: list[str] |
         persona_ids=persona_ids or [], study_ids=[], study_tags={}, themes=[],
         status="active", created_at=now, updated_at=now, council_ids=[],
     ).to_dict()
+    project["icon"] = normalize_project_icon(icon or "random", title=title, goal=goal, seed=pid)  # noqa: F821 (bound)
     store.upsert_research_project(project)
     root = {"id": "frame__root", "title": "Frame the inquiry", "bucket": "analyze",
             "capability": "frame", "consumes": [],
@@ -114,6 +116,9 @@ def update_research_project(project_id: str, patch: dict[str, Any],
             project[key] = str(patch[key]).strip()[:2000]
     if patch.get("status"):
         project["status"] = str(patch["status"]).strip()[:40]
+    if "icon" in patch and patch["icon"] is not None:
+        project["icon"] = normalize_project_icon(patch["icon"], title=project.get("title", ""),
+                                                 goal=project.get("goal", ""), seed=project["id"])  # noqa: F821
     project["updated_at"] = utc_now_iso()
     store.upsert_research_project(project)
     emit_lifecycle_event("project.updated",  # noqa: F821 (bound)
@@ -141,6 +146,7 @@ def list_research_projects(store: Store | None = None) -> list[dict[str, Any]]:
             rs = None
         out.append({"id": p["id"], "slug": p["slug"], "title": p["title"], "goal": p.get("goal", ""),
                     "status": p.get("status", "active"),
+                    "icon": p.get("icon") or {"kind": "regular", "name": "projects"},
                     # the link to hand the user ("what are my projects") — absent before
                     "url": web_url(f"/projects/{p['id']}"),  # noqa: F821 (bound)
                     "persona_ids": list(p.get("persona_ids") or []),
@@ -344,6 +350,7 @@ def get_project_graph(project_id: str, store: Store | None = None) -> dict[str, 
                     "goal": project.get("goal", ""), "status": project.get("status", "active"),
                     "persona_ids": project.get("persona_ids", []), "themes": project.get("themes", []),
                     "methodology": project.get("methodology", ""), "phase": project.get("phase", ""),
+                    "icon": project.get("icon") or {"kind": "regular", "name": "projects"},
                     "url": web_url(f"/projects/{project['id']}")},  # noqa: F821 (bound)
         "methodology_state": None,
         "prototypes": _protos_with_session_counts(project["id"], store),
@@ -494,7 +501,8 @@ def plan_graph(project_id: str, store: Store | None = None) -> dict[str, Any]:
         "project": {"id": project["id"], "slug": project["slug"], "title": project["title"],
                     "goal": project.get("goal", ""), "status": project.get("status", "active"),
                     "persona_ids": project.get("persona_ids", []), "themes": project.get("themes", []),
-                    "methodology": plan.get("methodology", ""), "phase": ""},
+                    "methodology": plan.get("methodology", ""), "phase": "",
+                    "icon": project.get("icon") or {"kind": "regular", "name": "projects"}},
         "methodology_state": ms,
         "prototypes": _protos_with_session_counts(project["id"], store),
         "artifacts": list(project.get("artifacts") or []),

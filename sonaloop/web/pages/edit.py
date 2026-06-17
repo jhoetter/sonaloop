@@ -31,11 +31,27 @@ def _s(form, name: str) -> str:
 # ONE source for the edit page (form_page) AND the V10 edit dialog (detail_overflow).
 
 def project_fields(values: dict, errors: dict) -> list:
+    current_icon = values.get("icon") or "random"
+    def icon_choice(value: str, label: str, icon_name: str) -> str:
+        checked = current_icon == value
+        return h("label", {"class_": "sl-icon-option"},
+                 h("input", {"type": "radio", "name": "icon", "value": value,
+                             "checked": checked}),
+                 h("span", {"class_": "sl-icon-tile"},
+                   h("span", {"class_": "rico project-rico"},
+                     raw(services.project_icon_svg({"icon": {"kind": "regular", "name": icon_name}}))),
+                   h("span", {"class_": "sl-icon-name"}, label)))
+    icon_options = [icon_choice("random", t("project_icon_random"), "sparkles")]
+    for name in services.available_project_icons()["icons"]:
+        icon_options.append(icon_choice(name, name, name))
     return [raw(field("title", t("f_title"), values.get("title", ""),
                       error=errors.get("title", ""), required=True)),
             raw(field("goal", t("f_goal"), values.get("goal", ""))),
-            raw(field("description", t("f_description"), values.get("description", ""),
-                      textarea=True))]
+            h("fieldset", {"class_": "sl-field sl-icon-picker", "data-icon-picker": True,
+                           "tabindex": "-1"},
+              h("legend", {"class_": "sl-field__label"}, t("f_project_icon")),
+              h("div", {"class_": "sl-icon-grid"}, fragment(*icon_options)),
+              h("p", {"class_": "sl-field__hint"}, t("f_project_icon_hint")))]
 
 
 def persona_fields(values: dict, errors: dict) -> list:
@@ -60,8 +76,10 @@ def section_fields(values: dict, errors: dict) -> list:
 
 
 def _project_values(proj: dict) -> dict:
+    icon = proj.get("icon") or {}
+    icon_value = icon.get("name") if icon.get("kind") == "regular" else "projects"
     return {"title": proj["title"], "goal": proj.get("goal", ""),
-            "description": proj.get("description", "")}
+            "icon": icon_value or "projects"}
 
 
 def _persona_values(p: dict) -> dict:
@@ -81,7 +99,8 @@ def project_actions(proj: dict, *, values: dict | None = None, errors: dict | No
         edit={"action": f'/projects/{proj["id"]}/edit', "title": f'{proj["title"]} — {t("edit")}',
               "fields": project_fields(values if values is not None else _project_values(proj),
                                        errors or {}),
-              "lead": t("project_form_lead"), "open_now": edit_open},
+              "lead": t("project_form_lead"), "open_now": edit_open,
+              "dialog_attrs": {"data-project-edit": proj["id"]}},
         delete={"action": f'/projects/{proj["id"]}/delete', "label": t("delete_project"),
                 "expected": proj["title"], "error": confirm_error})
 
@@ -201,12 +220,15 @@ def register_edit(app) -> None:  # noqa: C901  (route table — one block per en
         form = await request.form()
         if (gate := write_gate(form, "create_project")) is not None:
             return gate
-        values = {k: _s(form, k) for k in ("title", "goal", "description")}
+        values = {k: _s(form, k) for k in ("title", "goal", "icon")}
+        if "description" in form:  # API/back-compat surface; the browser form no longer shows it.
+            values["description"] = _s(form, "description")
         if not values["title"]:
             return HTMLResponse(_project_form(store, None, values, {"title": t("field_required")}),
                                 status_code=400)
         p = services.create_research_project(values["title"], goal=values["goal"],
-                                             description=values["description"], store=store)
+                                             description=values["description"], store=store,
+                                             icon=values["icon"] or "random")
         return see_other(f'/projects/{p["id"]}')
 
     @app.get("/projects/{project_id}/edit", response_class=HTMLResponse)
@@ -217,7 +239,7 @@ def register_edit(app) -> None:  # noqa: C901  (route table — one block per en
         except KeyError:
             return not_found()
         return _project_form(store, proj, {"title": proj["title"], "goal": proj.get("goal", ""),
-                                           "description": proj.get("description", "")}, {})
+                                           "icon": _project_values(proj)["icon"]}, {})
 
     @app.post("/projects/{project_id}/edit")
     async def project_update(project_id: str, request: Request):
@@ -229,7 +251,9 @@ def register_edit(app) -> None:  # noqa: C901  (route table — one block per en
             proj = services.get_research_project(project_id, store=store)
         except KeyError:
             return not_found()
-        values = {k: _s(form, k) for k in ("title", "goal", "description")}
+        values = {k: _s(form, k) for k in ("title", "goal", "icon")}
+        if "description" in form:  # Preserve existing descriptions unless an API caller sends one.
+            values["description"] = _s(form, "description")
         if not values["title"]:
             return HTMLResponse(_dialog_error_page(
                 store, title=proj["title"], active="projects",

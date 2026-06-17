@@ -459,16 +459,21 @@ INSPECTOR_SECTIONS = [
       "nie anlegen.** Neue Projekte, Notizen oder Sections entstehen ausschließlich über deinen "
       "Agenten (MCP/CLI) — die UI bietet dafür bewusst keinen Button. Bearbeiten und Löschen "
       "wohnen im **„…“-Menü**, das jeder Seitenkopf trägt (auch im Panel): **Bearbeiten** öffnet "
-      "einen Dialog direkt über der Seite — Projekt-, Notiz- und Section-Metadaten sowie "
-      "Persona-Metadaten (Name, Rolle, Segment, Branche). **Löschen** öffnet einen "
+      "einen Dialog direkt über der Seite — Projekt-Titel, Goal und Icon; Notiz- und Section-Metadaten sowie "
+      "Persona-Metadaten (Name, Rolle, Segment, Branche). Projekt-Icons kannst du dort aus "
+      "dem bestehenden Katalog wählen; ein Klick auf das Header-Icon öffnet denselben Dialog "
+      "direkt am Icon-Picker. Custom-SVGs erzeugt/setzt dein Agent per MCP/CLI. "
+      "**Löschen** öffnet einen "
       "Bestätigungs-Dialog (bei Projekten und Personas tippst du den Namen). Generierter Text — "
       "Councils, Reports, Prototypen — bleibt unantastbar; Erinnerungen, SOULs und Evidenz komplett.",
       "The inspector is a reading surface with one clear boundary: **inspect and edit, never "
       "create.** New projects, notes or sections come exclusively from your agent (MCP/CLI) — the "
       "UI deliberately offers no button for them. Edit and delete live in the **“…” menu** every "
       "page header carries (in the side panel too): **Edit** opens a dialog right over the page — "
-      "project, note and section metadata plus persona metadata (name, role, segment, industry). "
-      "**Delete** opens a confirm dialog (projects and personas ask you to type the name). "
+      "project title, goal and icon; note and section metadata plus persona metadata (name, role, segment, industry). "
+      "Project icons can be chosen there from the existing catalogue; clicking the header icon "
+      "opens the same dialog directly at the icon picker. Custom SVGs are generated/set by your "
+      "agent through MCP/CLI. **Delete** opens a confirm dialog (projects and personas ask you to type the name). "
       "Generated text — councils, reports, prototypes — stays untouchable; memories, SOULs and "
       "evidence entirely so.")),
     ("filtering", "filter",
@@ -496,14 +501,14 @@ INSPECTOR_SECTIONS = [
       "the language you write to your agent in, and the switcher never touches it.")),
     ("feedback", "chat",
      ("Feedback", "Feedback"),
-     ("Unten in der Seitenleiste sitzt ein **Feedback**-Knopf: kurze Nachricht, optional deine "
-      "E-Mail — die aktuelle Seite und die App-Version werden sichtbar mitgeschickt (nichts wird "
-      "still gesammelt). Eingesendetes liest der Betreiber unter `/feedback` oder per `sonaloop "
-      "feedback`; alternativ verlinkt das Formular ein vorausgefülltes GitHub-Issue.",
-      "A **feedback** button sits at the bottom of the sidebar: a short message, optionally your "
-      "email — the current page and app version are sent along visibly (nothing is collected "
-      "silently). Submissions are read at `/feedback` or via `sonaloop feedback`; the form also "
-      "links a prefilled GitHub issue as the public channel.")),
+     ("Im User-Menü unten links sitzt **Feedback**: kurze Nachricht, optional deine E-Mail — die "
+      "aktuelle Seite und die App-Version werden sichtbar mitgeschickt (nichts wird still gesammelt). "
+      "Eingesendetes liest der Betreiber unter `/feedback` oder per `sonaloop feedback`; alternativ "
+      "verlinkt das Formular ein vorausgefülltes GitHub-Issue.",
+      "**Feedback** lives in the bottom-left user menu: a short message, optionally your email — the "
+      "current page and app version are sent along visibly (nothing is collected silently). "
+      "Submissions are read at `/feedback` or via `sonaloop feedback`; the form also links a "
+      "prefilled GitHub issue as the public channel.")),
 ]
 
 # ============================ Methodology ============================ #

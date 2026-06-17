@@ -74,12 +74,24 @@ def test_project_create_empty_title_rerenders_form_with_inline_error():
 
 
 def test_project_edit_happy_validation_and_404(store):
-    proj = services.create_research_project("Old title", store=store)
+    proj = services.create_research_project("Old title", description="kept via API", store=store)
     client = _client()
-    assert "Old title" in client.get(f'/projects/{proj["id"]}/edit?lang=en').text
-    r = _post(client, f'/projects/{proj["id"]}/edit', title="New title", goal="g2", description="")
+    edit_html = client.get(f'/projects/{proj["id"]}/edit?lang=en').text
+    assert "Old title" in edit_html and 'name="icon"' in edit_html
+    assert 'name="description"' not in edit_html
+    assert "sl-icon-grid" in edit_html
+    assert 'id="f-icon" name="icon"' not in edit_html
+    r = _post(client, f'/projects/{proj["id"]}/edit', title="New title", goal="g2",
+              icon="positioning")
     assert r.status_code == 303 and r.headers["location"] == f'/projects/{proj["id"]}'
-    assert services.get_research_project(proj["id"], store=store)["title"] == "New title"
+    updated = services.get_research_project(proj["id"], store=store)
+    assert updated["title"] == "New title"
+    assert updated["description"] == "kept via API"
+    assert updated["icon"] == {"kind": "regular", "name": "positioning"}
+    detail_html = client.get(f'/projects/{proj["id"]}?lang=en').text
+    assert "project-rico" in detail_html and "pi-positioning" in detail_html
+    assert f'data-project-icon-trigger="{proj["id"]}"' in detail_html
+    assert f'data-project-edit="{proj["id"]}"' in detail_html
     assert _post(client, f'/projects/{proj["id"]}/edit', title="").status_code == 400
     assert client.get("/projects/nope/edit").status_code == 404
     assert _post(client, "/projects/nope/edit", title="x").status_code == 404
@@ -345,6 +357,7 @@ def test_edit_is_a_dialog_on_the_detail_header_overflow(store):
         assert f'action="{edit_action}"' in html, page_url           # … posting the SAME route
         assert f'name="csrf_token" value="{token}"' in html, page_url
         assert "danger-dialog" in html, page_url                     # Delete right beside it
+        assert "__slDialogDismiss" in html, page_url                 # backdrop click closes dialogs
         assert "Type the name to confirm" in html, page_url          # typed confirm (server-checked)
         assert "danger-zone" not in html, page_url
     # the deep-link edit PAGE keeps answering (same fields, one source)

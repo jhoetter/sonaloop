@@ -314,6 +314,12 @@ def build_parser() -> argparse.ArgumentParser:
     # Research graph (Project container + edges + tags) + Report
     p = sub.add_parser("research-create")
     p.add_argument("title"); p.add_argument("--goal", default=""); p.add_argument("--persona", action="append", dest="personas")
+    p.add_argument("--icon", default=None, help="Existing icon name, or 'random' (default).")
+    p = sub.add_parser("project-icons")
+    p = sub.add_parser("project-icon-set")
+    p.add_argument("project_id"); p.add_argument("--icon"); p.add_argument("--svg"); p.add_argument("--random", action="store_true", dest="randomize")
+    p = sub.add_parser("project-icon-generate")
+    p.add_argument("project_id"); p.add_argument("--prompt", default="")
     p = sub.add_parser("research-list")
     p = sub.add_parser("research-graph"); p.add_argument("project_id")
     p = sub.add_parser("research-frontier"); p.add_argument("project_id")
@@ -348,6 +354,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("methodology-start")
     p.add_argument("title"); p.add_argument("--goal", default=""); p.add_argument("--methodology", required=True)
     p.add_argument("--persona", action="append", dest="personas"); p.add_argument("--description", default="")
+    p.add_argument("--icon", default=None, help="Existing icon name, or 'random' (default).")
     p = sub.add_parser("methodology-suggest")
     p.add_argument("kind", nargs="?", default="capabilities",
                    choices=["capabilities", "roles", "artifact-types", "methodologies"])
@@ -360,6 +367,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("project-start")
     p.add_argument("title"); p.add_argument("--goal", default=""); p.add_argument("--methodology")
     p.add_argument("--persona", action="append", dest="personas"); p.add_argument("--description", default="")
+    p.add_argument("--icon", default=None, help="Existing icon name, or 'random' (default).")
     # Governed run loop (ESV) — CLI parity with the MCP tools, so a CLI-driven host can follow
     # the front door (AGENTS.md) instead of freestyling plan-next until it "feels answered".
     p = sub.add_parser("run-start")
@@ -650,7 +658,15 @@ def main(argv: list[str] | None = None) -> int:
                 content = services.export_synthesis(args.synthesis_id, args.format)
                 _print({"path": services.write_export(content, args.out)} if args.out else content, as_json=bool(args.out) or args.format == "json")
         elif args.command == "research-create":
-            _print(services.create_research_project(args.title, args.goal, args.personas))
+            _print(services.create_research_project(args.title, args.goal, args.personas,
+                                                    icon=args.icon))
+        elif args.command == "project-icons":
+            _print(services.available_project_icons())
+        elif args.command == "project-icon-set":
+            _print(services.set_project_icon(args.project_id, args.icon, svg=args.svg,
+                                             randomize=args.randomize))
+        elif args.command == "project-icon-generate":
+            _print(services.generate_project_icon(args.project_id, args.prompt))
         elif args.command == "research-list":
             _print(services.list_research_projects())
         elif args.command == "research-graph":
@@ -708,7 +724,8 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "methodology-get":
             _print(services.get_methodology(args.key))
         elif args.command == "methodology-start":
-            _print(services.start_project(args.title, args.goal, args.methodology, args.personas, args.description))
+            _print(services.start_project(args.title, args.goal, args.methodology, args.personas,
+                                          args.description, icon=args.icon))
         elif args.command == "methodology-suggest":
             fn = {"capabilities": services.suggest_capabilities, "roles": services.suggest_roles,
                   "artifact-types": services.suggest_artifact_types,
@@ -720,7 +737,8 @@ def main(argv: list[str] | None = None) -> int:
             _print(services.record_judgment(args.project_id, args.step_id, args.gate_tag,
                                             args.decided.lower() == "true", args.rationale, args.refs))
         elif args.command == "project-start":
-            _print(services.start_project(args.title, args.goal, args.methodology, args.personas, args.description))
+            _print(services.start_project(args.title, args.goal, args.methodology, args.personas,
+                                          args.description, icon=args.icon))
         elif args.command == "run-start":
             _print(services.start_run(args.project_id, args.budget, args.run_id))
         elif args.command == "run-step":

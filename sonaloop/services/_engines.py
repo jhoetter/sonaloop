@@ -106,13 +106,13 @@ from .. import browser as _browser   # noqa: E402
 
 def start_project(title: str, goal: str, methodology: str | None = None,
                   persona_ids: list[str] | None = None, description: str = "",
-                  store: Store | None = None) -> dict[str, Any]:
+                  store: Store | None = None, icon: Any | None = None) -> dict[str, Any]:
     """Unified project entry: create a research project + seed its plan. With a methodology the plan
     is seeded from the constellation (analyze/act/verify scaffolding); freeform seeds one root frame
     task (analyze, dischargeable). The plan is the single engine (HX3); a methodology only seeds it."""
     store = store or Store()
     project = create_research_project(title, goal=goal, persona_ids=persona_ids,
-                                      description=description, store=store)
+                                      description=description, store=store, icon=icon)
     if methodology:
         spec = get_methodology(methodology, store=store)
         project["methodology"] = methodology
@@ -189,7 +189,8 @@ def sharpen_question(goal: str, answers: dict[str, str] | None = None, job: str 
 
 
 def start_job_study(job_id: str, title: str, goal: str, framework: str | None = None,
-                    persona_ids: list[str] | None = None, store: Store | None = None) -> dict[str, Any]:
+                    persona_ids: list[str] | None = None, store: Store | None = None,
+                    icon: Any | None = None) -> dict[str, Any]:
     """Start a study FROM a Job preset: seed the plan through the preset's default Framework
     (or any `framework` override — presets are swappable, never enforced) and stamp the Job id
     on the project + plan so downstream surfaces (assess_coverage, the inspector) know which
@@ -202,7 +203,8 @@ def start_job_study(job_id: str, title: str, goal: str, framework: str | None = 
     except KeyError as exc:
         raise ValueError(f"unknown job '{job_id}' — list_job_presets() names the valid ids") from exc
     fw = framework or preset["framework"]["id"]
-    project = start_project(title, goal, methodology=fw, persona_ids=persona_ids, store=store)
+    project = start_project(title, goal, methodology=fw, persona_ids=persona_ids, store=store,
+                            icon=icon)
     project["job"] = job_id
     project["updated_at"] = utc_now_iso()
     store.upsert_research_project(project)

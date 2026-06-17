@@ -169,13 +169,16 @@ def overflow_menu(items, dialogs="") -> str:
 
 
 def edit_dialog(*, action: str, title: str, fields: list, lead: str = "",
-                open_now: bool = False, dialog_id: str = "edit-dialog") -> str:
+                open_now: bool = False, dialog_id: str = "edit-dialog",
+                dialog_attrs: dict | None = None) -> str:
     """The EDIT modal (UX V10, ux-contract §9: "edit pages sollten eher modale/dialoge
     sein"): a native <dialog> over the detail page carrying the SAME form fields the edit
     page renders (one source — the pages/edit.py field builders), posting to the SAME
     route. `open_now=True` re-opens it on the server's 400 re-render, so validation errors
     appear IN the dialog (the typed-confirm idiom)."""
-    dlg = h("dialog", {"class_": "wdialog", "id": dialog_id},
+    attrs = {"class_": "wdialog", "id": dialog_id}
+    attrs.update(dialog_attrs or {})
+    dlg = h("dialog", attrs,
             h("form", {"class_": "wform", "method": "post", "action": action},
               raw(csrf_field()),
               h("h3", {}, title),
@@ -268,6 +271,13 @@ document.addEventListener('click',function(e){
     if(!d.contains(e.target))d.removeAttribute('open');});});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')
   document.querySelectorAll('details.sl-overflow[open]').forEach(function(d){d.removeAttribute('open');});});
+if(!window.__slDialogDismiss){window.__slDialogDismiss=1;
+document.addEventListener('click',function(e){
+  var d=e.target&&e.target.closest&&e.target.closest('dialog.wdialog,dialog.danger-dialog');
+  if(!d||e.target!==d||!d.open)return;
+  var r=d.getBoundingClientRect();
+  if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();
+});}
 })();</script>
 """
 
@@ -290,7 +300,7 @@ register_css(r"""
 /* ---- the modals: the typed-confirm delete + the V10 edit dialog (one visual idiom) ---- */
 .danger-dialog,.wdialog{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);color:var(--ink);padding:18px}
 .danger-dialog{max-width:420px}
-.wdialog{width:min(560px,92vw)}
+.wdialog{width:min(560px,92vw);max-height:90vh;overflow:auto}
 .danger-dialog h3,.wdialog h3{margin:0 0 12px}
 .danger-dialog p{margin:0 0 6px;color:var(--muted)}
 .wdialog .wform{max-width:none;margin-top:0}

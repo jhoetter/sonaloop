@@ -12,6 +12,7 @@ from .. import services
 from ..storage import Store
 from ._i18n import t
 from ._components import _icon, _avatar, _label, _star, _list_page, _layout
+from ._project_icons import project_icon_html
 from ._pager import _list_filter_box, _page_window, _pager
 from ._html import h, raw, fragment, register_css
 from ._docs import register_docs
@@ -118,7 +119,7 @@ def _projects_page(page: int = 1, q: str = "") -> str:
                 "stalled": "var(--amber)",
                 "finished": "var(--muted)",
             }.get(state, "var(--faint)")
-            return _label(f"Run · {label}", color)
+            return _label(f"{t('run_chip')} · {label}", color)
 
         # the cohort avatar-group (ux-contract §10 W11): the project's persona participation
         # leads the row meta — the ONE anatomy every participation surface renders
@@ -129,15 +130,15 @@ def _projects_page(page: int = 1, q: str = "") -> str:
                         _label(f'{t("methodology_h")} · {_methodology_name()}', "var(--accent)"),
                         raw(_run_label() or ""),
                         raw(_star("project", p["id"], p["title"], f'/projects/{p["id"]}')))
-        rows.append(_row(f'/projects/{p["id"]}', "projects", p["title"], meta, color="var(--accent)"))
+        rows.append(_row(f'/projects/{p["id"]}', raw(project_icon_html(p)), p["title"], meta))
     if not rows and not q and not store.list_personas():
         # Truly fresh database (no projects AND no personas): orient instead of an empty list.
         return _layout(t("first_steps_h"), _first_steps_html(), store,
                        crumbs=[(t("projects"), None)], active="projects")
     # No "New project" affordance (U9, ux-contract §8.4): creation belongs to the MCP/CLI
     # host — the empty state TEACHES the agent verb instead of offering a form.
-    # The tour entry lives in the sidebar footer (V7) — no second, floating link under the
-    # list (round-3 craft: every concept appears in exactly one place, C10).
+    # The tour entry lives in the user menu — no second, floating link under the list
+    # (round-3 craft: every concept appears in exactly one place, C10).
     return _list_page(store, title=t("projects"), lead=t("projects_lead"), rows=rows,
                       empty_icon="projects", empty_msg=t("no_projects"), active="projects",
                       empty_teach=t("fs_step_project_d"),

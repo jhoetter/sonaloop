@@ -44,10 +44,12 @@ def register_jobs(mcp):
 
     @mcp.tool()
     def start_job_study(job_id: str, title: str, goal: str, framework: str | None = None,
-                        persona_ids: list[str] | None = None) -> dict[str, Any]:
+                        persona_ids: list[str] | None = None,
+                        icon: str | dict[str, Any] | None = None) -> dict[str, Any]:
         """Start a study FROM a Job preset: seeds the plan through the preset's default Framework (or any
         `framework` override — presets never constrain) and stamps the Job on the project + plan so
         assess_coverage(job=...) and the inspector know the declared coverage. A convenience over
         start_project; drive the plan with the usual plan tools afterwards."""
         t = time.perf_counter()
-        return _env("start_job_study", services.start_job_study(job_id, title, goal, framework, persona_ids), t)
+        return _env("start_job_study", services.start_job_study(job_id, title, goal, framework,
+                                                               persona_ids, icon=icon), t)

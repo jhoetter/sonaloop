@@ -14,7 +14,7 @@ remain MCP-only.
 
 | Entity | Create | Edit | Delete | Notes |
 | --- | --- | --- | --- | --- |
-| Project | ❌ UI (MCP/CLI: `start_project` / `create_research_project`; `POST /projects/new` stays as API surface) | ✅ title/goal/description | ✅ typed-confirmation (type the project title) | container metadata only; the graph/plan stays agent-driven |
+| Project | ❌ UI (MCP/CLI: `start_project` / `create_research_project`; `POST /projects/new` stays as API surface) | ✅ title/goal/icon | ✅ typed-confirmation (type the project title) | browser edits the primary container metadata only; description remains API/MCP metadata; the graph/plan stays agent-driven; regular icons are selectable in the browser, custom SVG icons are generated/set through MCP/CLI |
 | Persona | ❌ MCP-only for authored profiles (`brief_persona` → `record_persona`); ✅ catalog import from `/personas/catalog` via `catalog_pull` | ✅ metadata: name, role title, segment, industry | ✅ typed-confirmation (type the display name) | catalog import is a selective structural pull from sonaloop-data, not browser authoring |
 | Note | ❌ UI (MCP: `create_note`; `POST /projects/{id}/notes/new` stays as API surface) | ✅ title/text | ✅ | notes are observations the agent records; editing their text in the browser stays fine |
 | Section | ❌ UI (MCP: `create_section`; `POST /projects/{id}/sections/new` stays as API surface) | ✅ title/kind/note | ✅ (member nodes untouched) | a section is a view; membership editing stays MCP (`add_to_section` …) |
@@ -43,6 +43,15 @@ lifecycle events, hooks, the event bus (SSE/activity feed) and cloud guards all
 keep firing. Two service functions were added for the web path and are equally
 available to MCP/CLI: `update_research_project(project_id, patch)` and
 `update_note(note_id, patch)`.
+
+Project/Job icons are structural metadata. New projects get a persisted
+`project["icon"]` (existing regular icon by name, or a custom SVG reference).
+MCP/CLI callers can choose an existing icon at initialization (`icon="pricingResearch"`
+or `icon="random"`), replace it later via `set_project_icon`, or create a
+sanitized custom SVG with `generate_project_icon`. Custom SVGs are written under
+`data/project-icons/…` and assigned back to the project. In the browser, clicking
+the project header icon opens the same edit dialog directly at the visual icon
+picker; the picker only selects from the existing icon catalogue.
 
 ## Why persona create is MCP-only
 
