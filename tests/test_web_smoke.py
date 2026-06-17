@@ -76,6 +76,16 @@ def test_user_menu_icons_are_animation_enabled():
     assert all("pi-animate" in cls for cls in classes), classes
 
 
+def test_icon_animation_css_references_existing_keyframes():
+    import re
+    from sonaloop._icons import HIFI_ANIM_CSS
+
+    referenced = set(re.findall(r"animation:\s*([A-Za-z_][\w-]*)", HIFI_ANIM_CSS))
+    defined = set(re.findall(r"@keyframes\s+([A-Za-z_][\w-]*)", HIFI_ANIM_CSS))
+    assert referenced
+    assert referenced <= defined
+
+
 def test_library_browser_tabs_and_old_routes(store):
     """The Library is ONE browser (ux-contract §3.5): /library groups primitives by
     family, scopes the second-level tabs to that family, and every old list route
