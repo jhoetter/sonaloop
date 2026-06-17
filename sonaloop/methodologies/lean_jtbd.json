@@ -4,7 +4,7 @@
   "description": "Problem-explore (fan) -> Problem-pick (waist) -> Solution-explore (fan + prototype) -> Validate (waist). Lean-startup framing around the customer's job-to-be-done.",
   "when_to_use": "When you want to anchor on the customer's job, find the highest-value problem, then validate a minimal solution.",
   "presentation": {
-    "icon": "target",
+    "icon": "jtbd",
     "image": "lean-jtbd.jpg",
     "figure": "signal",
     "summary": "Anchor on the job-to-be-done, pick the strongest problem, validate a minimal answer.",

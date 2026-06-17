@@ -4,7 +4,7 @@
   "description": "The full design-thinking process as three linked diamonds: problem space (Discover broad -> Define key problems), solution exploration (Ideate broad + lo-fi -> down-select), solution refinement (mid-fi build -> Deliver tested solution presentation). Broad empathy, affinity clustering, and a lo-fi -> mid-fi fidelity ladder with real prototype tests.",
   "when_to_use": "When you want depth: many personas, broad problem exploration, clustered key problems, several lo-fi prototypes tested and down-selected, a refined mid-fi prototype tested, and a buildable solution presentation.",
   "presentation": {
-    "icon": "network",
+    "icon": "diamondFilled",
     "image": "double-diamond-deep.jpg",
     "figure": "coreSample",
     "summary": "Three diamonds with a fidelity ladder from rough options to tested refinement.",

@@ -4,7 +4,7 @@
   "description": "Problem space (Discover fan -> Define waist) then solution space (Develop fan + prototype -> Deliver waist). Frame an ambiguous problem and take it to a buildable solution.",
   "when_to_use": "When you have a 'How Might We' question and want a rigorous problem framing plus a tested, buildable solution spec.",
   "presentation": {
-    "icon": "exchange",
+    "icon": "diamond",
     "image": "double-diamond.jpg",
     "figure": "loop",
     "summary": "Frame the problem, then build the solution.",
