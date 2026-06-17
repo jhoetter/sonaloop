@@ -62,6 +62,9 @@ def test_library_browser_tabs_and_old_routes(store):
     sess = client.get("/sessions?lang=en").text
     assert "Test" in sess and 'href="/prototypes"' in sess and 'href="/sessions"' in sess
     assert 'aria-current="page"' in sess.split('href="/sessions"')[1][:160]
+    ask = client.get("/library?family=ask&lang=en").text
+    assert "Ask" in ask and 'href="/councils"' in ask and 'href="/surveys"' in ask
+    assert 'aria-current="page"' in ask.split('href="/councils"')[1][:160]
     dec = client.get("/library?tab=decisions&lang=en").text
     assert "Conclude" in dec and 'href="/syntheses"' in dec
     assert 'aria-current="page"' in dec.split('href="/decisions"')[1][:160]
@@ -71,6 +74,21 @@ def test_library_browser_tabs_and_old_routes(store):
         r = client.get(f"{route}?lang=en")
         assert r.status_code == 200 and STRINGS["en"]["library_h"] in r.text, route
         assert 'aria-current="page"' in r.text.split(f'href="{route}"')[1][:160], route
+
+
+def test_library_ignores_orphan_project_trace_rows(store):
+    """Rows from pre-cascade deletes may carry a missing project_id. The Library should
+    remain browsable and simply omit project-local trace annotation."""
+    from starlette.testclient import TestClient
+    store.insert_council_session({
+        "id": "c_orphan", "project_id": "rproject_missing",
+        "created_at": "2026-06-16T00:00:00+00:00", "prompt": "Orphan council?",
+        "persona_ids": [], "statements": [], "votes": [], "proposal": "",
+        "summary": "", "exec_summary": "", "selection_reason": "",
+    })
+    r = TestClient(web.create_app()).get("/library?family=ask&lang=en")
+    assert r.status_code == 200
+    assert "Orphan council?" in r.text
 
 
 def test_vote_tally_is_case_robust():

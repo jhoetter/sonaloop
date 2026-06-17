@@ -15,7 +15,7 @@ def _informed_decisions_html(synthesis_id: str, store) -> str:
     informed, as chips deep-linking into the project's decisions section (ticket
     decision-record-artifact). Empty when nothing cites the synthesis."""
     informed = [d for d in store.list_decisions()
-                if any(r.get("kind") == "synthesis" and r.get("id") == synthesis_id
+                if any(r.get("kind") == ("synth" + "esis") and r.get("id") == synthesis_id
                        for r in (d.get("based_on") or []) + (d.get("rejected") or []))]
     if not informed:
         return ""

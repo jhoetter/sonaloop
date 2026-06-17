@@ -1,50 +1,91 @@
 {
-  "title": "Exception Handoff Pilot",
-  "summary": "A mid-fi shift handover queue that captures unresolved exceptions, owner, urgency, and next action.",
-  "start": "queue",
+  "title": "Exception handoff pilot",
+  "summary": "A two-screen flow for shift leads to capture one exception and see owner/date/status follow-up.",
+  "start": "capture",
   "screens": [
     {
-      "id": "queue",
-      "title": "Open exceptions",
-      "body": "Shift-critical exceptions with owner and next action.",
+      "id": "capture",
+      "title": "Capture exception",
       "elements": [
         {
-          "id": "blocker",
+          "id": "intro",
           "kind": "text",
-          "text": "Forklift battery fault — Owner: Nina — Next: confirm replacement charger before 14:00"
+          "text": "Capture one exception that the next shift must not reconstruct."
         },
         {
-          "id": "add",
+          "id": "issue",
+          "kind": "input",
+          "label": "Issue summary"
+        },
+        {
+          "id": "previous_action",
+          "kind": "input",
+          "label": "Previous action"
+        },
+        {
+          "id": "consequence",
+          "kind": "input",
+          "label": "Operational consequence"
+        },
+        {
+          "id": "owner",
+          "kind": "select",
+          "label": "Owner",
+          "options": [
+            "Nina",
+            "Tarek",
+            "Janine"
+          ]
+        },
+        {
+          "id": "due_date",
+          "kind": "input",
+          "label": "Due date"
+        },
+        {
+          "id": "privacy",
+          "kind": "text",
+          "text": "Do not enter names from small groups unless follow-up owner needs them."
+        },
+        {
+          "id": "submit",
           "kind": "button",
-          "label": "Add exception",
-          "goto": "capture",
-          "action": "capture"
+          "label": "Create follow-up",
+          "goto": "followup",
+          "action": "followup"
         }
       ]
     },
     {
-      "id": "capture",
-      "title": "Capture exception",
-      "body": "Name the blocker, owner, and next action in under one minute.",
+      "id": "followup",
+      "title": "Follow-up list",
       "elements": [
         {
-          "id": "owner",
-          "kind": "input",
-          "label": "Owner",
-          "placeholder": "Who owns the next action?"
+          "id": "summary",
+          "kind": "text",
+          "text": "Owner, due date, status and previous action are visible to the next shift."
         },
         {
-          "id": "next",
-          "kind": "input",
-          "label": "Next action",
-          "placeholder": "What must happen next?"
+          "id": "status",
+          "kind": "select",
+          "label": "Status",
+          "options": [
+            "Open",
+            "In progress",
+            "Closed"
+          ]
         },
         {
-          "id": "save",
+          "id": "fix_marker",
+          "kind": "text",
+          "text": "Visible fix required within one week for the pilot to count."
+        },
+        {
+          "id": "back",
           "kind": "button",
-          "label": "Save handoff",
-          "goto": "queue",
-          "action": "queue"
+          "label": "Edit exception",
+          "goto": "capture",
+          "action": "capture"
         }
       ]
     }

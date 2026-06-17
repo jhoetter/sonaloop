@@ -316,4 +316,14 @@ def _sessions_of(store: Store, project_id: str, tag: str) -> list[dict[str, Any]
         proto = store.get_prototype(s.get("prototype_id", "")) or {}
         if proto.get("project_id") == project_id and tag in _artifact_tags(proto):
             out.append(s)
+    seen = {s.get("id") for s in out}
+    for s in store.list_usability_sessions(project_id=project_id):
+        subject = s.get("subject") or {}
+        if subject.get("kind") != "prototype":
+            continue
+        proto = store.get_prototype(subject.get("id", "")) or {}
+        if proto.get("project_id") != project_id or tag not in _artifact_tags(proto):
+            continue
+        if s.get("id") not in seen:
+            out.append(s)
     return out

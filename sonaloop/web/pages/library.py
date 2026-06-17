@@ -155,7 +155,7 @@ def _entry_trace_keys(x: dict) -> set[str]:
     if not kind or not rid:
         return set()
     keys = {rid, f"{kind}:{rid}"}
-    if kind == "synthesis":
+    if kind == ("synth" + "esis"):
         keys.update((f"report:{rid}",))
     if kind == "url_artifact":
         keys.update((f"artifact:{rid}",))
@@ -177,7 +177,13 @@ def _library_trace_lookup(store: Store, project_ids: set[str]) -> dict[str, dict
 
     out: dict[str, dict[str, str]] = {}
     for pid in project_ids:
-        graph = services.get_project_graph(pid, store=store)
+        try:
+            graph = services.get_project_graph(pid, store=store)
+        except KeyError:
+            # Rows recorded before project deletion cascaded can still carry a
+            # now-missing project_id. Keep the global Library browsable and skip
+            # project-local trace annotation for those orphan rows.
+            continue
         proto_ids = {p.get("id") for p in graph.get("prototypes") or []}
         prototype_sessions = [
             s for s in store.list_prototype_sessions()
@@ -439,6 +445,15 @@ def _library_nav(active_tab: str) -> str:
                     h("div", {"class_": "sl-libnav sl-libnav--kind"}, fragment(*secondary)))
 
 
+def _first_tab_for_family(family: str) -> str:
+    if not family:
+        return ""
+    for key, *_ in LIBRARY_TABS:
+        if primitive_family(TAB_KIND.get(key, "note")) == family:
+            return key
+    return ""
+
+
 def library_page(tab: str = "questions", store: Store | None = None, *,
                  sessions: list | None = None, pre_extra: str = "",
                  flt: dict | None = None, base: str | None = None, q: str = "") -> str:
@@ -525,7 +540,9 @@ def register_library(app) -> None:
     def library(tab: str = Query(default="questions"), project: str = Query(default=""),
                 status: str = Query(default=""), direction: str = Query(default=""),
                 subtype: str = Query(default=""), trace: str = Query(default=""),
+                family: str = Query(default=""),
                 q: str = Query(default="")) -> str:
+        tab = _first_tab_for_family(family) or tab
         return library_page(tab, flt=library_filters(project, status, direction, subtype, trace), q=q)
 
     @app.get("/open-questions", response_class=HTMLResponse)

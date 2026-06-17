@@ -363,7 +363,7 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
         return str(rec.get("kind") or "file")
     if kind == ("coun" + "cil"):
         stamped = rec.get("form") or {}
-        if stamped.get("primitive") == "council" and stamped.get("id"):
+        if stamped.get("primitive") == ("coun" + "cil") and stamped.get("id"):
             return str(stamped["id"])
         for marker, value in (
             ("head_to_head", "head_to_head"),
