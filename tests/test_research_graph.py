@@ -279,6 +279,34 @@ def test_notes_are_one_entity_built_notes_carry_prototype(store):
     assert any(n.get("prototype_ids") == ["proto_z"] for n in note_nodes)                     # single lifted to list
 
 
+def test_project_graph_request_cache_reuses_computed_graph_and_isolates_callers(store, monkeypatch):
+    from sonaloop.services import _research
+
+    pid = services.start_project("Cached graph", "hmw?", store=store)["id"]
+    calls = 0
+    original = _research.plan_graph
+
+    def counted(project_id, store=None):
+        nonlocal calls
+        calls += 1
+        return original(project_id, store=store)
+
+    monkeypatch.setattr(_research, "plan_graph", counted)
+    token = _research.begin_project_graph_cache()
+    try:
+        first = services.get_project_graph(pid, store=store)
+        first["nodes"].append({"study_id": "mutated", "kind": "note"})
+        second = services.get_project_graph(pid, store=store)
+    finally:
+        _research.end_project_graph_cache(token)
+
+    assert calls == 1
+    assert "mutated" not in {n.get("study_id") for n in second["nodes"]}
+
+    services.get_project_graph(pid, store=store)
+    assert calls == 2
+
+
 def test_council_modes_discovery_evaluation_decision(store):
     """Q1/Q2: a council's shape is DERIVED — discovery (open `questions`, no proposal/votes),
     evaluation (a proposal reacted to), decision (proposal + votes). `questions` is stored first-class."""

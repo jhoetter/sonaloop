@@ -99,6 +99,24 @@ def test_list_filters_by_persona_project_and_subject(store):
     assert services.list_usability_sessions(persona_id="nobody", store=store) == []
 
 
+def test_project_session_listing_uses_created_index(store):
+    _record(store, _FLOW, "artifact", project_id="proj-a")
+    _record(store, _PROTO, "prototype", project_id="proj-a")
+
+    plan = [
+        row["detail"]
+        for row in store.conn.execute(
+            "EXPLAIN QUERY PLAN "
+            "SELECT data FROM usability_sessions WHERE project_id=? ORDER BY created_at DESC",
+            ("proj-a",),
+        ).fetchall()
+    ]
+    detail = " ".join(plan).upper()
+
+    assert "IDX_USESS_PROJECT_CREATED" in detail
+    assert "USE TEMP B-TREE" not in detail
+
+
 # --------------------------------------------------------------- friction vocabulary (data-driven)
 
 def test_friction_aliases_resolve_to_canonical_levels(store):

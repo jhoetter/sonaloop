@@ -421,6 +421,8 @@ CREATE TABLE IF NOT EXISTS usability_sessions (
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_usess_subject ON usability_sessions(subject_kind, subject_key);
+CREATE INDEX IF NOT EXISTS idx_usess_subject_created ON usability_sessions(subject_kind, subject_key, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_usess_project_created ON usability_sessions(project_id, created_at DESC);
 
 -- User feedback (ticket feedback-button): free-text submissions from the web inspector.
 -- read_at flips when an operator views them (/feedback page or `sonaloop feedback`);

@@ -83,6 +83,8 @@ def create_app():
         `?slide=1` fragment rendered in-process up front, so `_layout` can SSR the page
         with the slide-over already open — reload of a context URL reproduces the click
         view with no fetch flash. Invalid/unknown `d` -> the background renders alone."""
+        from ..services import _research as _research_services
+        graph_cache_token = _research_services.begin_project_graph_cache()
         lang, persist = _resolve_request_language(
             request.query_params.get("lang"), request.cookies.get("ui_lang"))
         token = _UI_LANG.set(lang)
@@ -102,6 +104,7 @@ def create_app():
         try:
             response = await call_next(request)
         finally:
+            _research_services.end_project_graph_cache(graph_cache_token)
             _UI_LANG.reset(token)
             _REQ_PATH.reset(path_token)
             _SLIDE.reset(slide_token)

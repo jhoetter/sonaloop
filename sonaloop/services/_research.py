@@ -6,6 +6,8 @@ Cross-module function references are bound at import time by services/__init__.p
 from __future__ import annotations
 
 import csv
+import contextvars
+import copy
 import hashlib
 import json
 import random
@@ -67,6 +69,32 @@ from ..llm_simulation import (
 
 
 from ._common import *  # noqa: F401,F403  (shared helpers + constants)
+
+
+_PROJECT_GRAPH_CACHE: contextvars.ContextVar[dict[tuple[int, str], dict[str, Any]] | None] = \
+    contextvars.ContextVar("sonaloop_project_graph_cache", default=None)
+
+
+def begin_project_graph_cache() -> contextvars.Token:
+    return _PROJECT_GRAPH_CACHE.set({})
+
+
+def end_project_graph_cache(token: contextvars.Token) -> None:
+    _PROJECT_GRAPH_CACHE.reset(token)
+
+
+def _cached_project_graph(cache: dict[tuple[int, str], dict[str, Any]] | None,
+                          key: tuple[int, str]) -> dict[str, Any] | None:
+    if cache is None or key not in cache:
+        return None
+    return copy.deepcopy(cache[key])
+
+
+def _store_project_graph_cache(cache: dict[tuple[int, str], dict[str, Any]] | None,
+                               key: tuple[int, str], graph: dict[str, Any]) -> dict[str, Any]:
+    if cache is not None:
+        cache[key] = copy.deepcopy(graph)
+    return graph
 
 
 
@@ -322,11 +350,16 @@ def get_project_graph(project_id: str, store: Store | None = None) -> dict[str, 
     research PLAN with recorded evidence, the graph is the heterogeneous plan-evidence graph
     (councils/syntheses/artifacts/frames as first-class nodes)."""
     store = store or Store()
+    cache = _PROJECT_GRAPH_CACHE.get()
+    cache_key = (id(store), project_id)
+    cached = _cached_project_graph(cache, cache_key)
+    if cached is not None:
+        return cached
     plan = _plan.get_plan(project_id, store=store)
     if plan is not None:                       # the plan engine is the single source of truth (HX3)
         g = _attach_reports(plan_graph(project_id, store=store), project_id, store)
         g["project"]["url"] = web_url(f"/projects/{project_id}")  # noqa: F821 (bound) — the link to hand the user
-        return g
+        return _store_project_graph_cache(cache, cache_key, g)
     # Plan-less fallback (start_project always seeds a plan, so this is only hit by hand-built data /
     # the study_ids-based report path): nodes from the project's councils/studies + notes — NO
     # study-edge layer (retired), so no edges.
@@ -365,7 +398,7 @@ def get_project_graph(project_id: str, store: Store | None = None) -> dict[str, 
                    "open_questions": sum(1 for o in oqs if o.get("status") == "open"),
                    "themes": len(project.get("themes", []))},
     }
-    return _attach_reports(g, project_id, store)
+    return _store_project_graph_cache(cache, cache_key, _attach_reports(g, project_id, store))
 
 
 
