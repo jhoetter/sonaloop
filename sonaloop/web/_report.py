@@ -24,6 +24,15 @@ _CALLOUT = {"insight": ("bulb", "insight"), "recommendation": ("check", "rec"),
 _DIRECTIVE = re.compile(r":::(\w+)[ \t]*\n(.*?)\n:::", re.DOTALL)
 
 
+def _cover_title(title: str) -> str:
+    """Report covers are their own printable header, so they do not use the shared
+    `detail_page` hero. Keep the same detail-page visual contract by leading the
+    title with the Report icon here instead of adding a second header above it."""
+    return h("h1", {"class_": "rp-title"},
+             h("span", {"class_": "rp-title__icon"}, raw(_icon("syntheses"))),
+             h("span", {"class_": "rp-title__text"}, title))
+
+
 def _ref_titler(report, store):
     node_title = {n["study_id"]: (n.get("title") or "") for n in (report.get("graph_snapshot") or {}).get("nodes", [])}
 
@@ -163,7 +172,7 @@ def render_report(report: dict, store, *, with_toc: bool = False):
             ui.fmt_date(report.get("created_at") or "")] if x)
         cover = h("header", {"class_": "rp-cover"},
                   h("div", {"class_": "rp-eyebrow"}, t("synthesis_kind"), status_pill),
-                  h("h1", {"class_": "rp-title"}, project_title),
+                  raw(_cover_title(project_title)),
                   h("div", {"class_": "rp-metaline"}, crew if crew else None, h("span", {}, meta_line)))
         body, toc = _synthesis_html(store, report, embed=True)
         article = h("article", {"class_": "report report-syn"}, cover, raw(body))
@@ -188,7 +197,7 @@ def render_report(report: dict, store, *, with_toc: bool = False):
 
     cover = h("header", {"class_": "rp-cover"},
               h("div", {"class_": "rp-eyebrow"}, t("synthesis_kind"), status_pill),
-              h("h1", {"class_": "rp-title"}, project_title),
+              raw(_cover_title(project_title)),
               h("div", {"class_": "rp-metaline"}, crew if crew else None, h("span", {}, meta_line)),
               (h("p", {"class_": "rp-lead"}, raw(_md(report["lead"])))
                if report.get("lead") else ""))
@@ -241,7 +250,10 @@ register_css(r"""
 .rp-cover{padding:8px 0 26px;margin-bottom:30px;border-bottom:1px solid var(--line)}
 .rp-eyebrow{font-family:var(--mono);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.14em;color:var(--accent);font-weight:500;display:flex;align-items:center;gap:8px}
 .rp-eyebrow .lbl{font-family:var(--sans);text-transform:none;letter-spacing:normal}
-.rp-title{font-size:var(--t-2xl);line-height:1.2;font-weight:700;margin:10px 0 0;letter-spacing:-.01em}
+.rp-title{display:flex;align-items:flex-start;gap:10px;font-size:var(--t-2xl);line-height:1.2;font-weight:700;margin:10px 0 0;letter-spacing:-.01em}
+.rp-title__icon{flex:none;line-height:0;color:var(--accent);margin-top:.12em}
+.rp-title__icon svg{width:.78em;height:.78em}
+.rp-title__text{min-width:0}
 .rp-metaline{margin-top:12px;color:var(--muted);font-size:var(--t-sm);font-variant-numeric:tabular-nums;
   display:flex;align-items:center;gap:8px}
 .rp-lead{margin:22px 0 0;font-size:var(--t-lg);line-height:1.6;color:var(--ink);font-weight:400;

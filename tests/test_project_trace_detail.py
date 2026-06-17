@@ -67,6 +67,7 @@ def test_synthesis_detail_uses_referenced_councils_instead_of_duplicate_relation
         {"gesamtbild": "Two councils inform this synthesis."},
         project_id=project["id"], store=store)
     html = TestClient(web.create_app()).get(f'/syntheses/{syn["id"]}?lang=en').text
+    assert "rp-title__icon" in html and "pi-syntheses" in html
     assert "Referenced councils" in html
     if "RELATIONS" in html:
         rel = html.split("RELATIONS", 1)[1].split("Referenced councils", 1)[0]
