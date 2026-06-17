@@ -120,7 +120,7 @@ def register_projects(app) -> None:
                 except Exception:
                     return key
 
-        method_chip = h("a", {"class_": "sl-toolbtn", "href": f'/projects/{proj["id"]}/plan',
+        method_chip = h("a", {"class_": "sl-toolbtn tour-plan-chip", "href": f'/projects/{proj["id"]}/plan',
                               "data-drawer": f'/projects/{proj["id"]}/plan',
                               "data-drawer-title": t("plan_h")},
                         raw(_icon("target")), " ",

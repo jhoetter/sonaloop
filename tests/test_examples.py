@@ -174,6 +174,14 @@ def test_onboarding_showcase_loads_every_tour_artifact(store):
     plan = services.get_plan(out["project_id"], store=store)
     assert plan["methodology"] == "double_diamond"
     assert all(t["status"] == "done" for t in plan["tasks"])
+    projects_html = _client().get("/projects?lang=en").text
+    assert "Clinic QuickCheck — assisted pre-visit check-in" in projects_html
+    assert "Methodology · Double Diamond" in projects_html
+    assert "Run · Finished" in projects_html
+    for noisy in ("3 Councils", "2 Reports", "1 Prototype", "3 Sessions", "1 Survey",
+                  "1 Hypothesis", "1 Decision", "3 Open questions", "3 References",
+                  "3 Assets", "2 Notes"):
+        assert noisy not in projects_html
 
     from sonaloop.project_trace import trace_node_health
     from sonaloop.web._graph_outline_sessions import outline_session_groups

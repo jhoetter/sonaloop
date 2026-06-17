@@ -34,11 +34,13 @@ def test_tour_offer_is_a_sidebar_footer_row_not_a_toast(store):
     assert "tour-offer" not in first.headers.get("set-cookie", "")  # … and so is its cookie
     foot = first.text.split('class="sl-nav sl-sb-foot"')[1].split("</nav>")[0]
     assert STRINGS["en"]["tour_take"] in foot and "data-tour-start" in foot
-    # the footer rows share ONE row contract: Documentation (W7), Feedback, the tour, the ? hint
+    # the footer rows share ONE row contract: Activity, Documentation (W7), Feedback, the tour, the ? hint
     assert STRINGS["en"]["feedback_h"] in foot and "data-km-open" in foot
     assert 'href="/documentation"' in foot
     assert STRINGS["en"]["documentation"] in foot
-    assert foot.count('class="pi-hover"') == 4
+    assert 'href="/activity"' in foot
+    assert STRINGS["en"]["activity_h"] in foot
+    assert foot.count('class="pi-hover"') == 5
     # the ? keycap is the real .sl-kbd chip (W7 footer polish)
     assert '<kbd class="sl-kbd">?</kbd>' in foot
     # never auto-start: the overlay ships hidden; only [data-tour-start] opens it
@@ -48,6 +50,15 @@ def test_tour_offer_is_a_sidebar_footer_row_not_a_toast(store):
 def test_tour_has_localized_artifact_steps():
     steps = tour_steps()
     assert len(steps) >= 10
+    assert all("Gate:" not in s["title"] and "Gate:" not in s["body"] for s in steps)
+    opened = [s for s in steps if s.get("open")]
+    assert {s["sel"] for s in opened} == {
+        '.olrow[data-rkind="council"]',
+        '.olrow[data-rkind="session"]',
+        '.olrow[data-rkind="synthesis"]',
+        '.olrow[data-rkind="decision"]',
+    }
+    assert next(s for s in opened if 'council' in s["sel"])["focus"] == "#stimmen"
     urls = {s["url"] for s in steps}
     assert len(urls) == 1                              # no slow page-hop tour
     rkinds = set()
