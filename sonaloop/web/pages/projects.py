@@ -34,13 +34,27 @@ def register_projects(app) -> None:
             return _layout(t("not_found"), _empty_state(t("not_found"), t("runtime_maybe_cleared"), icon="projects"), store, active="projects")
         proj = graph["project"]
         plan = services.get_plan(proj["id"], store=store)
+        def _methodology_name() -> str:
+            key = (plan or {}).get("methodology") or proj.get("methodology") or ""
+            if not key:
+                return t("plan_freeform")
+            try:
+                from ... import job_taxonomy as _jt
+                return _jt.get_framework_description(key, store).get("name", key)
+            except Exception:
+                try:
+                    return services.get_methodology(key, store=store).get("name", key)
+                except Exception:
+                    return key
+
         # Plan opens in a right drawer. Reports are NOT a top-bar button anymore — they're listed
         # inline in the outline as first-class artifacts (add as many as you like; they flow into the project).
         top_btn = ""
         if plan:
             plan_url = f'/projects/{proj["id"]}/plan'
-            top_btn = h("a", {"class_": "sl-btn", "href": plan_url, "data-drawer": plan_url, "data-drawer-title": t("plan_h")},
-                        raw(_icon("plan")), " ", t("plan_h"))
+            top_btn = h("a", {"class_": "sl-btn tour-plan-chip", "href": plan_url,
+                              "data-drawer": plan_url, "data-drawer-title": t("plan_h")},
+                        raw(_icon("target")), " ", _methodology_name())
         protos = graph.get("prototypes") or []
         arts = graph.get("artifacts") or []
         # Evidence assets: files/images/screenshots attached via MCP (ticket attach-evidence-files-mcp).
@@ -97,25 +111,6 @@ def register_projects(app) -> None:
         # the nav; this header chip is where a project's driver status now surfaces.
         from .._runs_widget import project_run_chip
         run_chip = project_run_chip(proj["id"], store)
-        def _methodology_name() -> str:
-            key = (plan or {}).get("methodology") or proj.get("methodology") or ""
-            if not key:
-                return t("plan_freeform")
-            try:
-                from ... import job_taxonomy as _jt
-                return _jt.get_framework_description(key, store).get("name", key)
-            except Exception:
-                try:
-                    return services.get_methodology(key, store=store).get("name", key)
-                except Exception:
-                    return key
-
-        method_chip = h("a", {"class_": "sl-toolbtn tour-plan-chip", "href": f'/projects/{proj["id"]}/plan',
-                              "data-drawer": f'/projects/{proj["id"]}/plan',
-                              "data-drawer-title": t("plan_h")},
-                        raw(_icon("target")), " ",
-                        t("methodology_h"), " · ", _methodology_name())
-        chips = h("div", {"class_": "pills"}, raw(run_chip), method_chip)
         # The FilterBar closes the head so it sits INSIDE the 900px measure (V1 — it used to
         # float at the page's far left), aligned with the title/outline left edge.
         body = h("div", {"class_": "proj"},
@@ -124,13 +119,14 @@ def register_projects(app) -> None:
                      raw(project_icon_html(proj, edit_project_id=proj["id"],
                                            edit_label=t("f_project_icon"))),
                      proj["title"]),
-                   h("p", {"class_": "lead"}, proj.get("goal", "")), chips, bar),
+                   h("p", {"class_": "lead"}, proj.get("goal", "")), bar),
                  main_view) + raw(project_icon_edit_script())
         # Write affordances (web CRUD, V10 §9): the ONE visible "…" overflow — Edit opens the
         # metadata dialog over the page, Delete the typed-confirm modal. No create buttons
         # (notes/sections/projects are created by the MCP/CLI host).
         from .edit import project_actions
-        actions = fragment(top_btn,
+        actions = fragment(raw(run_chip),
+                           top_btn,
                            raw(project_actions(proj)),
                            raw(_star("project", proj["id"], proj["title"], f'/projects/{proj["id"]}')))
         from .._palette import visit_marker   # the palette's recents beacon (UX V6)

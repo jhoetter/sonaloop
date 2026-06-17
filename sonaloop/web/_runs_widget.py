@@ -128,6 +128,7 @@ RUNS_WIDGET_CSS = r"""
 .runchip--stalled{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,var(--line))}
 .runchip-fly{position:absolute;left:0;top:calc(100% + 8px);width:min(380px,86vw);z-index:160;background:var(--panel);
   border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 14px 40px rgba(0,0,0,.3);padding:6px 8px 8px}
+.sl-tb-actions .runchip-fly{left:auto;right:0}
 .runchip-fly[hidden]{display:none}
 .runchip-def{margin:2px 0 6px;padding:0 8px;color:var(--muted);font-size:var(--t-sm);line-height:1.5}
 .runchip-fly .run-meta{padding:2px 8px}
