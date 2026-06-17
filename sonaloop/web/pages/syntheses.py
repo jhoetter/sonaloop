@@ -70,6 +70,7 @@ def register_syntheses(app) -> None:
         # row — the cover's REPORT eyebrow already states the kind (round-2 audit, TX).
         prop_rows = [
             ("projects", t("project"), proj_link),
+            *detail_form_rows("synthesis", syn),
             ("link", t("rel_based_on"), raw(_label(t("chip_sources_n", n=n_sources)))),
             ("clock", t("created"), ui.fmt_date(syn.get("created_at") or "")),
         ]

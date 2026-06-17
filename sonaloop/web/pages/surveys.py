@@ -230,6 +230,7 @@ def register_surveys(app) -> None:
             # rail order is the §8.2 anatomy (project → kind-specifics → dates) and the
             # "Type: Survey" row retired — the SURVEY eyebrow already states the kind (round 2).
             prop_rows=[("projects", t("project"), proj_link),
+                       *detail_form_rows("survey", s),
                        ("personas", t("respondents_h"), str(results["respondents"])),
                        ("clock", t("created"), ui.fmt_date(s.get("created_at", "")))],
             rel_study_id=f"survey:{s['id']}", rel_proj_id=(proj["id"] if proj else None),

@@ -154,6 +154,7 @@ def register_assets(app) -> None:
                        t("one_file") if n_proj_files == 1 else t("n_files", n=n_proj_files))
         prop_rows = [
             ("projects", t("project"), proj_link),
+            *detail_form_rows("asset", a),
             ("file", t("files_h"), files_link),
             ("dot", t("created"), ui.fmt_date(a.get("created_at") or "")),
         ]

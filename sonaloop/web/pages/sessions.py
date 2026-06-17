@@ -399,6 +399,7 @@ def _proto_session_detail(store: Store, sess: dict) -> str:
     prop_rows = [
         ("projects", t("project"),
          h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"]) if proj else ""),
+        *detail_form_rows("session", proto_session_vm(sess, store)),
         ("square", t("fidelity"), raw(_fidelity_chip("prototype"))),
         ("prototype", t("prototype_kind"), proto_link),
         ("plan", t("steps_h"), str(len(steps)) if steps else ""),
@@ -653,6 +654,7 @@ def register_sessions(app) -> None:
         # Rail order is the §8.2 anatomy: project → kind-specifics → dates.
         prop_rows = [
             ("projects", t("project"), h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"]) if proj else ""),
+            *detail_form_rows("session", sess),
             ("square", t("fidelity"), raw(_fidelity_chip(sess.get("fidelity", "")))),
             ("compass", t("subject_h"), _subject_link(store, subject)),
             ("personas", t("cap_tech_comfort"), caps_prop),

@@ -222,6 +222,7 @@ def register_councils(app) -> None:
         # No rail "Type" row: the header mode pill already states it — with the pill the rail row
         # became an echo (round-3 H3, reversing the round-2 keep; assets keep Type = real info).
         prop_rows = [("projects", t("project"), proj_link),
+                     *detail_form_rows("council", session),
                      ("personas", personas_h, str(n_voices))]
         if mode != "discovery":                               # the vote panel only where a vote/reaction exists
             # value-bucketed via the scale (votes ARE stances; legacy tokens resolve through the

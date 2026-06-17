@@ -239,6 +239,13 @@ _LIBRARY_VALUE_PRIORITY: dict[str, tuple[str, ...]] = {
     "prototype": ("prototype", "flow", "dashboard", "cards", "comparison", "model", "journey"),
 }
 _PROTOTYPE_DISCRIMINATORS = frozenset(_presentation.discriminator_tags("prototype"))
+_QUESTION_KIND_LABEL_KEYS = {
+    "single": "question_form_single",
+    "multi": "question_form_multi",
+    "scale": "question_form_scale",
+    "text": "question_form_text",
+    "ranking": "question_form_ranking",
+}
 
 
 def _form_values_for_library(form: dict[str, Any]) -> list[str]:
@@ -342,6 +349,12 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
     """Return the product subtype/format value for a row, or ``""`` when the kind
     has no useful subtype facet. The values are stable URL query tokens."""
     rec = rec or {}
+    if kind == "open_question":
+        text = str(rec.get("text") or "").strip().lower()
+        if (text.startswith("how might we") or text.startswith("hmw")
+                or text.startswith("wie können wir") or text.startswith("wie koennen wir")):
+            return "how_might_we"
+        return "open_question"
     if kind == "url_artifact":
         raw_kind = rec.get("kind") or "url"
         return {"url": "website", "prototype": "external_prototype",
@@ -378,6 +391,8 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
                         "scale": "scale_survey", "text": "text_survey",
                         "ranking": "ranking_survey"}.get(survey_kind, "")
         return ""
+    if kind == "synthesis":
+        return "report" if rec.get("scope") == "project" else str(rec.get("form") or "synthesis")
     if kind == "note":
         data = rec.get("data") or {}
         if data.get("prototype_id") or data.get("prototype_ids") or data.get("artifact_kind"):
@@ -385,6 +400,9 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
         note_kind = str(rec.get("kind") or "note").strip().lower()
         return {"idea": "idea", "insight": "insight", "concept": "concept_note",
                 "observation": "observation_note", "note": "observation_note"}.get(note_kind, "observation_note")
+    if kind == "section":
+        section_kind = str(rec.get("kind") or "theme").strip().lower()
+        return {"phase": "phase", "theme": "theme", "group": "group"}.get(section_kind, "theme")
     return ""
 
 
@@ -396,3 +414,42 @@ def subtype_label(value: str) -> str:
     if label == raw_key and value in _SUBTYPE_LABELS:
         return _SUBTYPE_LABELS[value]
     return value.replace("_", " ").title() if label == raw_key else label
+
+
+def survey_question_form_values(rec: dict[str, Any]) -> list[str]:
+    """Question forms present inside a survey, in authoring order.
+
+    A survey is the primitive. Its question kinds are nested forms, not the
+    survey's single artifact form. Library filters may still classify a survey
+    by the dominant question kind for backwards-compatible URLs.
+    """
+    seen: list[str] = []
+    for q in (rec or {}).get("questions") or []:
+        kind = str(q.get("kind") or "").strip()
+        if kind in _QUESTION_KIND_LABEL_KEYS and kind not in seen:
+            seen.append(kind)
+    return seen
+
+
+def survey_question_form_labels(rec: dict[str, Any]) -> list[str]:
+    return [t(_QUESTION_KIND_LABEL_KEYS[value]) for value in survey_question_form_values(rec)]
+
+
+def form_value(kind: str, rec: dict[str, Any]) -> str:
+    """Return the visible taxonomy form for one concrete primitive record.
+
+    `subtype_value()` stays the filter classifier. Form display is slightly more
+    complete: primitives that do not vary structurally still expose their single
+    registered form, so every detail page can say Family → Primitive → Form.
+    """
+    value = subtype_value(kind, rec)
+    if value:
+        return value
+    docs = primitive_subtypes(kind)
+    if len(docs) == 1:
+        return docs[0].value
+    return ""
+
+
+def form_label(kind: str, rec: dict[str, Any]) -> str:
+    return subtype_label(form_value(kind, rec))

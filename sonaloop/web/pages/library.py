@@ -20,7 +20,7 @@ from .edit import note_actions, section_actions
 from .._presence import asset_direction, record_status, status_filter_label
 from .._primitive_taxonomy import (
     FAMILIES, family_icon, family_label, primitive_family, primitive_purpose, primitive_subtypes,
-    subtype_label, subtype_value,
+    form_label, subtype_label, subtype_value,
 )
 
 # (key, canonical route, icon, label, empty-state msg, lead, teach) — labels are lambdas so
@@ -578,6 +578,7 @@ def register_library(app) -> None:
             pills=[_label(status_label, "var(--amber)" if status == "open" else "var(--green)")],
             body=body,
             prop_rows=[("projects", t("project"), h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"])),
+                       *detail_form_rows("open_question", oq),
                        ("flag", t("status_h"), status_label),
                        ("dot", t("created"), ui.fmt_date(oq.get("created_at") or ""))],
             rel_study_id=f"open_question:{oq['id']}", rel_proj_id=proj["id"],
@@ -613,6 +614,7 @@ def register_library(app) -> None:
             pills=[_label(kind_label, "var(--blue)"), _reference_status_pill(ref)],
             body=body,
             prop_rows=[("projects", t("project"), h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"])),
+                       *detail_form_rows("url_artifact", ref),
                        ("tag", t("variant_label_h"), ref.get("label", "")),
                        ("link", t("url_h"), h("a", {"href": ref.get("url", "#"), "target": "_blank", "rel": "noopener"}, ref.get("url", ""))),
                        ("dot", t("created"), ui.fmt_date(ref.get("created_at") or ""))],
@@ -645,7 +647,8 @@ def register_library(app) -> None:
             store, title=sec["title"], active="projects",
             crumbs=[(t("projects"), "/projects"), (proj["title"], f'/projects/{proj["id"]}'), (sec["title"], None)],
             icon="squareGrid", kind=t("section"), sub=sec_sub, body=body,
-            prop_rows=[("dot", t("type_h"), pr.get("short", sec.get("kind", ""))),
+            prop_rows=[*detail_form_rows("section", sec),
+                       ("dot", t("type_h"), pr.get("short", sec.get("kind", ""))),
                        ("projects", t("project"), h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"]))],
             star=("section", sec["id"], sec["title"], f'/sections/{sec["id"]}'),
             # V10: the "…" overflow — edit as a dialog over this page + the confirm delete
@@ -672,6 +675,7 @@ def register_library(app) -> None:
             body=h("div", {"class_": "sl-prose", "style": "margin-top:4px"}, raw(_md(note.get("text", "")))),
             # Rail order is the §8.2 anatomy: project → dates.
             prop_rows=[("projects", t("project"), h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"])),
+                       *detail_form_rows("note", note),
                        ("dot", t("created"), ui.fmt_date(note.get("created_at", "")))],
             rel_study_id=f"note:{note_id}", rel_proj_id=proj["id"],
             rail_sections=[("sec-content", klabel)],
@@ -695,7 +699,7 @@ def register_library(app) -> None:
             crumbs.append((proj["title"], f"/projects/{proj['id']}"))
         crumbs.append((p["name"], None))
         _ap = _artifact_present(p)
-        fid = h("span", {"class_": "pill"}, _ap["disc"] or _ap["label"])
+        fid = h("span", {"class_": "pill"}, form_label("prototype", p) or _ap["label"])
         src = f'/proto-files/{slug}/{p.get("entry", "index.html")}'
         # Recorded prototype reactions are first-class sessions now (UX U7, §8.2): each renders
         # as ONE session row (the §3.2 vocabulary) deep-linking into its /sessions/{id} detail
@@ -765,7 +769,8 @@ def register_library(app) -> None:
             # Rail order is the §8.2 anatomy: project → kind-specifics → dates; the grounded
             # tally rides the static "Grounding" label (the session-rail convention).
             prop_rows=[("projects", t("project"), proj_link),
-                       ("square", t("fidelity"), _ap.get("disc") or _ap.get("label") or ""),
+                       *detail_form_rows("prototype", p),
+                       ("square", t("fidelity"), p.get("fidelity") or ""),
                        ("personas", t("sessions"), str(len(sessions))),
                        ("check", t("grounding_h"), f"{n_grounded}/{len(sessions)}" if sessions else "—"),
                        ("dot", t("created"), ui.fmt_date(p.get("created_at") or ""))],

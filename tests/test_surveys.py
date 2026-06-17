@@ -378,6 +378,10 @@ def test_detail_page_renders_questions_chips_and_predicted_vs_actual(store):
     client = TestClient(web.create_app())
     html = client.get(f'/surveys/{s["id"]}?lang=en').text
     assert "Retirement readiness" in html and "Stocks/ETF" in html
+    assert STRINGS["en"]["question_forms_h"] in html
+    for label in ("Single choice", "Multiple choice", "Scale", "Free text"):
+        assert label in html
+    assert "Single-choice survey" not in html
     assert f'/councils/{council["id"]}' in html               # derived-from chip links to the council
     assert STRINGS["en"]["no_survey_responses"] in html       # honest empty state pre-import
     # responses arrive → aggregates + the predicted-vs-actual strip in the canonical stance colors

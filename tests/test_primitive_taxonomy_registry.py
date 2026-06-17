@@ -62,8 +62,10 @@ def test_web_taxonomy_helpers_are_registry_backed():
     from sonaloop.web._primitive_taxonomy import (
         FAMILIES,
         PRIMITIVES,
+        form_value,
         primitive_family,
         primitive_subtypes,
+        survey_question_form_values,
         subtype_label,
         subtype_value,
     )
@@ -82,6 +84,12 @@ def test_web_taxonomy_helpers_are_registry_backed():
     survey_forms = {doc.value for doc in primitive_subtypes("survey")}
     assert {"single_survey", "multi_survey", "scale_survey", "text_survey", "ranking_survey"} <= survey_forms
     assert "survey" not in survey_forms
+    mixed_survey = {
+        "questions": [{"kind": "single"}, {"kind": "multi"}, {"kind": "scale"}, {"kind": "text"}]
+    }
+    assert survey_question_form_values(mixed_survey) == ["single", "multi", "scale", "text"]
+    # The Library filter stays backwards-compatible and classifies by dominant question kind;
+    # detail pages display the nested question forms instead of calling this the survey form.
     assert subtype_value("survey", {"questions": [{"kind": "single"}, {"kind": "multi"}]}) == "single_survey"
     assert subtype_value("survey", {"questions": [{"kind": "scale", "stance_mapped": True}]}) == "scale_survey"
     assert subtype_value("survey", {"questions": []}) == ""
@@ -90,6 +98,11 @@ def test_web_taxonomy_helpers_are_registry_backed():
     assert {"observation_note", "insight", "idea", "concept_note"} <= note_forms
     assert subtype_value("note", {"kind": "idea", "data": {}}) == "idea"
     assert subtype_value("note", {"kind": "note", "data": {"prototype_id": "p1"}}) == "concept_note"
+
+    assert form_value("open_question", {"text": "How might we reduce shift handover loss?"}) == "how_might_we"
+    assert form_value("open_question", {"text": "Where does handover fail?"}) == "open_question"
+    assert form_value("synthesis", {"scope": "project"}) == "report"
+    assert form_value("synthesis", {"scope": "convergence"}) == "synthesis"
 
 
 def test_material_boundary_keeps_stimuli_separate_from_results():

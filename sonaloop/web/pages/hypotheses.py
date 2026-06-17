@@ -145,6 +145,7 @@ def register_hypotheses(app) -> None:
         proj_link = (h("a", {"href": anchor or f'/projects/{proj["id"]}'}, proj["title"]) if proj else "")
         prop_rows = [
             ("projects", t("project"), proj_link),
+            *detail_form_rows("hypothesis", hx),
             ("dot", t("created"), ui.fmt_date(hx.get("created_at") or "")),
         ]
         return detail_page(

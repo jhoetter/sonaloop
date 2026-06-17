@@ -114,6 +114,7 @@ def register_decisions(app) -> None:
         proj_link = (h("a", {"href": anchor or f'/projects/{proj["id"]}'}, proj["title"]) if proj else "")
         prop_rows = [
             ("projects", t("project"), proj_link),
+            *detail_form_rows("decision", d),
             ("link", t("rel_based_on"), raw(_label(t("chip_evidence_n", n=len(d.get("based_on") or []))))),
             ("dot", t("created"), ui.fmt_date(d.get("created_at") or "")),
         ]

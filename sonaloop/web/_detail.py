@@ -10,6 +10,7 @@ from ._components import _esc, _icon, _hero, _doc, _layout, _star, _prose, _avat
 from ._rail import _page_rail
 from ._slide import slide_mode
 from ._html import h, raw, fragment, register_css
+from ._primitive_taxonomy import form_label, survey_question_form_labels
 
 # The shared header's first line (ux-contract §8.2 — ONE detail anatomy): the kind eyebrow +
 # the status pills ride the design-system `sl-page-header__top` slot; the generic `.eyebrow`
@@ -62,6 +63,19 @@ def detail_eyebrow(kind: str, pills=()) -> str:
     construction across all artifact kinds."""
     return fragment(h("span", {"class_": "eyebrow"}, kind),
                     *[raw(str(p)) for p in pills if p])
+
+
+def detail_form_rows(kind: str, rec: dict) -> list[tuple[str, str, str]]:
+    """The taxonomy Form row shared by every primitive detail page.
+
+    The eyebrow names the primitive (Council, Survey, Prototype). This row names
+    the concrete form inside that primitive (Discovery, Red-team, Model, ...).
+    """
+    if kind == "survey":
+        labels = survey_question_form_labels(rec or {})
+        return [("tag", t("question_forms_h"), ", ".join(labels))] if labels else []
+    label = form_label(kind, rec or {})
+    return [("tag", t("form_h"), label)] if label else []
 
 
 def _relations_html(store, study_id: str, proj_id: str | None,
