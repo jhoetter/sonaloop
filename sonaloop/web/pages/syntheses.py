@@ -82,6 +82,7 @@ def register_syntheses(app) -> None:
             hero="", body=body, prop_rows=prop_rows,
             rel_study_id=f"synthesis:{synthesis_id}",
             rel_proj_id=(proj["id"] if proj else None),
+            rel_include_in=not bool(syn.get("council_ids")),
             rail_sections=toc,
             star=("synthesis", synthesis_id, short_title, f"/syntheses/{synthesis_id}"),
             # delete-only (report prose is authored/generated): the subtle header

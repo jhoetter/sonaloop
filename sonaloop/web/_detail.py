@@ -79,7 +79,8 @@ def detail_form_rows(kind: str, rec: dict) -> list[tuple[str, str, str]]:
 
 
 def _relations_html(store, study_id: str, proj_id: str | None,
-                    extra_in: list | None = None, extra_out: list | None = None, aside: bool = False) -> str:
+                    extra_in: list | None = None, extra_out: list | None = None, aside: bool = False,
+                    include_in: bool = True, include_out: bool = True) -> str:
     """Linear-style RELATIONS block for a detail page (progressive disclosure: precise links live HERE,
     not in the list). Built from the project graph's real plan-evidence edges — what this was BASED ON
     (incoming) and what it FEEDS INTO (outgoing) — plus any caller-supplied extra links (e.g. a prototype's
@@ -108,20 +109,45 @@ def _relations_html(store, study_id: str, proj_id: str | None,
                     outgoing.append({"href": f'/prototypes/{pr["slug"]}', "title": pr["name"],
                                      "color": "#00897b", "kind_label": t("prototypes_h")})
 
+    def _dedupe(ns: list) -> list[dict]:
+        out: list[dict] = []
+        seen: dict[tuple[str, str], dict] = {}
+        for n in ns:
+            kind = str(n.get("kind_label", n.get("kind", "")))
+            title = str(n.get("title", ""))
+            key = (kind, title)
+            if key not in seen:
+                row = dict(n)
+                row["_kind_label"] = kind
+                row["_rel_labels"] = []
+                row["_count"] = 0
+                seen[key] = row
+                out.append(row)
+            row = seen[key]
+            row["_count"] += 1
+            rel = str(n.get("rel_label") or n.get("type") or "")
+            if rel and rel not in row["_rel_labels"]:
+                row["_rel_labels"].append(rel)
+        return out
+
     def grp(label, ns):
         if not ns:
             return ""
+        ns = _dedupe(ns)
         rows = fragment(*(
             h("a", {"class_": "relrow", "href": n.get("href", "")},
               h("span", {"class_": "ol-dot", "style": f"background:{n.get('color', '#9aa0a6')}"}),
               h("span", {"class_": "relt"}, n.get("title", "")),
               h("span", {"class_": "muted small"},
-                " · ".join(x for x in (n.get("kind_label", n.get("kind", "")),
-                                        n.get("rel_label", "")) if x)))
+                " · ".join(x for x in (
+                    (f'{n["_count"]}x {n["_kind_label"]}' if n.get("_count", 1) > 1 else n["_kind_label"]),
+                    ", ".join(n.get("_rel_labels") or []),
+                ) if x)))
             for n in ns))
         return h("div", {"class_": "relgrp"}, h("div", {"class_": "rellbl"}, label), rows)
 
-    blocks = fragment(grp(t("rel_based_on"), incoming), grp(t("rel_feeds_into"), outgoing))
+    blocks = fragment(grp(t("rel_based_on"), incoming if include_in else []),
+                      grp(t("rel_feeds_into"), outgoing if include_out else []))
     if not blocks:
         return ""
     if aside:                                                  # plain uppercase header, uniform with Properties
@@ -158,6 +184,7 @@ def detail_page(store, *, title: str, active: str, crumbs: list, body,
                 prop_rows: list | None = None,
                 rel_study_id: str | None = None, rel_proj_id: str | None = None,
                 rel_extra_in: list | None = None, rel_extra_out: list | None = None,
+                rel_include_in: bool = True, rel_include_out: bool = True,
                 rail_sections: list | None = None, star: tuple | None = None,
                 actions: str = "", aside_extra: str = "") -> str:
     """The ONE detail-page shell every artifact page extends — consistency by construction.
@@ -187,7 +214,8 @@ def detail_page(store, *, title: str, active: str, crumbs: list, body,
     rel = ""
     if rel_study_id:
         rel = _relations_html(store, rel_study_id, rel_proj_id, extra_in=rel_extra_in,
-                              extra_out=rel_extra_out, aside=True)
+                              extra_out=rel_extra_out, aside=True,
+                              include_in=rel_include_in, include_out=rel_include_out)
     acts = fragment(raw(actions), raw(_star(*star)) if star else "")
     # The slide-over variant (§8.1) — the SAME renderer, one flag: header, then the aside as an
     # in-flow properties card (the Notion anatomy), then the content; the fixed-position minimap

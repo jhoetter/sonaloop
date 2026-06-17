@@ -6,6 +6,7 @@ import re
 from starlette.testclient import TestClient
 
 from sonaloop import services, web
+from sonaloop.web._detail import _relations_html
 
 
 def test_detail_relations_use_augmented_project_trace_edges(store):
@@ -40,3 +41,34 @@ def test_detail_relations_use_augmented_project_trace_edges(store):
     assert "Feeds into" in detail
     assert "Trace report" in detail
     assert "used by gate" in detail
+
+
+def test_detail_relations_group_duplicate_visible_targets(store):
+    html = _relations_html(
+        store, "synthetic:node", None, aside=True,
+        extra_out=[
+            {"href": "/sessions/a", "title": "Prototype run", "kind_label": "Session", "rel_label": "input"},
+            {"href": "/sessions/b", "title": "Prototype run", "kind_label": "Session", "rel_label": "input"},
+            {"href": "/sessions/c", "title": "Prototype run", "kind_label": "Session", "rel_label": "used by gate"},
+        ],
+    )
+    assert html.count("Prototype run") == 1
+    assert "3x Session" in html
+    assert "input, used by gate" in html
+
+
+def test_synthesis_detail_uses_referenced_councils_instead_of_duplicate_relation_inputs(store):
+    project = services.start_project("Synthesis relations", "How might we avoid duplicate evidence?",
+                                     None, persona_ids=["p1"], store=store)
+    c1 = services.record_council(project["id"], "What gets lost?", [], key="rel-c1", store=store)
+    c2 = services.record_council(project["id"], "What proves value?", [], key="rel-c2", store=store)
+    syn = services.record_synthesis(
+        "Define synthesis", "What matters?", [c1["id"], c2["id"]],
+        {"gesamtbild": "Two councils inform this synthesis."},
+        project_id=project["id"], store=store)
+    html = TestClient(web.create_app()).get(f'/syntheses/{syn["id"]}?lang=en').text
+    assert "Referenced councils" in html
+    if "RELATIONS" in html:
+        rel = html.split("RELATIONS", 1)[1].split("Referenced councils", 1)[0]
+        assert "Based on" not in rel
+        assert "What gets lost?" not in rel
