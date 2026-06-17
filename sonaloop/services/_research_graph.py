@@ -108,7 +108,7 @@ def _plan_methodology_state(project: dict, plan: dict, store: Store) -> dict[str
     for t in tasks:
         if t["bucket"] == "act":
             for p in t.get("produces", []):
-                if p.get("kind") == "artifact":
+                if p.get("kind") in {"artifact", "prototype"}:
                     proto = store.get_prototype(p["id"]) or {}
                     fids = {x for x in (proto.get("tags") or []) if x and x != "prototype"} or {"prototype"}
                     for c in t.get("consumes", []):
