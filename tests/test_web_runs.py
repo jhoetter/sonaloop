@@ -95,7 +95,7 @@ def test_project_header_run_chip_with_popover(store):
     assert f'{web.STRINGS["en"]["run_chip"]} · {web.STRINGS["en"]["runs_stalled_h"]}' in html
     topbar_actions = html.split('<span class="sl-tb-actions">', 1)[1].split('</span></header>', 1)[0]
     assert 'id="runchip"' in topbar_actions
-    assert 'class="sl-btn tour-plan-chip"' in topbar_actions
+    assert 'class="sl-toolbtn tour-plan-chip"' in topbar_actions
     pop = html.split('id="runchip-fly"')[1][:2500]
     # the popover LEADS with the concept (§9 V8): what a run is, before this run's state
     assert web.STRINGS["en"]["runs_lead"] in pop

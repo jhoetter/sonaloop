@@ -52,7 +52,7 @@ def register_projects(app) -> None:
         top_btn = ""
         if plan:
             plan_url = f'/projects/{proj["id"]}/plan'
-            top_btn = h("a", {"class_": "sl-btn tour-plan-chip", "href": plan_url,
+            top_btn = h("a", {"class_": "sl-toolbtn tour-plan-chip", "href": plan_url,
                               "data-drawer": plan_url, "data-drawer-title": t("plan_h")},
                         raw(_icon("target")), " ", _methodology_name())
         protos = graph.get("prototypes") or []
