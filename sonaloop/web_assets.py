@@ -76,8 +76,6 @@ svg.ic{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke
 /* crew avatars render through the ONE avatar_group anatomy (web/ui.py, ux-contract §10 W11):
    the vendored .sl-avatar-group overlap + the .sl-avatar-group__more overflow chip — no
    outline-local sizing/overlap overrides, so the cluster is identical on every surface. */
-.ol-sds{display:inline-flex;gap:3px;margin-left:7px}
-.ol-sd{width:6px;height:6px;border-radius:var(--radius-full);display:inline-block}
 .olrow .ol-ts{color:var(--faint);font-size:var(--t-xs);flex-shrink:0;white-space:nowrap;font-variant-numeric:tabular-nums;min-width:96px;text-align:right}
 .ol-gl.ol-round{color:var(--muted)}
 .ol-cnt{font-size:var(--t-xs);color:var(--faint);font-weight:600;background:var(--panel-2);border-radius:var(--radius);padding:1px 7px;margin-left:2px}
@@ -117,10 +115,6 @@ svg.ic{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke
 .pt-evs .ev{font-size:var(--t-xs);color:var(--muted);background:var(--panel-2);border:1px solid var(--line);padding:1px 8px;border-radius:var(--radius-full);text-decoration:none;white-space:nowrap}
 .pt-evs a.ev:hover{color:var(--accent);border-color:var(--accent)}
 .ol-rcap{font-size:var(--t-body);font-weight:400;color:var(--muted);margin-left:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ol-ptag{flex-shrink:0;width:86px;font-size:var(--t-xs);font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* round-5 J4: repeated kinds in a contiguous run keep their FULL label, one tone fainter —
-   the first of the run stays muted; nothing is omitted (omission read as a bug). */
-.ol-ptag--run{color:var(--faint);font-weight:500}
 .ol-flat{padding-top:4px}
 .olrow.ol-tw{position:relative}
 /* Continuous tree spine: ::before is ONE straight vertical (full height for a middle child so it joins
@@ -131,15 +125,9 @@ svg.ic{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke
 .olrow.ol-tw.ol-last::before{bottom:auto;height:calc(50% + 3px)}
 .olrow.ol-tw::after{content:"";position:absolute;left:calc(var(--ti,1)*24px);top:calc(50% - 6px);width:9px;height:6px;border-left:1.6px solid var(--line-2);border-bottom:1.6px solid var(--line-2);border-bottom-left-radius:6px}
 /* sessions nest under their subject (tracker: project-page-sessions-live-under-their-subject):
-   avatar lead + outcome/friction chips on the child rows; the parent's funnel aggregate is a REAL
-   link, so that row is a <div> with a stretched overlay link and the chip layered above it. */
+   session rows stay part of the same tag-free outline vocabulary as every other row. */
 .olrow{position:relative}
-.ol-stretch{position:absolute;inset:0;border-radius:var(--radius-sm)}
-.ol-funnel{position:relative;z-index:1;flex-shrink:0;white-space:nowrap;font-size:var(--t-xs);color:var(--muted);border:1px solid var(--line);border-radius:var(--radius-full);background:var(--panel-2);padding:1px 9px;text-decoration:none}
-.ol-funnel:hover{color:var(--accent);border-color:var(--accent)}
 .olrow .lbl{flex-shrink:0}
-/* the declared chips slot (outline chip contract, _outline_chips) — rendered only when non-empty */
-.ol-chips{display:inline-flex;align-items:center;gap:8px;flex-shrink:0}
 /* near-empty outlines (plan-less / young projects) size to content so the sections below rise
    above the fold (tracker: outline-drops-study-nodes-on-plan-less-projects); a full outline
    still fills the viewport. */
@@ -153,10 +141,7 @@ svg.ic{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke
 .outline.is-relating .olrow.ol-rel-source,.outline.is-relating .sl-file--row.ol-rel-source{opacity:1;background:var(--hover)}
 .outline.is-relating .olrow.ol-rel-in-row,.outline.is-relating .sl-file--row.ol-rel-in-row,
 .outline.is-relating .olrow.ol-rel-out-row,.outline.is-relating .sl-file--row.ol-rel-out-row{opacity:1}
-/* themes — cross-cutting labels (V1: the chip row retired into a FilterBar facet; a row's
-   membership is a small colored dot with the full theme title on hover) */
-.olth-pills{display:inline-flex;align-items:center;gap:4px;flex-shrink:0;margin-right:10px}
-.olth-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;display:inline-block}
+/* themes stay in the FilterBar facet; rows remain tag-free. */
 /* relations block on detail pages (Linear progressive disclosure) */
 .relcard{margin-top:16px}
 .relh{font-size:var(--t-sm);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);margin-bottom:8px;display:flex;align-items:center;gap:6px}.relh svg{width:13px;height:13px}.h1ic{display:inline-flex;vertical-align:-3px;margin-right:8px}.h1ic svg{width:19px;height:19px}

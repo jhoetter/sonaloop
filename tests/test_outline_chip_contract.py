@@ -1,11 +1,8 @@
-"""Outline chip CONTRACT — house gate (tracker: outline-chip-contract-every-row-kind-declares-
-its-chips-enfo).
+"""Project outline visual contract.
 
-Every row KIND the project outline emits must declare its chips in the _outline_chips REGISTRY:
-either a builder (whose row renders a non-empty .ol-chips slot) or an explicit NoChips sentinel
-carrying the reason. The gate renders a project carrying one of EVERY row kind and asserts the
-contract row by row; an undeclared kind fails the gate (production renders it chip-less and
-records it in UNDECLARED_KINDS — a page never crashes over a chip).
+The outline is a structural timeline: phase grouping, row icon, title, avatar participation and
+timestamp. Status/form/trace/count data stays available through filters and detail pages, but it
+does not render as same-looking pills in every row.
 """
 from __future__ import annotations
 
@@ -15,8 +12,7 @@ import pytest
 from starlette.testclient import TestClient
 
 from sonaloop import plan as P
-from sonaloop import presentation, prototypes, services, web
-from sonaloop.web import _outline_chips as OC
+from sonaloop import prototypes, services, web
 from sonaloop.web._graph_outline import _outline_html
 
 _RKIND = re.compile(r'data-rkind="([^"]*)"')
@@ -28,43 +24,22 @@ def _client():
 
 # --------------------------------------------------------------------- the contract machinery
 
-def _rows(html: str) -> list[tuple[str, bool]]:
-    """(rkind, has_chips) for every rendered outline row. Each chunk runs from one olrow start
-    to the next, so an ol-chips hit is scoped to its own row (the CSS rule `.ol-chips{` never
-    matches the attribute form `class="ol-chips"`)."""
-    out = []
-    for chunk in html.split('class="olrow')[1:]:
-        m = _RKIND.search(chunk.split(">", 1)[0])
-        out.append((m.group(1) if m else "", 'class="ol-chips"' in chunk))
-    return out
-
-
 def _row_chunks(html: str) -> list[str]:
     return ["class=\"olrow" + chunk for chunk in html.split('class="olrow')[1:]]
 
 
-def _assert_chip_contract(html: str) -> None:
-    """The contract: every rendered row's kind is registered; a builder-backed kind renders
-    real chips on at least one row (V2 row truth: a builder MAY suppress chips on rows where
-    the default kind carries no extra signal — e.g. a plain note — but a builder that never
-    produces chips is a dead declaration). NoChips kinds must name their reason. No kind may
-    have hit the renderer undeclared."""
-    rows = _rows(html)
+def _all_rkinds(html: str) -> set[str]:
+    return set(_RKIND.findall(html))
+
+
+def _assert_tag_free_outline(html: str) -> None:
+    rows = _row_chunks(html)
     assert rows, "no outline rows rendered"
-    chipped: dict[str, bool] = {}
-    for kind, has_chips in rows:
-        entry = OC.REGISTRY.get(kind)
-        assert entry is not None, f"outline row kind {kind!r} is not declared in the chip registry"
-        if isinstance(entry, OC.NoChips):
-            assert entry.reason, f"NoChips for {kind!r} must carry a reason"
-            continue
-        chipped[kind] = chipped.get(kind, False) or has_chips
-    for kind, any_chips in chipped.items():
-        assert any_chips, (
-            f"row kind {kind!r} declared a chip builder but rendered no chips on ANY row — "
-            "declare NoChips with a reason instead")
-    assert not OC.UNDECLARED_KINDS, (
-        f"row kinds hit the renderer without a registry entry: {sorted(OC.UNDECLARED_KINDS)}")
+    for forbidden in (
+        'class="ol-chips"', 'class="ol-ptag', 'class="ol-sds"', 'class="ol-funnel"',
+        'class="olth-pills"', 'class="olth-dot"',
+    ):
+        assert forbidden not in html, f"outline resurfaced retired row chrome: {forbidden}"
 
 
 # --------------------------------------------------------------------- seeding (every row kind)
@@ -126,7 +101,8 @@ def _every_kind_project(store) -> str:
     services.create_note(pid, "a concept that got real", title="Concept",
                          data={"artifact_kind": "comparison", "prototype_ids": [built["id"]]},
                          created_at="2026-06-03T10:00:00+00:00", store=store)
-    # a standalone prototype with two walks -> the funnel chip on the parent row
+    # a standalone prototype with two walks; the count is available from the detail/session views,
+    # not as a parent-row funnel chip.
     solo = prototypes.register_prototype("solo-proto", "Solo proto", "prototypes/solo",
                                          project_id=pid, store=store)
     subj = {"kind": "prototype", "id": solo["id"], "label": "Solo proto"}
@@ -141,11 +117,10 @@ def _every_kind_project(store) -> str:
     services.record_synthesis_outline(pid, {"build_order_narrative": "n",
                                             "sections": [{"heading": "A"}, {"heading": "B"}]},
                                       store=store)
-    # a URL artifact (council-pool A/B capture) — an outline row on the DEFAULT view with the
-    # A/B label + capture-status chips (tracker: sonaloop/project-presence-contract)
+    # a URL artifact (council-pool A/B capture) — an outline row on the DEFAULT view.
     services.add_artifact(pid, "https://example.test/landing", kind="url", title="Landing A",
                           capture=False, store=store)
-    # the UX-P2 absorbed kinds — every one an outline row with declared chips (§3.4):
+    # the UX-P2 absorbed kinds — every one an outline row (§3.4):
     services.record_decision(pid, "Adopt the new flow", "We adopt it.",
                              based_on=[{"kind": "council", "id": "cA"}],
                              key="d1", status="adopted", store=store)
@@ -165,46 +140,35 @@ def _every_kind_project(store) -> str:
 
 # ----------------------------------------------------------------------------- the house gate
 
-def test_every_outline_row_kind_declares_its_chips(store):
-    OC.UNDECLARED_KINDS.clear()
+def test_project_outline_rows_are_tag_free_but_keep_every_kind(store):
     pid = _every_kind_project(store)
     html = _client().get(f"/projects/{pid}?lang=en").text
-    _assert_chip_contract(html)
-    syn_row = next(chunk for chunk in _row_chunks(html) if 'data-rkind="synthesis"' in chunk)
-    assert "Synthesis" in syn_row and "3 findings" in syn_row
-    report_row = next(chunk for chunk in _row_chunks(html) if 'data-rkind="report"' in chunk)
-    assert "Report" in report_row and "2 sections" in report_row
-    assert any(("Prototype session" in chunk or "Walkthrough session" in chunk or "Live session" in chunk)
-               for chunk in _row_chunks(html) if 'data-rkind="session"' in chunk)
-    survey_row = next(chunk for chunk in _row_chunks(html) if 'data-rkind="survey"' in chunk)
-    assert "Free text" in survey_row and ("Draft" in survey_row or "Open" in survey_row)
-    # registry completeness, both directions: the fixture exercises every registered kind, and
-    # nothing rendered outside the registry — the registry IS the row-kind inventory.
-    emitted = {kind for kind, _ in _rows(html)}
-    assert emitted == set(OC.REGISTRY), (
-        f"registry/inventory drift — emitted {sorted(emitted)} vs registered {sorted(OC.REGISTRY)}")
+    _assert_tag_free_outline(html)
+    assert {
+        "council", "synthesis", "note", "prototype", "session", "report", "url_artifact",
+        "decision", "survey", "hypothesis", "open_question", "asset",
+    } <= _all_rkinds(html)
+    assert 'class="ol-ico"' in html
+    row_html = "\n".join(_row_chunks(html))
+    for retired in ("3 findings", "2 sections", "Draft</span>", "Open</span>",
+                    "not captured — reference only", "2 sessions ·"):
+        assert retired not in row_html
 
 
-def test_contract_catches_an_undeclared_kind(store):
-    """The 'fails on undeclared kind' proof: a new row kind that nobody registered renders
-    chip-less (production never crashes) but lands in UNDECLARED_KINDS and fails the gate."""
+def test_unknown_outline_kind_still_renders_tag_free(store):
     pid = _every_kind_project(store)
     graph = services.get_project_graph(pid, store=store)
     for n in graph["nodes"]:
         if n.get("kind") == "council":
             n["kind"] = "martian"
-    OC.UNDECLARED_KINDS.clear()
-    html = _outline_html(graph)                      # renders fine — the fallback is no chips
+    html = _outline_html(graph)
     assert 'data-rkind="martian"' in html
-    with pytest.raises(AssertionError):
-        _assert_chip_contract(html)
-    assert "martian" in OC.UNDECLARED_KINDS
-    OC.UNDECLARED_KINDS.clear()                      # leave no state behind for other tests
+    _assert_tag_free_outline(html)
 
 
-def test_freeform_project_synthesis_rows_carry_chips(store):
-    """A project-bound synthesis row carries its findings chip even when the project only has the
-    default freeform frame plan."""
+def test_freeform_project_synthesis_rows_stay_tag_free(store):
+    """A project-bound synthesis row renders in the same quiet row vocabulary even when the project
+    only has the default freeform frame plan."""
     proj = services.create_research_project("Freeform", store=store)
     services.record_synthesis(
         "Pains", "What hurts?", project_id=proj["id"], synthesis_id="syn0",
@@ -212,10 +176,9 @@ def test_freeform_project_synthesis_rows_carry_chips(store):
                  "findings": [{"text": "f1", "kind": "cluster"},
                               {"text": "f2", "kind": "key_problem"}]},
         store=store)
-    OC.UNDECLARED_KINDS.clear()
     html = _client().get(f'/projects/{proj["id"]}?lang=en').text
-    _assert_chip_contract(html)
-    assert 'data-rkind="synthesis"' in html and "2 findings" in html
+    _assert_tag_free_outline(html)
+    assert 'data-rkind="synthesis"' in html and "Pains" in html and "2 findings" not in html
 
 
 # ------------------------------------------------------------ slide-over universality (§8.1)
@@ -341,32 +304,23 @@ def test_slide_fragment_variant_ignores_context_param(store):
     assert r.text.startswith('<div class="sl-slide">') and "sl-drawer" not in r.text
 
 
-# ------------------------------------------------------------------- the chips themselves
+# ------------------------------------------------------------------- tag-free rows
 
-def test_seeded_chip_counts_render(store):
+def test_seeded_outline_suppresses_counts_statuses_and_stance_tags(store):
     pid = _every_kind_project(store)
     html = _client().get(f"/projects/{pid}?lang=en").text
-    # council: the mode tag ONLY (V2 — the avatars already say who debated; the statement
-    # count lives on the detail/slide-over)
-    assert "Decision</span>" in html and "2 statements" not in html
-    # synthesis: finding count + the amber in-progress chip
-    assert "3 findings" in html and "running</span>" in html
-    # report: section count (the shared n_sections key)
-    assert "2 sections" in html
-    # notes (V2): a PLAIN note carries no chips (the default "Observation" pill retired);
-    # the built concept shows its artifact kind + built marker
-    assert "Observation</span>" not in html and "built</span>" in html
-    assert presentation.present("comparison")["label"] in html
-    # session rows: outcome + friction, ≤2 chips (V2 — the step count moved to the detail)
-    assert "Completed</span>" in html and "Dropped at step 1" in html and "1× friction" in html
-    assert "2 steps" not in html
-    # the parent funnel chip keeps the cross-session count
-    assert "2 sessions" in html
+    _assert_tag_free_outline(html)
+    for retired in (
+        "2 statements", "3 findings", "running</span>", "2 sections", "Observation</span>",
+        "built</span>", "Completed</span>", "Dropped at step 1", "1× friction", "2 steps",
+        "2 sessions ·",
+    ):
+        assert retired not in html
 
 
 def test_only_prototype_sessions_are_outline_children(store):
     """Prototype sessions nest under the prototype. Flow/live-url subjects render directly as
-    SESSION rows, so the outline never invents WALKTHROUGH or LIVE SURFACE row kinds."""
+    session rows, so the outline never invents walkthrough/live-surface row kinds."""
     pid = _every_kind_project(store)
     html = _client().get(f"/projects/{pid}?lang=en").text
     top_level_session = child_seen = False
@@ -374,10 +328,8 @@ def test_only_prototype_sessions_are_outline_children(store):
     assert 'data-rkind="live_url"' not in html
     assert "WALKTHROUGH" not in html and "LIVE SURFACE" not in html
     for chunk in html.split('class="olrow')[1:]:
-        ptag = re.search(r'<span class="ol-ptag[^"]*">([^<]*)</span>', chunk)
-        assert ptag is not None
         if 'data-rkind="session"' in chunk.split(">", 1)[0]:
-            assert ptag.group(1) == "Session"
+            assert 'title="Session"' in chunk.split('<span class="ol-title"', 1)[0]
             assert 'class="sl-avatar-group"' not in chunk.split('<span class="ol-title"', 1)[0]
             if chunk.startswith(' ol-tw'):
                 assert 'class="ol-kind"' not in chunk
@@ -387,27 +339,8 @@ def test_only_prototype_sessions_are_outline_children(store):
     assert top_level_session and child_seen
 
 
-def test_same_kind_runs_keep_the_full_label_in_the_faint_tone(store):
-    """Round-5 J4: a contiguous same-kind run of top-level rows shows the FULL kind label on
-    every row — the first in the normal muted tone, the repeats stepped down to the faint
-    tone (`.ol-ptag--run`). The round-4 omit-on-repeat ("" labels) read as missing text."""
+def test_outline_uses_icons_not_type_text_columns(store):
     pid = _every_kind_project(store)
     html = _client().get(f"/projects/{pid}?lang=en").text
-    runs: dict[str, list[tuple[str, bool]]] = {}      # rkind -> [(label, is_faint), …]
-    for chunk in html.split('class="olrow')[1:]:
-        head = chunk.split(">", 1)[0]
-        m = _RKIND.search(head)
-        ptag = re.search(r'<span class="(ol-ptag[^"]*)">([^<]*)</span>', chunk)
-        assert ptag is not None
-        if m and ptag.group(2) != "":                 # top-level rows only (children are empty)
-            runs.setdefault(m.group(1), []).append(
-                (ptag.group(2), "ol-ptag--run" in ptag.group(1)))
-    note_rows = runs.get("note", [])
-    assert len(note_rows) >= 2, "fixture must emit a same-kind NOTE run"
-    first, repeats = note_rows[0], note_rows[1:]
-    assert not first[1], "first of a run keeps the normal muted tone"
-    for label, faint in repeats:
-        assert label == first[0], "repeats keep their FULL label (never omitted)"
-        assert faint, "repeats render in the faint tone (.ol-ptag--run)"
-    # no row anywhere renders an empty label while claiming the faint-run treatment
-    assert not re.search(r'<span class="ol-ptag ol-ptag--run"></span>', html)
+    assert 'class="ol-ptag' not in html
+    assert 'class="ol-ico"' in html

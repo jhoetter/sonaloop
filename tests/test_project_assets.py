@@ -222,11 +222,11 @@ def test_export_synthesis_deliverable_without_project_skips_attach(store, tmp_pa
     assert "asset_id" not in res and "project_id" not in res
 
 
-def test_assets_render_as_outline_rows_with_direction_pills(store, project, tmp_path, monkeypatch):
+def test_assets_render_as_tag_free_outline_rows(store, project, tmp_path, monkeypatch):
     """UX P2 (spec/ux-contract.md §3.4 / §7.2): assets are outline rows — incoming files in their phase
-    flow, the deliverable at the END (the Deliver group); direction pills on both. Since UX U8
-    the row deep-links to the asset's DETAIL page (slide-over armed, §8.1); the file itself
-    stays one click away as the row's trailing download/open chip."""
+    flow, the deliverable at the END (the Deliver group). Since UX U8 the row deep-links to the
+    asset's DETAIL page (slide-over armed, §8.1); the file itself stays one click away as the
+    row's trailing download/open action."""
     monkeypatch.setattr("sonaloop.services._synthesis_pptx.export_synthesis_pptx", lambda sid, store=None: b"PK deck")
     evidence = tmp_path / "field-note.txt"
     evidence.write_text("observed in the field")
@@ -238,7 +238,7 @@ def test_assets_render_as_outline_rows_with_direction_pills(store, project, tmp_
     client = TestClient(web.create_app())
     html = client.get(f'/projects/{project["id"]}?lang=en').text
     assert html.count('data-rkind="asset"') == 2
-    assert "Deliverable" in html and "Evidence" in html       # direction pills on the rows
+    assert "Deliverable</span>" not in html and "Evidence</span>" not in html
     assert ">Assets (1)<" in html
     # the evidence row sits in the flow; the deliverable closes the outline (Deliver group)
     assert html.index("Field note") < html.index("Component finder (PPTX)")

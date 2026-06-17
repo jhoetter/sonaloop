@@ -43,7 +43,7 @@ def _study_node(store: Store, study_id: str) -> dict[str, Any] | None:
         "voices": len(spids) or sum(sentiment.values()), "sentiment": sentiment,
         "personas": _persona_stubs(store, spids),
         "recommendations": len(_A.synthesis_recommendations(syn)),
-        "n_findings": len(syn.get("findings") or []),        # outline chip contract (_outline_chips)
+        "n_findings": len(syn.get("findings") or []),
         "phase": syn.get("phase", ""), "mode": syn.get("mode", ""), "role": syn.get("role", ""),
     }
 
@@ -171,13 +171,11 @@ def _evidence_node(kind: str, eid: str, title: str, prod_task: dict, store: Stor
         c = store.get_council_session(eid) or {}
         created = c.get("created_at", "")
         council_count = 1
-        # Outline chip contract (_outline_chips): the mode chip derives the way the council
-        # page does (council_mode), the statement count rides the node.
+        # The same council mode/count metadata that detail pages and filters may need rides the node.
         mode = council_mode(c)  # noqa: F821 (bound)
         n_statements = len(c.get("statements") or [])
-        # Outline detail (tracker: sonaloop/inspector-cinematic-detail-density):
-        # WHO spoke + how the council leaned — feeds the row's avatar cluster
-        # and stance dots, so the project page shows persona presence.
+        # Persona presence feeds the row's avatar cluster; stance counts remain graph metadata for
+        # richer detail/report surfaces, not row chrome.
         pids: list[str] = []
         for st in c.get("statements") or []:
             pid = st.get("persona_id") or ""
@@ -192,7 +190,7 @@ def _evidence_node(kind: str, eid: str, title: str, prod_task: dict, store: Stor
         s = store.get_synthesis(eid) or {}
         created = s.get("created_at", "")
         council_count = len(s.get("council_ids", []))
-        n_findings = len(s.get("findings") or [])            # outline chip contract
+        n_findings = len(s.get("findings") or [])
         status = s.get("status", "done")
         # WHO speaks in the report — the voices' personas (statements), so the outline row
         # carries the same avatar cluster as the council rows (ux-contract §10 W11).

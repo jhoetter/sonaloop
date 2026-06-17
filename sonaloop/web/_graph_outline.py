@@ -5,7 +5,6 @@ from __future__ import annotations
 from collections import Counter
 from itertools import groupby
 
-from .. import artifacts as _A_art
 from .. import presentation as _pres
 from ..project_trace import trace_node_health
 from ._components import _icon
@@ -14,7 +13,6 @@ from ._graph_outline_extras import extra_outline_items, drawer_url, producing_st
 from ._graph_outline_sessions import merge_session_items
 from ._html import h, raw, fragment
 from ._i18n import t
-from ._outline_chips import chips_html
 from ._primitive_taxonomy import primitive_color, subtype_label, subtype_value
 # Case-/diacritic-insensitive search form for the `?q=` text search (V1) — ONE shared
 # helper with the ⌘K entity search (V6), so the list filter and the palette never diverge.
@@ -109,7 +107,7 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         # `order` = the SORT key (a built note's prototype borrows the note's slot via a '#seq' suffix so it
         # nests right under it); `ts` = the row's OWN created_at, shown to the reader. `last_child` ends the
         # tree spine (the connector continues down through earlier siblings, stops at the last). `rkind` is
-        # the row's machine kind for the chip CONTRACT (_outline_chips); `node` the data its builder reads.
+        # the row's machine kind for filters/detail routing; `node` is the data its builder reads.
         po, pl = pmeta.get(pk, (99, ""))
         items.append({"oid": oid, "color": color or primitive_color(rkind), "title": title, "kind": kind, "href": href,
                       "plabel": plabel if plabel is not None else pl, "po": po, "round": r, "order": order,
@@ -344,15 +342,12 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
                          for s, n in traces.most_common()]},
         ])
     if flt or q:
-        import re as _re
-
         def _blob(it: dict) -> str:
             if it.get("rkind") in ("asset",):     # file rows (V9): what the row visibly shows
                 node = it.get("node") or {}
                 return " ".join((str(it.get("title", "")), node.get("filename", ""),
                                  str(it.get("kind", ""))))
-            chips_txt = _re.sub(r"<[^>]+>", " ", str(chips_html(it)))
-            return " ".join((str(it.get("title", "")), str(it.get("kind", "")), chips_txt))
+            return " ".join((str(it.get("title", "")), str(it.get("kind", ""))))
 
         def _keep(it: dict) -> bool:
             if flt.get("kind") and _fkind(it) not in flt["kind"]:
@@ -402,9 +397,9 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
             from ._presence import file_card
             return file_card(it.get("node") or {}, row=True, href=it["href"],
                              drawer=bool(drawer_url("asset", it["href"])),
+                             show_direction=False,
                              attrs={"data-rkind": "asset", **rel_attrs})
         tw = ("ol-tw" + (" ol-last" if it.get("last_child") else "")) if it["indent"] else ""  # tree connector
-        tis = node_themes.get(it["oid"], [])
         # Persona presence + stance lean (tracker: sonaloop/inspector-cinematic-
         # detail-density): every row whose DATA carries persona participation shows WHO
         # (the one §10 W11 avatar group — councils' debaters, a report's voices, a
@@ -417,18 +412,7 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         if pers:
             from . import ui
             group = ui.avatar_group(pers, total=int(extra.get("voices") or 0))
-            sc = extra.get("stance_counts") or {}
-            dots = fragment(*(h("i", {"class_": "ol-sd",
-                                      "style": f'background:{_A_art.stance_meta(int(v))["color"]}',
-                                      "title": str(n)})
-                              for v, n in sorted(sc.items(), key=lambda kv: -int(kv[0])) if n))
-            crew = h("span", {"class_": "ol-crew"}, group,
-                     h("span", {"class_": "ol-sds"}, dots) if sc else "")
-        # V2: theme membership is a small colored DOT (full theme title on hover) — the wide
-        # truncated chip overloaded the row; the full name lives in the facet menu + detail.
-        pills = [h("i", {"class_": "olth-dot", "title": themes[i]["title"],
-                         "style": f'background:{th_color[themes[i]["id"]]}'})
-                 for i in tis]
+            crew = h("span", {"class_": "ol-crew"}, group)
         # --ti feeds the tree-spine x-offset so a depth-2 child (session under a paired prototype)
         # draws its connector one indent step deeper than a depth-1 child.
         dw_url = drawer_url(it.get("rkind", ""), it["href"])
@@ -444,37 +428,17 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         ts_short, ts_full = _fmt_ts(it["ts"])
         ic = _KIND_ICONS.get(it.get("rkind", ""))
         lead = (raw(it["lead"]) if it.get("lead")           # session/asset rows: avatar / thumb lead
-                else h("span", {"class_": "ol-ico", "style": f'color:{it["color"]}'}, raw(_icon(ic)))
+                else h("span", {"class_": "ol-ico", "style": f'color:{it["color"]}',
+                                "title": it.get("kind") or None}, raw(_icon(ic)))
                 if ic else h("span", {"class_": "ol-dot", "style": f'background:{it["color"]}'}))
-        # The label column carries the row's KIND (§3.2 / the §4 mockup: icon · kind · title).
-        # Indented rows keep their own kind label too; the tree spine expresses relationship,
-        # not identity. The right edge is reserved for chips and time, never a repeated kind
-        # label. Within a contiguous same-kind run
-        # of top-level rows EVERY row keeps its full label; repeats step down to the FAINT tone
-        # (round-5 J4 re-do: the round-4 omit-on-repeat read as missing text — "sieht aus als
-        # würde der Text fehlen" — so the run quiets by tone, never by absence).
+        # The icon carries the row kind; the row text stays about the artifact itself. Status,
+        # trace state, forms and counts are available in the FilterBar/detail aside instead of
+        # competing as same-looking pills in the timeline.
         cells = [lead,
-                 h("span", {"class_": "ol-ptag ol-ptag--run"
-                            if it.get("kind_run") and not it["indent"] else "ol-ptag"},
-                   it["kind"]),
                  h("span", {"class_": "ol-title"}, it["title"]),
-                 h("span", {"class_": "olth-pills"}, fragment(*pills)),
                  crew,
-                 raw(chips_html(it)),                       # the chip CONTRACT (_outline_chips registry)
                  h("span", {"class_": "ol-ts", "title": ts_full}, ts_short)]
         ext = {"target": "_blank", "rel": "noopener"} if it.get("external") else {}
-        chip = it.get("chip")
-        if chip:
-            # the funnel chip is a REAL link and <a> cannot nest — the row becomes a positioned <div>
-            # whose main target is a stretched overlay link (.ol-stretch) layered UNDER the chip
-            # (the slide-over rides the stretch link, so the funnel chip keeps its own target).
-            link = (h("a", {"class_": "ol-stretch", "href": it["href"] or None,
-                            "aria-label": it["title"], **ext, **drawer_attrs})
-                    if it["href"] else "")
-            chip_a = h("a", {"class_": "ol-funnel", "href": chip["href"],
-                             "download": chip.get("download"), "target": chip.get("target"),
-                             "rel": "noopener" if chip.get("target") else None}, chip["text"])
-            return h("div", attrs, *cells[:6], chip_a, *cells[6:], link)
         if it["href"]:
             attrs["href"] = it["href"]
             attrs.update(ext)
@@ -500,23 +464,6 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
 
     out = []
 
-    def mark_kind_runs(its: list[dict]) -> list[dict]:
-        """Round-5 J4: within a contiguous run of top-level rows of the SAME kind, the first
-        row keeps the normal muted tone and the rest render their FULL label in the faint
-        tone (`kind_run` → `.ol-ptag--run`). Every row says what it is — the round-4
-        omit-on-repeat looked like missing text. Indented children and file rows (which carry
-        no label column of their own) break the run, so a kind re-emphasizes after them."""
-        marked, prev = [], None
-        for it in its:
-            if it["indent"] or it.get("rkind") in ("asset",):
-                prev = None
-            else:
-                if prev is not None and it["kind"] == prev:
-                    it = {**it, "kind_run": True}
-                prev = it["kind"]
-            marked.append(it)
-        return marked
-
     def cluster_rows(ris: list[dict]) -> list:
         """One phase group's rows; incoming assets sit in a quiet *Assets* sub-group at the
         end of their phase (decision §7.2 — cheap, predictable, forward-compatible); deliverable
@@ -524,7 +471,7 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         main = [it for it in ris if not it.get("evidence") and not it.get("deliverable")]
         ev = [it for it in ris if it.get("evidence")]
         deliv = [it for it in ris if it.get("deliverable")]
-        rows_html = [row(it) for it in mark_kind_runs(main)]
+        rows_html = [row(it) for it in main]
         if ev:
             rows_html.append(h("div", {"class_": "ol-rlabel"},
                                h("span", {"class_": "ol-rlabel__ico"}, raw(_icon("file"))),

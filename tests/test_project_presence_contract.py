@@ -119,16 +119,18 @@ def _seed_tier3(store) -> str:
 def test_absorbed_kinds_are_outline_rows_on_the_default_view(store):
     pid = _seed_tier3(store)
     html = _client().get(f"/projects/{pid}?lang=en").text   # the project outline (graph view retired)
-    # open questions: an outline row with the open/resolved pill
+    # open questions: an outline row
     assert 'data-rkind="open_question"' in html and "What about pricing?" in html
-    # URL artifacts: an outline row (chip contract kind) with the capture-status chip
+    # URL artifacts: an outline row without capture/status pills
     assert 'data-rkind="url_artifact"' in html and "Landing A" in html
-    assert "not captured — reference only" in html
-    # evidence assets: an outline row with the direction pill
-    assert 'data-rkind="asset"' in html and "Field note" in html and "Evidence" in html
-    # surveys: an outline row deep-linking to the survey detail, lifecycle pill
+    assert "not captured — reference only" not in html
+    # evidence assets: an outline row
+    assert 'data-rkind="asset"' in html and "Field note" in html
+    # surveys: an outline row deep-linking to the survey detail
     assert 'data-rkind="survey"' in html and "Pricing survey" in html
-    assert "/surveys/" in html and "Draft" in html
+    survey_row = next(chunk for chunk in html.split('class="olrow')[1:]
+                      if 'data-rkind="survey"' in chunk.split(">", 1)[0])
+    assert "/surveys/" in survey_row and "Draft</span>" not in survey_row
     # the appendix is GONE (ux-contract §3.4): no sections, no header jump-chips
     assert "projsection" not in html and "projjump" not in html
     for anchor in ("#open-questions", "#assets", "#surveys"):
@@ -307,7 +309,9 @@ def test_project_outline_marks_orphaned_trace_nodes_after_plan_completion(store)
                           memory_refs=["note:seed"], store=store)
     page = _client().get(f'/projects/{project["id"]}?lang=en').text
     assert "Unconsumed survey" in page
-    assert "unused after phase close" in page
+    assert "trace=orphaned" in page
+    filtered = _client().get(f'/projects/{project["id"]}?trace=orphaned&lang=en').text
+    assert "Unconsumed survey" in filtered
 
 
 def test_empty_kinds_render_no_chrome(store):
@@ -319,13 +323,12 @@ def test_empty_kinds_render_no_chrome(store):
         assert f'href="{anchor}"' not in html, f"empty kind grew a jump-chip {anchor}"
 
 
-def test_survey_row_counts_questions_and_responses(store):
+def test_survey_row_keeps_counts_on_detail_not_outline(store):
     pid = _seed_tier3(store)
     sv = services.list_surveys(project_id=pid, store=store)[0]
     services.import_survey_responses(
         sv["id"], [{"respondent_key": "r1", "answers": [{"question_id": "q1", "value": "too high"}]}],
         store=store)
     html = _client().get(f"/projects/{pid}?lang=en").text
-    # the survey row's honest count (C8, V2 row truth ≤2 chips): the RESPONSE count is the
-    # row's signal; the question count lives on the detail page
-    assert "1 responses" in html and "1 questions" not in html
+    # Counts live on the survey detail header/sections, not as project-outline pills.
+    assert "1 responses" not in html and "1 questions" not in html

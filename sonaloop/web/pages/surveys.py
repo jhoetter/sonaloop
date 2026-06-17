@@ -11,7 +11,6 @@ from __future__ import annotations
 from ._ctx import *  # noqa: F401,F403  (shared render toolkit)
 from .._html import register_css
 from .._presence import survey_status_pill as _status_pill
-from .._render import _refs_line
 from ... import artifacts as _A
 
 
@@ -72,7 +71,7 @@ def _option_strip(options: list, counts: dict, total: int) -> str:
     return h("div", {"class_": "pvbar"}, fragment(*segs))
 
 
-def _predicted_vs_actual(comparison: dict, store) -> str:
+def _predicted_vs_actual(comparison: dict, _store) -> str:
     pred, act = comparison.get("predicted") or {}, comparison.get("actual") or {}
     rows = []
     for label, dist in ((t("survey_predicted"), pred), (t("survey_actual"), act)):
@@ -80,9 +79,7 @@ def _predicted_vs_actual(comparison: dict, store) -> str:
         bar = _stance_strip(dist.get("counts") or {}, n) if n else h("div", {"class_": "pvbar"})
         rows.append(h("div", {"class_": "pvline"},
                       h("span", {"class_": "pvlbl"}, f"{label} ({n})"), raw(bar)))
-    refs_line = (raw(_refs_line(pred.get("refs") or [], t("rel_based_on"), store))
-                 if pred.get("refs") else None)
-    return h("div", {}, fragment(*rows), refs_line)
+    return h("div", {}, fragment(*rows))
 
 
 def _question_row(q: dict, result: dict | None, store, show_count: bool = True) -> str:
@@ -187,9 +184,6 @@ def register_surveys(app) -> None:
         if proj:
             crumbs.append((proj["title"], f'/projects/{proj["id"]}'))
         crumbs.append((s["title"], None))
-        derived = s.get("derived_from") or []
-        derived_html = (raw(_refs_line(derived, t("rel_based_on"), store))
-                        if derived else None)
         intro_html = (h("p", {"class_": "sub"}, s.get("intro", "")) if s.get("intro") else None)
         # When every question shares one answered count, state it ONCE at section level instead
         # of repeating "5 responses" on every row (round-3 H4); differing counts stay per-row.
@@ -209,7 +203,7 @@ def register_surveys(app) -> None:
                            (h("p", {"class_": "muted small"}, t("no_survey_responses"))
                             if not n_resp else
                             fragment(*(_response_row(r, qmap, store) for r in responses))))
-        body = fragment(intro_html, derived_html, questions_html, responses_html)
+        body = fragment(intro_html, questions_html, responses_html)
         proj_link = (h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"]) if proj else "—")
         # Detail-header attribution (ux-contract §10 W11): the persona-sourced respondents
         # as the one avatar-group anatomy, leading the meta line.

@@ -169,8 +169,7 @@ def test_onboarding_showcase_loads_every_tour_artifact(store):
                 if 'data-rkind="url_artifact"' in chunk.split(">", 1)[0]]
     assert ref_rows
     for chunk in ref_rows:
-        ptag = re.search(r'<span class="ol-ptag[^"]*">([^<]*)</span>', chunk)
-        assert ptag and ptag.group(1) == "Reference"
+        assert 'title="Reference"' in chunk.split('<span class="ol-title"', 1)[0]
     plan = services.get_plan(out["project_id"], store=store)
     assert plan["methodology"] == "double_diamond"
     assert all(t["status"] == "done" for t in plan["tasks"])

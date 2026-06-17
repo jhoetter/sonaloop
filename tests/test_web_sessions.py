@@ -200,14 +200,14 @@ def test_project_outline_nests_sessions_under_their_subject(store):
     # indent classes (the note→prototype nesting mechanics)
     assert html.index(f'data-oid="{proto["id"]}"') < html.index(f'data-oid="{sess["id"]}"')
     assert f'class="olrow ol-tw ol-last" data-oid="{sess["id"]}"' in html
-    # child row content: persona name, generic session kind, outcome chip, replay href
-    assert "Greta Tester" in html and "Session" in html and "Completed" in html
+    # child row content: persona name, generic session icon/title metadata, replay href
+    assert "Greta Tester" in html and 'title="Session"' in html
     assert f'href="/sessions/{sess["id"]}"' in html
-    # a single session earns no funnel chip (the class still appears in the inlined CSS)
+    # sessions no longer render aggregate/count chips in the outline.
     assert 'class="ol-funnel"' not in html
 
 
-def test_project_outline_parent_row_carries_funnel_chip(store):
+def test_project_outline_parent_row_stays_tag_free_with_multiple_sessions(store):
     proj, proto = _proto_project(store)
     subj = {"kind": "prototype", "id": proto["id"], "label": "Signup prototype"}
     _record(store, key="A", project_id=proj["id"], subject=subj,
@@ -217,13 +217,11 @@ def test_project_outline_parent_row_carries_funnel_chip(store):
             outcome={"completed": False, "dropoff_step": 1, "summary": "gave up",
                      "predicted_behaviors": []})
     html = _client().get(f'/projects/{proj["id"]}?lang=en').text
-    # the aggregate chip on the parent row: count + the drop-off read (services.get_session_funnel)
-    assert "2 sessions · 1× drop @ step 1" in html
-    # it links to the filtered cross-session list; the row keeps its own stretched-link target
-    assert f'href="/sessions?subject_kind=prototype&amp;subject={proto["id"]}"' in html
-    assert 'class="ol-stretch"' in html
-    # the dropped walk's child row shows the red outcome chip and the friction pill
-    assert "Dropped at step 1" in html and "1× friction" in html
+    # session rows still nest under the prototype, but counts/drop-off tags stay out of the outline.
+    assert html.count('data-rkind="session"') == 2
+    assert "2 sessions · 1× drop @ step 1" not in html
+    assert 'class="ol-funnel"' not in html and 'class="ol-stretch"' not in html
+    assert "Dropped at step 1" not in html and "1× friction" not in html
 
 
 def test_project_outline_renders_live_url_use_as_a_session_row(store):

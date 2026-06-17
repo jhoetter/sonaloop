@@ -416,25 +416,25 @@ def _file_action(asset: dict) -> str:
 
 def file_card(asset: dict, store=None, *, row: bool = False, href: str | None = None,
               drawer: bool = False, desc: str = "", source: bool = False,
-              attrs: dict | None = None) -> str:
+              show_direction: bool = True, attrs: dict | None = None) -> str:
     """An asset as a FILE card (`.sl-file`) or compact row (`.sl-file--row`): identity stage ·
     filename+ext title · `size · date[ · desc]` meta · direction pill · one action. The card
     BODY opens the canonical /assets/{id} detail (`drawer=True` arms the slide-over via the
     stretched overlay link); `source=True` adds the quiet provenance source line (grid cards);
-    `desc` joins the meta line (the Library's owning-project title); `attrs` extends the
-    container (the outline's data-rkind contract attribute)."""
+    `desc` joins the meta line (the Library's owning-project title); `show_direction=False`
+    lets the project outline keep rows tag-free; `attrs` extends the container."""
     from .ui import _fmt_day
     open_href = href or f'/assets/{asset.get("id", "")}'
     name = asset.get("filename") or asset.get("title") or asset.get("id", "")
     meta = " · ".join(x for x in (asset_size(asset), _fmt_day(asset.get("created_at") or ""),
                                   desc) if x)
     src = asset_source_chip(asset, store) if source else ""
-    pill = raw(asset_direction_pill(asset))
+    pill = raw(asset_direction_pill(asset)) if show_direction else ""
     # GRID cards keep the filename on its own full-width line (file identity first — the
     # pill joins the meta line); the compact ROW variant trails the pill beside the action.
     info = h("div", {"class_": "sl-file__info"},
              h("span", {"class_": "sl-file__name", "title": name}, name),
-             h("span", {"class_": "sl-file__meta"}, meta, None if row else fragment(" ", pill)),
+             h("span", {"class_": "sl-file__meta"}, meta, None if row or not pill else fragment(" ", pill)),
              h("span", {"class_": "sl-file__meta"}, raw(str(src))) if src else None)
     stretch = h("a", {"class_": "sl-file__open", "href": open_href, "aria-label": name[:90],
                       "data-drawer": open_href if drawer else None,

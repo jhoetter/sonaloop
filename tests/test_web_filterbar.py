@@ -316,9 +316,9 @@ def test_outline_text_search_filters_rows_server_side(store):
     # case- AND diacritic-insensitive ("Prícing" folds to "pricing")
     html = client.get(f"/projects/{pid}?q=Pr%C3%ADcing&lang=en").text
     assert "survey" in _rkinds(html)
-    # chip text matches too: the decision's status pill ("Proposed") is row truth
+    # status is a facet, not hidden search text.
     html = client.get(f"/projects/{pid}?q=proposed&lang=en").text
-    assert "decision" in _rkinds(html)
+    assert "decision" not in _rkinds(html)
 
 
 def test_outline_search_composes_with_facets(store):
@@ -332,8 +332,7 @@ def test_outline_search_composes_with_facets(store):
 
 
 def test_outline_theme_facet_replaces_the_chip_row(store):
-    """V1: the separate Themes chip row retired — themes are a facet (?theme=<section id>),
-    and a row's membership renders as a small colored dot with the title on hover."""
+    """Themes are a facet (?theme=<section id>), not visible row tags."""
     ids = _seed(store)
     pid = ids["project_id"]
     g = services.get_project_graph(pid, store=store)
@@ -343,7 +342,7 @@ def test_outline_theme_facet_replaces_the_chip_row(store):
     client = _client()
     full = client.get(f"/projects/{pid}?lang=en").text
     assert "olthemes" not in full and "olth-chip" not in full   # the chip row is gone
-    assert "olth-dot" in full and 'title="Pricing pains"' in full
+    assert "olth-dot" not in full
     assert "Pricing pains" in full                              # the facet menu offers it
     html = client.get(f'/projects/{pid}?theme={sec["id"]}&lang=en').text
     assert _rkinds(html) == {"council"}                         # membership filters rows

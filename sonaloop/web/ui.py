@@ -171,8 +171,8 @@ def primitive_row(kind: str, record: dict, store: Any = None, *, href: str | Non
     """THE per-kind row vocabulary (ux-contract §3.2 — one table, used everywhere): maps a
     primitive's record onto the entity_row anatomy (leading visual · title · status badges ·
     right meta). Library lists and search render through this; the dense
-    project outline renders the SAME vocabulary through its olrow variant (_graph_outline's
-    kind icons + the _outline_chips registry — both read this table).
+    project outline uses its own tag-free olrow variant: kind icon, title, avatar participation
+    and timestamp, with status/form/count details deferred to filters and detail pages.
 
     The V2 craft pass (ux-contract §9 V2) capped every row at ≤2 trailing chips + the date —
     counts that duplicate the avatars/visual or repeat the kind label moved to the detail page.

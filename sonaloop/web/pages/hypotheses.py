@@ -133,8 +133,8 @@ def register_hypotheses(app) -> None:
                            _empty_state(t("hypotheses_h"), t("runtime_maybe_cleared"), icon="target"),
                            store, active="library")
         proj = (store.get_research_project(hx.get("project_id")) if hx.get("project_id") else None)
-        vals, note, src, derived = _hypothesis_reads(hx, store)
-        body = h("div", {"class_": "sec", "id": "sec-bet"}, vals, note, src, derived)
+        vals, note, src, _derived = _hypothesis_reads(hx, store)
+        body = h("div", {"class_": "sec", "id": "sec-bet"}, vals, note, src)
         # Project-rooted crumb (§8.2 — the council pattern); kind root only for orphans.
         crumbs = ([(t("projects"), "/projects"), (proj["title"], f'/projects/{proj["id"]}')]
                   if proj else [(t("hypotheses_h"), "/hypotheses")])

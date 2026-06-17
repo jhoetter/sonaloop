@@ -99,12 +99,11 @@ def register_decisions(app) -> None:
                            store, active="library")
         proj = (store.get_research_project(d.get("project_id")) if d.get("project_id") else None)
         by_id = {x["id"]: x for x in store.list_decisions(d.get("project_id"))}
-        body_clamp, based, rejected, links = _decision_reads(
+        body_clamp, _based, rejected, links = _decision_reads(
             d, store, by_id, clamp_at=ui.SECTION_CLAMP, dec_href=lambda oid: f"/decisions/{oid}")
         anchor = (f'/projects/{d["project_id"]}#dec-{d["id"]}' if d.get("project_id") else "")
         body = fragment(
-            h("div", {"class_": "sec", "id": "sec-decision"}, body_clamp,
-              based if d.get("based_on") else None, rejected, links))
+            h("div", {"class_": "sec", "id": "sec-decision"}, body_clamp, rejected, links))
         # Project-rooted crumb (§8.2 — the council pattern); kind root only for orphans.
         crumbs = ([(t("projects"), "/projects"), (proj["title"], f'/projects/{proj["id"]}')]
                   if proj else [(t("decisions_h"), "/decisions")])

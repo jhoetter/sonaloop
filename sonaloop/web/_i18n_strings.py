@@ -187,12 +187,12 @@ STRINGS: dict[str, dict[str, str]] = {
         "fidelity_artifact": "Walkthrough", "fidelity_prototype": "Klick-Prototyp", "fidelity_live": "Live",
         "outcome_dropped": "Abgesprungen bei Schritt {n}",
         "friction_n": "{n}× Reibung",
-        # sessions in the project outline (child rows under their subject + the funnel chip)
+        # sessions in the project outline (child rows under their subject) + session detail/funnel labels
         "session_kind_live": "Live-Session", "session_kind_prototype": "Prototyp-Session",
         "session_kind_artifact": "Walkthrough-Session", "live_surface": "Live-Oberfläche", "replays_h": "Replays", "proto_sessions_h": "Prototyp-Sessions",
         "sessions_n": "{n} Sessions", "sessions_n_one": "{n} Session", "no_dropoffs": "keine Abbrüche",
         "drop_at_step": "{n}× Drop @ Schritt {s}", "dropoffs_n": "{n} Abbrüche",
-        # outline chip contract (_outline_chips — every row kind declares its chips)
+        # compact count/status labels shared by library rows, detail pages and exports
         "chip_statements_n": "{n} Statements", "chip_statements_n_one": "{n} Statement",
         "chip_evidence_n": "{n} Belege", "chip_evidence_n_one": "{n} Beleg",
         "chip_sources_n": "{n} Quellen", "chip_sources_n_one": "{n} Quelle",
@@ -626,12 +626,12 @@ STRINGS: dict[str, dict[str, str]] = {
         "fidelity_artifact": "Walkthrough", "fidelity_prototype": "Prototype", "fidelity_live": "Live",
         "outcome_dropped": "Dropped at step {n}",
         "friction_n": "{n}× friction",
-        # sessions in the project outline (child rows under their subject + the funnel chip)
+        # sessions in the project outline (child rows under their subject) + session detail/funnel labels
         "session_kind_live": "Live session", "session_kind_prototype": "Prototype session",
         "session_kind_artifact": "Walkthrough session", "live_surface": "Live surface", "replays_h": "Replays", "proto_sessions_h": "Prototype sessions",
         "sessions_n": "{n} sessions", "sessions_n_one": "{n} session", "no_dropoffs": "no drop-offs",
         "drop_at_step": "{n}× drop @ step {s}", "dropoffs_n": "{n} drop-offs",
-        # outline chip contract (_outline_chips — every row kind declares its chips)
+        # compact count/status labels shared by library rows, detail pages and exports
         "chip_statements_n": "{n} statements", "chip_statements_n_one": "{n} statement",
         "chip_evidence_n": "{n} evidence refs", "chip_evidence_n_one": "{n} evidence ref",
         "chip_sources_n": "{n} sources", "chip_sources_n_one": "{n} source",
