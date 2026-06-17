@@ -7,6 +7,7 @@
     "icon": "diamond",
     "image": "double-diamond.jpg",
     "figure": "loop",
+    "complexity": "medium",
     "summary": "Frame the problem, then build the solution.",
     "jobs": "Ambiguous HMW questions, positioning work, and buildable solution specs."
   },

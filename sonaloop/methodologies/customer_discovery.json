@@ -1,0 +1,58 @@
+{
+  "key": "customer_discovery",
+  "name": "Customer Discovery",
+  "description": "Steve Blank's customer discovery run with The Mom Test interviewing discipline: Problem interviews (fan) -> Problem validation (waist) -> Solution interviews (fan) -> Pursue / pivot / drop (waist). Talk about the customer's real life and past behavior, never pitch the idea, and separate facts and commitments from compliments.",
+  "when_to_use": "Early validation when you are not yet sure the problem is real or worth solving: interview honestly, find the problems that actually matter, then test whether a minimal solution earns genuine interest.",
+  "presentation": {
+    "icon": "mic",
+    "image": "customer-discovery.jpg",
+    "complexity": "medium",
+    "summary": "Honest problem interviews, validate what's real, then test if a solution earns real interest.",
+    "jobs": "Pre-build validation: is the problem real, frequent and worth solving, and would anyone switch?"
+  },
+  "steps": [
+    {
+      "id": "problem_interviews", "name": "Problem Interviews", "tags": ["explore", "problem-landscape"],
+      "intent": "Run problem-focused interviews across segment-diverse personas. Ask about real, specific past behavior and the life around the problem — never pitch your idea (The Mom Test). Anti-steering is strongest here.",
+      "strategy": "pain-discovery", "diverge_by": "persona_subset",
+      "produces": {"role": "problem-landscape"},
+      "presentation": {
+        "forms": ["council/open_discussion", "council/objection_review"],
+        "library": ["Councils", "Notes", "Open questions"]
+      }
+    },
+    {
+      "id": "problem_validation", "name": "Problem Validation", "tags": ["decide", "point-of-view"],
+      "intent": "Separate facts and commitments from compliments. Name the problems that are real, frequent and painful enough to be worth solving, and for whom.",
+      "strategy": "tension", "consumes": ["problem_interviews"],
+      "requires": {"min_inputs": 2, "gate_tag": "divergence_complete"},
+      "produces": {"role": "point-of-view"},
+      "presentation": {
+        "forms": ["council/open_discussion", "council/option_comparison"],
+        "library": ["Councils", "Hypotheses", "Reports"]
+      }
+    },
+    {
+      "id": "solution_interviews", "name": "Solution Interviews", "tags": ["explore", "build", "solution-options"],
+      "intent": "Present minimal solution concepts and gauge GENUINE interest and commitment (time, money, reputation) rather than politeness. Make one concept tangible as a concept prototype.",
+      "strategy": "positive-deepdive", "consumes": ["problem_validation"], "diverge_by": "solution_candidate",
+      "produces": {"role": "solution-options", "artifact_type": "prototype"},
+      "presentation": {
+        "forms": ["council/proposal_reaction", "council/option_comparison"],
+        "library": ["Councils", "Prototypes", "Hypotheses"]
+      }
+    },
+    {
+      "id": "decide", "name": "Pursue / Pivot / Drop", "tags": ["decide", "test", "spec"],
+      "intent": "Personas use the concept; weigh the evidence and converge to a clear decision — pursue, pivot, or drop — plus the next concrete commitment to seek.",
+      "strategy": "goal", "consumes": ["solution_interviews"],
+      "requires": {"min_inputs": 2, "gate_tag": "divergence_complete", "session_of_tags": ["prototype"]},
+      "produces": {"role": "spec"},
+      "loop_back": "problem_interviews",
+      "presentation": {
+        "forms": ["session/prototype_use", "council/objection_review"],
+        "library": ["Sessions", "Councils", "Decisions"]
+      }
+    }
+  ]
+}

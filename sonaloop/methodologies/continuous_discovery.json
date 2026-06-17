@@ -1,0 +1,58 @@
+{
+  "key": "continuous_discovery",
+  "name": "Continuous Discovery",
+  "description": "Teresa Torres' continuous discovery: weekly customer touchpoints feed an Opportunity Solution Tree (outcome -> opportunities -> solutions -> assumption tests). A repeating Interview (fan) -> Map opportunities (waist) -> Ideate (fan) -> Test assumptions (waist) loop that keeps a product team anchored to a desired outcome.",
+  "when_to_use": "When discovery should be an ongoing habit, not a one-off project: you have a product outcome to move and want a steady cadence of small interviews and assumption tests rather than a single big study.",
+  "presentation": {
+    "icon": "continuousDiscovery",
+    "image": "continuous-discovery.jpg",
+    "complexity": "medium",
+    "summary": "A weekly habit: interview, map opportunities, ideate, test the riskiest assumptions.",
+    "jobs": "Ongoing product discovery against a clear outcome, where small steady learning beats a one-off study."
+  },
+  "steps": [
+    {
+      "id": "interview", "name": "Interview", "tags": ["explore", "problem-landscape"],
+      "intent": "Run small, regular customer touchpoints across segment-diverse personas. Ask about real recent behavior and the struggling moments — never pitch a solution. Surface OPPORTUNITIES: unmet needs, pains and desires as they were actually lived.",
+      "strategy": "pain-discovery", "diverge_by": "persona_subset",
+      "produces": {"role": "problem-landscape"},
+      "presentation": {
+        "forms": ["council/open_discussion", "council/objection_review"],
+        "library": ["Councils", "Notes", "Open questions"]
+      }
+    },
+    {
+      "id": "map_opportunities", "name": "Map Opportunities", "tags": ["decide", "cluster", "opportunity-map"],
+      "intent": "Cluster what you heard into an Opportunity Solution Tree under ONE target outcome; size and pick the target opportunity to address next. Author payload.clusters [{label, member_node_ids, insight}] + payload.target_opportunity.",
+      "strategy": "tension", "consumes": ["interview"],
+      "requires": {"min_inputs": 2, "gate_tag": "divergence_complete"},
+      "produces": {"role": "opportunity-map"},
+      "presentation": {
+        "forms": ["council/open_discussion", "council/option_comparison"],
+        "library": ["Councils", "Reports", "Open questions"]
+      }
+    },
+    {
+      "id": "ideate", "name": "Ideate", "tags": ["explore", "solution-options"],
+      "intent": "Generate several distinct solution candidates that could address the TARGET OPPORTUNITY (not every opportunity at once). Go broad before judging.",
+      "strategy": "positive-deepdive", "consumes": ["map_opportunities"], "diverge_by": "solution_candidate",
+      "produces": {"role": "solution-options"},
+      "presentation": {
+        "forms": ["council/idea_review", "council/option_comparison"],
+        "library": ["Councils", "Notes", "Hypotheses"]
+      }
+    },
+    {
+      "id": "test_assumptions", "name": "Test Assumptions", "tags": ["decide", "test", "validated-learning"],
+      "intent": "Name the riskiest assumptions behind the candidates and run small, fast tests on them; converge on what is worth pursuing and what feeds next week's interviews. Author payload.assumptions [{statement, result, evidence}] + payload.next_focus.",
+      "strategy": "tension", "consumes": ["ideate"],
+      "requires": {"min_inputs": 2, "gate_tag": "divergence_complete"},
+      "produces": {"role": "validated-learning"},
+      "loop_back": "interview",
+      "presentation": {
+        "forms": ["council/objection_review", "council/option_comparison"],
+        "library": ["Councils", "Hypotheses", "Decisions"]
+      }
+    }
+  ]
+}

@@ -93,7 +93,17 @@ def _spec_for(slug: str, store: Store) -> dict | None:
 def _meta(spec: dict) -> dict:
     own = spec.get("presentation") or {}
     return {"icon": "target", "summary": spec.get("description", ""), "jobs": spec.get("when_to_use", ""),
-            "image": "", "figure": ""} | own
+            "image": "", "figure": "", "complexity": ""} | own
+
+
+# How heavy a methodology is — the spectrum from a quick reaction read to a deep study. Drives
+# the card badge, an aside property and a filter facet, and orders the index light -> deep.
+_COMPLEXITY_ORDER = {"light": 0, "medium": 1, "deep": 2}
+_COMPLEXITY_COLOR = {"light": "var(--green)", "medium": "var(--amber)", "deep": "var(--violet)"}
+
+
+def _complexity_label(c: str) -> str:
+    return t(f"complexity_{c}") if c in _COMPLEXITY_ORDER else ""
 
 
 def _image(spec: dict) -> str:
@@ -225,6 +235,15 @@ def _meth_card(spec: dict, jobs: list[dict], used: int) -> str:
     name -> description -> three badges (formats · job types · real usage)."""
     meta = _meta(spec)
     cover = _cover_inner(spec)
+    cx = meta["complexity"]
+    badges = []
+    if cx in _COMPLEXITY_ORDER:
+        badges.append(raw(_label(_complexity_label(cx), _COMPLEXITY_COLOR[cx])))
+    # The same four badges on EVERY card (consistency over hiding zeros): complexity · formats ·
+    # job types · real usage.
+    badges += [raw(_label(t("n_formats", n=len(spec.get("steps") or [])), "var(--accent)")),
+               raw(_label(_job_types_label(len(jobs)), "var(--blue)")),
+               raw(_label(_used_in_label(used), "var(--muted)"))]
     return h("a", {"class_": "sl-card sl-meth-card", "href": f"/methodologies/{_slug(spec.get('key', ''))}"},
              h("span", {"class_": "sl-meth-card-cover"}, cover) if cover else None,
              h("span", {"class_": "sl-meth-card-ico" + (" sl-meth-card-ico--float" if cover else "")},
@@ -232,43 +251,53 @@ def _meth_card(spec: dict, jobs: list[dict], used: int) -> str:
              h("span", {"class_": "sl-meth-card-body"},
                h("h2", {}, spec.get("name", "")),
                h("p", {}, meta["summary"]),
-               h("span", {"class_": "sl-meth-card-meta"},
-                 raw(_label(t("n_formats", n=len(spec.get("steps") or [])), "var(--accent)")),
-                 raw(_label(_job_types_label(len(jobs)), "var(--blue)")),
-                 raw(_label(_used_in_label(used), "var(--violet)")))))
+               h("span", {"class_": "sl-meth-card-meta"}, fragment(*badges))))
 
 
-def _methodologies_page(q: str = "", job_type: str = "") -> str:
+def _methodologies_page(q: str = "", job_type: str = "", complexity: str = "") -> str:
     from urllib.parse import quote
     from collections import Counter
     from .._filterbar import filter_bar, parse_multi, empty_filter_state
     store = Store()
-    specs = sorted(_methodology.registry(store).values(), key=lambda s: s.get("name", ""))
+    # Order light -> deep, then by name — so the index reads as a spectrum from a quick
+    # reaction read down to a deep study.
+    specs = sorted(_methodology.registry(store).values(),
+                   key=lambda s: (_COMPLEXITY_ORDER.get(_meta(s)["complexity"], 1), s.get("name", "")))
     usage = _usage_counts(store)
     spec_jobs = {s.get("key", ""): _jobs_for(s.get("key", "")) for s in specs}
 
-    # The "Job type" facet — only the job types that actually occur, counted over the FULL set
-    # (unfiltered), so the menu shows honest live counts (the FilterBar model contract).
-    selected = {"job_type": parse_multi(job_type)}
+    # Facets — only values that actually occur, counted over the FULL set (unfiltered), so the
+    # menu shows honest live counts (the FilterBar model contract).
+    selected = {"complexity": parse_multi(complexity), "job_type": parse_multi(job_type)}
+    cx_count: Counter = Counter()
     jt_count: Counter = Counter()
     jt_label: dict[str, str] = {}
     for s in specs:
+        cx = _meta(s)["complexity"]
+        if cx in _COMPLEXITY_ORDER:
+            cx_count[cx] += 1
         for j in spec_jobs[s.get("key", "")]:
             jid = j.get("id") or j.get("name", "")
             jt_count[jid] += 1
             jt_label[jid] = j.get("name", jid)
-    options = [{"value": jid, "label": jt_label[jid], "count": jt_count[jid]}
-               for jid in sorted(jt_count, key=lambda x: jt_label[x].lower())]
-    facets = [{"key": "job_type", "label": t("job_type_h"), "icon": "jtbd", "options": options}]
+    cx_options = [{"value": c, "label": _complexity_label(c), "count": cx_count[c], "dot": _COMPLEXITY_COLOR[c]}
+                  for c in ("light", "medium", "deep") if cx_count[c]]
+    jt_options = [{"value": jid, "label": jt_label[jid], "count": jt_count[jid]}
+                  for jid in sorted(jt_count, key=lambda x: jt_label[x].lower())]
+    facets = [{"key": "complexity", "label": t("complexity_h"), "icon": "activity", "options": cx_options},
+              {"key": "job_type", "label": t("job_type_h"), "icon": "jtbd", "options": jt_options}]
 
-    # Apply search + facet server-side.
+    # Apply search + facets server-side.
     qn = q.strip().lower()
-    want = set(selected["job_type"])
+    want_cx = set(selected["complexity"])
+    want_jt = set(selected["job_type"])
     visible = []
     for s in specs:
         if qn and qn not in f"{s.get('name', '')} {_meta(s)['summary']}".lower():
             continue
-        if want and not (want & {j.get("id") or j.get("name", "") for j in spec_jobs[s.get("key", "")]}):
+        if want_cx and _meta(s)["complexity"] not in want_cx:
+            continue
+        if want_jt and not (want_jt & {j.get("id") or j.get("name", "") for j in spec_jobs[s.get("key", "")]}):
             continue
         visible.append(s)
 
@@ -313,6 +342,8 @@ def _methodology_detail(slug: str) -> str:
     # full-rail-width "Matching jobs" block that WRITES OUT each job's question (a tooltip hid
     # them before), then — when any exist — the projects that run this methodology. No "Engine".
     prop_rows = [("target", t("good_for_h"), meta["jobs"])]
+    if meta["complexity"] in _COMPLEXITY_ORDER:
+        prop_rows.append(("activity", t("complexity_h"), _complexity_label(meta["complexity"])))
     job_blocks = [h("div", {"class_": "sl-meth-jobprop"},
                     h("b", {}, j.get("name", "")),
                     h("span", {}, j.get("user_question", "")))
@@ -337,8 +368,8 @@ def _methodology_detail(slug: str) -> str:
 
 def register_methodologies(app) -> None:
     @app.get("/methodologies", response_class=HTMLResponse)
-    def methodologies(q: str = "", job_type: str = "") -> str:
-        return _methodologies_page(q=q, job_type=job_type)
+    def methodologies(q: str = "", job_type: str = "", complexity: str = "") -> str:
+        return _methodologies_page(q=q, job_type=job_type, complexity=complexity)
 
     @app.get("/methodologies/{slug}", response_class=HTMLResponse)
     def methodology_detail(slug: str) -> str:

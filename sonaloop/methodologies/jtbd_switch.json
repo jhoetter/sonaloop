@@ -1,0 +1,58 @@
+{
+  "key": "jtbd_switch",
+  "name": "JTBD Switch Interviews",
+  "description": "Bob Moesta & Chris Spiek's Switch interview with Klement's four forces: Switch interviews (fan) -> Map the forces (waist) -> Shape the hire (fan) -> Validate the switch (waist). Reconstruct the timeline of a real recent switch and the push, pull, anxiety and habit around it to name the job a customer hires for.",
+  "when_to_use": "When you want the causal story behind a purchase or switch: why people fired the old way and hired a new one, so you can design something that wins the switch.",
+  "presentation": {
+    "icon": "exchange",
+    "image": "jtbd-switch.jpg",
+    "complexity": "medium",
+    "summary": "Reconstruct a real switch and its four forces to name the job and design the winning hire.",
+    "jobs": "Demand and switching questions: what job customers hire for, and what makes them change."
+  },
+  "steps": [
+    {
+      "id": "switch_interviews", "name": "Switch Interviews", "tags": ["explore", "problem-landscape"],
+      "intent": "Interview personas about a REAL recent switch — the moment they hired this kind of solution and fired the old one. Reconstruct the timeline of the struggling moment, first thought, passive and active looking, and the decision.",
+      "strategy": "pain-discovery", "diverge_by": "persona_subset",
+      "produces": {"role": "problem-landscape"},
+      "presentation": {
+        "forms": ["council/open_discussion", "council/objection_review"],
+        "library": ["Councils", "Notes", "Open questions"]
+      }
+    },
+    {
+      "id": "map_forces", "name": "Map the Forces", "tags": ["decide", "cluster", "point-of-view"],
+      "intent": "Map the four forces across the stories — the PUSH of the situation and PULL of the new way (which drive change) versus the ANXIETY of the new and HABIT of the present (which block it) — and name the core Job to be Done. Author payload.forces {push, pull, anxiety, habit} + payload.job_statement.",
+      "strategy": "tension", "consumes": ["switch_interviews"],
+      "requires": {"min_inputs": 2, "gate_tag": "divergence_complete"},
+      "produces": {"role": "point-of-view"},
+      "presentation": {
+        "forms": ["council/open_discussion", "council/option_comparison"],
+        "library": ["Councils", "Reports", "Hypotheses"]
+      }
+    },
+    {
+      "id": "shape_hire", "name": "Shape the Hire", "tags": ["explore", "build", "solution-options"],
+      "intent": "Design solution levers that amplify push and pull while reducing anxiety and habit. Explore several distinct approaches and make the strongest one tangible as a prototype.",
+      "strategy": "positive-deepdive", "consumes": ["map_forces"], "diverge_by": "solution_candidate",
+      "produces": {"role": "solution-options", "artifact_type": "prototype"},
+      "presentation": {
+        "forms": ["council/idea_review", "council/option_comparison"],
+        "library": ["Councils", "Prototypes", "Notes"]
+      }
+    },
+    {
+      "id": "validate_switch", "name": "Validate the Switch", "tags": ["decide", "test", "spec"],
+      "intent": "Personas use the solution; test whether it actually wins the switch — enough push and pull to overcome anxiety and habit, would they fire the old way? Converge to a buildable spec.",
+      "strategy": "tension", "consumes": ["shape_hire"],
+      "requires": {"min_inputs": 2, "gate_tag": "divergence_complete", "session_of_tags": ["prototype"]},
+      "produces": {"role": "spec"},
+      "loop_back": "shape_hire",
+      "presentation": {
+        "forms": ["session/prototype_use", "council/objection_review"],
+        "library": ["Sessions", "Councils", "Decisions"]
+      }
+    }
+  ]
+}

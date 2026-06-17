@@ -1,0 +1,68 @@
+{
+  "key": "design_sprint",
+  "name": "Design Sprint",
+  "description": "Jake Knapp / GV five-act sprint compressed into one run: Map the problem (fan) -> Sketch competing solutions (fan) -> Decide on one concept and storyboard it (waist) -> Prototype a realistic facade (build) -> Test with users (waist). A timeboxed way to go from a hard question to a tested concept fast.",
+  "when_to_use": "When you have a high-stakes question and want a tested answer quickly: align on the problem, generate competing concepts, pick one, prototype just enough to test, and get real reactions — all in one tight cycle.",
+  "presentation": {
+    "icon": "zap",
+    "image": "design-sprint.jpg",
+    "complexity": "medium",
+    "summary": "Map, sketch, decide, prototype, test — a timeboxed run from question to tested concept.",
+    "jobs": "High-stakes decisions you want de-risked fast, before committing to a full build."
+  },
+  "steps": [
+    {
+      "id": "map", "name": "Map", "tags": ["explore", "problem-landscape"],
+      "intent": "Align on the long-term goal and the sprint question; map the target customer and the key moments. Surface what is known and the riskiest unknowns across distinct angles.",
+      "strategy": "pain-discovery", "diverge_by": "angle",
+      "produces": {"role": "problem-landscape"},
+      "presentation": {
+        "forms": ["council/open_discussion", "council/objection_review"],
+        "library": ["Councils", "Notes", "Open questions"]
+      }
+    },
+    {
+      "id": "sketch", "name": "Sketch", "tags": ["explore", "solution-options"],
+      "intent": "Generate competing solution sketches — each angle a distinct, self-contained concept. Push for variety; no critique yet.",
+      "strategy": "positive-deepdive", "consumes": ["map"], "diverge_by": "solution_candidate",
+      "produces": {"role": "solution-options"},
+      "presentation": {
+        "forms": ["council/idea_review"],
+        "library": ["Councils", "Notes"]
+      }
+    },
+    {
+      "id": "decide", "name": "Decide", "tags": ["decide", "point-of-view"],
+      "intent": "Critique the sketches against the sprint question, pick the single winning concept, and storyboard the flow you will test.",
+      "strategy": "goal", "consumes": ["sketch"],
+      "requires": {"min_inputs": 2, "gate_tag": "divergence_complete"},
+      "produces": {"role": "point-of-view"},
+      "presentation": {
+        "forms": ["council/option_comparison", "council/vote"],
+        "library": ["Councils", "Decisions", "Reports"]
+      }
+    },
+    {
+      "id": "prototype", "name": "Prototype", "tags": ["explore", "build", "solution-options"],
+      "intent": "Build ONE realistic facade prototype of the storyboard — just enough surface to get an honest reaction, no real backend.",
+      "strategy": "positive-deepdive", "consumes": ["decide"],
+      "produces": {"role": "solution-options", "artifact_type": "prototype"},
+      "presentation": {
+        "forms": ["council/open_discussion"],
+        "library": ["Prototypes", "Notes"]
+      }
+    },
+    {
+      "id": "test", "name": "Test", "tags": ["decide", "test", "spec"],
+      "intent": "Run user sessions with the prototype, capture reactions and frictions, and converge to a clear go / iterate / drop decision plus the buildable spec.",
+      "strategy": "tension", "consumes": ["prototype"],
+      "requires": {"min_inputs": 2, "gate_tag": "divergence_complete", "session_of_tags": ["prototype"]},
+      "produces": {"role": "spec"},
+      "loop_back": "sketch",
+      "presentation": {
+        "forms": ["session/prototype_use", "council/objection_review"],
+        "library": ["Sessions", "Reports", "Decisions"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "key": "reaction_test",
+  "name": "Reaction Test",
+  "description": "A lightweight content / comprehension reaction test (Nielsen Norman content testing, the 5-second test): React (fan) -> Synthesize (waist). Show a concrete artifact to a segment-diverse persona group and read how they react — fast, honest, two steps.",
+  "when_to_use": "When you have something concrete and want a quick read of how your audience reacts — a blog post, headline, landing copy, a single screen or message: what lands, what confuses, and how the wording feels.",
+  "presentation": {
+    "icon": "sentiment",
+    "image": "reaction-test.jpg",
+    "complexity": "light",
+    "summary": "Show a concrete artifact to your audience and get a fast, honest read on how it lands.",
+    "jobs": "Quick gut-checks on wording, copy, messaging or a single screen before you ship it."
+  },
+  "steps": [
+    {
+      "id": "react", "name": "React", "tags": ["explore", "reactions"],
+      "intent": "Show the concrete artifact (copy, headline, a screen, a message) to a segment-diverse persona group. Capture honest first impressions, what is understood versus confusing, what resonates or jars, and the emotional reaction. Keep it fast — no leading.",
+      "strategy": "tension", "diverge_by": "persona_subset",
+      "produces": {"role": "reactions"},
+      "presentation": {
+        "forms": ["council/proposal_reaction", "council/open_discussion", "survey/scale"],
+        "library": ["Councils", "Surveys", "Notes"]
+      }
+    },
+    {
+      "id": "synthesize", "name": "Synthesize", "tags": ["decide", "synthesize", "recommendations"],
+      "intent": "Converge: what landed, what confused, the wording and structure that helped or hurt, and concrete revision recommendations — ready to apply.",
+      "strategy": "goal", "consumes": ["react"],
+      "requires": {"min_inputs": 2, "gate_tag": "divergence_complete"},
+      "produces": {"role": "recommendations"},
+      "presentation": {
+        "forms": ["synthesis/synthesis"],
+        "library": ["Syntheses", "Reports", "Decisions"]
+      }
+    }
+  ]
+}

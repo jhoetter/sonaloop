@@ -7,6 +7,7 @@
     "icon": "jtbd",
     "image": "lean-jtbd.jpg",
     "figure": "signal",
+    "complexity": "medium",
     "summary": "Anchor on the job-to-be-done, pick the strongest problem, validate a minimal answer.",
     "jobs": "Demand, pricing, churn, and MVP questions where the customer job is the anchor."
   },
