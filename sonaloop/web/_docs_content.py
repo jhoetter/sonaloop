@@ -326,8 +326,8 @@ RIGOUR_STEPS = [
 INSPECTOR_SECTIONS = [
     ("orientation", "book",
      ("Orientierung: vier Punkte, ein Modell", "Getting around: four items, one model"),
-     ("Die Seitenleiste hat genau **vier** Einträge: **Projekte · Personas · Library · Activity** "
-      "(Einstellungen & Doku sitzen im Footer). Das Denkmodell ist überall dasselbe: *Projekt → "
+     ("Die obere Seitenleiste hat genau **vier** Einträge: **Projekte · Methodologien · Library · Personas** "
+      "(Activity, Einstellungen & Doku sitzen im Footer). Das Denkmodell ist überall dasselbe: *Projekt → "
       "Phasen → Zeilen; Klick = Seitenpanel.* Das **Projekt ist das Zuhause** — alles, was eine Studie "
       "erzeugt oder benutzt (offene Fragen, Referenzen, Councils, Reports, Prototypen, "
       "Sessions, Umfragen, Hypothesen, Entscheidungen, Notizen, Assets), ist eine Zeile in "
@@ -358,8 +358,8 @@ INSPECTOR_SECTIONS = [
       "Projekt-Kopf (verlinkt aufs Run-Journal). Hover-Bezüge in der Projektliste folgen dem "
       "Plan-DAG: Ein erzeugter Prototyp oder ein Modell zeigt seine Inputs aus der vorherigen "
       "Evidenz, auch wenn ein Methodik-Frame dazwischenliegt.",
-      "The sidebar has exactly **four** items: **Projects · Personas · Library · Activity** "
-      "(settings & docs live in the footer). One mental model runs the whole app: *project → "
+      "The upper sidebar has exactly **four** items: **Projects · Methodologies · Library · Personas** "
+      "(Activity, settings & docs live in the footer). One mental model runs the whole app: *project → "
       "phases → rows; click = slide-over.* The **project is the home** — everything a study produces "
       "or uses (open questions, references, councils, reports, prototypes, sessions, surveys, "
       "hypotheses, decisions, notes, assets) is a row in its phase. The **Library** is the "

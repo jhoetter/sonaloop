@@ -13,11 +13,10 @@ def test_assets_present_and_app_builds():
     assert "/projects" in paths
 
 
-def test_sidebar_is_exactly_five_workspace_items():
-    """The 5-item sidebar (ux-contract §3.5, seeded in _nav_seed.py via the same public
-    registry an extension uses): Projects · Methodologies · Personas · Library · Activity. Runs and the
-    8 library kinds left the nav — they live on the project-header chip and /library;
-    Documentation is a visible sidebar FOOTER row (W7)."""
+def test_sidebar_is_exactly_four_workspace_items():
+    """The workspace sidebar (seeded in _nav_seed.py via the same public registry an
+    extension uses): Projects · Methodologies · Library · Personas. Activity and
+    Documentation are visible sidebar FOOTER rows (W7)."""
     import re
     from starlette.testclient import TestClient
     from sonaloop.web._i18n import STRINGS
@@ -25,16 +24,18 @@ def test_sidebar_is_exactly_five_workspace_items():
     sidebar = html.split('class="sl-sidebar"')[1].split("</aside>")[0]
     nav = "".join(re.findall(r'<nav class="sl-nav">.*?</nav>', sidebar, re.S))
     assert re.findall(r'href="([^"]+)"', nav) == [
-        "/projects", "/methodologies", "/personas", "/library", "/activity",
+        "/projects", "/methodologies", "/library", "/personas",
     ]
     assert STRINGS["en"]["library_h"] in nav
-    # the retired items answer elsewhere: Documentation as a VISIBLE footer row (W7),
-    # Runs only via the run chip/palette — neither in the nav groups
+    # the retired/utility items answer elsewhere: Activity + Documentation as VISIBLE
+    # footer rows (W7), Runs only via the run chip/palette — none in the nav groups
     for gone in ("/runs", "/documentation", "/councils", "/syntheses", "/surveys",
-                 "/hypotheses", "/decisions", "/sessions", "/notes", "/prototypes"):
+                 "/hypotheses", "/decisions", "/sessions", "/notes", "/prototypes",
+                 "/activity"):
         assert f'href="{gone}"' not in nav, f"{gone} should have left the nav"
     foot = sidebar.split('class="sl-nav sl-sb-foot"')[1].split("</nav>")[0]
     assert 'href="/documentation"' in foot and STRINGS["en"]["documentation"] in foot
+    assert 'href="/activity"' in foot and STRINGS["en"]["activity_h"] in foot
     # … and ONLY there (C10 one home): the settings popover dropped its duplicate link
     pop = sidebar.split('class="sl-um-pop"')[1].split("sl-um-trigger")[0]
     assert 'href="/documentation"' not in pop

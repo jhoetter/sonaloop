@@ -289,6 +289,13 @@ def docs_footer_entry(active: str) -> str:
              raw(_icon("overview", animate=True)), h("span", {}, t("documentation")))
 
 
+def activity_footer_entry(active: str) -> str:
+    """Activity is a utility surface: keep the live feed reachable, but below workspace nav."""
+    return h("a", {"href": "/activity",
+                   "class_": "pi-hover is-active" if active == "activity" else "pi-hover"},
+             raw(_icon("clock", animate=True)), h("span", {}, t("activity_h")))
+
+
 def _user_menu() -> str:
     """Modern user/settings menu pinned to the bottom of the sidebar — a popover with a
     sun/system/moon theme switch and a language switch (replaces the old topbar buttons).
@@ -431,7 +438,7 @@ def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
     <div class="sl-brand"><a class="sl-logo" href="/">{_lockup}</a></div>
     <div class="sl-sb-search"><button type="button" class="sl-cmdk-trigger" data-cmdk-open aria-label="{t("search")}">{_icon("search")}<span>{t("search")}</span><kbd class="sl-kbd">⌘K</kbd></button></div>
     <div class="sl-sb-scroll">{_nav(active, store)}{render_slot("sidebar_extra", store)}</div>
-    <nav class="sl-nav sl-sb-foot">{docs_footer_entry(active)}{render_slot("sidebar_footer", store)}{tour_footer_entry()}{keymap_hint()}</nav>
+    <nav class="sl-nav sl-sb-foot">{activity_footer_entry(active)}{docs_footer_entry(active)}{render_slot("sidebar_footer", store)}{tour_footer_entry()}{keymap_hint()}</nav>
     {_user_menu()}
   </aside>
   <div class="sl-resize" id="rz" role="separator" aria-orientation="vertical" aria-label="{t("sidebar")}"></div>

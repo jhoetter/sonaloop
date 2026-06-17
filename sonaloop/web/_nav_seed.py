@@ -5,13 +5,12 @@ items via register_nav_section/register_nav_item exactly as sonaloop-cloud or
 sonaloop-research would, so downstream sections sit beside these (ordered by `order`).
 Imported for its side effects by _components (the render side lives in _nav there).
 
-Four workspace items, period (spec/ux-contract.md §3.5): Projects and Personas are the
-inputs/containers, Methodologies explain the process a project runs through, the Library is ONE browser over every produced primitive (council/
-report/prototype/session/survey/hypothesis/decision/note — tabs on /library, the old
-list routes render it with their tab active), Activity is the live feed. Runs retired
-from the nav (the project-header run chip + /runs journal carry it); Documentation
-lives in the settings/footer cluster (web/_components._user_menu) — reference, not
-workspace. Labels are lambdas so they resolve per request (i18n)."""
+Four workspace items, period (spec/ux-contract.md §3.5): Projects and Library are the
+primary containers, Methodologies explain the process a project runs through, and Personas
+are the participants. Activity is the live feed and lives in the lower utility cluster.
+Runs retired from the nav (the project-header run chip + /runs journal carry it);
+Documentation lives in the settings/footer cluster (web/_components._user_menu) —
+reference, not workspace. Labels are lambdas so they resolve per request (i18n)."""
 from __future__ import annotations
 
 from ._i18n import t
@@ -23,11 +22,8 @@ _CORE_NAV = {
     "workspace": [
         ("/projects", "projects", "projects", lambda: t("projects")),
         ("/methodologies", "methodologies", "target", lambda: t("methodologies_h")),
-        ("/personas", "personas", "personas", lambda: t("personas")),
         ("/library", "library", "book", lambda: t("library_h")),
-        # The live feed of recorded events (ticket live-event-stream): a workspace
-        # surface (what's happening NOW), not a produced primitive — hence last.
-        ("/activity", "activity", "clock", lambda: t("activity_h")),
+        ("/personas", "personas", "personas", lambda: t("personas")),
     ],
 }
 
