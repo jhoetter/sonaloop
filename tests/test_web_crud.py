@@ -165,7 +165,7 @@ def test_persona_catalog_link_page_and_pull(monkeypatch):
     assert "Persona catalog" in cat_html
     assert "Amelie Duval" in cat_html
     assert "free" in cat_html
-    assert 'class="catalog-avatar"' in cat_html
+    assert 'class="sl-catalog-avatar"' in cat_html
     assert 'width="28" height="28"' in cat_html
     r = _post(client, "/personas/catalog/pull", slug="amelie-duval")
     assert r.status_code == 303 and r.headers["location"] == "/personas/persona_amelie"
