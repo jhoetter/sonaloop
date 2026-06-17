@@ -492,6 +492,30 @@ def test_pull_prefers_manifest_avatar_url_over_repo_path(monkeypatch, tmp_path):
     assert not any(u.endswith(f"personas/{slug}/avatar.png") for u in fetched)
 
 
+def test_pull_imports_catalog_avatar_into_runtime_path(monkeypatch, tmp_path):
+    """Catalog snapshots carry avatar.png beside profile.json; core must normalize
+    the profile's relative avatar path to a web-served data/avatars path."""
+    _no_data_pkg(monkeypatch)
+    files, personas = _mini_catalog(Store(), ["Anna Architect"])
+    slug = personas[0]["slug"]
+    profile = json.loads(files[f"personas/{slug}/profile.json"])
+    profile["avatar"] = {"path": "avatar.png", "model": "catalog-test"}
+    files[f"personas/{slug}/profile.json"] = json.dumps(profile).encode()
+    files[f"personas/{slug}/avatar.png"] = b"PNG-BYTES"
+    manifest = json.loads(files["manifest.json"])
+    manifest["personas"][0]["has_avatar"] = True
+    files["manifest.json"] = json.dumps(manifest).encode()
+    _serve(files, monkeypatch)
+    dest = Store(tmp_path / "dest.db")
+
+    cat.catalog_pull(persona_slugs=[slug], store=dest)
+
+    got = dest.get_persona(slug)
+    assert got["avatar"]["path"] == f"data/avatars/{slug}.png"
+    from sonaloop import config
+    assert (config.ROOT / got["avatar"]["path"]).read_bytes() == b"PNG-BYTES"
+
+
 # --------------------------------------------------------------------------- #
 # the free/premium split: tier surfacing + the catalog token                   #
 # --------------------------------------------------------------------------- #

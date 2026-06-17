@@ -22,10 +22,12 @@ is committed, human-reviewed demo content — the same status as documentation.
 """
 from __future__ import annotations
 
+import base64
 import json
 from importlib import resources
 from typing import Any
 
+from .. import config
 from ..config import utc_now_iso
 from ..models import ResearchProject
 from ..storage import Store
@@ -240,6 +242,25 @@ def _stamp_entity_created(store: Store, kind: str, entity_id: str, created_at: s
     updaters[kind](rec)
 
 
+def _attach_fixture_avatar(persona: dict[str, Any], raw: dict[str, Any], store: Store) -> dict[str, Any]:
+    data = raw.get("avatar_base64")
+    if not data:
+        return persona
+    rel = f"data/avatars/{persona['slug']}.png"
+    dest = config.ROOT / rel
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_bytes(base64.b64decode(data))
+    avatar = {
+        "path": rel,
+        "source": "example_fixture",
+        "catalog_slug": raw.get("avatar_catalog_slug"),
+    }
+    persona["avatar"] = {k: v for k, v in avatar.items() if v}
+    persona["updated_at"] = utc_now_iso()
+    store.upsert_persona(persona, reason="example fixture avatar")
+    return persona
+
+
 # ------------------------------------------------------------------ public API
 
 def list_examples(store: Store | None = None) -> list[dict[str, Any]]:
@@ -297,6 +318,7 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
             # The removal stamp — mirrors sonaloop-data's provenance.catalog.
             rec.setdefault("provenance", {})["example"] = slug
             store.upsert_persona(rec, reason="example fixture provenance")
+        rec = _attach_fixture_avatar(rec, p, store)
         pids[p["key"]] = rec["id"]
     project = store.get_research_project(pid)
     missing = [i for i in pids.values() if i not in (project.get("persona_ids") or [])]

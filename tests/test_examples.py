@@ -143,6 +143,13 @@ def test_onboarding_showcase_loads_every_tour_artifact(store):
     assert c["prototypes"] == 1 and c["sessions"] == 3 and c["references"] == 4
     assert c["hypotheses"] == 1 and c["decisions"] == 1
     assert c["assets"] == 3 and c["flows"] == 1 and c["notes"] == 2 and c["sections"] == 1
+    from sonaloop import config
+    project = store.get_research_project(out["project_id"])
+    for pid in project["persona_ids"]:
+        p = store.get_persona(pid)
+        avatar_path = (p.get("avatar") or {}).get("path")
+        assert avatar_path and avatar_path.startswith("data/avatars/")
+        assert (config.ROOT / avatar_path).read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
     assert services.list_surveys(out["project_id"], store=store)[0]["response_count"] == 3
     assert services.list_prototypes_artifacts(out["project_id"], store=store)
     assert services.list_usability_sessions(project_id=out["project_id"], store=store)

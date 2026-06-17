@@ -184,12 +184,25 @@ def import_snapshot(in_dir: str | None = None, store: Store | None = None, embed
         persona = _load(pdir / "profile.json", None)
         if not persona:
             continue
-        # avatar: copy the snapshot png back into the runtime avatar dir at its recorded path
+        # avatar: copy the snapshot png back into a web-served runtime path.
+        # Catalog snapshots commonly store profile.avatar.path as the snapshot-local
+        # "avatar.png"; normalize that to data/avatars/<slug>.png so imported
+        # catalog personas render a portrait instead of creating ./avatar.png.
         avatar = persona.get("avatar")
-        if avatar and avatar.get("path") and (pdir / "avatar.png").exists():
-            dest = config.ROOT / avatar["path"]
+        avatar_file = pdir / "avatar.png"
+        if avatar and avatar_file.exists():
+            avatar = dict(avatar)
+            raw_path = str(avatar.get("path") or "").strip()
+            if raw_path.startswith("data/"):
+                rel_path = raw_path
+            else:
+                slug = persona.get("slug") or pdir.name
+                rel_path = f"data/avatars/{slug}.png"
+                avatar["path"] = rel_path
+                persona["avatar"] = avatar
+            dest = config.ROOT / rel_path
             dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(pdir / "avatar.png", dest)
+            shutil.copyfile(avatar_file, dest)
             counts["avatars"] += 1
         store.upsert_persona(persona, reason="import_snapshot")
         pid = persona["id"]
