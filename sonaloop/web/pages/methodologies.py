@@ -179,7 +179,7 @@ def _projects_using(key: str, store: Store) -> list[dict]:
     from ... import plan as _plan
     fw_ids = {fw.get("id") for fw in job_taxonomy.frameworks() if fw.get("methodology_key") == key}
     out = []
-    for p in services.list_research_projects(store=store):
+    for p in store.list_research_projects():
         pk = (p.get("methodology") or "").strip()
         if not pk:
             try:
@@ -198,7 +198,7 @@ def _usage_counts(store: Store) -> dict[str, int]:
     from ... import plan as _plan
     fw_key = {fw.get("id"): fw.get("methodology_key") for fw in job_taxonomy.frameworks()}
     counts: dict[str, int] = {}
-    for p in services.list_research_projects(store=store):
+    for p in store.list_research_projects():
         pk = (p.get("methodology") or "").strip()
         if not pk:
             try:

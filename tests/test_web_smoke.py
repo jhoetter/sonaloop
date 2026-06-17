@@ -59,6 +59,20 @@ def test_methodology_covers_are_static_assets_not_inline_payloads():
     assert len(img.content) > 10_000
 
 
+def test_methodologies_page_does_not_build_project_graphs_for_usage_counts(monkeypatch):
+    from starlette.testclient import TestClient
+    from sonaloop.web.pages import methodologies as meth_page
+
+    def fail_full_project_list(*args, **kwargs):
+        raise AssertionError("methodology usage counts must use lean project metadata")
+
+    monkeypatch.setattr(meth_page.services, "list_research_projects", fail_full_project_list)
+    r = TestClient(web.create_app()).get("/methodologies?lang=en")
+
+    assert r.status_code == 200
+    assert "/methodologies/double-diamond" in r.text
+
+
 def test_user_menu_does_not_render_local_identity_placeholder():
     from sonaloop.web._components import _user_menu
     from sonaloop.web._ext import reset_identity, set_identity
