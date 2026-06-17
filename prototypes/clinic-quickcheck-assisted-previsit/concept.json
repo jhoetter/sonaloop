@@ -1,0 +1,76 @@
+{
+  "title": "QuickCheck assisted pre-visit prototype",
+  "summary": "A three-screen patient flow plus staff-ready state: text invite, short prep checklist, visible call fallback, and desk queue.",
+  "start": "sms",
+  "screens": [
+    {
+      "id": "sms",
+      "title": "Clinic text invite",
+      "elements": [
+        {
+          "id": "trust",
+          "kind": "text",
+          "label": "From Oak Street Clinic: optional pre-check-in for your Tuesday visit."
+        },
+        {
+          "id": "call",
+          "kind": "text",
+          "label": "Prefer help? Call the front desk at any time."
+        },
+        {
+          "id": "start",
+          "kind": "button",
+          "label": "Start pre-check-in",
+          "goto": "checklist",
+          "action": "checklist"
+        }
+      ]
+    },
+    {
+      "id": "checklist",
+      "title": "Three things before arrival",
+      "elements": [
+        {
+          "id": "forms",
+          "kind": "text",
+          "label": "Confirm forms"
+        },
+        {
+          "id": "insurance",
+          "kind": "text",
+          "label": "Update insurance photo"
+        },
+        {
+          "id": "bring",
+          "kind": "text",
+          "label": "Bring your medication list."
+        },
+        {
+          "id": "next",
+          "kind": "button",
+          "label": "Finish",
+          "goto": "ready",
+          "action": "ready"
+        }
+      ]
+    },
+    {
+      "id": "ready",
+      "title": "You are ready",
+      "elements": [
+        {
+          "id": "done",
+          "kind": "text",
+          "label": "You are checked in for arrival. The front desk can still help if anything changes."
+        },
+        {
+          "id": "back",
+          "kind": "button",
+          "label": "Review",
+          "goto": "checklist",
+          "action": "checklist"
+        }
+      ]
+    }
+  ]
+}

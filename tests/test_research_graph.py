@@ -65,14 +65,45 @@ def test_report_round_trip(store):
 
 
 def test_purge_clears_research_graph(store):
+    persona_id = create_persona(store, "Purge Pat")
     _seed_studies(store, 2)
     pid = _project_with_studies(store, ["syn0", "syn1"], title="Wipe me")
     services.record_open_questions(pid, ["q?"], store=store)
+    survey = services.record_survey(pid, "Wipe survey",
+                                    [{"id": "q1", "kind": "single", "text": "Pick", "options": ["A", "B"]}],
+                                    key="wipe-survey", store=store)["survey"]
+    services.import_survey_responses(
+        survey["id"],
+        responses=[{"respondent_key": "r1", "answers": [{"question_id": "q1", "value": "A"}]}],
+        store=store)
+    services.record_hypothesis(pid, "Wipe bet",
+                               {"metric": "completion", "expected_direction": "increase"},
+                               store=store)
+    services.record_decision(pid, "Wipe decision", "Stop stale rows",
+                             [{"kind": "council", "id": "c1"}],
+                             key="wipe-decision", store=store)
+    proto = services.register_prototype("wipe-proto", "Wipe proto", ".",
+                                        project_id=pid, store=store)
+    services.record_usability_session(
+        persona_id, {"kind": "prototype", "id": proto["id"], "label": "Wipe proto"},
+        "artifact", "2026-06-16",
+        [{"index": 0, "action": {"type": "look", "target": "home"},
+          "state": {"screen": "Home"}, "friction": {"level": "none", "note": ""},
+          "verdict": {"would_continue": True, "reason": "clear"}}],
+        {"completed": True, "summary": "done", "predicted_behaviors": []},
+        project_id=pid, key="wipe-usession", store=store)
     assert services.list_research_projects(store=store)
     services.purge_runtime_data(remove_files=False, store=store)
     assert services.list_research_projects(store=store) == []
     assert store.list_reports(pid) == []
     assert store.list_open_questions(pid) == []
+    assert store.list_surveys() == []
+    assert store.count_survey_responses(survey["id"]) == 0
+    assert store.list_hypotheses() == []
+    assert store.list_decisions() == []
+    assert store.list_prototypes() == []
+    assert store.list_usability_sessions() == []
+    assert store.list_personas() == []
 
 
 def test_deletes_cascade_and_detach(store):

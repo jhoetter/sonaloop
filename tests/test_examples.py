@@ -139,10 +139,10 @@ def test_onboarding_showcase_loads_every_tour_artifact(store):
     out = services.load_example(ONBOARDING, store=store)
     c = out["counts"]
     assert c["personas"] == 4
-    assert c["councils"] == 1 and c["syntheses"] == 1 and c["surveys"] == 1
-    assert c["prototypes"] == 1 and c["sessions"] == 3 and c["references"] == 4
+    assert c["councils"] == 3 and c["syntheses"] == 2 and c["surveys"] == 1
+    assert c["prototypes"] == 1 and c["sessions"] == 3 and c["references"] == 3
     assert c["hypotheses"] == 1 and c["decisions"] == 1
-    assert c["assets"] == 3 and c["flows"] == 1 and c["notes"] == 2 and c["sections"] == 1
+    assert c["assets"] == 3 and c["flows"] == 0 and c["notes"] == 2 and c["sections"] == 2
     from sonaloop import config
     project = store.get_research_project(out["project_id"])
     for pid in project["persona_ids"]:
@@ -150,7 +150,7 @@ def test_onboarding_showcase_loads_every_tour_artifact(store):
         avatar_path = (p.get("avatar") or {}).get("path")
         assert avatar_path and avatar_path.startswith("data/avatars/")
         assert (config.ROOT / avatar_path).read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
-    assert services.list_surveys(out["project_id"], store=store)[0]["response_count"] == 3
+    assert services.list_surveys(out["project_id"], store=store)[0]["response_count"] == 4
     assert services.list_prototypes_artifacts(out["project_id"], store=store)
     assert services.list_usability_sessions(project_id=out["project_id"], store=store)
     assets = services.list_assets(out["project_id"], store=store)
@@ -171,9 +171,8 @@ def test_onboarding_showcase_loads_every_tour_artifact(store):
     for chunk in ref_rows:
         ptag = re.search(r'<span class="ol-ptag[^"]*">([^<]*)</span>', chunk)
         assert ptag and ptag.group(1) == "Reference"
-    assert "A/B variant" in html
     plan = services.get_plan(out["project_id"], store=store)
-    assert plan["methodology"] == "showcase_trace"
+    assert plan["methodology"] == "double_diamond"
     assert all(t["status"] == "done" for t in plan["tasks"])
 
     from sonaloop.project_trace import trace_node_health
@@ -247,15 +246,16 @@ def test_onboarding_showcase_timeline_is_authored_not_load_time(store):
     project = store.get_research_project(pid)
     refs = project["artifacts"]
     oqs = store.list_open_questions(pid)
-    council = store.get_council_session(project["council_ids"][0])
+    councils = [store.get_council_session(cid) for cid in project["council_ids"]]
+    first_council = min(councils, key=lambda c: c["created_at"])
     survey = services.list_surveys(pid, store=store)[0]
     sessions = services.list_usability_sessions(project_id=pid, store=store)
     decision = services.list_decisions(project_id=pid, store=store)[0]
 
-    assert refs[0]["created_at"] == "2026-06-14T10:24:00Z"
-    assert oqs[0]["created_at"] == "2026-06-14T10:30:00Z"
-    assert refs[-1]["created_at"] < oqs[0]["created_at"] < council["created_at"]
-    assert council["created_at"] < survey["created_at"] < sessions[0]["created_at"]
+    assert refs[0]["created_at"] == "2026-06-10T09:26:00Z"
+    assert oqs[0]["created_at"] == "2026-06-10T09:10:00Z"
+    assert oqs[0]["created_at"] < refs[0]["created_at"] < first_council["created_at"]
+    assert first_council["created_at"] < survey["created_at"] < sessions[0]["created_at"]
     assert max(s["created_at"] for s in sessions) < decision["created_at"]
 
 
@@ -268,8 +268,8 @@ def test_double_load_is_idempotent_for_both_examples(store):
         assert services.get_plan(first["project_id"], store=store)
     assert len(store.list_research_projects()) == 3
     assert len(store.list_personas()) == 13
-    assert len(store.list_council_sessions()) == 7
-    assert len(store.list_syntheses()) == 3
+    assert len(store.list_council_sessions()) == 9
+    assert len(store.list_syntheses()) == 4
     assert len(store.list_hypotheses()) == 6
     assert len(store.list_decisions()) == 3
 
@@ -364,23 +364,23 @@ def test_every_major_inspector_page_is_non_empty_after_loading_both(store):
     p3 = services.load_example(ONBOARDING, store=store)
     client = _client()
     checks = {
-        "/projects": ["Klar money coaching", "Schichtwerk", "TeamPulse"],
+        "/projects": ["Klar money coaching", "Schichtwerk", "Clinic QuickCheck"],
         "/personas": ["Maren Ostendorf", "Birgit Krautmann"],
-        "/councils": ["Klar Lite at €19/month", "Position under fire"],
-        "/syntheses": ["Pricing story", "fair, audit-proof roster"],
-        "/surveys": ["TeamPulse pilot readiness"],
-        "/prototypes": ["TeamPulse first-run prototype"],
-        "/references": ["External prototype: sonaloop-design app"],
-        "/open-questions": ["Would teams trust"],
-        "/sessions": ["TeamPulse first-run screen walkthrough", "External prototype reference"],
-        "/hypotheses": ["€19/month", "works council"],
-        "/decisions": ["Ship two tiers", "audit-proof roster"],
-        "/notes": ["Subscription fatigue", "fairness ledger"],
-        "/assets": ["Prototype screen: intro"],
+        "/councils": ["Klar Lite at €19/month", "Position under fire", "better pilot direction"],
+        "/syntheses": ["Pricing story", "fair, audit-proof roster", "assisted check-in pilot"],
+        "/surveys": ["Appointment prep confidence"],
+        "/prototypes": ["QuickCheck assisted pre-visit prototype"],
+        "/references": ["patient portal check-in"],
+        "/open-questions": ["appointment preparation"],
+        "/sessions": ["Luis Rivera", "Evelyn Hart"],
+        "/hypotheses": ["€19/month", "works council", "complete appointment prep"],
+        "/decisions": ["Ship two tiers", "audit-proof roster", "assisted pre-check-in"],
+        "/notes": ["Subscription fatigue", "fairness ledger", "Phone queue is a symptom"],
+        "/assets": ["Prototype screen: SMS invite"],
         "/activity": ["example.loaded"],
         p1["url"]: ["Willingness-to-pay evidence"],
         p2["url"]: ["Positioning bets"],
-        p3["url"]: ["TeamPulse"],
+        p3["url"]: ["Clinic QuickCheck"],
     }
     for url, needles in checks.items():
         r = client.get(f"{url}?lang=en")

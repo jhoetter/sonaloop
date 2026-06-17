@@ -89,8 +89,15 @@ def _protos_with_session_counts(project_id: str, store: Store) -> list[dict]:
 def _attach_reports(g: dict, project_id: str, store: Store) -> dict:
     """Reports (project-scope syntheses) are first-class project artifacts — expose them on the graph so
     the outline lists them inline (among the methodology rows), not just as a top-bar button."""
+    existing_synthesis_ids = {
+        str(n.get("study_id", "")).split(":", 1)[-1]
+        for n in g.get("nodes") or []
+        if str(n.get("study_id", "")).startswith("synthesis:")
+    }
     g["reports"] = [{"id": r["id"], "title": r.get("title", ""), "created_at": r.get("created_at", ""),
-                     "n_sections": len(r.get("sections") or [])} for r in store.list_reports(project_id)]
+                     "n_sections": len(r.get("sections") or [])}
+                    for r in store.list_reports(project_id)
+                    if r["id"] not in existing_synthesis_ids]
     return g
 
 

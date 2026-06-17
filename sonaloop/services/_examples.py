@@ -86,8 +86,48 @@ def _resolve_ref(raw: dict[str, Any], ctx: dict[str, Any]) -> dict[str, Any]:
     if raw.get("question"):
         r["id"] = _oq_id(ctx["project_id"], raw["question"])
     elif raw.get("key") is not None:
-        r["id"] = ctx[raw["kind"]][raw["key"]]
+        bucket = {"session": "usability_session", "url_artifact": "artifact",
+                  "reference": "artifact"}.get(raw["kind"], raw["kind"])
+        r["id"] = ctx[bucket][raw["key"]]
     return r
+
+
+def _resolve_report_sections(raw_sections: list[dict[str, Any]], ctx: dict[str, Any]) -> list[dict[str, Any]]:
+    sections: list[dict[str, Any]] = []
+    for i, raw in enumerate(raw_sections or [], 1):
+        sec = {k: v for k, v in raw.items()
+               if k not in ("source_refs", "citations", "figures")}
+        sec["id"] = sec.get("id") or f"sec{i}"
+        sec["source_study_ids"] = list(sec.get("source_study_ids") or [])
+        sec["source_study_ids"].extend(
+            _resolve_ref(ref, ctx)["id"] for ref in raw.get("source_refs") or [])
+
+        citations = []
+        for c in raw.get("citations") or []:
+            row = {k: v for k, v in c.items()
+                   if k not in ("study_ref", "council_ref", "study", "council")}
+            if c.get("study_ref"):
+                row["study_id"] = _resolve_ref(c["study_ref"], ctx)["id"]
+            elif c.get("study"):
+                row["study_id"] = ctx["synthesis"][c["study"]]
+            if c.get("council_ref"):
+                row["council_id"] = _resolve_ref(c["council_ref"], ctx)["id"]
+            elif c.get("council"):
+                row["council_id"] = ctx["council"][c["council"]]
+            if row.get("council_id") and not row.get("study_id"):
+                row["study_id"] = row["council_id"]
+            citations.append(row)
+        sec["citations"] = citations
+
+        figures = []
+        for f in raw.get("figures") or []:
+            fig = dict(f)
+            if fig.get("key") and fig.get("kind") in ctx:
+                fig["id"] = ctx[fig["kind"]][fig.pop("key")]
+            figures.append(fig)
+        sec["figures"] = figures
+        sections.append(sec)
+    return sections
 
 
 def _resolve_subject(raw: dict[str, Any], ctx: dict[str, Any]) -> dict[str, Any]:
@@ -464,30 +504,6 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
             record_hypothesis_result(hid, r["observed_value"], _resolve_ref(r["source"], ctx),  # noqa: F821 (bound)
                                      note=r.get("note", ""), store=store)
 
-    # -- syntheses (keyed upsert) + register them on the project graph -----------
-    for s in fx.get("syntheses", []):
-        payload = dict(s.get("payload") or {})
-        payload["references"] = [{"council_id": ctx["council"][r["council"]],
-                                  "role": r.get("role", "")} for r in payload.get("references") or []]
-        payload["citations"] = [{"kind": "council", "ref": ctx["council"][c["council"]],
-                                 "quote": c.get("quote", "")} for c in payload.get("citations") or []]
-        for f in payload.get("findings") or []:
-            f["refs"] = [_resolve_ref(r, ctx) for r in f.get("refs") or []]
-        payload["statements"] = _resolve_statements(payload.get("statements"), pids)
-        rec = record_synthesis(s["title"], s.get("start_input", ""),  # noqa: F821 (bound)
-                               council_ids=[ctx["council"][k] for k in s.get("councils") or []],
-                               payload=payload, goal=s.get("goal", ""),
-                               key=_ns(slug, s["key"]), created_at=s.get("created_at"), store=store)
-        _stamp_entity_created(store, "synthesis", rec["id"], s.get("created_at", ""))
-        ctx["synthesis"][s["key"]] = rec["id"]
-    project = store.get_research_project(pid)
-    new_studies = [sid for sid in ctx["synthesis"].values()
-                   if sid not in (project.get("study_ids") or [])]
-    if new_studies:
-        project["study_ids"] = list(project.get("study_ids") or []) + new_studies
-        project["updated_at"] = utc_now_iso()
-        store.upsert_research_project(project)
-
     # -- surveys + imported responses -----------------------------------------
     for s in fx.get("surveys", []):
         rec = record_survey(  # noqa: F821 (bound)
@@ -515,6 +531,38 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
             project_id=pid, session_id=s.get("session_id"), key=_ns(slug, s["key"]), store=store)
         _stamp_entity_created(store, "session", rec["usability_session"]["id"], s.get("created_at", ""))
         ctx["usability_session"][s["key"]] = rec["usability_session"]["id"]
+
+    # -- syntheses (keyed upsert) + register them on the project graph -----------
+    # Loaded after sessions so fixture reports can cite session evidence directly.
+    for s in fx.get("syntheses", []):
+        payload = dict(s.get("payload") or {})
+        payload["references"] = [{"council_id": ctx["council"][r["council"]],
+                                  "role": r.get("role", "")} for r in payload.get("references") or []]
+        payload["citations"] = [{"kind": "council", "ref": ctx["council"][c["council"]],
+                                 "quote": c.get("quote", "")} for c in payload.get("citations") or []]
+        for f in payload.get("findings") or []:
+            f["refs"] = [_resolve_ref(r, ctx) for r in f.get("refs") or []]
+        payload["statements"] = _resolve_statements(payload.get("statements"), pids)
+        rec = record_synthesis(s["title"], s.get("start_input", ""),  # noqa: F821 (bound)
+                               council_ids=[ctx["council"][k] for k in s.get("councils") or []],
+                               payload=payload, goal=s.get("goal", ""),
+                               key=_ns(slug, s["key"]), created_at=s.get("created_at"), store=store)
+        if s.get("scope") or s.get("lead") or s.get("sections"):
+            rec = dict(rec)
+            rec["scope"] = s.get("scope", rec.get("scope", "convergence"))
+            rec["project_id"] = pid if rec["scope"] == "project" else rec.get("project_id", pid)
+            rec["lead"] = s.get("lead", rec.get("lead", ""))
+            rec["sections"] = _resolve_report_sections(s.get("sections") or [], ctx)
+            store.upsert_synthesis(rec)
+        _stamp_entity_created(store, "synthesis", rec["id"], s.get("created_at", ""))
+        ctx["synthesis"][s["key"]] = rec["id"]
+    project = store.get_research_project(pid)
+    new_studies = [sid for sid in ctx["synthesis"].values()
+                   if sid not in (project.get("study_ids") or [])]
+    if new_studies:
+        project["study_ids"] = list(project.get("study_ids") or []) + new_studies
+        project["updated_at"] = utc_now_iso()
+        store.upsert_research_project(project)
 
     # -- decision records (keyed upsert; refs must resolve by contract) ----------
     for d in fx.get("decisions", []):
