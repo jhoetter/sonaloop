@@ -15,7 +15,7 @@ def test_assets_present_and_app_builds():
 
 def test_sidebar_is_exactly_four_workspace_items():
     """The workspace sidebar (seeded in _nav_seed.py via the same public registry an
-    extension uses): Projects · Methodologies · Library · Personas. Activity and
+    extension uses): Jobs · Methodologies · Formats · Personas. Activity and
     Documentation are visible sidebar FOOTER rows (W7)."""
     import re
     from starlette.testclient import TestClient

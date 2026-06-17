@@ -375,11 +375,11 @@ def _library_taxonomy_map(active_tab: str) -> str:
                               h("code", {}, d.rule_de if de else d.rule_en))
                             for d in docs
                         ]))))
-    summary = ("Library-Primitives und ihre echten Subformen" if de
-               else "Library primitives and their real subforms")
+    summary = ("Format-Primitives und ihre echten Subformen" if de
+               else "Format primitives and their real subforms")
     lead = ("Subformen sind keine neuen Top-Level-Artefakte. Sie sind Record-Varianten innerhalb eines "
-            "Library-Primitives, z. B. Red-Team als CouncilSession mit `red_team`-Block." if de else
-            "Subforms are not new top-level artifacts. They are record variants inside a Library "
+            "Format-Primitives, z. B. Red-Team als CouncilSession mit `red_team`-Block." if de else
+            "Subforms are not new top-level artifacts. They are record variants inside a Format "
             "primitive, for example Red-team as a CouncilSession carrying a `red_team` block.")
     return h("details", {"class_": "sl-libmap"},
              h("summary", {}, h("span", {}, summary), h("small", {}, lead)),
@@ -397,7 +397,7 @@ def _active_subform_guide(tab: str, kind: str, base: str) -> str:
     if not docs:
         return ""
     de = _lang() == "de"
-    title = ("Formen in diesem Library-Tab" if de else "Forms in this Library tab")
+    title = ("Formen in diesem Formate-Tab" if de else "Forms in this Formats tab")
     cards = []
     for d in docs:
         href = filter_url(base, {"subtype": [d.value]})

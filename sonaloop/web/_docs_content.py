@@ -326,12 +326,12 @@ RIGOUR_STEPS = [
 INSPECTOR_SECTIONS = [
     ("orientation", "book",
      ("Orientierung: vier Punkte, ein Modell", "Getting around: four items, one model"),
-     ("Die obere Seitenleiste hat genau **vier** Einträge: **Projekte · Methodologien · Library · Personas** "
-      "(Activity, Einstellungen & Doku sitzen im Footer). Das Denkmodell ist überall dasselbe: *Projekt → "
-      "Phasen → Zeilen; Klick = Seitenpanel.* Das **Projekt ist das Zuhause** — alles, was eine Studie "
+     ("Die obere Seitenleiste hat genau **vier** Einträge: **Jobs · Methodiken · Formate · Personas** "
+      "(Activity, Einstellungen & Doku sitzen im Footer). Das Denkmodell ist überall dasselbe: *Job → "
+      "Phasen → Zeilen; Klick = Seitenpanel.* Der **Job ist das Zuhause** — alles, was eine Studie "
       "erzeugt oder benutzt (offene Fragen, Referenzen, Councils, Reports, Prototypen, "
       "Sessions, Umfragen, Hypothesen, Entscheidungen, Notizen, Assets), ist eine Zeile in "
-      "seiner Phase. Die **Library** ist der projektübergreifende Browser über dieselben Primitives. "
+      "seiner Phase. **Formate** ist der jobübergreifende Browser über dieselben Primitives. "
       "Sie ist als Arbeitslandkarte gruppiert: **Frame** (offene Fragen, Hypothesen), "
       "**Material** (Referenzen, Assets, Prototypen), **Ask** (Councils, Surveys), **Test** "
       "(Sessions), **Capture** (Notes) und **Conclude** (Reports, "
@@ -358,12 +358,12 @@ INSPECTOR_SECTIONS = [
       "Projekt-Kopf (verlinkt aufs Run-Journal). Hover-Bezüge in der Projektliste folgen dem "
       "Plan-DAG: Ein erzeugter Prototyp oder ein Modell zeigt seine Inputs aus der vorherigen "
       "Evidenz, auch wenn ein Methodik-Frame dazwischenliegt.",
-      "The upper sidebar has exactly **four** items: **Projects · Methodologies · Library · Personas** "
-      "(Activity, settings & docs live in the footer). One mental model runs the whole app: *project → "
-      "phases → rows; click = slide-over.* The **project is the home** — everything a study produces "
+      "The upper sidebar has exactly **four** items: **Jobs · Methodologies · Formats · Personas** "
+      "(Activity, settings & docs live in the footer). One mental model runs the whole app: *job → "
+      "phases → rows; click = slide-over.* The **job is the home** — everything a study produces "
       "or uses (open questions, references, councils, reports, prototypes, sessions, surveys, "
-      "hypotheses, decisions, notes, assets) is a row in its phase. The **Library** is the "
-      "cross-project browser over those same primitives. It is grouped as a work map: "
+      "hypotheses, decisions, notes, assets) is a row in its phase. **Formats** is the "
+      "cross-job browser over those same primitives. It is grouped as a work map: "
       "**Frame** (open questions, hypotheses), **Material** (references, assets, prototypes), **Ask** "
       "(councils, surveys), **Test** (sessions), **Capture** (notes), "
       "and **Conclude** (reports, decisions). **Formats** refine a primitive without "
@@ -426,7 +426,7 @@ INSPECTOR_SECTIONS = [
     ("keyboard", "command",
      ("Tastatur & Palette", "Keyboard & palette"),
      ("`?` öffnet das Shortcut-Cheat-Sheet. **⌘K / Ctrl+K** öffnet die Befehls-Palette: zuletzt "
-      "besuchte Einträge, Navigation (mit der Bibliothek als aufklappbarem Eintrag) und Aktionen — "
+      "besuchte Einträge, Navigation (mit Formaten als aufklappbarem Eintrag) und Aktionen — "
       "und beim Tippen eine Suche über alles (Personas, Councils, Reports, Sessions, Hypothesen, "
       "Entscheidungen, Umfragen …), nach Art gruppiert mit Projekt und Datum. Navigation per Chords: `g` `h` Home, `g` `p` Personas, `g` `c` "
       "Councils, `g` `s` Reports, `g` `a` Activity, `g` `r` Runs, `g` `d` Doku. In Listen und im "
@@ -434,7 +434,7 @@ INSPECTOR_SECTIONS = [
       "(volle Detailseite, echte URL), `o` öffnet sie direkt als ganze Seite, `Esc` schließt "
       "das Panel. Auf Detailseiten blättern `[`/`]` zum Nachbarn. Beim Tippen in Felder ist alles deaktiviert.",
       "`?` opens the shortcut cheat sheet. **⌘K / Ctrl+K** opens the command palette: your recently "
-      "visited records, navigation (with the library as one expandable entry) and actions — and, as "
+      "visited records, navigation (with Formats as one expandable entry) and actions — and, as "
       "you type, a search across everything (personas, councils, reports, sessions, hypotheses, "
       "decisions, surveys …), grouped by kind with project and date. Navigate with chords: `g` `h` home, `g` `p` personas, `g` `c` "
       "councils, `g` `s` reports, `g` `a` activity, `g` `r` runs, `g` `d` docs. In lists and the "
@@ -446,12 +446,12 @@ INSPECTOR_SECTIONS = [
      ("Die optionale Tour startet **nie von selbst**. Wenn du **„Tour starten“** wählst, lädt sie bei "
       "Bedarf das Showcase-Beispielprojekt und führt dann im Projektkontext durch echte Primitives: "
       "offene Frage, Referenz, Council, Survey, Report, Prototype, Session, Hypothese, "
-      "Entscheidung, Notes, Assets und Library. "
+      "Entscheidung, Notes, Assets und Formate. "
       "`Esc` beendet sie jederzeit.",
       "The optional tour **never auto-starts**. When you choose **“Take the tour”**, it loads the "
       "showcase example project if needed, then walks real primitives in project context: open "
       "question, reference, council, survey, report, prototype, session, hypothesis, decision, "
-      "notes, assets, and the Library. `Esc` "
+      "notes, assets, and Formats. `Esc` "
       "ends it any time.")),
     ("editing", "pencil",
      ("Was du bearbeiten kannst", "What you can edit"),
@@ -473,14 +473,14 @@ INSPECTOR_SECTIONS = [
       "evidence entirely so.")),
     ("filtering", "filter",
      ("Filtern wie in Linear", "Filtering, Linear-style"),
-     ("Projekt-Outline und Library tragen eine **Filterleiste**: „Filter“ öffnet das Facetten-Menü "
-      "(Typ, Phase, Persona, Status, Trace — in der Library Projekt, Status, bei Assets Richtung) mit "
+     ("Job-Outline und Formate tragen eine **Filterleiste**: „Filter“ öffnet das Facetten-Menü "
+      "(Typ, Phase, Persona, Status, Trace — in Formaten Job, Status, bei Assets Richtung) mit "
       "ehrlichen Treffer-Zahlen pro Wert. Innerhalb einer Facette gilt ODER, zwischen Facetten "
       "UND. Aktive Filter erscheinen als Chips mit ×; der Zustand lebt in der **URL** "
       "(`?kind=council,decision&phase=…`) — teilbar, verlinkbar, Reload-fest. Trifft ein Filter "
       "nichts, sagt die Seite das und bietet „zurücksetzen“ an.",
-      "The project outline and the Library carry a **filter bar**: “Filter” opens the facet menu "
-      "(kind, phase, persona, status, trace — in the Library project, status, plus direction on Assets) "
+      "The job outline and Formats carry a **filter bar**: “Filter” opens the facet menu "
+      "(kind, phase, persona, status, trace — in Formats job, status, plus direction on Assets) "
       "with honest per-value counts. Within a facet values OR, across facets they AND. Active "
       "filters become chips with ×; the state lives in the **URL** "
       "(`?kind=council,decision&phase=…`) — shareable, linkable, reload-proof. When a filter "

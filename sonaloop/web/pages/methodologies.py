@@ -182,17 +182,12 @@ def _methodologies_page() -> str:
                         h("span", {"class_": "sl-meth-card-meta"},
                           raw(_label(t("n_tasks", n=len(spec.get("steps") or [])), "var(--accent)")),
                           raw(_label(t("n_jobs", n=len(jobs)), "var(--blue)"))))))
-    bands = h("div", {"class_": "sl-meth-bands"},
-              h("div", {"class_": "sl-meth-band"}, h("b", {}, t("job_h")), h("span", {}, t("job_d"))),
-              h("div", {"class_": "sl-meth-band"}, h("b", {}, t("methodology_h")), h("span", {}, t("methodology_d"))),
-              h("div", {"class_": "sl-meth-band"}, h("b", {}, t("format_h")), h("span", {}, t("format_d"))))
     hero = h("div", {"class_": "sl-meth-hero"},
              h("div", {"class_": "sl-meth-lede"},
                h("h1", {"class_": "h1"}, t("methodologies_h"), h("span", {"class_": "h1cnt"}, str(len(specs)))),
                h("p", {"class_": "lead"}, t("methodologies_lead")),
                h("div", {"class_": "sl-prose"}, raw(_md(
-                 t("methodologies_intro"))))),
-             bands)
+                 t("methodologies_intro"))))))
     body = h("div", {"class_": "page"}, hero, h("div", {"class_": "sl-meth-index"}, fragment(*rows)))
     return _layout(t("methodologies_h"), body, store, crumbs=[(t("projects"), "/projects"), (t("methodologies_h"), None)], active="methodologies")
 
