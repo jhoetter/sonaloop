@@ -160,10 +160,12 @@ def test_builtin_methodologies_seed_exactly_as_before():
             ("verify__validate", ["frame__solution_explore"], "frame__solution_explore")],
     }
     specs = M._load_builtin_specs()
-    assert set(specs) == set(pinned)
-    for key, spec in specs.items():
-        p = P.seed_plan_from_methodology("proj", "g", spec)
-        assert [(t["id"], t["consumes"], t["loop_back"]) for t in p["tasks"]] == pinned[key], key
+    # The pinned built-ins must still ship and seed byte-identically; newer methodologies may be
+    # added alongside them (they are not part of this regression pin).
+    assert set(pinned) <= set(specs)
+    for key, expected in pinned.items():
+        p = P.seed_plan_from_methodology("proj", "g", specs[key])
+        assert [(t["id"], t["consumes"], t["loop_back"]) for t in p["tasks"]] == expected, key
 
 
 def test_seeder_preserves_fan_to_fan_edge():

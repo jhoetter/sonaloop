@@ -131,6 +131,9 @@ _JOB_SIGNALS: dict[str, list[str]] = {
                       "win back"],
     "ab_test": ["a/b test", "ab test", "a/b-test", "split test", "variant", "which version",
                 "version a", "two versions", "which wins", "winner"],
+    "content_reaction": ["blog post", "copy", "wording", "headline", "messaging", "landing page",
+                         "react to", "reaction", "how does it land", "tone", "does this read",
+                         "first impression", "comprehen"],
 }
 
 

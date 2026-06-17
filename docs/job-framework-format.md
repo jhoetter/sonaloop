@@ -73,12 +73,13 @@ Each named Job resolves to a concrete default Framework, a set of Formats, and t
 | Job (`id`) | Sells as | Default Framework | Frameworks | Formats | Coverage (min personas · axes) |
 |------------|----------|-------------------|------------|---------|--------------------------------|
 | **Positioning** (`positioning`) | Positioning | `double_diamond` | `double_diamond` | `council`, `head_to_head`, `red_team` | 4 · segment, buying-stage, current-alternative |
-| **Pricing / Price-Sensitivity** (`pricing`) | Pricing | `lean_jtbd` | `lean_jtbd` | `council`, `head_to_head`, `red_team` | 4 · willingness-to-pay, budget-authority, current-alternative |
-| **Demand / Jobs-to-be-Done** (`jtbd_demand`) | Demand/JTBD | `lean_jtbd` | `lean_jtbd` | `council`, `prototype_test` | 5 · segment, trigger-moment, current-alternative |
-| **Ideation (How-Might-We)** (`ideation_hmw`) | Ideation (HMW) | `dschool_micro` | `dschool_micro`, `double_diamond_deep` | `council`, `prototype_test`, `head_to_head` | 4 · segment, expertise-level, extreme-user |
-| **Continuous Discovery** (`continuous_discovery`) | Continuous discovery | `dschool_micro` | `dschool_micro` | `council`, `prototype_test` | 3 · segment, lifecycle-stage, recency-of-use |
-| **Churn Reasons** (`churn_reasons`) | Churn reasons | `lean_jtbd` | `lean_jtbd` | `council`, `red_team` | 4 · churn-reason, tenure, current-alternative |
+| **Pricing / Price-Sensitivity** (`pricing`) | Pricing | `lean_jtbd` | `lean_jtbd`, `jtbd_switch` | `council`, `head_to_head`, `red_team` | 4 · willingness-to-pay, budget-authority, current-alternative |
+| **Demand / Jobs-to-be-Done** (`jtbd_demand`) | Demand/JTBD | `lean_jtbd` | `lean_jtbd`, `jtbd_switch`, `customer_discovery` | `council`, `prototype_test` | 5 · segment, trigger-moment, current-alternative |
+| **Ideation (How-Might-We)** (`ideation_hmw`) | Ideation (HMW) | `dschool_micro` | `dschool_micro`, `double_diamond_deep`, `design_sprint` | `council`, `prototype_test`, `head_to_head` | 4 · segment, expertise-level, extreme-user |
+| **Continuous Discovery** (`continuous_discovery`) | Continuous discovery | `continuous_discovery` | `continuous_discovery`, `dschool_micro` | `council`, `prototype_test` | 3 · segment, lifecycle-stage, recency-of-use |
+| **Churn Reasons** (`churn_reasons`) | Churn reasons | `lean_jtbd` | `lean_jtbd`, `customer_discovery`, `jtbd_switch` | `council`, `red_team` | 4 · churn-reason, tenure, current-alternative |
 | **A/B Test** (`ab_test`) | A/B test | `lean_jtbd` | `lean_jtbd` | `head_to_head`, `prototype_test`, `red_team` | 4 · segment, current-alternative, buying-stage |
+| **Content & Messaging Reaction** (`content_reaction`) | Content reaction | `reaction_test` | `reaction_test`, `double_diamond` | `council`, `head_to_head` | 4 · segment, familiarity, reading-context |
 
 The **coverage** column is the persona spread a Job needs to be trustworthy: a minimum count
 plus the axes the panel must span. The full notes (one per Job) live in `taxonomy.json`.

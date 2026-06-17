@@ -29,7 +29,12 @@
     {"id": "double_diamond", "methodology_key": "double_diamond", "name": "Double Diamond"},
     {"id": "double_diamond_deep", "methodology_key": "double_diamond_deep", "name": "Double Diamond (Deep)"},
     {"id": "dschool_micro", "methodology_key": "dschool_micro", "name": "d.school Micro-Cycle"},
-    {"id": "lean_jtbd", "methodology_key": "lean_jtbd", "name": "Lean / Jobs-to-be-Done"}
+    {"id": "lean_jtbd", "methodology_key": "lean_jtbd", "name": "Lean / Jobs-to-be-Done"},
+    {"id": "continuous_discovery", "methodology_key": "continuous_discovery", "name": "Continuous Discovery"},
+    {"id": "design_sprint", "methodology_key": "design_sprint", "name": "Design Sprint"},
+    {"id": "customer_discovery", "methodology_key": "customer_discovery", "name": "Customer Discovery"},
+    {"id": "jtbd_switch", "methodology_key": "jtbd_switch", "name": "JTBD Switch Interviews"},
+    {"id": "reaction_test", "methodology_key": "reaction_test", "name": "Reaction Test"}
   ],
   "formats": [
     {"id": "council", "name": "Council", "status": "implemented", "definition": "Several segment-diverse personas react to a prompt and to each other in one session — the core diverge move."},
@@ -57,7 +62,7 @@
       "name": "Pricing / Price-Sensitivity",
       "sells_as": "Pricing",
       "user_question": "What should I charge, and where does price sensitivity break?",
-      "frameworks": ["lean_jtbd"],
+      "frameworks": ["lean_jtbd", "jtbd_switch"],
       "default_framework": "lean_jtbd",
       "formats": ["council", "head_to_head", "red_team"],
       "coverage": {
@@ -102,7 +107,7 @@
       "name": "Demand / Jobs-to-be-Done",
       "sells_as": "Demand/JTBD",
       "user_question": "What job are customers hiring this for, and is there real demand?",
-      "frameworks": ["lean_jtbd"],
+      "frameworks": ["lean_jtbd", "jtbd_switch", "customer_discovery"],
       "default_framework": "lean_jtbd",
       "formats": ["council", "prototype_test"],
       "coverage": {
@@ -116,7 +121,7 @@
       "name": "Ideation (How-Might-We)",
       "sells_as": "Ideation (HMW)",
       "user_question": "Given this How-Might-We, what could we build?",
-      "frameworks": ["dschool_micro", "double_diamond_deep"],
+      "frameworks": ["dschool_micro", "double_diamond_deep", "design_sprint"],
       "default_framework": "dschool_micro",
       "formats": ["council", "prototype_test", "head_to_head"],
       "coverage": {
@@ -151,8 +156,8 @@
       "name": "Continuous Discovery",
       "sells_as": "Continuous discovery",
       "user_question": "What should we learn next, on a steady cadence?",
-      "frameworks": ["dschool_micro"],
-      "default_framework": "dschool_micro",
+      "frameworks": ["continuous_discovery", "dschool_micro"],
+      "default_framework": "continuous_discovery",
       "formats": ["council", "prototype_test"],
       "coverage": {
         "min_personas": 3,
@@ -165,7 +170,7 @@
       "name": "Churn Reasons",
       "sells_as": "Churn reasons",
       "user_question": "Why are customers leaving, and which reasons are addressable?",
-      "frameworks": ["lean_jtbd"],
+      "frameworks": ["lean_jtbd", "customer_discovery", "jtbd_switch"],
       "default_framework": "lean_jtbd",
       "formats": ["council", "red_team"],
       "coverage": {
@@ -217,6 +222,20 @@
             "tooling": "head_to_head.result (server-derived) + services.segmented_verdict(session_id)"
           }
         ]
+      }
+    },
+    {
+      "id": "content_reaction",
+      "name": "Content & Messaging Reaction",
+      "sells_as": "Content reaction",
+      "user_question": "How does my audience react to this copy, message or screen — what lands and what confuses?",
+      "frameworks": ["reaction_test", "double_diamond"],
+      "default_framework": "reaction_test",
+      "formats": ["council", "head_to_head"],
+      "coverage": {
+        "min_personas": 4,
+        "persona_axes": ["segment", "familiarity", "reading-context"],
+        "note": "Span people new to you and people who already know you, across the contexts they would actually read it in, so first-impression comprehension and tone are tested honestly — not just by insiders who already get it."
       }
     }
   ]

@@ -309,9 +309,7 @@ def _methodologies_page(q: str = "", job_type: str = "", complexity: str = "") -
     hero = h("div", {"class_": "sl-meth-hero"},
              h("div", {"class_": "sl-meth-lede"},
                h("h1", {"class_": "h1"}, t("methodologies_h"), h("span", {"class_": "h1cnt"}, str(len(specs)))),
-               h("p", {"class_": "lead"}, t("methodologies_lead")),
-               h("div", {"class_": "sl-prose"}, raw(_md(
-                 t("methodologies_intro"))))))
+               h("p", {"class_": "lead"}, t("methodologies_lead"))))
     body = h("div", {"class_": "page"}, hero, bar, index)
     return _layout(t("methodologies_h"), body, store, crumbs=[(t("projects"), "/projects"), (t("methodologies_h"), None)], active="methodologies")
 
