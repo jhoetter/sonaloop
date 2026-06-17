@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextvars  # noqa: F401  (public surface preserved)
 from datetime import date, timedelta  # noqa: F401  (public surface preserved)
+from pathlib import Path
 
 from ..config import DATA_DIR, load_env, set_ui_language
 from ..config import SUPPORTED_LANGUAGES, ui_language  # noqa: F401  (public surface preserved)
@@ -59,6 +60,10 @@ def create_app():
     # Absolute path (not cwd-relative "data"): downstream apps (sonaloop-cloud/-research)
     # call create_app() from their own working directory, so the mount must not depend on cwd.
     app.mount("/data", StaticFiles(directory=str(DATA_DIR)), name="data")
+    # Bundled inspector assets (methodology covers, etc.) are served as files instead
+    # of being embedded into SSR HTML. Project/user assets keep using /data and /assets.
+    _web_assets = Path(__file__).resolve().parent / "assets"
+    app.mount("/web-assets", StaticFiles(directory=str(_web_assets)), name="web-assets")
     # Serve prototype apps so they can be viewed directly in the inspector (read-only).
     from ..config import prototypes_dir as _proto_dir
     _pd = _proto_dir()

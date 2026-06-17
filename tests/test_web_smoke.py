@@ -41,6 +41,24 @@ def test_sidebar_is_exactly_four_workspace_items():
     assert "data-fb-open" in pop and "data-tour-start" in pop and "data-km-open" in pop
 
 
+def test_methodology_covers_are_static_assets_not_inline_payloads():
+    from starlette.testclient import TestClient
+
+    client = TestClient(web.create_app())
+    r = client.get("/methodologies?lang=en")
+
+    assert r.status_code == 200
+    assert len(r.content) < 1_000_000
+    assert "data:image/jpeg;base64" not in r.text
+    assert "/web-assets/methodologies/" in r.text
+    assert 'loading="lazy"' in r.text and 'decoding="async"' in r.text
+
+    img = client.get("/web-assets/methodologies/double-diamond.jpg")
+    assert img.status_code == 200
+    assert img.headers["content-type"].startswith("image/jpeg")
+    assert len(img.content) > 10_000
+
+
 def test_user_menu_does_not_render_local_identity_placeholder():
     from sonaloop.web._components import _user_menu
     from sonaloop.web._ext import reset_identity, set_identity

@@ -1,9 +1,9 @@
 """Methodology browser: the process layer a project can run through."""
 from __future__ import annotations
 
-import base64
 from functools import lru_cache
 from pathlib import Path
+from urllib.parse import quote
 
 from ._ctx import *  # noqa: F401,F403
 
@@ -68,16 +68,14 @@ register_css(
 _ASSET_DIR = Path(__file__).resolve().parents[1] / "assets" / "methodologies"
 
 
-@lru_cache(maxsize=16)
-def _asset_uri(name: str) -> str:
+@lru_cache(maxsize=32)
+def _asset_src(name: str) -> str:
     if not name or Path(name).name != name:
         return ""
     path = _ASSET_DIR / name
-    try:
-        data = path.read_bytes()
-    except OSError:
+    if not path.is_file():
         return ""
-    return "data:image/jpeg;base64," + base64.b64encode(data).decode("ascii")
+    return f"/web-assets/methodologies/{quote(name)}"
 
 
 def _slug(key: str) -> str:
@@ -107,7 +105,7 @@ def _complexity_label(c: str) -> str:
 
 
 def _image(spec: dict) -> str:
-    return _asset_uri(str(_meta(spec).get("image") or ""))
+    return _asset_src(str(_meta(spec).get("image") or ""))
 
 
 def _image_dark(spec: dict) -> str:
@@ -116,7 +114,7 @@ def _image_dark(spec: dict) -> str:
     if not name:
         return ""
     p = Path(name)
-    return _asset_uri(f"{p.stem}-dark{p.suffix}")
+    return _asset_src(f"{p.stem}-dark{p.suffix}")
 
 
 def _cover_inner(spec: dict):
@@ -127,8 +125,9 @@ def _cover_inner(spec: dict):
     if not light:
         return None
     dark = _image_dark(spec)
-    return fragment(h("img", {"class_": "b-light", "src": light, "alt": ""}),
-                    h("img", {"class_": "b-dark", "src": dark, "alt": ""}) if dark else None)
+    attrs = {"loading": "lazy", "decoding": "async", "alt": ""}
+    return fragment(h("img", {"class_": "b-light", "src": light, **attrs}),
+                    h("img", {"class_": "b-dark", "src": dark, **attrs}) if dark else None)
 
 
 def _doc_head(spec: dict, meta: dict, title: str) -> str:
