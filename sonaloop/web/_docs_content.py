@@ -355,7 +355,9 @@ INSPECTOR_SECTIONS = [
       "reproduziert exakt diese Ansicht (Liste + offenes Panel). Das ⤢-Symbol wechselt zur "
       "vollen Seite (die kanonische Detail-URL, die direkt geladen weiterhin die volle Seite "
       "zeigt), Esc/Zurück bringt die Liste samt URL zurück. Den **Run-Status** eines Projekts zeigt ein Chip im "
-      "Projekt-Kopf (verlinkt aufs Run-Journal).",
+      "Projekt-Kopf (verlinkt aufs Run-Journal). Hover-Bezüge in der Projektliste folgen dem "
+      "Plan-DAG: Ein erzeugter Prototyp oder ein Modell zeigt seine Inputs aus der vorherigen "
+      "Evidenz, auch wenn ein Methodik-Frame dazwischenliegt.",
       "The sidebar has exactly **four** items: **Projects · Personas · Library · Activity** "
       "(settings & docs live in the footer). One mental model runs the whole app: *project → "
       "phases → rows; click = slide-over.* The **project is the home** — everything a study produces "
@@ -382,7 +384,9 @@ INSPECTOR_SECTIONS = [
       "path>` — reloading or sharing it reproduces exactly this view (list + open panel). "
       "The ⤢ control expands to the full page (the canonical detail URL, which still renders "
       "full-page when loaded directly), and Esc/back restores the list and its URL. A project's "
-      "**run state** shows as a chip in the project header (linking to the run journal).")),
+      "**run state** shows as a chip in the project header (linking to the run journal). Hover "
+      "relations in the project outline follow the plan DAG: a generated prototype or model shows "
+      "its inputs from prior evidence, even when a methodology frame sits between them.")),
     ("examples", "package",
      ("Beispielprojekte", "Example projects"),
      ("Fertige Demo-Studien liegen bei — darunter ein Onboarding-Showcase, eine B2B-Positioning-Studie "

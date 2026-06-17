@@ -146,6 +146,24 @@ In short: tasks explain how the run was governed; trace edges explain how artifa
 flowed. If an output is produced but should not feed a later gate, park it explicitly
 with a reason rather than inventing a task-only visual edge.
 
+### Plan-derived inputs
+
+Generated outputs such as prototypes, models, surveys or sessions should not look
+as if they appeared from nowhere. The trace layer therefore derives visible
+input edges from the plan DAG:
+
+- if a task produces a visible primitive and consumes another task with visible
+  outputs, those upstream outputs feed the new primitive;
+- if a task consumes a frame task, the trace walks through that frame to the
+  nearest upstream visible outputs, e.g. Define synthesis → Develop frame →
+  Prototype;
+- verify outputs then receive the produced evidence through the same task-flow
+  path and any authored `record_judgment(..., evidence_refs=[...])` citations.
+
+This is methodology-agnostic. Double Diamond, Lean/JTBD or a custom method only
+need a truthful `consumes`/`produces` DAG; the outline and graph derive the
+visible input/output story from that substrate.
+
 ## Product rules
 
 The Library must stay a complete cross-project browser for these primitives.
