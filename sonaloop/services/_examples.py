@@ -40,12 +40,13 @@ FIXTURE_SCHEMA = "sonaloop_example/1"
 
 # A fixture persona may declare `catalog_slug` instead of an inline profile: it then
 # IS a real catalog persona (lived days, memory, the "From catalog" badge), so the
-# showcase demonstrates the same personas a user would pull. The data comes from one
-# of two places, in order: a live `catalog_pull` (fresh lived days + hi-res avatar,
-# when the catalog is reachable), else the trimmed snapshot vendored beside the
-# fixtures (offline/CI-safe, downscaled avatars). Set
-# SONALOOP_EXAMPLES_REFRESH_FROM_CATALOG=0 to skip the live attempt entirely (the
-# default the test suite uses — hermetic, no network).
+# showcase demonstrates the same personas a user would pull. The data comes from the
+# trimmed snapshot vendored beside the fixtures (offline/CI-safe, downscaled avatars) —
+# the DEFAULT, because the published catalog (data.sonaloop.com) can lag the curated
+# checkout the snapshot was cut from, so a live pull may return SPARSER lived days than
+# the vendored copy. Set SONALOOP_EXAMPLES_REFRESH_FROM_CATALOG=1 to opt into a live
+# `catalog_pull` first (hi-res avatars + whatever the published catalog currently has),
+# with automatic fallback to the vendored snapshot when it is unreachable or sparser.
 _CATALOG_REFRESH_ENV = "SONALOOP_EXAMPLES_REFRESH_FROM_CATALOG"
 
 
@@ -60,14 +61,15 @@ def _vendored_catalog_dir():
 def _ensure_catalog_personas(slugs: list[str], store: Store) -> set[str]:
     """Make sure every catalog `slug` exists in the store with its lived days, the
     way a real `catalog_pull` leaves it (provenance.catalog → the "From catalog"
-    badge). Tries a live pull first (fresh days + hi-res avatar) when refresh is on
-    and the catalog is reachable, then fills any gap from the vendored snapshot.
-    Returns the slugs that landed (so the caller can flag a hard miss)."""
+    badge). Restores from the vendored snapshot by default; with refresh opted in
+    (SONALOOP_EXAMPLES_REFRESH_FROM_CATALOG=1) it tries a live pull first and fills
+    any gap from the snapshot. Returns the slugs that landed (so the caller can flag
+    a hard miss)."""
     if not slugs:
         return set()
     embed = embeddings_enabled()
     landed: set[str] = set()
-    if os.getenv(_CATALOG_REFRESH_ENV, "1").lower() not in {"0", "false", "no"}:
+    if os.getenv(_CATALOG_REFRESH_ENV, "0").lower() in {"1", "true", "yes"}:
         try:
             out = catalog_pull(persona_slugs=slugs, embed=embed, store=store)  # noqa: F821 (bound)
             landed = {l["slug"] for l in out.get("landed", [])}
