@@ -9,7 +9,6 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any
 
-from .. import presentation as _pres
 from ..project_trace import collect_project_trace_edges
 from ._i18n import t
 from ._primitive_taxonomy import primitive_color, subtype_label, subtype_value
@@ -82,7 +81,7 @@ def augment_project_graph(graph: dict, *, sessions: dict[str, dict], decisions: 
     for p in out.get("prototypes") or []:
         _add(nodes, seen, kind="prototype", rid=p["id"], title=p.get("name", ""),
              created_at=p.get("created_at", ""), href=f'/prototypes/{p.get("slug", p["id"])}',
-             subtype=str(p.get("fidelity") or _pres.default_discriminator("prototype")),
+             subtype=subtype_value("prototype", p),
              phase=_phase(out, p.get("created_at", "")))
 
     for a in out.get("artifacts") or []:

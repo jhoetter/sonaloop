@@ -20,7 +20,7 @@ from .edit import note_actions, section_actions
 from .._presence import asset_direction, record_status, status_filter_label
 from .._primitive_taxonomy import (
     FAMILIES, family_icon, family_label, primitive_family, primitive_purpose, primitive_subtypes,
-    form_label, subtype_label, subtype_value,
+    form_label, prototype_fidelity_value, subtype_label, subtype_value,
 )
 
 # (key, canonical route, icon, label, empty-state msg, lead, teach) — labels are lambdas so
@@ -770,7 +770,7 @@ def register_library(app) -> None:
             # tally rides the static "Grounding" label (the session-rail convention).
             prop_rows=[("projects", t("project"), proj_link),
                        *detail_form_rows("prototype", p),
-                       ("square", t("fidelity"), p.get("fidelity") or ""),
+                       ("square", t("fidelity"), prototype_fidelity_value(p)),
                        ("personas", t("sessions"), str(len(sessions))),
                        ("check", t("grounding_h"), f"{n_grounded}/{len(sessions)}" if sessions else "—"),
                        ("dot", t("created"), ui.fmt_date(p.get("created_at") or ""))],

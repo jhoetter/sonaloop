@@ -65,6 +65,7 @@ def test_web_taxonomy_helpers_are_registry_backed():
         form_value,
         primitive_family,
         primitive_subtypes,
+        prototype_fidelity_value,
         survey_question_form_values,
         subtype_label,
         subtype_value,
@@ -79,6 +80,9 @@ def test_web_taxonomy_helpers_are_registry_backed():
     assert {"prototype", "flow", "dashboard", "cards", "comparison", "model", "journey"} <= prototype_forms
     assert not {"lofi", "midfi", "hifi"} & prototype_forms
     assert subtype_value("prototype", {"type": "model", "fidelity": "midfi"}) == "model"
+    assert form_value("prototype", {"fidelity": "model"}) == "model"
+    assert prototype_fidelity_value({"fidelity": "model"}) == ""
+    assert prototype_fidelity_value({"fidelity": "midfi"}) == "midfi"
     assert subtype_label("model") == "Model prototype"
 
     survey_forms = {doc.value for doc in primitive_subtypes("survey")}

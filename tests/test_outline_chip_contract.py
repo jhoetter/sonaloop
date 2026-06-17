@@ -39,6 +39,10 @@ def _rows(html: str) -> list[tuple[str, bool]]:
     return out
 
 
+def _row_chunks(html: str) -> list[str]:
+    return ["class=\"olrow" + chunk for chunk in html.split('class="olrow')[1:]]
+
+
 def _assert_chip_contract(html: str) -> None:
     """The contract: every rendered row's kind is registered; a builder-backed kind renders
     real chips on at least one row (V2 row truth: a builder MAY suppress chips on rows where
@@ -166,6 +170,14 @@ def test_every_outline_row_kind_declares_its_chips(store):
     pid = _every_kind_project(store)
     html = _client().get(f"/projects/{pid}?lang=en").text
     _assert_chip_contract(html)
+    syn_row = next(chunk for chunk in _row_chunks(html) if 'data-rkind="synthesis"' in chunk)
+    assert "Synthesis" in syn_row and "3 findings" in syn_row
+    report_row = next(chunk for chunk in _row_chunks(html) if 'data-rkind="report"' in chunk)
+    assert "Report" in report_row and "2 sections" in report_row
+    assert any(("Prototype session" in chunk or "Walkthrough session" in chunk or "Live session" in chunk)
+               for chunk in _row_chunks(html) if 'data-rkind="session"' in chunk)
+    survey_row = next(chunk for chunk in _row_chunks(html) if 'data-rkind="survey"' in chunk)
+    assert "Free text" in survey_row and ("Draft" in survey_row or "Open" in survey_row)
     # registry completeness, both directions: the fixture exercises every registered kind, and
     # nothing rendered outside the registry — the registry IS the row-kind inventory.
     emitted = {kind for kind, _ in _rows(html)}

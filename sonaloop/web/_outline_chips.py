@@ -20,6 +20,10 @@ from ._presence import (
     decision_status_pill, hypothesis_status_pill,
     open_question_status_pill, survey_status_pill,
 )
+from ._primitive_taxonomy import (
+    form_label, form_value, primitive_color, prototype_fidelity_value,
+    survey_question_form_labels,
+)
 
 
 class NoChips:
@@ -39,12 +43,40 @@ UNDECLARED_KINDS: set[str] = set()
 _MODES = ("discovery", "evaluation", "decision")
 
 
+def _form_chip(primitive: str, item: dict, *, include_default: bool = False) -> str:
+    """Consistent taxonomy chip for project rows: Family/Primitive live in layout;
+    this chip names the concrete form where it adds meaning."""
+    node = item.get("node") or item.get("session") or {}
+    value = form_value(primitive, node)
+    label = form_label(primitive, node)
+    if not label:
+        return ""
+    if not include_default and label.strip().casefold() == str(item.get("kind") or "").strip().casefold():
+        return ""
+    if not include_default and primitive == "prototype" and value == "prototype":
+        return ""
+    if not include_default and primitive in ("decision", "hypothesis"):
+        return ""
+    return str(_label(label, primitive_color(primitive)))
+
+
+def _survey_form_chip(item: dict) -> str:
+    labels = survey_question_form_labels((item.get("node") or {}))
+    if not labels:
+        return ""
+    label = labels[0] if len(labels) == 1 else t("question_forms_n", n=len(labels))
+    return str(_label(label, primitive_color("survey")))
+
+
 def _council_chips(item: dict) -> str:
     """The mode tag only (derived the way the council page does — it rides node['mode']).
     V2 dropped the statement count: the avatars already say who debated, and the count lives
     on the detail/slide-over. The count stands in only when the mode is unknown (legacy rows
     keep a chip)."""
     node = item.get("node") or {}
+    form = _form_chip("council", item, include_default=True)
+    if form:
+        return form
     mode = node.get("mode")
     if mode in _MODES:
         return _label(t("council_mode_" + mode), "var(--blue)")
@@ -59,7 +91,8 @@ def _synthesis_chips(item: dict) -> str:
     node = item.get("node") or {}
     n_findings = int(node.get("n_findings") or 0)
     n_sources = int(node.get("council_count") or 0)
-    chips = [_label(t("chip_sources_n", n=n_sources)) if n_findings == 0 and n_sources
+    chips = [raw(_form_chip("synthesis", item, include_default=True)),
+             _label(t("chip_sources_n", n=n_sources)) if n_findings == 0 and n_sources
              else _label(t("chip_findings_n", n=n_findings))]
     if node.get("status") == "in_progress":
         chips.append(_label(t("running"), "var(--amber)"))
@@ -67,7 +100,8 @@ def _synthesis_chips(item: dict) -> str:
 
 
 def _report_chips(item: dict) -> str:
-    return _label(t("n_sections", n=int((item.get("node") or {}).get("n_sections") or 0)))
+    return (_form_chip("report", item, include_default=True)
+            + str(_label(t("n_sections", n=int((item.get("node") or {}).get("n_sections") or 0)))))
 
 
 def _note_chips(item: dict) -> str:
@@ -115,7 +149,8 @@ def _session_chips(item: dict) -> str:
     rubbed are what a row reader decides on."""
     sess = item.get("session") or {}
     out = sess.get("outcome") or {}
-    chips = [_label(t("completed"), "var(--green)") if out.get("completed")
+    chips = [raw(_form_chip("session", item, include_default=True)),
+             _label(t("completed"), "var(--green)") if out.get("completed")
              else _label(t("outcome_dropped", n=out.get("dropoff_step", 0)), "var(--red)")]
     n_fr = _friction_count(sess)
     if n_fr:
@@ -129,8 +164,10 @@ def _prototype_chips(item: dict) -> str:
     aggregate funnel chip the count would repeat it, so only the fidelity remains."""
     node = item.get("node") or {}
     chips = []
-    if node.get("fidelity"):
-        chips.append(_label(_pres.present(node["fidelity"])["short"], "#00897b"))
+    if form := _form_chip("prototype", item):
+        chips.append(raw(form))
+    if fidelity := prototype_fidelity_value(node):
+        chips.append(_label(_pres.present(fidelity)["short"], "#00897b"))
     if not item.get("chip") or not chips:             # the funnel chip already says "N sessions · …"
         chips.append(_label(t("sessions_n", n=int(node.get("n_sessions") or 0))))
     return "".join(chips)
@@ -147,7 +184,8 @@ def _survey_chips(item: dict) -> str:
     """Lifecycle pill + n responses (V2: ≤2 chips — the response count is the survey's
     signal; the question count lives on the detail page)."""
     node = item.get("node") or {}
-    return (survey_status_pill(node.get("status", "draft"))
+    return (_survey_form_chip(item)
+            + survey_status_pill(node.get("status", "draft"))
             + _label(t("n_responses", n=int(node.get("response_count") or 0))))
 
 
@@ -156,7 +194,8 @@ def _hypothesis_chips(item: dict) -> str:
 
 
 def _open_question_chips(item: dict) -> str:
-    return open_question_status_pill((item.get("node") or {}).get("status", "open"))
+    form = _form_chip("open_question", item)
+    return form + open_question_status_pill((item.get("node") or {}).get("status", "open"))
 
 
 REGISTRY: dict[str, object] = {}

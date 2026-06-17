@@ -375,7 +375,12 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
                 return value
         return str(rec.get("mode") or "discovery")
     if kind == "prototype":
-        return str(rec.get("type") or "prototype")
+        if rec.get("type"):
+            return str(rec.get("type"))
+        fidelity = str(rec.get("fidelity") or "")
+        if fidelity and fidelity not in _PROTOTYPE_DISCRIMINATORS and _registry.resolve_form("prototype", fidelity):
+            return fidelity
+        return "prototype"
     if kind == "session":
         subject = rec.get("subject") or {}
         sk = subject.get("kind") or ""
@@ -433,6 +438,12 @@ def survey_question_form_values(rec: dict[str, Any]) -> list[str]:
 
 def survey_question_form_labels(rec: dict[str, Any]) -> list[str]:
     return [t(_QUESTION_KIND_LABEL_KEYS[value]) for value in survey_question_form_values(rec)]
+
+
+def prototype_fidelity_value(rec: dict[str, Any]) -> str:
+    """Return the true prototype fidelity rung, excluding legacy form values stored there."""
+    fidelity = str((rec or {}).get("fidelity") or "")
+    return fidelity if fidelity in _PROTOTYPE_DISCRIMINATORS else ""
 
 
 def form_value(kind: str, rec: dict[str, Any]) -> str:
