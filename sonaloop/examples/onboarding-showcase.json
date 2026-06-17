@@ -1,7 +1,7 @@
 {
   "schema": "sonaloop_example/1",
   "slug": "onboarding-showcase",
-  "tagline": "A guided sample project with every major artifact: council, report, survey, prototype, session, hypothesis, decision, notes, assets, and a flow.",
+  "tagline": "A guided sample project with every major artifact: council, report, survey, prototype, session, hypothesis, decision, notes, references, and assets.",
   "project": {
     "title": "Onboarding showcase — TeamPulse rollout",
     "goal": "Show how Sonaloop turns one research question into connected artifacts a team can inspect, challenge, and hand off.",
@@ -99,7 +99,7 @@
   "open_questions": [
     {"text": "Would teams trust a weekly pulse check if follow-up is visible?", "created_at": "2026-06-14T10:30:00Z"},
     {"text": "Which artifact proves enough value for a capped pilot?", "created_at": "2026-06-14T10:31:00Z"},
-    {"text": "Where would frontline managers abandon the first-run flow?", "created_at": "2026-06-14T10:32:00Z"}
+    {"text": "Where would frontline managers abandon the first-run experience?", "created_at": "2026-06-14T10:32:00Z"}
   ],
   "assets": [
     {"key": "screen_intro", "filename": "teampulse-intro.png", "kind": "screenshot", "title": "Prototype screen: intro", "notes": "First screen used in the artifact walkthrough.", "created_at": "2026-06-14T10:20:00Z", "content_base64": "iVBORw0KGgoAAAANSUhEUgAAALQAAAB4CAIAAADUhU+qAAABQklEQVR42u3dIQ6AIABAUa5m4Rg2L2c3eCA3g85k0KIH0IIJ4W3/AExeQWCEbZ2k14JPIDgEh+AQHIJDcKgQHOexq5LgEByCQ3AIDsEhOASH4BAcaTjabtaPgkNwCA7BITgEh+CAAw444IADDjjggENwCA7BIThUPg457CM44IADDsEhOASH4BAcgkNwCA7B8Q1HjE1WmWw44IADDjjggAMOOOCAAw444IADDjjgkN/ngkNwCA7BITgEh+AQHKk4xqFXVsEhOASH4BAcgkOWsoIDDjjgEByCQ3AIDsEhOFQ7jmW7lGFwCA7BITgEh+B4DquYd/PggAMOOOCAAw444IADDjjggAMOOOCAAw444IADDjhsvNl4gwMOOASH4BAcqgSHXGoSHHDAAYfgEByCQ3AobxwSHIJDcAgOwSE4BId+1g0A/4CphwhcxwAAAABJRU5ErkJggg=="},
@@ -107,7 +107,7 @@
     {"key": "field_note", "filename": "field-note.txt", "kind": "document", "title": "Field note: shift handover", "notes": "Input evidence attached to the project.", "created_at": "2026-06-14T10:22:00Z", "content_base64": "RmllbGQgbm90ZTogc2hpZnQgaGFuZG92ZXIgaXNzdWVzIGFyZSByZXBlYXRlZCB3aGVuIG5vIG93bmVyIGlzIG5hbWVkLg=="}
   ],
   "flows": [
-    {"key": "first_run", "title": "TeamPulse first-run flow", "steps": [
+    {"key": "first_run", "title": "TeamPulse first-run screen sequence", "steps": [
       {"asset": "screen_intro", "caption": "Explain anonymity and the weekly rhythm"},
       {"asset": "screen_action", "caption": "Assign one visible follow-up owner"}
     ]}
@@ -140,7 +140,7 @@
     {
       "key": "visible-followup",
       "created_at": "2026-06-14T10:55:00Z",
-      "text": "If the first-run flow explains anonymity and shows a named follow-up owner, at least 60% of pilot respondents will support trying TeamPulse for four weeks.",
+      "text": "If the first-run experience explains anonymity and shows a named follow-up owner, at least 60% of pilot respondents will support trying TeamPulse for four weeks.",
       "prediction": {"metric": "support share on survey q3", "expected_value": 0.6, "tolerance": 0.1, "confidence": 0.72},
       "derived_from": [{"kind": "council", "key": "trust-council", "role": "derived_from"}]
     }
@@ -218,14 +218,14 @@
       "key": "lead-flow-walk",
       "created_at": "2026-06-14T11:45:00Z",
       "persona": "lead",
-      "subject": {"kind": "flow", "key": "first_run", "label": "TeamPulse first-run flow"},
+      "subject": {"kind": "flow", "key": "first_run", "label": "TeamPulse first-run screen walkthrough"},
       "fidelity": "artifact",
       "date": "2026-06-02",
       "steps": [
         {"index": 0, "action": {"type": "look", "target": "intro", "detail": "Reviewed anonymity screen"}, "monologue": "This has to be the first thing my team sees.", "state": {"screen": "screen_intro"}, "friction": {"level": "hesitation", "note": "Wants even plainer wording"}, "verdict": {"would_continue": true, "reason": "Privacy is addressed early."}},
         {"index": 1, "action": {"type": "look", "target": "action-owner", "detail": "Reviewed owner screen"}, "monologue": "An owner and due date is useful. That is different from just collecting complaints.", "state": {"screen": "screen_action"}, "friction": {"level": "none", "note": ""}, "verdict": {"would_continue": true, "reason": "The follow-up loop is visible."}}
       ],
-      "outcome": {"completed": true, "summary": "Continued through the flow because privacy and follow-up were both visible.", "predicted_behaviors": [{"action": "tries the four-week pilot with one team", "step": 1, "likelihood": "likely", "trigger": "named owner and due date"}]}
+      "outcome": {"completed": true, "summary": "Continued through the screen walkthrough because privacy and follow-up were both visible.", "predicted_behaviors": [{"action": "tries the four-week pilot with one team", "step": 1, "likelihood": "likely", "trigger": "named owner and due date"}]}
     },
     {
       "key": "ops-prototype-click",
@@ -236,7 +236,7 @@
       "date": "2026-06-02",
       "steps": [
         {"index": 0, "action": {"type": "click", "target": "Continue", "detail": "Opened the owner screen from the privacy intro"}, "monologue": "This is the exact sequence I need: explain trust, then show who owns the loop.", "state": {"screen": "Privacy first"}, "friction": {"level": "none", "note": ""}, "verdict": {"would_continue": true, "reason": "The prototype gives the right first impression."}},
-        {"index": 1, "action": {"type": "click", "target": "Looks clear", "detail": "Confirmed the follow-up owner concept"}, "monologue": "A site lead can understand this without a dashboard tour.", "state": {"screen": "One visible follow-up"}, "friction": {"level": "hesitation", "note": "Would still ask for mobile layout before launch"}, "verdict": {"would_continue": true, "reason": "The flow is short enough for a pilot."}}
+        {"index": 1, "action": {"type": "click", "target": "Looks clear", "detail": "Confirmed the follow-up owner concept"}, "monologue": "A site lead can understand this without a dashboard tour.", "state": {"screen": "One visible follow-up"}, "friction": {"level": "hesitation", "note": "Would still ask for mobile layout before launch"}, "verdict": {"would_continue": true, "reason": "The experience is short enough for a pilot."}}
       ],
       "outcome": {"completed": true, "summary": "Completed the clickable prototype and asked to verify mobile density before rollout.", "predicted_behaviors": [{"action": "sponsors a one-site pilot", "step": 1, "likelihood": "likely", "trigger": "short privacy-to-owner path"}]}
     },
@@ -248,7 +248,7 @@
       "fidelity": "live",
       "date": "2026-06-03",
       "steps": [
-        {"index": 0, "action": {"type": "navigate", "target": "external app", "detail": "Reviewed the external prototype reference as a live surface"}, "monologue": "An external prototype is useful for stakeholder review, but I need the privacy copy preserved in the captured evidence.", "state": {"screen": "External prototype landing", "url": "https://design.sonaloop.com", "title": "sonaloop-design"}, "friction": {"level": "hesitation", "note": "Live links can drift after the council"}, "verdict": {"would_continue": true, "reason": "The link is useful when paired with a captured reference."}}
+        {"index": 0, "action": {"type": "navigate", "target": "external app", "detail": "Reviewed the external prototype reference as a live URL"}, "monologue": "An external prototype is useful for stakeholder review, but I need the privacy copy preserved in the captured evidence.", "state": {"screen": "External prototype landing", "url": "https://design.sonaloop.com", "title": "sonaloop-design"}, "friction": {"level": "hesitation", "note": "Live links can drift after the council"}, "verdict": {"would_continue": true, "reason": "The link is useful when paired with a captured reference."}}
       ],
       "outcome": {"completed": true, "summary": "Accepted the external prototype as review material only because the project also keeps reproducible references.", "predicted_behaviors": [{"action": "shares prototype with works council prep group", "step": 0, "likelihood": "possible", "trigger": "live link plus captured council reference"}]}
     }
@@ -279,7 +279,7 @@
           "questions": [
             "Would teams trust a weekly pulse check if follow-up is visible?",
             "Which artifact proves enough value for a capped pilot?",
-            "Where would frontline managers abandon the first-run flow?"
+            "Where would frontline managers abandon the first-run experience?"
           ],
           "hypotheses": ["Visible follow-up plus privacy explanation unlocks a capped pilot."],
           "memory_refs": ["note:privacy-before-value", "note:owner-loop"]
@@ -318,7 +318,7 @@
       },
       {
         "id": "act__test",
-        "title": "Test flow, prototype and live reference",
+        "title": "Test screen walkthrough, prototype and live reference",
         "bucket": "act",
         "capability": "test",
         "status": "done",
