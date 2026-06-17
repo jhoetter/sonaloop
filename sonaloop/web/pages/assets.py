@@ -8,10 +8,7 @@ Three routes on the shared anatomy, zero new presentation:
                           block, properties rail). GLOBAL id resolution across projects, like
                           every other kind's detail route (get_asset is project-scoped, so the
                           lookup scans the project records — assets ride the project JSON blob).
-  - /projects/{id}?view=files — the project FILES lens (project_files_page, dispatched by the
-                          project route): ALL of the project's assets chronologically, in + out
-                          interleaved with day separators — the across-many-messages story,
-                          reachable from the project header's "N files" chip.
+  - /projects/{id}     — the project outline includes the project's assets in context.
 
 The shared pill/size/source-chip/preview renderers live in web/_presence (the house pattern);
 rows are ui.primitive_row, so the slide-over (§8.1) works from every surface."""
@@ -21,7 +18,7 @@ from ._ctx import *  # noqa: F401,F403  (shared render toolkit)
 from .. import ui
 from .._presence import (
     asset_direction, asset_direction_pill, asset_file_card, asset_kind_pill,
-    asset_preview_html, asset_source_chip, file_card,
+    asset_preview_html, asset_source_chip,
 )
 
 
@@ -65,50 +62,6 @@ def _provenance_section(a: dict, store) -> str:
              h("div", {"class_": "sl-props sl-props--quiet"}, fragment(*props)))
 
 
-def project_files_page(project_id: str) -> str:
-    """The project FILES lens (?view=files): every asset of the project chronologically as
-    FILE CARDS (ux-contract §9 V9 — the `.sl-file-grid` of `.sl-file` cards: type identity
-    first, filename+ext as the title, size · date meta, direction pill, the quiet source
-    chip; exactly ONE download/open affordance — the card body opens the detail/slide-over).
-    Evidence in and deliverables out interleave by created_at; day separators stay as grid
-    section headers. The across-many-MCP-messages story (§8.3)."""
-    store = Store()
-    try:
-        proj = services.get_research_project(project_id, store=store)
-    except KeyError:
-        return _layout(t("not_found"), _empty_state(t("not_found"), t("runtime_maybe_cleared"), icon="projects"),
-                       store, active="projects")
-    assets = sorted(services.list_assets(project_id, store=store),
-                    key=lambda a: a.get("created_at", ""))
-    sections: list = []
-    day, cards = None, []
-    for a in assets:
-        if (a.get("created_at") or "")[:10] != day:
-            if cards:
-                sections.append(h("div", {"class_": "sl-file-grid"}, fragment(*(raw(str(c)) for c in cards))))
-            day, cards = (a.get("created_at") or "")[:10], []
-            sections.append(ui.group_header(ui._fmt_day(day)))
-        cards.append(file_card(a, store, drawer=True, source=True))
-    if cards:
-        sections.append(h("div", {"class_": "sl-file-grid"}, fragment(*(raw(str(c)) for c in cards))))
-    if sections:
-        rows_html = h("div", {"class_": "rows", "data-keynav": True},
-                      fragment(*(raw(str(s)) for s in sections)))
-    else:
-        rows_html = h("div", {"class_": "sl-empty"},
-                      h("div", {"class_": "sl-empty__icon"}, raw(_icon("clipboard"))),
-                      h("h2", {"class_": "sl-empty__title"}, t("no_assets")),
-                      h("p", {"class_": "sl-empty__body"}, t("assets_teach")))
-    body = h("div", {"class_": "page"},
-             h("h1", {"class_": "h1"}, t("files_h"),
-               h("span", {"class_": "h1cnt"}, str(len(assets))) if assets else None),
-             h("p", {"class_": "lead"}, t("files_lead")),
-             rows_html)
-    return _layout(f'{proj["title"]} — {t("files_h")}', body, store, active="projects",
-                   crumbs=[(t("projects"), "/projects"), (proj["title"], f'/projects/{project_id}'),
-                           (t("files_h"), None)])
-
-
 def register_assets(app) -> None:
     @app.get("/assets", response_class=HTMLResponse)
     def assets_list(project: str = Query(default=""), status: str = Query(default=""),
@@ -125,7 +78,7 @@ def register_assets(app) -> None:
         """An asset's REAL detail page (UX U8 — the U7 anatomy): ASSET eyebrow + kind/direction
         pills, image preview / file card with download, the text excerpt for documents, the
         PROVENANCE block (when received/generated, source chip, supersede chain, notes), and
-        the properties rail (project · files lens · created).
+        the properties rail (project · created).
 
         Round-4 J2 (ux-audit): the page reads ONCE top to bottom — filename, size and
         mimetype live only on the file card (no H1 sub line), the rail carries no
@@ -149,13 +102,9 @@ def register_assets(app) -> None:
                ui.clamp(excerpt, threshold=ui.SECTION_CLAMP)) if excerpt else None),
             raw(_provenance_section(a, store)))
         proj_link = h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"])
-        n_proj_files = len(proj.get("assets") or [])
-        files_link = h("a", {"href": f'/projects/{proj["id"]}?view=files'},
-                       t("one_file") if n_proj_files == 1 else t("n_files", n=n_proj_files))
         prop_rows = [
             ("projects", t("project"), proj_link),
             *detail_form_rows("asset", a),
-            ("file", t("files_h"), files_link),
             ("dot", t("created"), ui.fmt_date(a.get("created_at") or "")),
         ]
         return detail_page(

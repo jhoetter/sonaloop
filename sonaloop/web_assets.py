@@ -23,20 +23,17 @@ svg.ic{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke
 
 /* ---- app shell ---- The chrome (.sl-app-shell · .sl-sidebar · .sl-nav · .sl-resize ·
    .sl-topbar · .sl-usermenu) is the shared design-system layer (COMPONENTS_CSS); its
-   behaviour is _shell.SHELL_JS. Only the app-specific favorites/footer rows live here. */
+   behaviour is _shell.SHELL_JS. Only app-specific favorites/extension-footer polish lives here. */
 .sb-quick{display:flex;flex-direction:column;gap:1px}
 .sb-quick a{display:block;padding:var(--s-1) var(--s-2);border-radius:var(--radius-sm);color:var(--muted);font-size:var(--t-sm);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sb-quick a:hover{background:var(--hover);color:var(--ink)}
-/* Sidebar footer rows (Documentation · Feedback · Take the tour · ? shortcuts): the SAME
-   .sl-nav row contract as the nav above (height, hover, icon size — ux-contract §9 V7/W7);
-   only the placement differs. The `?` keycap is the shared .sl-kbd chip, sized into the
-   16px icon slot so the row geometry stays byte-identical to the rows around it. */
+/* Sidebar footer rows are extension-only in the core shell. If an extension registers one,
+   it still gets the same .sl-nav row contract as the nav above (height, hover, icon size).
+   The optional `?` keycap is sized into the 16px icon slot so row geometry stays identical. */
 .sl-sb-foot{flex-shrink:0;padding:var(--s-2);border-top:1px solid var(--line)}
 .sl-sb-foot .sl-kbd{flex:none;width:16px;height:16px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:var(--t-xs);color:var(--faint);transition:transform .18s ease,color .18s,border-color .18s}
-/* Hover liveliness parity with the nav rows (owner round 5: "unten … nicht animiert"): the
-   docs/feedback/tour icons play their .pi-animate micro-interaction on row hover (the rows
-   carry .pi-hover like the nav rows); the `?` keycap — no icon to animate — "presses" like
-   a real key instead. Guarded by reduced-motion like the icon layer. */
+/* Hover liveliness parity with the nav rows: footer icons play their .pi-animate
+   micro-interaction on row hover; a keycap row "presses" like a real key instead. */
 @media (prefers-reduced-motion: no-preference){
 .sl-sb-foot .pi-hover:hover .sl-kbd{transform:translateY(1px);color:var(--ink);border-color:var(--faint)}
 }
@@ -60,9 +57,10 @@ svg.ic{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke
 .ol-phase>summary::-webkit-details-marker{display:none}
 .ol-phase>summary .ol-gl{color:var(--accent);font-size:var(--t-sm);width:14px;text-align:center}
 .ol-phase>summary b{font-weight:650;letter-spacing:-.01em}
-.ol-rlabel{font-size:var(--t-xs);font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);padding:8px 8px 4px 32px}
+.ol-rlabel{display:flex;align-items:center;gap:8px;font-size:var(--t-xs);font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);padding:8px 8px 4px}
+.ol-rlabel__ico{width:24px;display:inline-flex;justify-content:center;color:var(--muted)}
 /* File rows INSIDE the outline follow the outline's FLAT idiom — the boxed .sl-file--row
-   card variant is for the Library/files lens. A box among flat siblings reads as a stray
+   card variant is for the Library assets grid. A box among flat siblings reads as a stray
    divider + floating card (owner round 5); the spacing harness flags the mixed idiom. */
 .outline .sl-file--row{border:0;background:transparent;border-radius:0;padding:7px 8px}
 .outline .sl-file--row:hover{background:var(--hover);border-radius:var(--radius-sm)}

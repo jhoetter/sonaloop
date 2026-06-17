@@ -1,0 +1,407 @@
+[
+  {
+    "id": "day_db68f48fae13485c",
+    "persona_id": "persona_1317d5cacfe44114",
+    "date": "2026-01-22",
+    "mood": "angespannt, aber handlungsfaehig",
+    "completed": [
+      "histaminarme Pausenbox vor Fruehdienst vorbereiten"
+    ],
+    "blockers": [
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag",
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit fuer Planung"
+    ],
+    "open_loops": [
+      "Apothekenweg fuer zuhause nach Dienstende klaeren",
+      "Pruefen, ob Kartoffel-Gurke als sicherer Pausenanker reicht"
+    ],
+    "pain_points": [
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag",
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit fuer Planung"
+    ],
+    "notable_memories": [
+      "Lucia packte vor einem engen Infusionstag eine abgesicherte Pausenbox, weil der Vortag mit Breze und Bauchdruck geendet hatte."
+    ],
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "day_6eaad77aa49f4df1",
+    "persona_id": "persona_1317d5cacfe44114",
+    "date": "2026-01-30",
+    "mood": "angespannt, aber handlungsfähig",
+    "completed": [
+      "Dienstplan mit Essensfenster abgleichen"
+    ],
+    "blockers": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Planung muss ohne lange Bildschirmzeit funktionieren",
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben"
+    ],
+    "open_loops": [
+      "Mit Samira klären, ob der 12:15-Block künftig früher markiert werden kann",
+      "Rezeptabholung zuhause bis zur Mittagspause zurückmelden"
+    ],
+    "pain_points": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Planung muss ohne lange Bildschirmzeit funktionieren",
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben"
+    ],
+    "notable_memories": [
+      "Lucia bemerkte vor dem Frühdienst, dass ein zusätzlicher Infusionsblock ihre geplante Essenspause genau überdecken würde."
+    ],
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "day_94dfc57346c840c1",
+    "persona_id": "persona_1317d5cacfe44114",
+    "date": "2026-02-06",
+    "mood": "konzentriert mit gereiztem Unterton",
+    "completed": [
+      "Infusionstermine nach Arztverzoegerung neu takten"
+    ],
+    "blockers": [
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Pausen sind abhaengig von anderen Menschen, nicht vom eigenen Hunger"
+    ],
+    "open_loops": [
+      "Mit Samira klaeren, ob ein gemeinsames Zeichen fuer ungestoerte Pausen moeglich ist",
+      "Rueckmeldung der spaeteren Patientin im Kalender nachtragen"
+    ],
+    "pain_points": [
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Pausen sind abhaengig von anderen Menschen, nicht vom eigenen Hunger"
+    ],
+    "notable_memories": [
+      "Eine kurzfristige Verschiebung im Infusionsplan drueckte Lucias geplantes Essensfenster zusammen und machte Samiras Hilfe noetig."
+    ],
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "day_dc2c0fd2fbec4485",
+    "persona_id": "persona_1317d5cacfe44114",
+    "date": "2026-02-24",
+    "mood": "erschöpft und dünnhäutig",
+    "completed": [
+      "Emotionale Unterbrechung nach Infusionstermin abfedern"
+    ],
+    "blockers": [
+      "Andere Menschen hängen direkt an Entscheidungen und Reaktionszeiten",
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger"
+    ],
+    "open_loops": [
+      "Formulierungen für Wartezeitkarte sammeln",
+      "Mit Samira abstimmen, ob die Karte am Tresen liegen darf"
+    ],
+    "pain_points": [
+      "Andere Menschen hängen direkt an Entscheidungen und Reaktionszeiten",
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger"
+    ],
+    "notable_memories": [
+      "Nach einem angespannten Gespräch mit einer Patiententochter wich Lucia in den Aktenraum aus und rettete dort eine kurze, histaminarme Pause."
+    ],
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "day_14d308c5a95a474d",
+    "persona_id": "persona_1317d5cacfe44114",
+    "date": "2026-03-18",
+    "mood": "unsicher, aber klarer als sonst",
+    "completed": [
+      "Dienstplanrueckfrage wegen spaetem Mittwochsdienst formulieren"
+    ],
+    "blockers": [
+      "Private Sorgearbeit wird unsichtbar in die Nacht geschoben",
+      "Zeitfenster lassen sich selten komplett selbst waehlen"
+    ],
+    "open_loops": [
+      "Antwort der planenden Stelle abwarten",
+      "Freitagstermin mit Familienkontakt fest zusagen oder Ersatz finden"
+    ],
+    "pain_points": [
+      "Private Sorgearbeit wird unsichtbar in die Nacht geschoben",
+      "Zeitfenster lassen sich selten komplett selbst waehlen"
+    ],
+    "notable_memories": [
+      "Lucia widersprach einer Dienstplanluecke, weil sie sonst nach Feierabend Sorgearbeit und Einkauf nicht mehr sortiert bekommen haette."
+    ],
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "day_a5be8b12ce1d4afc",
+    "persona_id": "persona_1317d5cacfe44114",
+    "date": "2026-03-19",
+    "mood": "kurz erleichtert, dann ernuechtert",
+    "completed": [
+      "Antwort auf Dienstplanrueckfrage einordnen"
+    ],
+    "blockers": [
+      "Andere Menschen haengen direkt an Entscheidungen und Reaktionszeiten",
+      "Planende Stelle optimiert fuer Abdeckung, nicht fuer Pausen oder Wege"
+    ],
+    "open_loops": [
+      "In zwei Wochen erneut auf spaete Mittwochsdienste schauen",
+      "Moegliche feste Tauschregel mit Samira besprechen"
+    ],
+    "pain_points": [
+      "Andere Menschen haengen direkt an Entscheidungen und Reaktionszeiten",
+      "Planende Stelle optimiert fuer Abdeckung, nicht fuer Pausen oder Wege"
+    ],
+    "notable_memories": [
+      "Die planende Stelle bot Lucia nur einen einmaligen Tausch an, wodurch die Grundfrage ihrer Belastung offen blieb."
+    ],
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "day_d1ba644f46e64193",
+    "persona_id": "persona_1317d5cacfe44114",
+    "date": "2026-04-08",
+    "mood": "müde, aber abgegrenzt",
+    "completed": [
+      "Rezeptabholung mit Heimweg und Abendessen verbinden"
+    ],
+    "blockers": [
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag",
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung",
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben"
+    ],
+    "open_loops": [
+      "Familienkontakt an neue Vorabend-Regel erinnern",
+      "Prüfen, ob Stammapotheke Vorbestellung per Telefon annimmt"
+    ],
+    "pain_points": [
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag",
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung",
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben"
+    ],
+    "notable_memories": [
+      "Lucia musste nach einem vollen Infusionstag noch zur Apotheke und merkte, dass der Heimweg ihre Abendplanung regelmäßig auffrisst."
+    ],
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "day_58dbcae161a94d4c",
+    "persona_id": "persona_1317d5cacfe44114",
+    "date": "2026-04-27",
+    "mood": "beruehrt und erschoepft, danach stabiler",
+    "completed": [
+      "Pausenanker trotz emotionaler Unterbrechung schuetzen"
+    ],
+    "blockers": [
+      "Emotionale Naehe frisst unbemerkt Energie",
+      "Pausen sind abhaengig von anderen Menschen, nicht vom eigenen Hunger"
+    ],
+    "open_loops": [
+      "Mit Samira absprechen, ob sie dieses Zeichen auch fuer sich nutzen will",
+      "Pruefen, ob Aktenraum mittags regelmaessig frei bleibt"
+    ],
+    "pain_points": [
+      "Emotionale Naehe frisst unbemerkt Energie",
+      "Pausen sind abhaengig von anderen Menschen, nicht vom eigenen Hunger"
+    ],
+    "notable_memories": [
+      "Lucia testete eine stille Zehn-Minuten-Pause im Aktenraum, nachdem das Wartezimmer durch eine belastete Angehoerige unruhig geworden war."
+    ],
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "day_656899f0216d4636",
+    "persona_id": "persona_1317d5cacfe44114",
+    "date": "2026-05-06",
+    "mood": "vorsichtig erleichtert",
+    "completed": [
+      "Pausenzeichen im Praxisablauf ausprobieren"
+    ],
+    "blockers": [
+      "Andere Menschen hängen direkt an Entscheidungen und Reaktionszeiten",
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Planung muss ohne lange Bildschirmzeit funktionieren"
+    ],
+    "open_loops": [
+      "Nach einer Woche prüfen, ob der Punkt wirklich respektiert wird",
+      "Formulierung auf der Karte eventuell knapper machen"
+    ],
+    "pain_points": [
+      "Andere Menschen hängen direkt an Entscheidungen und Reaktionszeiten",
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Planung muss ohne lange Bildschirmzeit funktionieren"
+    ],
+    "notable_memories": [
+      "Lucia und Samira testeten erstmals ein sichtbares Zeichen am Tresen, damit kurze Pausen nicht jedes Mal neu verhandelt werden müssen."
+    ],
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "day_69e5140657e1430f",
+    "persona_id": "persona_1317d5cacfe44114",
+    "date": "2026-05-14",
+    "mood": "matt, aber zufrieden ueber die vermiedene Notloesung",
+    "completed": [
+      "Abendessen und naechste Pausenbox ohne teuren Notkauf sichern"
+    ],
+    "blockers": [
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit fuer Planung",
+      "Weniger teure oder koerperlich schlechte Notloesungen fehlen im Alltag"
+    ],
+    "open_loops": [
+      "Krankenkassenbrief nach dem Essen lesen",
+      "Vorratsliste um zwei sichere Notfallzutaten ergaenzen"
+    ],
+    "pain_points": [
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit fuer Planung",
+      "Weniger teure oder koerperlich schlechte Notloesungen fehlen im Alltag"
+    ],
+    "notable_memories": [
+      "Lucia entschied sich gegen einen teuren Spontaneinkauf am Bahnhof und baute zuhause eine einfache sichere Abendbasis fuer zwei Dienste vor."
+    ],
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "day_9dc021eef2d64581",
+    "persona_id": "persona_1317d5cacfe44114",
+    "date": "2026-05-29",
+    "mood": "ausgelaugt, aber geordnet",
+    "completed": [
+      "Histaminarme Basis für mehrere Dienste vorbereiten"
+    ],
+    "blockers": [
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag",
+      "Mit einfachen Routinen weniger Notlösungen brauchen",
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung"
+    ],
+    "open_loops": [
+      "Samstagseinkauf mit Familienkontakt kurz halten",
+      "Montagsbox morgens sichtbar an die Wohnungstür stellen"
+    ],
+    "pain_points": [
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag",
+      "Mit einfachen Routinen weniger Notlösungen brauchen",
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung"
+    ],
+    "notable_memories": [
+      "Lucia bereitete nach einer belastenden Woche keine Idealroutine vor, sondern drei sichere Bausteine für Diensttage mit wenig Reserve."
+    ],
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "day_e6be3bcbcc1c4e7e",
+    "persona_id": "persona_1317d5cacfe44114",
+    "date": "2026-06-03",
+    "mood": "vorsichtig hoffnungsvoll",
+    "completed": [
+      "praktisches Pausenzeichen fuer Infusionstage vereinbaren"
+    ],
+    "blockers": [
+      "Pausen sind abhaengig von anderen Menschen, nicht vom eigenen Hunger",
+      "Planung muss ohne lange Bildschirmzeit funktionieren"
+    ],
+    "open_loops": [
+      "Nach zwei Wochen pruefen, ob das Zeichen wirklich respektiert wird",
+      "Planende Stelle noch nicht einbeziehen, bevor Samira und Lucia es getestet haben"
+    ],
+    "pain_points": [
+      "Pausen sind abhaengig von anderen Menschen, nicht vom eigenen Hunger",
+      "Planung muss ohne lange Bildschirmzeit funktionieren"
+    ],
+    "notable_memories": [
+      "Lucia und Samira einigten sich auf ein kleines Pausenzeichen am Tresen, damit kurze Essensfenster nicht jedes Mal neu erklaert werden muessen."
+    ],
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "day_0dc98416dba0cc3f",
+    "persona_id": "persona_1317d5cacfe44114",
+    "date": "2026-06-09",
+    "mood": "angespannt, aber handlungsfähig",
+    "completed": [
+      "Morgendlicher Realitätscheck",
+      "Abstimmung mit knapper Reserve",
+      "Essensfenster gegen Nebenbei-Arbeit schützen",
+      "Abendroutine ohne Idealplan"
+    ],
+    "blockers": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung",
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag"
+    ],
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten",
+      "Abstimmung mit knapper Reserve nachhalten"
+    ],
+    "pain_points": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung",
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag"
+    ],
+    "notable_memories": [
+      "Lucia Moreno Abstimmung mit knapper Reserve using Kalender; outcome: left an open follow-up.",
+      "Lucia Moreno Essensfenster gegen Nebenbei-Arbeit schützen using Pausenbox; outcome: resolved enough to move forward.",
+      "Lucia Moreno Abendroutine ohne Idealplan using Küche zuhause; outcome: resolved enough to move forward."
+    ],
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "day_07f86ab7a9fd24cd",
+    "persona_id": "persona_1317d5cacfe44114",
+    "date": "2026-06-10",
+    "mood": "müde und etwas klarer sortiert",
+    "completed": [
+      "Morgendlicher Realitätscheck",
+      "Abstimmung mit knapper Reserve",
+      "Essensfenster gegen Nebenbei-Arbeit schützen",
+      "Abendroutine ohne Idealplan"
+    ],
+    "blockers": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung",
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag"
+    ],
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten",
+      "Abstimmung mit knapper Reserve nachhalten"
+    ],
+    "pain_points": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung",
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag"
+    ],
+    "notable_memories": [
+      "Lucia Moreno Abstimmung mit knapper Reserve using Kalender; outcome: left an open follow-up.",
+      "Lucia Moreno Essensfenster gegen Nebenbei-Arbeit schützen using Pausenbox; outcome: resolved enough to move forward.",
+      "Lucia Moreno Abendroutine ohne Idealplan using Küche zuhause; outcome: resolved enough to move forward."
+    ],
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "day_1d5867b720c24551",
+    "persona_id": "persona_1317d5cacfe44114",
+    "date": "2026-06-12",
+    "mood": "nervös, aber klar",
+    "completed": [
+      "Belastungsmuster bei Infusionsblöcken benennen"
+    ],
+    "blockers": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Planende Stelle optimiert für Abdeckung, nicht für Pausen oder Wege",
+      "Zeitfenster lassen sich selten komplett selbst wählen"
+    ],
+    "open_loops": [
+      "Prüfen, ob die Markierung in der nächsten Dienstplanversion wirklich auftaucht",
+      "Mit Samira nach zwei Wochen Rückmeldung sammeln"
+    ],
+    "pain_points": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Planende Stelle optimiert für Abdeckung, nicht für Pausen oder Wege",
+      "Zeitfenster lassen sich selten komplett selbst wählen"
+    ],
+    "notable_memories": [
+      "Lucia gab der planenden Stelle erstmals eine konkrete Rückmeldung zu zwei Infusionsblöcken statt nur einen einzelnen Diensttausch zu erbitten."
+    ],
+    "created_at": "2026-06-15T12:14:27+00:00"
+  }
+]

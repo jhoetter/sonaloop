@@ -40,10 +40,9 @@ STRINGS: dict[str, dict[str, str]] = {
         "synthesis_kind": "Report", "n_sections": "{n} Abschnitte", "toc": "Inhalt", "citations": "Belege", "report_unavailable": "Noch kein Report — entsteht, wenn die Studie reif ist.", "open_questions_h": "Offene Fragen", "prototypes_h": "Prototypen",
         "references_h": "Referenzen", "reference_kind": "Referenz", "reference_snapshot_h": "Erfasste Momentaufnahme", "variant_label_h": "Label", "url_h": "URL", "artifact_captured": "erfasst", "artifact_capture_failed": "nicht erfasst — nur Referenz", "artifact_kind_url": "Website", "artifact_kind_prototype": "Externer Prototyp", "artifact_kind_variant": "A/B-Variante",
         "assets_h": "Assets", "asset_kind_image": "Bild", "asset_kind_screenshot": "Screenshot", "asset_kind_document": "Dokument", "asset_kind_file": "Datei",
-        "asset_dir_in": "Evidenz", "asset_dir_out": "Deliverable", "asset_deliverables_h": "Deliverables", "asset_evidence_h": "Evidenz",
+        "asset_dir_in": "Evidenz", "asset_dir_out": "Deliverable", "asset_deliverables_h": "Deliverables", "asset_evidence_h": "Assets",
         "asset_kind": "Asset", "no_assets": "Noch keine Assets.", "assets_lead": "Was reinkam und was rausging — jede Datei mit Herkunft: Evidenz via MCP empfangen, Deliverables von der Software erzeugt.", "assets_teach": "Hänge eine Datei als Evidenz an ein Projekt (attach_asset).",
         "provenance_h": "Herkunft", "asset_received": "Empfangen", "asset_generated": "Erzeugt", "asset_source": "Quelle", "asset_supersedes": "Ersetzt", "asset_excerpt_h": "Auszug", "download": "Download", "direction_h": "Richtung",
-        "files_h": "Dateien", "n_files": "{n} Dateien", "one_file": "1 Datei", "files_lead": "Alle Dateien dieses Projekts, chronologisch — Evidenz rein, Deliverables raus.",
         "no_projects": "Noch keine Jobs. Lege einen an oder backfille deine Reports (CLI: research-backfill).",
         "type_h": "Typ", "clear_filter": "zurücksetzen", "round_n": "Runde {n}", "relations": "Beziehungen", "rel_based_on": "Basiert auf", "rel_feeds_into": "Fließt ein in",
         "filter_h": "Filter", "filter_is": "ist", "filter_no_options": "Keine Optionen", "filter_no_matches_h": "Nichts entspricht den Filtern", "filter_no_matches": "Keine Zeilen entsprechen diesen Filtern — lockere sie oder setze sie zurück.", "phase_h": "Phase", "persona_h": "Persona", "status_h": "Status", "subtype_h": "Format", "trace_h": "Trace", "trace_source": "Startpunkt", "trace_active": "noch offen", "trace_consumed": "verwendet", "trace_terminal": "Endpunkt", "trace_parked": "geparkt", "trace_orphaned": "ungenutzt",  # FilterBar (UX U10)
@@ -54,7 +53,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "no_councils": "Noch keine Councils.", "no_synthesis": "Noch keine Reports.",
         "open_questions_lead": "Die offenen Forschungsfragen, die die Studie antreiben — mit Status und Projektkontext.", "no_open_questions": "Noch keine offenen Fragen.", "references_lead": "Websites, externe Prototypen und A/B-Varianten, die in Councils im Raum lagen — reproduzierbar mit Snapshot.", "no_references": "Noch keine Referenzen.",
         "prototypes_lead": "Lauffähige Prototypen — von Personas getestet.", "no_prototypes": "Noch keine Prototypen.",
-        "notes": "Notizen", "notes_lead": "Rohe Beobachtungen aus der Forschung.", "no_notes": "Noch keine Notizen.", "library_h": "Formate",
+        "notes": "Notizen", "notes_lead": "Rohe Beobachtungen aus der Forschung.", "no_notes": "Noch keine Notizen.", "library_h": "Formate", "library_lead": "Wiederverwendbare Forschungsschritte, die Jobs und Methodologien als konkrete Arbeit einsetzen.",
         # list pagination (docs/pagination.md)
         "pager_prev": "Zurück", "pager_next": "Weiter", "page_of": "Seite {n} von {m}",
         "list_search_ph": "Liste filtern …",
@@ -484,10 +483,9 @@ STRINGS: dict[str, dict[str, str]] = {
         "synthesis_kind": "Report", "n_sections": "{n} sections", "toc": "Contents", "citations": "Citations", "report_unavailable": "No report yet — generated once the study matures.", "open_questions_h": "Open questions", "prototypes_h": "Prototypes",
         "references_h": "References", "reference_kind": "Reference", "reference_snapshot_h": "Captured snapshot", "variant_label_h": "Label", "url_h": "URL", "artifact_captured": "captured", "artifact_capture_failed": "not captured — reference only", "artifact_kind_url": "Website", "artifact_kind_prototype": "External prototype", "artifact_kind_variant": "A/B variant",
         "assets_h": "Assets", "asset_kind_image": "Image", "asset_kind_screenshot": "Screenshot", "asset_kind_document": "Document", "asset_kind_file": "File",
-        "asset_dir_in": "Evidence", "asset_dir_out": "Deliverable", "asset_deliverables_h": "Deliverables", "asset_evidence_h": "Evidence",
+        "asset_dir_in": "Evidence", "asset_dir_out": "Deliverable", "asset_deliverables_h": "Deliverables", "asset_evidence_h": "Assets",
         "asset_kind": "Asset", "no_assets": "No assets yet.", "assets_lead": "What came in and what went out — every file with its provenance: evidence received via MCP, deliverables generated by the software.", "assets_teach": "Attach a file to a project as evidence (attach_asset).",
         "provenance_h": "Provenance", "asset_received": "Received", "asset_generated": "Generated", "asset_source": "Source", "asset_supersedes": "Supersedes", "asset_excerpt_h": "Excerpt", "download": "Download", "direction_h": "Direction",
-        "files_h": "Files", "n_files": "{n} files", "one_file": "1 file", "files_lead": "Every file of this project, in order — evidence in, deliverables out.",
         "no_projects": "No jobs yet. Create one or backfill your reports (CLI: research-backfill).",
         "type_h": "Type", "clear_filter": "clear", "round_n": "Round {n}", "relations": "Relations", "rel_based_on": "Based on", "rel_feeds_into": "Feeds into",
         "filter_h": "Filter", "filter_is": "is", "filter_no_options": "No options", "filter_no_matches_h": "Nothing matches these filters", "filter_no_matches": "No rows match these filters — loosen or clear them.", "phase_h": "Phase", "persona_h": "Persona", "status_h": "Status", "subtype_h": "Format", "trace_h": "Trace", "trace_source": "Source", "trace_active": "not used yet", "trace_consumed": "used", "trace_terminal": "endpoint", "trace_parked": "parked", "trace_orphaned": "unused",  # FilterBar (UX U10)
@@ -498,7 +496,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "no_councils": "No councils yet.", "no_synthesis": "No reports yet.",
         "open_questions_lead": "The research questions driving the study — with status and project context.", "no_open_questions": "No open questions yet.", "references_lead": "Websites, external prototypes and A/B variants that were put in the council room — reproducible with snapshots.", "no_references": "No references yet.",
         "prototypes_lead": "Runnable prototypes — tested by personas.", "no_prototypes": "No prototypes yet.",
-        "notes": "Notes", "notes_lead": "Raw observations from the research.", "no_notes": "No notes yet.", "library_h": "Formats",
+        "notes": "Notes", "notes_lead": "Raw observations from the research.", "no_notes": "No notes yet.", "library_h": "Formats", "library_lead": "Reusable research moves that jobs and methodologies use as concrete work.",
         # list pagination (docs/pagination.md)
         "pager_prev": "Previous", "pager_next": "Next", "page_of": "Page {n} of {m}",
         "list_search_ph": "Filter list …",

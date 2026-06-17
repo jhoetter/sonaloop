@@ -1,0 +1,641 @@
+{
+  "entities": [
+    {
+      "id": "ent_eaf86504c95d0d80",
+      "persona_id": "persona_1317d5cacfe44114",
+      "kind": "topic",
+      "name": "haltbare Alltagsroutine",
+      "status": "aktiv",
+      "aliases": [
+        "Pausenanker",
+        "Notlösung vermeiden"
+      ],
+      "first_seen": "2026-06-09",
+      "last_seen": "2026-06-03",
+      "created_at": "2026-06-10T21:29:57.217849+00:00",
+      "updated_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "id": "ent_8ce47441a17e17f0",
+      "persona_id": "persona_1317d5cacfe44114",
+      "kind": "person",
+      "name": "Direkte Kollegin Samira",
+      "status": "Arbeitsumfeld",
+      "aliases": [],
+      "first_seen": "2026-06-09",
+      "last_seen": "2026-06-03",
+      "created_at": "2026-06-10T21:29:57.217849+00:00",
+      "updated_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "id": "ent_5c71e075cb5f456a",
+      "persona_id": "persona_1317d5cacfe44114",
+      "kind": "organization",
+      "name": "Planende Stelle",
+      "status": "wackelig",
+      "aliases": [
+        "Dienstplanung"
+      ],
+      "first_seen": "2026-03-18",
+      "last_seen": "2026-03-19",
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "ent_e3ab6460cf7f48bb",
+      "persona_id": "persona_1317d5cacfe44114",
+      "kind": "topic",
+      "name": "gelber Punkt als Pausenzeichen",
+      "status": "active",
+      "aliases": [
+        "Punkt-Notiz",
+        "Pausenzeichen am Tresen"
+      ],
+      "first_seen": "2026-06-03",
+      "last_seen": "2026-06-03",
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "ent_1f125ff658ed4c06",
+      "persona_id": "persona_1317d5cacfe44114",
+      "kind": "topic",
+      "name": "histaminarme sichere Basis",
+      "status": "active",
+      "aliases": [
+        "Reis-Ei-Zucchini",
+        "Kartoffel-Gurke-Box"
+      ],
+      "first_seen": "2026-01-22",
+      "last_seen": "2026-05-14",
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "ent_43871a04e4644153",
+      "persona_id": "persona_1317d5cacfe44114",
+      "kind": "person",
+      "name": "Familienkontakt zuhause",
+      "status": "private",
+      "aliases": [
+        "Zuhause"
+      ],
+      "first_seen": "2026-01-22",
+      "last_seen": "2026-05-14",
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "ent_f95a4ce83d6648a2",
+      "persona_id": "persona_1317d5cacfe44114",
+      "kind": "place",
+      "name": "Aktenraum der Praxis",
+      "status": "work_context",
+      "aliases": [
+        "Aktenraum"
+      ],
+      "first_seen": "2026-04-27",
+      "last_seen": "2026-04-27",
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "ent_6d23323d83cf47aa",
+      "persona_id": "persona_1317d5cacfe44114",
+      "kind": "place",
+      "name": "Apotheke am U-Bahnhof",
+      "status": "private",
+      "aliases": [
+        "Stammapotheke am U-Bahnhof"
+      ],
+      "first_seen": "2026-04-08",
+      "last_seen": "2026-04-08",
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "ent_55dec6d1954b4a8e",
+      "persona_id": "persona_1317d5cacfe44114",
+      "kind": "topic",
+      "name": "Wartezeitkarte Blutwerte",
+      "status": "active",
+      "aliases": [
+        "Standardsatzkarte",
+        "Tresenkarte Blutwerte"
+      ],
+      "first_seen": "2026-02-24",
+      "last_seen": "2026-02-24",
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "ent_304fb7c02a9146b8",
+      "persona_id": "persona_1317d5cacfe44114",
+      "kind": "project",
+      "name": "Frühere Markierung von Infusionskollisionen",
+      "status": "active",
+      "aliases": [
+        "12-Uhr-Markierung",
+        "Pausenkollisionen im Kalender"
+      ],
+      "first_seen": "2026-06-12",
+      "last_seen": "2026-06-12",
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "ent_d743ae926b564158",
+      "persona_id": "persona_1317d5cacfe44114",
+      "kind": "topic",
+      "name": "Wochenendbasis für Diensttage",
+      "status": "active",
+      "aliases": [
+        "Montag halten",
+        "drei sichere Bausteine"
+      ],
+      "first_seen": "2026-05-29",
+      "last_seen": "2026-05-29",
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "ent_6f22093ffb184180",
+      "persona_id": "persona_1317d5cacfe44114",
+      "kind": "place",
+      "name": "Tresenablage",
+      "status": "work_context",
+      "aliases": [
+        "Tresen",
+        "Empfangstresen"
+      ],
+      "first_seen": "2026-05-06",
+      "last_seen": "2026-06-12",
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    }
+  ],
+  "entity_facts": [
+    {
+      "id": "fact_eaf86504c95d0d80",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_eaf86504c95d0d80",
+      "fact": "Die Persona testet kleine, wiederholbare Alltagsanker statt Idealpläne.",
+      "t_valid": "2026-06-09",
+      "t_invalid": null,
+      "source_event_id": null,
+      "confidence": 0.82,
+      "importance": 4,
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "id": "fact_8ce47441a17e17f0",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_8ce47441a17e17f0",
+      "fact": "hilft praktisch, hat aber selbst kaum freie Zeit",
+      "t_valid": "2026-06-09",
+      "t_invalid": null,
+      "source_event_id": null,
+      "confidence": 0.72,
+      "importance": 3,
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "id": "fact_c1853c3dacd347de",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_eaf86504c95d0d80",
+      "fact": "Lucia nutzt sichtbare, kleine Anker wie Pausenbox an der Wohnungstuer oder Punkt-Notiz statt komplexer Planungsroutinen.",
+      "t_valid": "2026-01-22",
+      "t_invalid": null,
+      "source_event_id": "evt_3e074b4069734a7a",
+      "confidence": 0.86,
+      "importance": 4,
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "fact_41fc87fe540443be",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_8ce47441a17e17f0",
+      "fact": "Samira hilft Lucia praktisch beim Schuetzen kurzer Pausen, braucht aber selbst dieselbe Entlastung.",
+      "t_valid": "2026-04-27",
+      "t_invalid": null,
+      "source_event_id": "evt_3e074b4069734a7a",
+      "confidence": 0.82,
+      "importance": 4,
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "fact_a781be3727e84449",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_5c71e075cb5f456a",
+      "fact": "Die planende Stelle reagiert eher auf einzelne Diensttausche als auf Lucias wiederkehrendes Belastungsmuster.",
+      "t_valid": "2026-03-19",
+      "t_invalid": null,
+      "source_event_id": "evt_3e074b4069734a7a",
+      "confidence": 0.74,
+      "importance": 3,
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "fact_ae99805327df4e27",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_e3ab6460cf7f48bb",
+      "fact": "Der gelbe Punkt auf der Tresenablage steht fuer zehn Minuten geschuetzte Pause, ausser bei medizinischer Dringlichkeit.",
+      "t_valid": "2026-06-03",
+      "t_invalid": null,
+      "source_event_id": "evt_3e074b4069734a7a",
+      "confidence": 0.9,
+      "importance": 4,
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "fact_e27f6d2443894cf4",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_1f125ff658ed4c06",
+      "fact": "Reis, Ei, Zucchini sowie Kartoffel-Gurke-Kombinationen gelten fuer Lucia als einfache, guenstige und koerperlich sichere Optionen.",
+      "t_valid": "2026-05-14",
+      "t_invalid": null,
+      "source_event_id": "evt_3e074b4069734a7a",
+      "confidence": 0.78,
+      "importance": 4,
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "fact_31c159df4573437b",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_43871a04e4644153",
+      "fact": "Private Anliegen wie Apotheke, Krankenkassenbriefe und Begleitungstermine konkurrieren oft direkt mit Lucias Erholungsfenstern nach dem Dienst.",
+      "t_valid": "2026-03-18",
+      "t_invalid": null,
+      "source_event_id": "evt_3e074b4069734a7a",
+      "confidence": 0.8,
+      "importance": 4,
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "fact_835efe73af3540df",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_f95a4ce83d6648a2",
+      "fact": "Lucia nutzt den Aktenraum als Rueckzugsort fuer kurze Pausen nach emotional belastenden Situationen im Wartebereich.",
+      "t_valid": "2026-04-27",
+      "t_invalid": null,
+      "source_event_id": "evt_3e074b4069734a7a",
+      "confidence": 0.72,
+      "importance": 3,
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "fact_4d62b72e41194d00",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_1f125ff658ed4c06",
+      "fact": "Lucia trennt Gurke von Kartoffeln oder Reis, damit vorbereitete Boxen körperlich sicherer bleiben und nicht sofort als Notlösung kippen.",
+      "t_valid": "2026-05-29",
+      "t_invalid": null,
+      "source_event_id": "evt_8f1508e8583c48af",
+      "confidence": 0.83,
+      "importance": 4,
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "fact_6c84261cf2de417d",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_e3ab6460cf7f48bb",
+      "fact": "Der gelbe Punkt funktioniert für Lucia nur, wenn kritische Infusionsblöcke vorher im Kalender sichtbar sind.",
+      "t_valid": "2026-06-12",
+      "t_invalid": null,
+      "source_event_id": "evt_8f1508e8583c48af",
+      "confidence": 0.86,
+      "importance": 4,
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "fact_18e0a18aae4e4a9e",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_55dec6d1954b4a8e",
+      "fact": "Lucia möchte wiederkehrende Blutwert-Rückfragen mit einer kurzen Standardsatzkarte abfangen, um nach emotionalen Tresengesprächen weniger improvisieren zu müssen.",
+      "t_valid": "2026-02-24",
+      "t_invalid": null,
+      "source_event_id": "evt_8f1508e8583c48af",
+      "confidence": 0.76,
+      "importance": 3,
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "fact_4d58669159a84a2b",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_6d23323d83cf47aa",
+      "fact": "Apothekengänge nach spätem Dienst verbrauchen Lucias verbleibende Abendenergie und sollen möglichst am Vorabend geplant werden.",
+      "t_valid": "2026-04-08",
+      "t_invalid": null,
+      "source_event_id": "evt_8f1508e8583c48af",
+      "confidence": 0.8,
+      "importance": 4,
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "fact_103ef8d5d6604b67",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_304fb7c02a9146b8",
+      "fact": "Lucia hat der planenden Stelle drei konkrete 12-Uhr-Kollisionen gezeigt, damit neue Serieninfusionen früher als Pausenrisiko markiert werden.",
+      "t_valid": "2026-06-12",
+      "t_invalid": null,
+      "source_event_id": "evt_8f1508e8583c48af",
+      "confidence": 0.84,
+      "importance": 5,
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "fact_3b1d5a8c63d14cb6",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_8ce47441a17e17f0",
+      "fact": "Samira unterstützt Lucias Pausenzeichen praktisch und kann Ablaufargumente gegenüber der planenden Stelle ergänzen.",
+      "t_valid": "2026-06-12",
+      "t_invalid": null,
+      "source_event_id": "evt_8f1508e8583c48af",
+      "confidence": 0.81,
+      "importance": 4,
+      "created_at": "2026-06-15T12:14:27+00:00"
+    }
+  ],
+  "event_links": [
+    {
+      "event_id": "evt_3462505282311317",
+      "entity_id": "ent_eaf86504c95d0d80",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "routine_context",
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "event_id": "evt_0c915c9ec22d3cad",
+      "entity_id": "ent_eaf86504c95d0d80",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "routine_context",
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "event_id": "evt_1461a9f012431053",
+      "entity_id": "ent_eaf86504c95d0d80",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "routine_context",
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "event_id": "evt_6483d8494c19f14d",
+      "entity_id": "ent_eaf86504c95d0d80",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "routine_context",
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "event_id": "evt_5d7792febc6121f3",
+      "entity_id": "ent_eaf86504c95d0d80",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "routine_context",
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "event_id": "evt_c094e0e176dc5dbd",
+      "entity_id": "ent_eaf86504c95d0d80",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "routine_context",
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "event_id": "evt_7ab83d1946d7c541",
+      "entity_id": "ent_eaf86504c95d0d80",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "routine_context",
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "event_id": "evt_e5c3d4be3fb61f52",
+      "entity_id": "ent_eaf86504c95d0d80",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "routine_context",
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "event_id": "evt_3e074b4069734a7a",
+      "entity_id": "ent_eaf86504c95d0d80",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "event_id": "evt_cd915487f8dd4528",
+      "entity_id": "ent_eaf86504c95d0d80",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "event_id": "evt_5131714749cd4799",
+      "entity_id": "ent_eaf86504c95d0d80",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "event_id": "evt_cedf207a04f14287",
+      "entity_id": "ent_eaf86504c95d0d80",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "event_id": "evt_99869f86f47d4002",
+      "entity_id": "ent_eaf86504c95d0d80",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "event_id": "evt_5a45c5425a6c400f",
+      "entity_id": "ent_eaf86504c95d0d80",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "event_id": "evt_ea66f8b176364089",
+      "entity_id": "ent_eaf86504c95d0d80",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "event_id": "evt_8f1508e8583c48af",
+      "entity_id": "ent_6d23323d83cf47aa",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "event_id": "evt_1da28ec808d04599",
+      "entity_id": "ent_6d23323d83cf47aa",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "event_id": "evt_498c0befe84d4199",
+      "entity_id": "ent_6d23323d83cf47aa",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "event_id": "evt_268bc312f4f7473d",
+      "entity_id": "ent_6d23323d83cf47aa",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "event_id": "evt_f75d8d6c35b04af9",
+      "entity_id": "ent_6d23323d83cf47aa",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "event_id": "evt_94dbac56fb444777",
+      "entity_id": "ent_6d23323d83cf47aa",
+      "persona_id": "persona_1317d5cacfe44114",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T12:14:27+00:00"
+    }
+  ],
+  "threads": [
+    {
+      "id": "thread_47de179e09d345b2",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_5c71e075cb5f456a",
+      "text": "Lucia will das Muster der spaeten Mittwochsdienste ansprechen, nicht nur einzelne Tausche akzeptieren.",
+      "status": "open",
+      "opened_on": "2026-03-18",
+      "closed_on": null,
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "thread_765cb6b4ce0440e8",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_e3ab6460cf7f48bb",
+      "text": "Lucia und Samira testen, ob der gelbe Punkt am Tresen zwei Wochen lang als Pausenzeichen respektiert wird.",
+      "status": "open",
+      "opened_on": "2026-06-03",
+      "closed_on": null,
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "thread_2cbfe0841bca4937",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_1f125ff658ed4c06",
+      "text": "Lucia prueft, welche guenstigen histaminarmen Kombinationen auch nach spaetem Dienst noch machbar sind.",
+      "status": "open",
+      "opened_on": "2026-01-22",
+      "closed_on": null,
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "thread_864c75b01c7048b1",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_43871a04e4644153",
+      "text": "Sorgeaufgaben zuhause sollen frueher sichtbar werden, damit sie nicht nach spaeten Diensten in die Nacht rutschen.",
+      "status": "open",
+      "opened_on": "2026-03-18",
+      "closed_on": null,
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "thread_63864d026f7d48a7",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_eaf86504c95d0d80",
+      "text": "Der Pausenanker soll ohne lange Bildschirmzeit funktionieren und auch bei Infusionsverschiebungen greifen.",
+      "status": "open",
+      "opened_on": "2026-02-06",
+      "closed_on": null,
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "thread_e3b9a7282868423a",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_55dec6d1954b4a8e",
+      "text": "Formulierungen für eine kurze, ruhige Standardsatzkarte zu Blutwert-Wartezeiten sammeln und mit Samira am Tresen testen.",
+      "status": "open",
+      "opened_on": "2026-02-24",
+      "closed_on": null,
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "thread_21b17f1f3b584790",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_6d23323d83cf47aa",
+      "text": "Klären, ob Rezept- und Medikamententhemen zuhause spätestens am Vorabend kommen und ob die Apotheke Vorbestellungen annimmt.",
+      "status": "open",
+      "opened_on": "2026-04-08",
+      "closed_on": null,
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "thread_89b663564f724834",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_e3ab6460cf7f48bb",
+      "text": "Beobachten, ob der gelbe Punkt auch an vollen Infusionstagen respektiert wird oder nur funktioniert, wenn Samira aktiv mitzieht.",
+      "status": "open",
+      "opened_on": "2026-05-06",
+      "closed_on": null,
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "thread_aa502c3956f3484c",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_d743ae926b564158",
+      "text": "Die Vorbereitung auf drei sichere Bausteine begrenzen und prüfen, ob dadurch Montagabend weniger Entscheidungen offen bleiben.",
+      "status": "open",
+      "opened_on": "2026-05-29",
+      "closed_on": null,
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "thread_b1c08cb7825d4979",
+      "persona_id": "persona_1317d5cacfe44114",
+      "entity_id": "ent_304fb7c02a9146b8",
+      "text": "In der nächsten Dienstplanversion prüfen, ob neue Serieninfusionen vorab als potenzielle Essensfenster-Kollision markiert werden.",
+      "status": "open",
+      "opened_on": "2026-06-12",
+      "closed_on": null,
+      "created_at": "2026-06-15T12:14:27+00:00",
+      "updated_at": "2026-06-15T12:14:27+00:00"
+    }
+  ],
+  "plans": [],
+  "digests": [
+    {
+      "id": "digest_135c3ca4706e4b0d",
+      "persona_id": "persona_1317d5cacfe44114",
+      "scope": "llm_authored_memory_depth",
+      "period_start": "2026-01-22",
+      "period_end": "2026-06-03",
+      "summary": "Lucia entwickelte ueber mehrere Monate kleine Schutzmechanismen fuer Essen, Pausen und Dienstplanbelastung: sichtbare Pausenboxen, sichere histaminarme Basisgerichte, eine vorsichtige Dienstplan-Nachverhandlung und mit Samira ein gelbes Pausenzeichen am Tresen. Die groessten offenen Spannungen bleiben die planende Stelle, emotionale Unterbrechungen in der Praxis und Sorgearbeit zuhause nach spaeten Diensten.",
+      "created_at": "2026-06-15T12:14:27+00:00"
+    },
+    {
+      "id": "digest_73d6540759ec4f42",
+      "persona_id": "persona_1317d5cacfe44114",
+      "scope": "llm_authored_memory_depth",
+      "period_start": "2026-01-30",
+      "period_end": "2026-06-12",
+      "summary": "Lucias neue Erinnerungen zeigen, wie sie aus wiederkehrenden Infusionskollisionen, emotionalen Tresengesprächen und privaten Apothekengängen kleine belastbare Regeln formt: geteilte Pausenboxen, ein sichtbares Pausenzeichen, sichere Essensbausteine und konkretere Rückmeldungen an die Dienstplanung.",
+      "created_at": "2026-06-15T12:14:27+00:00"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "generated_at": "2026-06-15T06:36:21+00:00",
+  "schema_version": 4,
+  "note": "Vendored trimmed snapshot of 4 free catalog personas for the onboarding showcase. Downscaled avatars; lived days intact. Re-sync from sonaloop-data with scripts.",
+  "personas": [
+    {
+      "slug": "anna-petersen",
+      "display_name": "Anna Petersen",
+      "role": "Gesundheits- und Krankenpflegerin, Station 4b Innere",
+      "has_avatar": true,
+      "updated_at": "2026-06-10T14:11:47.583819+00:00",
+      "tier": "free"
+    },
+    {
+      "slug": "lucia-moreno",
+      "display_name": "Lucia Moreno",
+      "role": "MFA in onkologischer Praxis",
+      "has_avatar": true,
+      "updated_at": "2026-06-11T05:59:23.769100+00:00",
+      "tier": "free"
+    },
+    {
+      "slug": "paula-gruber",
+      "display_name": "Paula Gruber",
+      "role": "Physiotherapeutin im Rehazentrum",
+      "has_avatar": true,
+      "updated_at": "2026-06-11T19:46:24.667077+00:00",
+      "tier": "free"
+    },
+    {
+      "slug": "amelie-kranz",
+      "display_name": "Amelie Kranz",
+      "role": "Logopädin",
+      "has_avatar": true,
+      "updated_at": "2026-06-10T19:35:35.346506+00:00",
+      "tier": "free"
+    }
+  ]
+}

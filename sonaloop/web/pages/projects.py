@@ -22,16 +22,11 @@ def register_projects(app) -> None:
         return _projects_page(page, q)
 
     @app.get("/projects/{project_id}", response_class=HTMLResponse)
-    def project_detail(project_id: str, view: str = "list",
+    def project_detail(project_id: str,
                        kind: str = Query(default=""), phase: str = Query(default=""),
                        persona: str = Query(default=""), status: str = Query(default=""),
                        theme: str = Query(default=""), trace: str = Query(default=""),
                        q: str = Query(default="")) -> str:
-        if view == "files":
-            # The project FILES lens (UX U8 §8.3): all assets chronologically, in + out —
-            # reachable from the header's "N files" chip; same scaffold, same rows.
-            from .assets import project_files_page
-            return project_files_page(project_id)
         store = Store()
         try:
             graph = services.get_project_graph(project_id, store=store)
@@ -102,12 +97,6 @@ def register_projects(app) -> None:
         # the nav; this header chip is where a project's driver status now surfaces.
         from .._runs_widget import project_run_chip
         run_chip = project_run_chip(proj["id"], store)
-        # The FILES lens entry (UX U8): a status chip next to the run chip — every asset of
-        # the project (evidence in + deliverables out) chronologically, the provenance
-        # timeline. Both chips share the .sl-toolbtn shape family (W3: one toolbar read).
-        files_chip = h("a", {"class_": "sl-toolbtn", "href": f'/projects/{proj["id"]}?view=files'},
-                       raw(_icon("file")), " ",
-                       t("one_file") if len(assets) == 1 else t("n_files", n=len(assets)))
         def _methodology_name() -> str:
             key = (plan or {}).get("methodology") or proj.get("methodology") or ""
             if not key:
@@ -126,7 +115,7 @@ def register_projects(app) -> None:
                               "data-drawer-title": t("plan_h")},
                         raw(_icon("target")), " ",
                         t("methodology_h"), " · ", _methodology_name())
-        chips = h("div", {"class_": "pills"}, raw(run_chip), method_chip, files_chip)
+        chips = h("div", {"class_": "pills"}, raw(run_chip), method_chip)
         # The FilterBar closes the head so it sits INSIDE the 900px measure (V1 — it used to
         # float at the page's far left), aligned with the title/outline left edge.
         body = h("div", {"class_": "proj"},

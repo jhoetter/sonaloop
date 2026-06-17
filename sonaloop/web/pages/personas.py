@@ -431,9 +431,18 @@ def register_personas(app) -> None:
             (fragment(raw(_calendar_tabs(p["id"], selected_date, view, period)),
                       raw(_period_calendar_html(p["id"], selected_date, view, period)))
              if has_sim else h("p", {"class_": "muted"}, t("no_days_yet"))))
+        # Catalog provenance is a first-class signal: a persona pulled from sonaloop-data
+        # carries its lived days + memory, so mark it so it reads differently from a
+        # locally-authored profile. The pulled_at/ref ride the tooltip.
+        cat_prov = (p.get("provenance") or {}).get("catalog")
+        eyebrow_pills = ()
+        if cat_prov:
+            tip = " · ".join(x for x in [cat_prov.get("ref"), cat_prov.get("pulled_at")] if x)
+            eyebrow_pills = (raw(_label(t("persona_from_catalog"), "var(--accent)", "soft",
+                                        True, tip or None)),)
         main = fragment(
             _hero(p["display_name"], sub=f'{p["role"]["title"]} · {p["company_context"]["industry"]}',
-                  top=detail_eyebrow(t("persona"))),
+                  top=detail_eyebrow(t("persona"), eyebrow_pills)),
             h("div", {"class_": "identity"}, h("div", {}, avatar), h("div", {},
               h("div", {"class_": "sl-card"}, h("h3", {}, t("current_state")),
                 h("p", {}, h("strong", {}, state["current_activity"])),

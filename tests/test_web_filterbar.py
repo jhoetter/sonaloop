@@ -275,13 +275,12 @@ def test_legacy_subtype_filter_values_keep_resolving_to_registry_forms(store):
 
 def test_library_explains_primitives_and_subforms(store):
     html = _client().get("/library?tab=councils&lang=en").text
-    assert "Forms in this Formats tab" in html
-    assert "Format primitives and their real subforms" in html
+    assert "Family" in html and "Primitive" in html and "Form" in html
+    assert "sl-taxonomy" in html
+    assert "sl-taxo-pill" in html
     assert "Red-team" in html and "red_team" in html
     assert "Head-to-head" in html and "head_to_head" in html
-    assert "Prototype session" in html
-    assert "Concept note" in html
-    assert "Subforms are not new top-level artifacts" in html
+    assert "Format primitives and their real subforms" not in html
 
 
 def test_every_library_tab_has_subtype_documentation():

@@ -29,7 +29,8 @@ Use three layers:
 - **Assets** (`attach_asset`, stored on `project["assets"]`, outline kind
   `asset`): real files such as screenshots, documents, exports and generated
   deliverables. Assets can flow **in** as evidence or **out** as deliverables.
-  They have `/assets` and `/assets/{id}` surfaces, plus the project files lens.
+  They have `/assets` and `/assets/{id}` surfaces and appear in the project
+  outline in context.
 - **Councils** (`record_council`, outline kind `council`): moderated research
   rounds. A mediator asks; personas answer from memory. Formats such as
   red-team, head-to-head, price ladder and ideation are council formats, not

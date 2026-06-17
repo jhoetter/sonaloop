@@ -1,0 +1,2384 @@
+[
+  {
+    "date": "2026-04-21",
+    "timestamp": "2026-04-21T08:05",
+    "event_type": "Quartalsbürokratie",
+    "summary": "Amelie kämpft sich vor der ersten Kindereinheit durch abgelehnte Heilmittelverordnungen und ärgert sich über das Formularchaos.",
+    "task": "Korrigierte Heilmittelverordnungen für zwei Kinder bei der Kinderärztin Dr. Petersen nachfordern",
+    "tool": "Diensthandy + Praxisverwaltung am Arbeitsplatz",
+    "participants": [
+      "Kinderärztin Dr. Petersen (Praxis)",
+      "Kollegin Alex"
+    ],
+    "collaboration_mode": "solo",
+    "what_happened": "Vor dem 8:30-Termin mit Jonas (Aussprachestörung) sieht Amelie, dass zwei Verordnungen wegen falschem Diagnosegruppen-Code formell falsch sind und nicht abgerechnet werden können. Sie schreibt der Kinderarztpraxis eine konkrete Korrekturbitte, weil ein Nachreichen nach 14 Tagen sonst durchfällt. Alex murmelt zwischen Tür und Tee, dass ihr das letztes Quartal zweimal passiert ist. Amelie frühstückt dabei im Stehen ein halbes Knäckebrot aus der Pausenbox.",
+    "key_quotes": [
+      "Wenn der Code nicht stimmt, arbeite ich umsonst.",
+      "Ich schreib's konkret hin, sonst korrigiert die Praxis das falsche Feld."
+    ],
+    "actions_done": [
+      "Zwei Verordnungen geprüft",
+      "Korrektur-Mail mit exaktem Diagnosegruppen-Code an Praxis Petersen geschickt",
+      "Frist im Kalender auf 14 Tage gesetzt"
+    ],
+    "artifacts_touched": [
+      "Heilmittelverordnung",
+      "Praxisverwaltung",
+      "Pausenbox",
+      "Diensthandy"
+    ],
+    "persona_thought": "Ich bin Therapeutin, nicht Sachbearbeiterin – aber wenn ich den Papierkram nicht selbst jage, zahle ich es am Monatsende.",
+    "decision": "Korrekturfristen ab jetzt sofort beim Eingang prüfen, nicht erst bei der Abrechnung",
+    "open_loops": [
+      "Korrigierte Verordnungen von Dr. Petersen bestätigen lassen"
+    ],
+    "impact": {
+      "mood": "angespannt-konzentriert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Bürokratie frisst die ruhige Morgenzeit",
+      "Frühstück nur im Stehen"
+    ],
+    "goal_refs": [
+      "Den Arbeitstag zuverlässig schaffen"
+    ],
+    "id": "evt_ed0b5ae4c547485a",
+    "persona_id": "persona_991687e2c4d1368c",
+    "conversation": [],
+    "calendar_event_id": "cal_d988ad76fa4c4f7f",
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "date": "2026-04-21",
+    "timestamp": "2026-04-21T13:20",
+    "event_type": "Pause unter Druck",
+    "summary": "Das geplante Mittagsfenster kippt, weil eine Mutter zu spät kommt und Amelie zwischen zwei Türen isst.",
+    "task": "Echtes Mittagsfenster halten trotz verschobenem Termin",
+    "tool": "Pausenbox + Küche der Praxis",
+    "participants": [
+      "Mutter von Mia (verspätet)"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Amelie hatte sich 12:45 bis 13:15 als Essensfenster geblockt. Mias Mutter steht 13:05 mit Verspätung und Entschuldigung in der Tür, weil der Bus ausfiel. Amelie zieht die Einheit vor und isst danach den vorbereiteten Couscous-Salat aus der Pausenbox in zehn Minuten am Küchentresen. Sie merkt: der Pausenanker hält nur, wenn das Essen schon fertig dabei ist – improvisieren würde sie hier sonst mit einem Brötchen vom Bäcker um die Ecke.",
+    "key_quotes": [
+      "Der Salat war heute meine Rettung.",
+      "Vorbereitet schlägt spontan, jedes Mal."
+    ],
+    "actions_done": [
+      "Termin mit Mia vorgezogen",
+      "Couscous-Salat aus Pausenbox gegessen",
+      "Restzeit für eine Kaffeepause genutzt"
+    ],
+    "artifacts_touched": [
+      "Pausenbox",
+      "Kalender",
+      "Küche der Praxis"
+    ],
+    "persona_thought": "Wenn das Essen schon da ist, klaut mir auch ein verspäteter Bus nicht die ganze Pause.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "müde, aber satt",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Essensfenster verschwinden bei Verspätungen zuerst"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten"
+    ],
+    "id": "evt_08f8dee968344552",
+    "persona_id": "persona_991687e2c4d1368c",
+    "conversation": [],
+    "calendar_event_id": "cal_df4f7e78d9ff4102",
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "date": "2026-05-05",
+    "timestamp": "2026-05-05T16:40",
+    "event_type": "Elterngespräch",
+    "summary": "Schwieriges Entwicklungsgespräch mit Eltern eines vierjährigen Jungen, die mehr Fortschritt erwarten als realistisch ist.",
+    "task": "Therapieziele für Finn mit den Eltern neu justieren",
+    "tool": "Arbeitsplatz + Therapiebericht",
+    "participants": [
+      "Eltern von Finn",
+      "Kollegin Alex (kurz dazu)"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Finns Eltern sind frustriert, dass er nach drei Monaten noch immer das /sch/ nicht sauber bildet. Amelie zeigt ruhig die kleinen Schritte aus der Doku und erklärt, dass Druck zu Hause das Üben blockiert. Sie vereinbaren spielerische Mini-Übungen statt Abfragen. Alex schaut kurz rein, weil ein Kind im Wartebereich weint, und Amelie muss den roten Faden kurz halten. Das Gespräch zieht sich, der eigentlich geplante Bericht für die Krankenkasse rutscht in den Abend.",
+    "key_quotes": [
+      "Nicht abfragen – spielen lassen, dann kommt der Laut von allein.",
+      "Drei Monate sind bei einem Vierjährigen kein langer Atem."
+    ],
+    "actions_done": [
+      "Fortschrittsverlauf gezeigt",
+      "Heimübungen auf spielerisch umgestellt",
+      "Folgetermin in vier Wochen vereinbart"
+    ],
+    "artifacts_touched": [
+      "Therapiebericht",
+      "Kalender",
+      "Arbeitsplatz"
+    ],
+    "persona_thought": "Eltern hören 'langsam' und denken 'nichts' – ich muss die kleinen Erfolge sichtbarer machen.",
+    "decision": "Bei Finn auf spielbasierte Heimübungen umstellen statt Abfrage-Format",
+    "open_loops": [
+      "Therapiebericht für Finns Krankenkasse fertigstellen",
+      "In vier Wochen Heimübungen evaluieren"
+    ],
+    "impact": {
+      "mood": "fachlich sicher, privat ausgelaugt",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Offene Aufgaben wandern in den Abend",
+      "Unterbrechungen während Gesprächen"
+    ],
+    "goal_refs": [
+      "Abends nicht nur improvisieren"
+    ],
+    "id": "evt_7ebbaf73e74346b8",
+    "persona_id": "persona_991687e2c4d1368c",
+    "conversation": [],
+    "calendar_event_id": "cal_6be5fb40d937408d",
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "date": "2026-05-05",
+    "timestamp": "2026-05-05T20:55",
+    "event_type": "Abendnachholen",
+    "summary": "Amelie schreibt den liegengebliebenen Therapiebericht spät am Küchentisch zu Hause und improvisiert dabei das Abendessen.",
+    "task": "Therapiebericht für Finn nach Feierabend nachholen",
+    "tool": "Laptop + Küche zuhause",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Nach einem langen Tag sitzt Amelie 20:55 noch am Küchentisch und tippt den Kassenbericht. Zum Essen gibt es Toast mit Käse, weil nichts vorbereitet war – genau die Notlösung, die sie eigentlich reduzieren will. Sie merkt, dass die Abendroutine wieder gekippt ist: erst Arbeit, dann lustlos essen. Sie nimmt sich vor, sonntags zwei Pausenbox-Portionen vorzukochen, damit der Abend nicht immer Improvisation ist.",
+    "key_quotes": [
+      "Toast um neun ist kein Abendessen, das ist Aufgeben.",
+      "Sonntag koche ich vor, sonst dreht sich das ewig."
+    ],
+    "actions_done": [
+      "Therapiebericht fertig geschrieben und gespeichert",
+      "Toast als Notlösung gegessen",
+      "Vorkoch-Vorsatz im Diensthandy notiert"
+    ],
+    "artifacts_touched": [
+      "Laptop",
+      "Therapiebericht",
+      "Küche zuhause",
+      "Diensthandy"
+    ],
+    "persona_thought": "Die Berichte gewinnen immer gegen mein Abendessen – das muss ich umdrehen.",
+    "decision": "Sonntags vorkochen, um Abend-Notlösungen zu reduzieren",
+    "open_loops": [
+      "Sonntags-Vorkochen tatsächlich umsetzen"
+    ],
+    "impact": {
+      "mood": "erschöpft, leicht trotzig",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlt Energie für Planung",
+      "Spontane Notlösungen ungesund"
+    ],
+    "goal_refs": [
+      "Abends nicht nur improvisieren",
+      "Weniger Notlösungskäufe"
+    ],
+    "id": "evt_1141b0a0eaed44b8",
+    "persona_id": "persona_991687e2c4d1368c",
+    "conversation": [],
+    "calendar_event_id": "cal_55d0f4e037e04842",
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "date": "2026-05-06",
+    "timestamp": "2026-05-06T07:35",
+    "event_type": "Morgenlogistik",
+    "summary": "Übermüdeter Start nach dem späten Bericht; Amelie strukturiert den Tag noch im Halbschlaf auf dem Diensthandy.",
+    "task": "Dichten Tag mit Hausbesuch und Wegen vorab durchdenken",
+    "tool": "Diensthandy + Kalender",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "collaboration_mode": "solo",
+    "what_happened": "Nach dem späten Abend wacht Amelie gerädert auf. Im Kalender stehen sechs Kindertermine plus ein Hausbesuch bei einem Kind mit Mutismus in Gaarden. Sie verschiebt die Wege im Kopf so, dass der Hausbesuch nicht das Mittagsfenster zerschießt, und schreibt Alex per WhatsApp, ob sie den 15-Uhr-Notfallslot abdecken könnte. Die Pausenbox packt sie heute bewusst voller – Lehre aus gestern.",
+    "key_quotes": [
+      "Sechs Kinder, ein Hausbesuch, ein Auto – das wird knapp.",
+      "Pausenbox heute doppelt, ich lern ja dazu."
+    ],
+    "actions_done": [
+      "Wegeplanung im Kalender angepasst",
+      "Alex wegen 15-Uhr-Slot angefragt",
+      "Pausenbox großzügiger gepackt"
+    ],
+    "artifacts_touched": [
+      "Diensthandy",
+      "Kalender",
+      "Pausenbox",
+      "WhatsApp"
+    ],
+    "persona_thought": "Wenn ich den Hausbesuch falsch lege, esse ich heute wieder gar nicht.",
+    "decision": null,
+    "open_loops": [
+      "Alex' Antwort zum 15-Uhr-Slot abwarten"
+    ],
+    "impact": {
+      "mood": "übermüdet, organisiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Wege und Hausbesuche bedrohen das Mittagsfenster"
+    ],
+    "goal_refs": [
+      "Den Arbeitstag zuverlässig schaffen",
+      "Ein echtes Essensfenster halten"
+    ],
+    "id": "evt_16460fe96a5f4db0",
+    "persona_id": "persona_991687e2c4d1368c",
+    "conversation": [],
+    "calendar_event_id": "cal_1ddba41566f447ae",
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "date": "2026-05-19",
+    "timestamp": "2026-05-19T12:10",
+    "event_type": "Familienkonflikt",
+    "summary": "Mitten in der Sprechstunde drängt der Familienkontakt auf eine Zusage zum Geburtstag, die mit Amelies Dienstplan kollidiert.",
+    "task": "Private Verpflichtung gegen Arbeitsdruck abwägen",
+    "tool": "WhatsApp + Kalender",
+    "participants": [
+      "Familienkontakt"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Zwischen zwei Einheiten poppt eine Nachricht des Familienkontakts auf: ob Amelie am Samstag verlässlich zur Familienfeier kommt und das Mitbringsel besorgt. Sie kann gerade nicht in Ruhe antworten, weil das nächste Kind schon da ist. Sie tippt eine kurze, ehrliche Nachricht, dass sie Samstag erst nach den Vormittagsterminen kann, und macht sichtbar, dass ihr Wochenende kein leerer Raum ist. Es bleibt ein leiser Vorwurf hängen.",
+    "key_quotes": [
+      "Ich komme – aber erst nach den Vormittagsterminen, das geht nicht früher.",
+      "Mein Samstag ist kein leeres Blatt, auch wenn das so wirkt."
+    ],
+    "actions_done": [
+      "Kurze ehrliche Verfügbarkeit kommuniziert",
+      "Samstagstermine im Kalender geprüft",
+      "Mitbringsel-Besorgung auf Freitag verschoben"
+    ],
+    "artifacts_touched": [
+      "WhatsApp",
+      "Kalender",
+      "Diensthandy"
+    ],
+    "persona_thought": "Sie verlässt sich auf mich, klar – aber Verlässlichkeit heißt nicht, dass ich immer kann.",
+    "decision": "Samstag erst nachmittags zur Feier, Vormittag bleibt Arbeit",
+    "open_loops": [
+      "Mitbringsel am Freitag besorgen",
+      "Reaktion des Familienkontakts auf die Absage am Vormittag"
+    ],
+    "impact": {
+      "mood": "gereizt, schuldbewusst",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Private Erwartungen kollidieren mit dem Dienstplan",
+      "Unterbrechungen bestimmen den Tag"
+    ],
+    "goal_refs": [
+      "Private Verpflichtungen nicht komplett verdrängen"
+    ],
+    "id": "evt_ceda1286558240be",
+    "persona_id": "persona_991687e2c4d1368c",
+    "conversation": [],
+    "calendar_event_id": "cal_76fe52ab4e324879",
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "date": "2026-06-03",
+    "timestamp": "2026-06-03T09:30",
+    "event_type": "Praxisorganisation",
+    "summary": "Abstimmung mit der vorgesetzten Stelle über die Quartalsauslastung, bei der erneut die Pausenlogik untergeht.",
+    "task": "Dienstplan-Engpass und fehlende Pausenfenster ansprechen",
+    "tool": "Arbeitsplatz + Kalender",
+    "participants": [
+      "Vorgesetzte Stelle",
+      "Kollegin Alex"
+    ],
+    "collaboration_mode": "review",
+    "what_happened": "Bei der monatlichen Abstimmung kündigt die vorgesetzte Stelle drei neue Kinder mit dringender Verordnung an, die in den ohnehin vollen Plan sollen. Amelie bringt zum ersten Mal explizit ein, dass ihre Termine ohne festes Mittagsfenster getaktet werden und das auf Dauer nicht hält. Die Antwort ist 'wir schauen, was geht', aber geplant wird weiter nach Bedarf. Alex stützt Amelie, ist aber selbst am Limit. Amelie bekommt durch, dass mittwochs ein 30-Minuten-Block fest geblockt bleibt – ein kleiner Sieg.",
+    "key_quotes": [
+      "Geplant wird nach Bedarf, nicht nach Pause – das spüre ich jeden Tag.",
+      "Mittwochs bleibt der halbe-Stunden-Block stehen, das ist mein Anker."
+    ],
+    "actions_done": [
+      "Pausenproblem explizit benannt",
+      "Fixen Mittwochs-Block im Kalender durchgesetzt",
+      "Drei Neuaufnahmen auf zwei Wochen verteilt"
+    ],
+    "artifacts_touched": [
+      "Kalender",
+      "Arbeitsplatz",
+      "Dienstplan"
+    ],
+    "persona_thought": "Ein Block ist nicht alles, aber es ist das erste Mal, dass meine Pause überhaupt im Plan steht.",
+    "decision": "Mittwochs einen festen 30-Minuten-Pausenblock im Dienstplan verankern",
+    "open_loops": [
+      "Ob der Mittwochsblock auch in vollen Wochen respektiert wird"
+    ],
+    "impact": {
+      "mood": "vorsichtig zufrieden",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Vorgesetzte plant nach Bedarf, nicht nach Pausenlogik",
+      "Pausen sind kurz oder unsicher"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten",
+      "Den Arbeitstag zuverlässig schaffen"
+    ],
+    "id": "evt_91954402faee44cc",
+    "persona_id": "persona_991687e2c4d1368c",
+    "conversation": [],
+    "calendar_event_id": "cal_403d43a60c3242bc",
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "date": "2026-06-03",
+    "timestamp": "2026-06-03T19:15",
+    "event_type": "Abendroutine-Versuch",
+    "summary": "Amelie testet zum ersten Mal das Sonntag-Vorkochen rückwirkend und füllt drei Pausenbox-Portionen für die Woche vor.",
+    "task": "Vorkochen als wiederholbaren Pausenanker etablieren",
+    "tool": "Küche zuhause + Pausenbox",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Statt am Abend zu improvisieren kocht Amelie eine große Portion Linsen-Gemüse und teilt sie in drei Boxen für die Woche auf. Es dauert nur 35 Minuten und nimmt ihr das tägliche Mittags-Bangen. Sie merkt, dass der Vorsatz vom 5. Mai endlich greift, wenn auch verspätet. Der Abend fühlt sich dadurch weniger nach Nachholstress an. Sie notiert sich, dass Linsen sich gut halten und nicht matschig werden.",
+    "key_quotes": [
+      "35 Minuten gegen drei stressige Mittage – das rechnet sich.",
+      "Endlich mal ein Vorsatz, der nicht im Abend verpufft."
+    ],
+    "actions_done": [
+      "Großportion Linsen-Gemüse gekocht",
+      "Drei Pausenbox-Portionen aufgeteilt",
+      "Erkenntnis zu haltbaren Gerichten notiert"
+    ],
+    "artifacts_touched": [
+      "Küche zuhause",
+      "Pausenbox",
+      "Diensthandy"
+    ],
+    "persona_thought": "So fühlt sich der Pausenanker an, wenn er wirklich hält – ich muss nur dranbleiben.",
+    "decision": "Linsen-Gerichte als Vorkoch-Standard für die Pausenbox setzen",
+    "open_loops": [
+      "Vorkochen zur festen Wochenroutine machen"
+    ],
+    "impact": {
+      "mood": "ruhig, kleiner Stolz",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlt sonst Energie für Planung"
+    ],
+    "goal_refs": [
+      "Weniger Notlösungskäufe",
+      "Abends nicht nur improvisieren",
+      "Ein echtes Essensfenster halten"
+    ],
+    "id": "evt_af4261c8226b4ee8",
+    "persona_id": "persona_991687e2c4d1368c",
+    "conversation": [],
+    "calendar_event_id": "cal_6f1ebe4e35204c17",
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "id": "evt_386ffba8db5bffd8",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-09T07:25",
+    "event_type": "admin",
+    "summary": "Amelie Kranz Tagesplan gegen echte Zwänge prüfen using Diensthandy; outcome: left an open follow-up.",
+    "task": "Tagesplan gegen echte Zwänge prüfen",
+    "tool": "Diensthandy",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz arbeitet an `Tagesplan gegen echte Zwänge prüfen` im Kontext Logopädin. Der Moment zeigt, wie Essensfenster verschwinden zuerst. Statt einen großen Idealplan zu bauen, setzt die Persona einen kleinen nächsten Schritt und markiert, was liegen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Der Plan muss klein genug sein, dass er den Tag überlebt."
+    ],
+    "actions_done": [
+      "Tagesplan gegen echte Zwänge prüfen"
+    ],
+    "artifacts_touched": [
+      "Diensthandy"
+    ],
+    "persona_thought": "Wenn ich das nicht klein halte, hält es in meinem Alltag nicht.",
+    "decision": null,
+    "open_loops": [
+      "Tagesplan gegen echte Zwänge prüfen nachhalten"
+    ],
+    "impact": {
+      "mood": "angespannt, mit einem brauchbaren Plan",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essensfenster verschwinden zuerst"
+    ],
+    "goal_refs": [
+      "Den Arbeitstag zuverlässig schaffen"
+    ],
+    "calendar_event_id": "cal_386ffba8db5bffd8",
+    "created_at": "2026-06-10T17:40:14.090806+00:00"
+  },
+  {
+    "id": "evt_2f285e24e9dafb35",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-09T10:35",
+    "event_type": "meeting",
+    "summary": "Amelie Kranz Abstimmung unter Zeitdruck using Kalender; outcome: left an open follow-up.",
+    "task": "Abstimmung unter Zeitdruck",
+    "tool": "Kalender",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Amelie Kranz arbeitet an `Abstimmung unter Zeitdruck` im Kontext Logopädin. Der Moment zeigt, wie Spontane Notlösungen werden teuer oder ungesund. Statt einen großen Idealplan zu bauen, setzt die Persona einen kleinen nächsten Schritt und markiert, was liegen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Der Plan muss klein genug sein, dass er den Tag überlebt."
+    ],
+    "actions_done": [
+      "Abstimmung unter Zeitdruck"
+    ],
+    "artifacts_touched": [
+      "Kalender"
+    ],
+    "persona_thought": "Wenn ich das nicht klein halte, hält es in meinem Alltag nicht.",
+    "decision": null,
+    "open_loops": [
+      "Abstimmung unter Zeitdruck nachhalten"
+    ],
+    "impact": {
+      "mood": "angespannt, mit einem brauchbaren Plan",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten"
+    ],
+    "calendar_event_id": "cal_2f285e24e9dafb35",
+    "created_at": "2026-06-10T17:40:14.090806+00:00"
+  },
+  {
+    "id": "evt_fb46914bdf7c8a61",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-09T13:10",
+    "event_type": "focus",
+    "summary": "Amelie Kranz Kurze Mahlzeit ohne Nebenbei-Modus using Pausenbox; outcome: resolved enough to move forward.",
+    "task": "Kurze Mahlzeit ohne Nebenbei-Modus",
+    "tool": "Pausenbox",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz setzt sich für eine kurze, machbare Mahlzeit hin. Sie ist nicht perfekt, aber sie passiert ohne direktes Nebenbei-Arbeiten; genau das macht sie als Routine testbar.",
+    "conversation": [],
+    "key_quotes": [
+      "Der Plan muss klein genug sein, dass er den Tag überlebt."
+    ],
+    "actions_done": [
+      "Kurze Mahlzeit ohne Nebenbei-Modus"
+    ],
+    "artifacts_touched": [
+      "Pausenbox"
+    ],
+    "persona_thought": "Wenn ich das nicht klein halte, hält es in meinem Alltag nicht.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "angespannt, mit einem brauchbaren Plan",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlt Energie für Planung"
+    ],
+    "goal_refs": [
+      "Private Verpflichtungen nicht komplett verdrängen"
+    ],
+    "calendar_event_id": "cal_fb46914bdf7c8a61",
+    "created_at": "2026-06-10T17:40:14.090806+00:00"
+  },
+  {
+    "id": "evt_b9b885c2ff1bc5ff",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-09T18:20",
+    "event_type": "interruption",
+    "summary": "Amelie Kranz Abendliche Nacharbeit und private Grenze using WhatsApp; outcome: left an open follow-up.",
+    "task": "Abendliche Nacharbeit und private Grenze",
+    "tool": "WhatsApp",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Amelie Kranz arbeitet an `Abendliche Nacharbeit und private Grenze` im Kontext Logopädin. Der Moment zeigt, wie Offene Aufgaben wandern in den Abend. Statt einen großen Idealplan zu bauen, setzt die Persona einen kleinen nächsten Schritt und markiert, was liegen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Der Plan muss klein genug sein, dass er den Tag überlebt."
+    ],
+    "actions_done": [
+      "Abendliche Nacharbeit und private Grenze"
+    ],
+    "artifacts_touched": [
+      "WhatsApp"
+    ],
+    "persona_thought": "Wenn ich das nicht klein halte, hält es in meinem Alltag nicht.",
+    "decision": null,
+    "open_loops": [
+      "Abendliche Nacharbeit und private Grenze nachhalten"
+    ],
+    "impact": {
+      "mood": "angespannt, mit einem brauchbaren Plan",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Offene Aufgaben wandern in den Abend"
+    ],
+    "goal_refs": [
+      "Abends nicht nur improvisieren"
+    ],
+    "calendar_event_id": "cal_b9b885c2ff1bc5ff",
+    "created_at": "2026-06-10T17:40:14.090806+00:00"
+  },
+  {
+    "id": "evt_ad600f45c36a0c5d",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-10T07:25",
+    "event_type": "admin",
+    "summary": "Amelie Kranz Tagesplan gegen echte Zwänge prüfen using Diensthandy; outcome: left an open follow-up.",
+    "task": "Tagesplan gegen echte Zwänge prüfen",
+    "tool": "Diensthandy",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz arbeitet an `Tagesplan gegen echte Zwänge prüfen` im Kontext Logopädin. Der Moment zeigt, wie Essensfenster verschwinden zuerst. Statt einen großen Idealplan zu bauen, setzt die Persona einen kleinen nächsten Schritt und markiert, was liegen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Der Plan muss klein genug sein, dass er den Tag überlebt."
+    ],
+    "actions_done": [
+      "Tagesplan gegen echte Zwänge prüfen"
+    ],
+    "artifacts_touched": [
+      "Diensthandy"
+    ],
+    "persona_thought": "Wenn ich das nicht klein halte, hält es in meinem Alltag nicht.",
+    "decision": null,
+    "open_loops": [
+      "Tagesplan gegen echte Zwänge prüfen nachhalten"
+    ],
+    "impact": {
+      "mood": "müde, aber klarer sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essensfenster verschwinden zuerst"
+    ],
+    "goal_refs": [
+      "Den Arbeitstag zuverlässig schaffen"
+    ],
+    "calendar_event_id": "cal_ad600f45c36a0c5d",
+    "created_at": "2026-06-10T17:40:14.090806+00:00"
+  },
+  {
+    "id": "evt_20de24c5318d95ce",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-10T10:35",
+    "event_type": "meeting",
+    "summary": "Amelie Kranz Abstimmung unter Zeitdruck using Kalender; outcome: left an open follow-up.",
+    "task": "Abstimmung unter Zeitdruck",
+    "tool": "Kalender",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Amelie Kranz arbeitet an `Abstimmung unter Zeitdruck` im Kontext Logopädin. Der Moment zeigt, wie Spontane Notlösungen werden teuer oder ungesund. Statt einen großen Idealplan zu bauen, setzt die Persona einen kleinen nächsten Schritt und markiert, was liegen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Der Plan muss klein genug sein, dass er den Tag überlebt."
+    ],
+    "actions_done": [
+      "Abstimmung unter Zeitdruck"
+    ],
+    "artifacts_touched": [
+      "Kalender"
+    ],
+    "persona_thought": "Wenn ich das nicht klein halte, hält es in meinem Alltag nicht.",
+    "decision": null,
+    "open_loops": [
+      "Abstimmung unter Zeitdruck nachhalten"
+    ],
+    "impact": {
+      "mood": "müde, aber klarer sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten"
+    ],
+    "calendar_event_id": "cal_20de24c5318d95ce",
+    "created_at": "2026-06-10T17:40:14.090806+00:00"
+  },
+  {
+    "id": "evt_44f8cdc67f832b17",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-10T13:10",
+    "event_type": "focus",
+    "summary": "Amelie Kranz Kurze Mahlzeit ohne Nebenbei-Modus using Pausenbox; outcome: resolved enough to move forward.",
+    "task": "Kurze Mahlzeit ohne Nebenbei-Modus",
+    "tool": "Pausenbox",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz setzt sich für eine kurze, machbare Mahlzeit hin. Sie ist nicht perfekt, aber sie passiert ohne direktes Nebenbei-Arbeiten; genau das macht sie als Routine testbar.",
+    "conversation": [],
+    "key_quotes": [
+      "Der Plan muss klein genug sein, dass er den Tag überlebt."
+    ],
+    "actions_done": [
+      "Kurze Mahlzeit ohne Nebenbei-Modus"
+    ],
+    "artifacts_touched": [
+      "Pausenbox"
+    ],
+    "persona_thought": "Wenn ich das nicht klein halte, hält es in meinem Alltag nicht.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "müde, aber klarer sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlt Energie für Planung"
+    ],
+    "goal_refs": [
+      "Private Verpflichtungen nicht komplett verdrängen"
+    ],
+    "calendar_event_id": "cal_44f8cdc67f832b17",
+    "created_at": "2026-06-10T17:40:14.090806+00:00"
+  },
+  {
+    "id": "evt_50d6274c160cdd98",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-10T18:20",
+    "event_type": "interruption",
+    "summary": "Amelie Kranz Abendliche Nacharbeit und private Grenze using WhatsApp; outcome: left an open follow-up.",
+    "task": "Abendliche Nacharbeit und private Grenze",
+    "tool": "WhatsApp",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Amelie Kranz arbeitet an `Abendliche Nacharbeit und private Grenze` im Kontext Logopädin. Der Moment zeigt, wie Offene Aufgaben wandern in den Abend. Statt einen großen Idealplan zu bauen, setzt die Persona einen kleinen nächsten Schritt und markiert, was liegen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Der Plan muss klein genug sein, dass er den Tag überlebt."
+    ],
+    "actions_done": [
+      "Abendliche Nacharbeit und private Grenze"
+    ],
+    "artifacts_touched": [
+      "WhatsApp"
+    ],
+    "persona_thought": "Wenn ich das nicht klein halte, hält es in meinem Alltag nicht.",
+    "decision": null,
+    "open_loops": [
+      "Abendliche Nacharbeit und private Grenze nachhalten"
+    ],
+    "impact": {
+      "mood": "müde, aber klarer sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Offene Aufgaben wandern in den Abend"
+    ],
+    "goal_refs": [
+      "Abends nicht nur improvisieren"
+    ],
+    "calendar_event_id": "cal_50d6274c160cdd98",
+    "created_at": "2026-06-10T17:40:14.090806+00:00"
+  },
+  {
+    "id": "evt_e2e6844187f91be2",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-11T07:20",
+    "event_type": "admin",
+    "summary": "Amelie Kranz Morgendlicher Realitätscheck using Diensthandy; outcome: left an open follow-up.",
+    "task": "Morgendlicher Realitätscheck",
+    "tool": "Diensthandy",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz erlebt `Morgendlicher Realitätscheck` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Essensfenster verschwinden zuerst. Der kleine Fortschritt ist auf `Den Arbeitstag zuverlässig schaffen` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Morgendlicher Realitätscheck"
+    ],
+    "artifacts_touched": [
+      "Diensthandy"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten"
+    ],
+    "impact": {
+      "mood": "angespannt, aber sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essensfenster verschwinden zuerst"
+    ],
+    "goal_refs": [
+      "Den Arbeitstag zuverlässig schaffen"
+    ],
+    "calendar_event_id": "cal_e2e6844187f91be2",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_2260a2199d044ddc",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-11T09:45",
+    "event_type": "meeting",
+    "summary": "Amelie Kranz Abstimmung mit Gegenwind using Kalender; outcome: left an open follow-up.",
+    "task": "Abstimmung mit Gegenwind",
+    "tool": "Kalender",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Amelie Kranz erlebt `Abstimmung mit Gegenwind` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Spontane Notlösungen werden teuer oder ungesund. Der kleine Fortschritt ist auf `Ein echtes Essensfenster halten` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Abstimmung mit Gegenwind"
+    ],
+    "artifacts_touched": [
+      "Kalender"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Abstimmung mit Gegenwind nachhalten"
+    ],
+    "impact": {
+      "mood": "angespannt, aber sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten"
+    ],
+    "calendar_event_id": "cal_2260a2199d044ddc",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_c0104458b5b6a44d",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-11T12:35",
+    "event_type": "focus",
+    "summary": "Amelie Kranz Geplantes Essensfenster verteidigen using Pausenbox; outcome: resolved enough to move forward.",
+    "task": "Geplantes Essensfenster verteidigen",
+    "tool": "Pausenbox",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz verteidigt ein kurzes Essensfenster gegen den laufenden Tag. Das Essen ist einfach und wiederholbar; wichtig ist, dass es im Sitzen und ohne sofortigen Wechsel in die nächste Aufgabe passiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Geplantes Essensfenster verteidigen"
+    ],
+    "artifacts_touched": [
+      "Pausenbox"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "angespannt, aber sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essensfenster verschwinden zuerst"
+    ],
+    "goal_refs": [
+      "Private Verpflichtungen nicht komplett verdrängen"
+    ],
+    "calendar_event_id": "cal_c0104458b5b6a44d",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_bd391cca5b05f5bd",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-11T15:10",
+    "event_type": "interruption",
+    "summary": "Amelie Kranz Ungeplante Störung sichtbar machen using WhatsApp; outcome: left an open follow-up.",
+    "task": "Ungeplante Störung sichtbar machen",
+    "tool": "WhatsApp",
+    "participants": [
+      "Familienkontakt"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Amelie Kranz erlebt `Ungeplante Störung sichtbar machen` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Nach Feierabend fehlt Energie für Planung. Der kleine Fortschritt ist auf `Ein echtes Essensfenster halten` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Ungeplante Störung sichtbar machen"
+    ],
+    "artifacts_touched": [
+      "WhatsApp"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Ungeplante Störung sichtbar machen nachhalten"
+    ],
+    "impact": {
+      "mood": "angespannt, aber sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlt Energie für Planung"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten"
+    ],
+    "calendar_event_id": "cal_bd391cca5b05f5bd",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_b1583c2a923e5112",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-11T18:40",
+    "event_type": "focus",
+    "summary": "Amelie Kranz Abendroutine ohne Heldentat using Arbeitsplatz; outcome: resolved enough to move forward.",
+    "task": "Abendroutine ohne Heldentat",
+    "tool": "Arbeitsplatz",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz erlebt `Abendroutine ohne Heldentat` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Offene Aufgaben wandern in den Abend. Der kleine Fortschritt ist auf `Abends nicht nur improvisieren` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Abendroutine ohne Heldentat"
+    ],
+    "artifacts_touched": [
+      "Arbeitsplatz"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "angespannt, aber sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Offene Aufgaben wandern in den Abend"
+    ],
+    "goal_refs": [
+      "Abends nicht nur improvisieren"
+    ],
+    "calendar_event_id": "cal_b1583c2a923e5112",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_4334ea457b5e5b10",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-12T07:20",
+    "event_type": "admin",
+    "summary": "Amelie Kranz Morgendlicher Realitätscheck using Diensthandy; outcome: left an open follow-up.",
+    "task": "Morgendlicher Realitätscheck",
+    "tool": "Diensthandy",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz erlebt `Morgendlicher Realitätscheck` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Essensfenster verschwinden zuerst. Der kleine Fortschritt ist auf `Den Arbeitstag zuverlässig schaffen` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Morgendlicher Realitätscheck"
+    ],
+    "artifacts_touched": [
+      "Diensthandy"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten"
+    ],
+    "impact": {
+      "mood": "gehetzt und körperlich müde",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essensfenster verschwinden zuerst"
+    ],
+    "goal_refs": [
+      "Den Arbeitstag zuverlässig schaffen"
+    ],
+    "calendar_event_id": "cal_4334ea457b5e5b10",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_b82e507b9f2f6a65",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-12T09:45",
+    "event_type": "meeting",
+    "summary": "Amelie Kranz Abstimmung mit Gegenwind using Kalender; outcome: left an open follow-up.",
+    "task": "Abstimmung mit Gegenwind",
+    "tool": "Kalender",
+    "participants": [
+      "Familienkontakt"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Amelie Kranz erlebt `Abstimmung mit Gegenwind` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Spontane Notlösungen werden teuer oder ungesund. Der kleine Fortschritt ist auf `Ein echtes Essensfenster halten` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Abstimmung mit Gegenwind"
+    ],
+    "artifacts_touched": [
+      "Kalender"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Abstimmung mit Gegenwind nachhalten"
+    ],
+    "impact": {
+      "mood": "gehetzt und körperlich müde",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten"
+    ],
+    "calendar_event_id": "cal_b82e507b9f2f6a65",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_9b10b298af652c21",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-12T12:35",
+    "event_type": "focus",
+    "summary": "Amelie Kranz Geplantes Essensfenster verteidigen using Pausenbox; outcome: resolved enough to move forward.",
+    "task": "Geplantes Essensfenster verteidigen",
+    "tool": "Pausenbox",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz verteidigt ein kurzes Essensfenster gegen den laufenden Tag. Das Essen ist einfach und wiederholbar; wichtig ist, dass es im Sitzen und ohne sofortigen Wechsel in die nächste Aufgabe passiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Geplantes Essensfenster verteidigen"
+    ],
+    "artifacts_touched": [
+      "Pausenbox"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "gehetzt und körperlich müde",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essensfenster verschwinden zuerst"
+    ],
+    "goal_refs": [
+      "Private Verpflichtungen nicht komplett verdrängen"
+    ],
+    "calendar_event_id": "cal_9b10b298af652c21",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_43f2e6c068708d43",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-12T15:10",
+    "event_type": "interruption",
+    "summary": "Amelie Kranz Ungeplante Störung sichtbar machen using WhatsApp; outcome: left an open follow-up.",
+    "task": "Ungeplante Störung sichtbar machen",
+    "tool": "WhatsApp",
+    "participants": [
+      "Vorgesetzte Stelle"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Amelie Kranz erlebt `Ungeplante Störung sichtbar machen` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Nach Feierabend fehlt Energie für Planung. Der kleine Fortschritt ist auf `Ein echtes Essensfenster halten` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Ungeplante Störung sichtbar machen"
+    ],
+    "artifacts_touched": [
+      "WhatsApp"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Ungeplante Störung sichtbar machen nachhalten"
+    ],
+    "impact": {
+      "mood": "gehetzt und körperlich müde",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlt Energie für Planung"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten"
+    ],
+    "calendar_event_id": "cal_43f2e6c068708d43",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_adc7b662dd88dbf7",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-12T18:40",
+    "event_type": "focus",
+    "summary": "Amelie Kranz Abendroutine ohne Heldentat using Arbeitsplatz; outcome: resolved enough to move forward.",
+    "task": "Abendroutine ohne Heldentat",
+    "tool": "Arbeitsplatz",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz erlebt `Abendroutine ohne Heldentat` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Offene Aufgaben wandern in den Abend. Der kleine Fortschritt ist auf `Abends nicht nur improvisieren` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Abendroutine ohne Heldentat"
+    ],
+    "artifacts_touched": [
+      "Arbeitsplatz"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "gehetzt und körperlich müde",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Offene Aufgaben wandern in den Abend"
+    ],
+    "goal_refs": [
+      "Abends nicht nur improvisieren"
+    ],
+    "calendar_event_id": "cal_adc7b662dd88dbf7",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_fad29470309d7137",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-13T07:20",
+    "event_type": "admin",
+    "summary": "Amelie Kranz Morgendlicher Realitätscheck using Diensthandy; outcome: left an open follow-up.",
+    "task": "Morgendlicher Realitätscheck",
+    "tool": "Diensthandy",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz erlebt `Morgendlicher Realitätscheck` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Essensfenster verschwinden zuerst. Der kleine Fortschritt ist auf `Den Arbeitstag zuverlässig schaffen` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Morgendlicher Realitätscheck"
+    ],
+    "artifacts_touched": [
+      "Diensthandy"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten"
+    ],
+    "impact": {
+      "mood": "fokussiert mit knappen Reserven",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essensfenster verschwinden zuerst"
+    ],
+    "goal_refs": [
+      "Den Arbeitstag zuverlässig schaffen"
+    ],
+    "calendar_event_id": "cal_fad29470309d7137",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_9cebad233cc53cc7",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-13T09:45",
+    "event_type": "meeting",
+    "summary": "Amelie Kranz Abstimmung mit Gegenwind using Kalender; outcome: left an open follow-up.",
+    "task": "Abstimmung mit Gegenwind",
+    "tool": "Kalender",
+    "participants": [
+      "Vorgesetzte Stelle"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Amelie Kranz erlebt `Abstimmung mit Gegenwind` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Spontane Notlösungen werden teuer oder ungesund. Der kleine Fortschritt ist auf `Ein echtes Essensfenster halten` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Abstimmung mit Gegenwind"
+    ],
+    "artifacts_touched": [
+      "Kalender"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Abstimmung mit Gegenwind nachhalten"
+    ],
+    "impact": {
+      "mood": "fokussiert mit knappen Reserven",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten"
+    ],
+    "calendar_event_id": "cal_9cebad233cc53cc7",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_a619011057cdfcb7",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-13T12:35",
+    "event_type": "focus",
+    "summary": "Amelie Kranz Geplantes Essensfenster verteidigen using Pausenbox; outcome: resolved enough to move forward.",
+    "task": "Geplantes Essensfenster verteidigen",
+    "tool": "Pausenbox",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz verteidigt ein kurzes Essensfenster gegen den laufenden Tag. Das Essen ist einfach und wiederholbar; wichtig ist, dass es im Sitzen und ohne sofortigen Wechsel in die nächste Aufgabe passiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Geplantes Essensfenster verteidigen"
+    ],
+    "artifacts_touched": [
+      "Pausenbox"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "fokussiert mit knappen Reserven",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essensfenster verschwinden zuerst"
+    ],
+    "goal_refs": [
+      "Private Verpflichtungen nicht komplett verdrängen"
+    ],
+    "calendar_event_id": "cal_a619011057cdfcb7",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_749797eb53ab3c50",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-13T15:10",
+    "event_type": "interruption",
+    "summary": "Amelie Kranz Ungeplante Störung sichtbar machen using WhatsApp; outcome: left an open follow-up.",
+    "task": "Ungeplante Störung sichtbar machen",
+    "tool": "WhatsApp",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Amelie Kranz erlebt `Ungeplante Störung sichtbar machen` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Nach Feierabend fehlt Energie für Planung. Der kleine Fortschritt ist auf `Ein echtes Essensfenster halten` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Ungeplante Störung sichtbar machen"
+    ],
+    "artifacts_touched": [
+      "WhatsApp"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Ungeplante Störung sichtbar machen nachhalten"
+    ],
+    "impact": {
+      "mood": "fokussiert mit knappen Reserven",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlt Energie für Planung"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten"
+    ],
+    "calendar_event_id": "cal_749797eb53ab3c50",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_e3ea74902f973d0a",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-13T18:40",
+    "event_type": "focus",
+    "summary": "Amelie Kranz Abendroutine ohne Heldentat using Arbeitsplatz; outcome: resolved enough to move forward.",
+    "task": "Abendroutine ohne Heldentat",
+    "tool": "Arbeitsplatz",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz erlebt `Abendroutine ohne Heldentat` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Offene Aufgaben wandern in den Abend. Der kleine Fortschritt ist auf `Abends nicht nur improvisieren` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Abendroutine ohne Heldentat"
+    ],
+    "artifacts_touched": [
+      "Arbeitsplatz"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "fokussiert mit knappen Reserven",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Offene Aufgaben wandern in den Abend"
+    ],
+    "goal_refs": [
+      "Abends nicht nur improvisieren"
+    ],
+    "calendar_event_id": "cal_e3ea74902f973d0a",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_993650d6c5d71d7e",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-14T07:20",
+    "event_type": "admin",
+    "summary": "Amelie Kranz Morgendlicher Realitätscheck using Diensthandy; outcome: left an open follow-up.",
+    "task": "Morgendlicher Realitätscheck",
+    "tool": "Diensthandy",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz erlebt `Morgendlicher Realitätscheck` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Essensfenster verschwinden zuerst. Der kleine Fortschritt ist auf `Den Arbeitstag zuverlässig schaffen` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Morgendlicher Realitätscheck"
+    ],
+    "artifacts_touched": [
+      "Diensthandy"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten"
+    ],
+    "impact": {
+      "mood": "stabiler als erwartet",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essensfenster verschwinden zuerst"
+    ],
+    "goal_refs": [
+      "Den Arbeitstag zuverlässig schaffen"
+    ],
+    "calendar_event_id": "cal_993650d6c5d71d7e",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_5d17b1246e61987e",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-14T09:45",
+    "event_type": "meeting",
+    "summary": "Amelie Kranz Abstimmung mit Gegenwind using Kalender; outcome: left an open follow-up.",
+    "task": "Abstimmung mit Gegenwind",
+    "tool": "Kalender",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Amelie Kranz erlebt `Abstimmung mit Gegenwind` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Spontane Notlösungen werden teuer oder ungesund. Der kleine Fortschritt ist auf `Ein echtes Essensfenster halten` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Abstimmung mit Gegenwind"
+    ],
+    "artifacts_touched": [
+      "Kalender"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Abstimmung mit Gegenwind nachhalten"
+    ],
+    "impact": {
+      "mood": "stabiler als erwartet",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten"
+    ],
+    "calendar_event_id": "cal_5d17b1246e61987e",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_f302f143595b6474",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-14T12:35",
+    "event_type": "focus",
+    "summary": "Amelie Kranz Geplantes Essensfenster verteidigen using Pausenbox; outcome: resolved enough to move forward.",
+    "task": "Geplantes Essensfenster verteidigen",
+    "tool": "Pausenbox",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz verteidigt ein kurzes Essensfenster gegen den laufenden Tag. Das Essen ist einfach und wiederholbar; wichtig ist, dass es im Sitzen und ohne sofortigen Wechsel in die nächste Aufgabe passiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Geplantes Essensfenster verteidigen"
+    ],
+    "artifacts_touched": [
+      "Pausenbox"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "stabiler als erwartet",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essensfenster verschwinden zuerst"
+    ],
+    "goal_refs": [
+      "Private Verpflichtungen nicht komplett verdrängen"
+    ],
+    "calendar_event_id": "cal_f302f143595b6474",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_c3ba0dd749100b0e",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-14T15:10",
+    "event_type": "interruption",
+    "summary": "Amelie Kranz Ungeplante Störung sichtbar machen using WhatsApp; outcome: left an open follow-up.",
+    "task": "Ungeplante Störung sichtbar machen",
+    "tool": "WhatsApp",
+    "participants": [
+      "Familienkontakt"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Amelie Kranz erlebt `Ungeplante Störung sichtbar machen` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Nach Feierabend fehlt Energie für Planung. Der kleine Fortschritt ist auf `Ein echtes Essensfenster halten` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Ungeplante Störung sichtbar machen"
+    ],
+    "artifacts_touched": [
+      "WhatsApp"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Ungeplante Störung sichtbar machen nachhalten"
+    ],
+    "impact": {
+      "mood": "stabiler als erwartet",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlt Energie für Planung"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten"
+    ],
+    "calendar_event_id": "cal_c3ba0dd749100b0e",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_59972c8bb0eec7d1",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-14T18:40",
+    "event_type": "focus",
+    "summary": "Amelie Kranz Abendroutine ohne Heldentat using Arbeitsplatz; outcome: resolved enough to move forward.",
+    "task": "Abendroutine ohne Heldentat",
+    "tool": "Arbeitsplatz",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz erlebt `Abendroutine ohne Heldentat` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Offene Aufgaben wandern in den Abend. Der kleine Fortschritt ist auf `Abends nicht nur improvisieren` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Abendroutine ohne Heldentat"
+    ],
+    "artifacts_touched": [
+      "Arbeitsplatz"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "stabiler als erwartet",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Offene Aufgaben wandern in den Abend"
+    ],
+    "goal_refs": [
+      "Abends nicht nur improvisieren"
+    ],
+    "calendar_event_id": "cal_59972c8bb0eec7d1",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_1dbdeed3b7403dde",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-15T07:20",
+    "event_type": "admin",
+    "summary": "Amelie Kranz Morgendlicher Realitätscheck using Diensthandy; outcome: left an open follow-up.",
+    "task": "Morgendlicher Realitätscheck",
+    "tool": "Diensthandy",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz erlebt `Morgendlicher Realitätscheck` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Essensfenster verschwinden zuerst. Der kleine Fortschritt ist auf `Den Arbeitstag zuverlässig schaffen` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Morgendlicher Realitätscheck"
+    ],
+    "artifacts_touched": [
+      "Diensthandy"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten"
+    ],
+    "impact": {
+      "mood": "angespannt, aber sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essensfenster verschwinden zuerst"
+    ],
+    "goal_refs": [
+      "Den Arbeitstag zuverlässig schaffen"
+    ],
+    "calendar_event_id": "cal_1dbdeed3b7403dde",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_7d9160a3e1c0f4c2",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-15T09:45",
+    "event_type": "meeting",
+    "summary": "Amelie Kranz Abstimmung mit Gegenwind using Kalender; outcome: left an open follow-up.",
+    "task": "Abstimmung mit Gegenwind",
+    "tool": "Kalender",
+    "participants": [
+      "Familienkontakt"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Amelie Kranz erlebt `Abstimmung mit Gegenwind` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Spontane Notlösungen werden teuer oder ungesund. Der kleine Fortschritt ist auf `Ein echtes Essensfenster halten` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Abstimmung mit Gegenwind"
+    ],
+    "artifacts_touched": [
+      "Kalender"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Abstimmung mit Gegenwind nachhalten"
+    ],
+    "impact": {
+      "mood": "angespannt, aber sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten"
+    ],
+    "calendar_event_id": "cal_7d9160a3e1c0f4c2",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_30583e0fdeb99c9d",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-15T12:35",
+    "event_type": "focus",
+    "summary": "Amelie Kranz Geplantes Essensfenster verteidigen using Pausenbox; outcome: resolved enough to move forward.",
+    "task": "Geplantes Essensfenster verteidigen",
+    "tool": "Pausenbox",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz verteidigt ein kurzes Essensfenster gegen den laufenden Tag. Das Essen ist einfach und wiederholbar; wichtig ist, dass es im Sitzen und ohne sofortigen Wechsel in die nächste Aufgabe passiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Geplantes Essensfenster verteidigen"
+    ],
+    "artifacts_touched": [
+      "Pausenbox"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "angespannt, aber sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essensfenster verschwinden zuerst"
+    ],
+    "goal_refs": [
+      "Private Verpflichtungen nicht komplett verdrängen"
+    ],
+    "calendar_event_id": "cal_30583e0fdeb99c9d",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_bd2c9602a3d49684",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-15T15:10",
+    "event_type": "interruption",
+    "summary": "Amelie Kranz Ungeplante Störung sichtbar machen using WhatsApp; outcome: left an open follow-up.",
+    "task": "Ungeplante Störung sichtbar machen",
+    "tool": "WhatsApp",
+    "participants": [
+      "Vorgesetzte Stelle"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Amelie Kranz erlebt `Ungeplante Störung sichtbar machen` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Nach Feierabend fehlt Energie für Planung. Der kleine Fortschritt ist auf `Ein echtes Essensfenster halten` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Ungeplante Störung sichtbar machen"
+    ],
+    "artifacts_touched": [
+      "WhatsApp"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Ungeplante Störung sichtbar machen nachhalten"
+    ],
+    "impact": {
+      "mood": "angespannt, aber sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlt Energie für Planung"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten"
+    ],
+    "calendar_event_id": "cal_bd2c9602a3d49684",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_ce1c8c78ae50e9a1",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-15T18:40",
+    "event_type": "focus",
+    "summary": "Amelie Kranz Abendroutine ohne Heldentat using Arbeitsplatz; outcome: resolved enough to move forward.",
+    "task": "Abendroutine ohne Heldentat",
+    "tool": "Arbeitsplatz",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz erlebt `Abendroutine ohne Heldentat` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Offene Aufgaben wandern in den Abend. Der kleine Fortschritt ist auf `Abends nicht nur improvisieren` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Abendroutine ohne Heldentat"
+    ],
+    "artifacts_touched": [
+      "Arbeitsplatz"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "angespannt, aber sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Offene Aufgaben wandern in den Abend"
+    ],
+    "goal_refs": [
+      "Abends nicht nur improvisieren"
+    ],
+    "calendar_event_id": "cal_ce1c8c78ae50e9a1",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_8780a7a8e18dc8a4",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-16T07:20",
+    "event_type": "admin",
+    "summary": "Amelie Kranz Morgendlicher Realitätscheck using Diensthandy; outcome: left an open follow-up.",
+    "task": "Morgendlicher Realitätscheck",
+    "tool": "Diensthandy",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz erlebt `Morgendlicher Realitätscheck` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Essensfenster verschwinden zuerst. Der kleine Fortschritt ist auf `Den Arbeitstag zuverlässig schaffen` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Morgendlicher Realitätscheck"
+    ],
+    "artifacts_touched": [
+      "Diensthandy"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten"
+    ],
+    "impact": {
+      "mood": "gehetzt und körperlich müde",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essensfenster verschwinden zuerst"
+    ],
+    "goal_refs": [
+      "Den Arbeitstag zuverlässig schaffen"
+    ],
+    "calendar_event_id": "cal_8780a7a8e18dc8a4",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_3a4c22ed76768946",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-16T09:45",
+    "event_type": "meeting",
+    "summary": "Amelie Kranz Abstimmung mit Gegenwind using Kalender; outcome: left an open follow-up.",
+    "task": "Abstimmung mit Gegenwind",
+    "tool": "Kalender",
+    "participants": [
+      "Vorgesetzte Stelle"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Amelie Kranz erlebt `Abstimmung mit Gegenwind` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Spontane Notlösungen werden teuer oder ungesund. Der kleine Fortschritt ist auf `Ein echtes Essensfenster halten` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Abstimmung mit Gegenwind"
+    ],
+    "artifacts_touched": [
+      "Kalender"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Abstimmung mit Gegenwind nachhalten"
+    ],
+    "impact": {
+      "mood": "gehetzt und körperlich müde",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten"
+    ],
+    "calendar_event_id": "cal_3a4c22ed76768946",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_3bbf4e0ccdfe47b8",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-16T12:35",
+    "event_type": "focus",
+    "summary": "Amelie Kranz Geplantes Essensfenster verteidigen using Pausenbox; outcome: resolved enough to move forward.",
+    "task": "Geplantes Essensfenster verteidigen",
+    "tool": "Pausenbox",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz verteidigt ein kurzes Essensfenster gegen den laufenden Tag. Das Essen ist einfach und wiederholbar; wichtig ist, dass es im Sitzen und ohne sofortigen Wechsel in die nächste Aufgabe passiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Geplantes Essensfenster verteidigen"
+    ],
+    "artifacts_touched": [
+      "Pausenbox"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "gehetzt und körperlich müde",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essensfenster verschwinden zuerst"
+    ],
+    "goal_refs": [
+      "Private Verpflichtungen nicht komplett verdrängen"
+    ],
+    "calendar_event_id": "cal_3bbf4e0ccdfe47b8",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_d3089f381c9544ce",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-16T15:10",
+    "event_type": "interruption",
+    "summary": "Amelie Kranz Ungeplante Störung sichtbar machen using WhatsApp; outcome: left an open follow-up.",
+    "task": "Ungeplante Störung sichtbar machen",
+    "tool": "WhatsApp",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Amelie Kranz erlebt `Ungeplante Störung sichtbar machen` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Nach Feierabend fehlt Energie für Planung. Der kleine Fortschritt ist auf `Ein echtes Essensfenster halten` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Ungeplante Störung sichtbar machen"
+    ],
+    "artifacts_touched": [
+      "WhatsApp"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Ungeplante Störung sichtbar machen nachhalten"
+    ],
+    "impact": {
+      "mood": "gehetzt und körperlich müde",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlt Energie für Planung"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten"
+    ],
+    "calendar_event_id": "cal_d3089f381c9544ce",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_dbdbe371089cd802",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-16T18:40",
+    "event_type": "focus",
+    "summary": "Amelie Kranz Abendroutine ohne Heldentat using Arbeitsplatz; outcome: resolved enough to move forward.",
+    "task": "Abendroutine ohne Heldentat",
+    "tool": "Arbeitsplatz",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz erlebt `Abendroutine ohne Heldentat` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Offene Aufgaben wandern in den Abend. Der kleine Fortschritt ist auf `Abends nicht nur improvisieren` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Abendroutine ohne Heldentat"
+    ],
+    "artifacts_touched": [
+      "Arbeitsplatz"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "gehetzt und körperlich müde",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Offene Aufgaben wandern in den Abend"
+    ],
+    "goal_refs": [
+      "Abends nicht nur improvisieren"
+    ],
+    "calendar_event_id": "cal_dbdbe371089cd802",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_7b1410a60c8e2c1f",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-17T07:20",
+    "event_type": "admin",
+    "summary": "Amelie Kranz Morgendlicher Realitätscheck using Diensthandy; outcome: left an open follow-up.",
+    "task": "Morgendlicher Realitätscheck",
+    "tool": "Diensthandy",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz erlebt `Morgendlicher Realitätscheck` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Essensfenster verschwinden zuerst. Der kleine Fortschritt ist auf `Den Arbeitstag zuverlässig schaffen` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Morgendlicher Realitätscheck"
+    ],
+    "artifacts_touched": [
+      "Diensthandy"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten"
+    ],
+    "impact": {
+      "mood": "fokussiert mit knappen Reserven",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essensfenster verschwinden zuerst"
+    ],
+    "goal_refs": [
+      "Den Arbeitstag zuverlässig schaffen"
+    ],
+    "calendar_event_id": "cal_7b1410a60c8e2c1f",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_6542e7580d5205a0",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-17T09:45",
+    "event_type": "meeting",
+    "summary": "Amelie Kranz Abstimmung mit Gegenwind using Kalender; outcome: left an open follow-up.",
+    "task": "Abstimmung mit Gegenwind",
+    "tool": "Kalender",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Amelie Kranz erlebt `Abstimmung mit Gegenwind` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Spontane Notlösungen werden teuer oder ungesund. Der kleine Fortschritt ist auf `Ein echtes Essensfenster halten` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Abstimmung mit Gegenwind"
+    ],
+    "artifacts_touched": [
+      "Kalender"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Abstimmung mit Gegenwind nachhalten"
+    ],
+    "impact": {
+      "mood": "fokussiert mit knappen Reserven",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten"
+    ],
+    "calendar_event_id": "cal_6542e7580d5205a0",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_4412ad590430f53e",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-17T12:35",
+    "event_type": "focus",
+    "summary": "Amelie Kranz Geplantes Essensfenster verteidigen using Pausenbox; outcome: resolved enough to move forward.",
+    "task": "Geplantes Essensfenster verteidigen",
+    "tool": "Pausenbox",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz verteidigt ein kurzes Essensfenster gegen den laufenden Tag. Das Essen ist einfach und wiederholbar; wichtig ist, dass es im Sitzen und ohne sofortigen Wechsel in die nächste Aufgabe passiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Geplantes Essensfenster verteidigen"
+    ],
+    "artifacts_touched": [
+      "Pausenbox"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "fokussiert mit knappen Reserven",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essensfenster verschwinden zuerst"
+    ],
+    "goal_refs": [
+      "Private Verpflichtungen nicht komplett verdrängen"
+    ],
+    "calendar_event_id": "cal_4412ad590430f53e",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_e47a2eb954f95b1c",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-17T15:10",
+    "event_type": "interruption",
+    "summary": "Amelie Kranz Ungeplante Störung sichtbar machen using WhatsApp; outcome: left an open follow-up.",
+    "task": "Ungeplante Störung sichtbar machen",
+    "tool": "WhatsApp",
+    "participants": [
+      "Familienkontakt"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Amelie Kranz erlebt `Ungeplante Störung sichtbar machen` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Nach Feierabend fehlt Energie für Planung. Der kleine Fortschritt ist auf `Ein echtes Essensfenster halten` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Ungeplante Störung sichtbar machen"
+    ],
+    "artifacts_touched": [
+      "WhatsApp"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Ungeplante Störung sichtbar machen nachhalten"
+    ],
+    "impact": {
+      "mood": "fokussiert mit knappen Reserven",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlt Energie für Planung"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten"
+    ],
+    "calendar_event_id": "cal_e47a2eb954f95b1c",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_c2a93aa5406d85ef",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-17T18:40",
+    "event_type": "focus",
+    "summary": "Amelie Kranz Abendroutine ohne Heldentat using Arbeitsplatz; outcome: resolved enough to move forward.",
+    "task": "Abendroutine ohne Heldentat",
+    "tool": "Arbeitsplatz",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz erlebt `Abendroutine ohne Heldentat` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Offene Aufgaben wandern in den Abend. Der kleine Fortschritt ist auf `Abends nicht nur improvisieren` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Abendroutine ohne Heldentat"
+    ],
+    "artifacts_touched": [
+      "Arbeitsplatz"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "fokussiert mit knappen Reserven",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Offene Aufgaben wandern in den Abend"
+    ],
+    "goal_refs": [
+      "Abends nicht nur improvisieren"
+    ],
+    "calendar_event_id": "cal_c2a93aa5406d85ef",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_89d4a4086294e24d",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-18T07:20",
+    "event_type": "admin",
+    "summary": "Amelie Kranz Morgendlicher Realitätscheck using Diensthandy; outcome: left an open follow-up.",
+    "task": "Morgendlicher Realitätscheck",
+    "tool": "Diensthandy",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz erlebt `Morgendlicher Realitätscheck` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Essensfenster verschwinden zuerst. Der kleine Fortschritt ist auf `Den Arbeitstag zuverlässig schaffen` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Morgendlicher Realitätscheck"
+    ],
+    "artifacts_touched": [
+      "Diensthandy"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten"
+    ],
+    "impact": {
+      "mood": "stabiler als erwartet",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essensfenster verschwinden zuerst"
+    ],
+    "goal_refs": [
+      "Den Arbeitstag zuverlässig schaffen"
+    ],
+    "calendar_event_id": "cal_89d4a4086294e24d",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_fbe36a55a232e4dc",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-18T09:45",
+    "event_type": "meeting",
+    "summary": "Amelie Kranz Abstimmung mit Gegenwind using Kalender; outcome: left an open follow-up.",
+    "task": "Abstimmung mit Gegenwind",
+    "tool": "Kalender",
+    "participants": [
+      "Familienkontakt"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Amelie Kranz erlebt `Abstimmung mit Gegenwind` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Spontane Notlösungen werden teuer oder ungesund. Der kleine Fortschritt ist auf `Ein echtes Essensfenster halten` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Abstimmung mit Gegenwind"
+    ],
+    "artifacts_touched": [
+      "Kalender"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Abstimmung mit Gegenwind nachhalten"
+    ],
+    "impact": {
+      "mood": "stabiler als erwartet",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten"
+    ],
+    "calendar_event_id": "cal_fbe36a55a232e4dc",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_4a14264f39808890",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-18T12:35",
+    "event_type": "focus",
+    "summary": "Amelie Kranz Geplantes Essensfenster verteidigen using Pausenbox; outcome: resolved enough to move forward.",
+    "task": "Geplantes Essensfenster verteidigen",
+    "tool": "Pausenbox",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz verteidigt ein kurzes Essensfenster gegen den laufenden Tag. Das Essen ist einfach und wiederholbar; wichtig ist, dass es im Sitzen und ohne sofortigen Wechsel in die nächste Aufgabe passiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Geplantes Essensfenster verteidigen"
+    ],
+    "artifacts_touched": [
+      "Pausenbox"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "stabiler als erwartet",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essensfenster verschwinden zuerst"
+    ],
+    "goal_refs": [
+      "Private Verpflichtungen nicht komplett verdrängen"
+    ],
+    "calendar_event_id": "cal_4a14264f39808890",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_0a6844c02a2d4cf1",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-18T15:10",
+    "event_type": "interruption",
+    "summary": "Amelie Kranz Ungeplante Störung sichtbar machen using WhatsApp; outcome: left an open follow-up.",
+    "task": "Ungeplante Störung sichtbar machen",
+    "tool": "WhatsApp",
+    "participants": [
+      "Vorgesetzte Stelle"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Amelie Kranz erlebt `Ungeplante Störung sichtbar machen` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Nach Feierabend fehlt Energie für Planung. Der kleine Fortschritt ist auf `Ein echtes Essensfenster halten` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Ungeplante Störung sichtbar machen"
+    ],
+    "artifacts_touched": [
+      "WhatsApp"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [
+      "Ungeplante Störung sichtbar machen nachhalten"
+    ],
+    "impact": {
+      "mood": "stabiler als erwartet",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlt Energie für Planung"
+    ],
+    "goal_refs": [
+      "Ein echtes Essensfenster halten"
+    ],
+    "calendar_event_id": "cal_0a6844c02a2d4cf1",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "evt_7280b3080182d3b2",
+    "persona_id": "persona_991687e2c4d1368c",
+    "timestamp": "2026-06-18T18:40",
+    "event_type": "focus",
+    "summary": "Amelie Kranz Abendroutine ohne Heldentat using Arbeitsplatz; outcome: resolved enough to move forward.",
+    "task": "Abendroutine ohne Heldentat",
+    "tool": "Arbeitsplatz",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Amelie Kranz erlebt `Abendroutine ohne Heldentat` als normalen, nicht dramatischen Teil des Tages. Der konkrete Druckpunkt ist: Offene Aufgaben wandern in den Abend. Der kleine Fortschritt ist auf `Abends nicht nur improvisieren` ausgerichtet, bleibt aber bewusst alltagstauglich statt idealisiert.",
+    "conversation": [],
+    "key_quotes": [
+      "Das muss an einem normalen müden Tag funktionieren, sonst ist es keine Routine."
+    ],
+    "actions_done": [
+      "Abendroutine ohne Heldentat"
+    ],
+    "artifacts_touched": [
+      "Arbeitsplatz"
+    ],
+    "persona_thought": "Klein halten, sichtbar machen, morgen wiederholen.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "stabiler als erwartet",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Offene Aufgaben wandern in den Abend"
+    ],
+    "goal_refs": [
+      "Abends nicht nur improvisieren"
+    ],
+    "calendar_event_id": "cal_7280b3080182d3b2",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "date": "2026-06-22",
+    "timestamp": "2026-06-22T11:50",
+    "event_type": "Rückschlag und Korrektur",
+    "summary": "Ein akut kranker Praxistag bringt Amelie an die Belastungsgrenze, doch der Mittwochsblock und die Pausenbox retten den Tag.",
+    "task": "Tag mit Personalausfall überstehen ohne komplett auszufallen",
+    "tool": "Diensthandy + Pausenbox + Kalender",
+    "participants": [
+      "Kollegin Alex (krank gemeldet)",
+      "Vorgesetzte Stelle"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Alex meldet sich morgens krank, und Amelie muss zwei ihrer Kinder mit übernehmen. Der Tag droht zu kippen, aber der feste Mittwochsblock und die vorgekochte Pausenbox geben ihr 15 echte Minuten zum Essen mitten im Chaos. Sie meldet der vorgesetzten Stelle klar, was sie heute nicht schafft, statt alles zu schlucken. Abends ist sie platt, aber nicht ausgehungert – ein Unterschied, den sie deutlich spürt. Der Linsen-Eintopf aus der Box war das Einzige, was heute nach Plan lief.",
+    "key_quotes": [
+      "Heute hat die Box mich getragen, ehrlich.",
+      "Ich sage jetzt, was nicht geht, statt es bis zum Umfallen zu probieren."
+    ],
+    "actions_done": [
+      "Zwei Zusatztermine übernommen",
+      "Mittwochsblock zum Essen verteidigt",
+      "Der vorgesetzten Stelle klare Grenze gemeldet",
+      "Pausenbox-Eintopf gegessen"
+    ],
+    "artifacts_touched": [
+      "Diensthandy",
+      "Pausenbox",
+      "Kalender"
+    ],
+    "persona_thought": "Ein Jahr früher wäre dieser Tag mit knurrendem Magen und schlechtem Gewissen geendet – heute nicht.",
+    "decision": "Bei Personalausfall sofort Grenzen kommunizieren statt stillschweigend alles aufzufangen",
+    "open_loops": [
+      "Mit Alex über Vertretungsregelung bei Krankheit sprechen",
+      "Mittwochsblock auch in Ausfallwochen behalten"
+    ],
+    "impact": {
+      "mood": "erschöpft, aber selbstwirksam",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Andere verlassen sich auf diese Person",
+      "Termine und Unterbrechungen bestimmen den Tag"
+    ],
+    "goal_refs": [
+      "Den Arbeitstag zuverlässig schaffen",
+      "Ein echtes Essensfenster halten"
+    ],
+    "id": "evt_3dd74be66fef4860",
+    "persona_id": "persona_991687e2c4d1368c",
+    "conversation": [],
+    "calendar_event_id": "cal_3991aaba68864b7d",
+    "created_at": "2026-06-15T08:09:19+00:00"
+  }
+]

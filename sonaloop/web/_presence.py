@@ -75,8 +75,8 @@ REGISTRY: dict[str, Declared] = {
     "decision": Declared(OUTLINE_ROW, "a row in the phase whose gate judgment cites it / whose verify "
                                       "task produced it; anchor #dec-{id} keeps the deep link"),
     "open_question": Declared(OUTLINE_ROW, "a row (open/resolved pill) in the phase active at created_at"),
-    "asset": Declared(OUTLINE_ROW, "deliverables (direction out) in the final Deliver group; evidence "
-                                   "assets in their phase's Evidence sub-group (ux-contract §7.2)"),
+    "asset": Declared(OUTLINE_ROW, "deliverables (direction out) in the final Deliver group; incoming "
+                                   "assets in their phase's Assets sub-group (ux-contract §7.2)"),
     "survey": Declared(OUTLINE_ROW, "a row (lifecycle pill, question/response counts) under the phase "
                                     "of the act task that produced it; links to /surveys/{id}"),
 }
@@ -290,7 +290,7 @@ def asset_kind_pill(asset: dict) -> str:
 
 def asset_direction_pill(asset: dict) -> str:
     """The asset's direction pill: deliverable out (green) vs evidence in (quiet) — shared by the
-    outline chips, primitive_row, the asset detail page and the files lens (UX U8)."""
+    outline chips, primitive_row, the asset detail page and the asset library surface (UX U8)."""
     return (_label(t("asset_dir_out"), "var(--green)") if asset_direction(asset) == "out"
             else _label(t("asset_dir_in")))
 
@@ -316,7 +316,7 @@ def asset_source_chip(asset: dict, store=None) -> str:
 
 
 # Co-located CSS for the U8 asset-detail content blocks (the house pattern: shared asset
-# renderers live HERE, used by the detail page and the files lens alike).
+# renderers live HERE, used by the detail page and asset rows alike).
 register_css(".assetprev{margin:6px 0 18px}"
              ".assetprev img{max-width:100%;border:1px solid var(--line);border-radius:var(--radius);display:block}")
 
@@ -343,7 +343,7 @@ def asset_preview_html(asset: dict) -> str:
 # badge toned by family, or an image thumbnail), the filename WITH extension as the title,
 # a faint size · date meta line, and exactly ONE download/open affordance; the card body is
 # the OPEN target (the canonical /assets/{id} detail, slide-over armed). Shared by the
-# files lens (grid cards), the Library tab + the outline Evidence/Deliver rows (--row
+# Library tab grid cards + the outline Assets/Deliver rows (--row
 # variant), and the asset detail hero. ──────────────────────────────────────────────────
 
 # Extension → badge tone, the design-system family map (components.css: red docs that

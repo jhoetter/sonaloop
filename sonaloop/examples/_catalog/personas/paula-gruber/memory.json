@@ -1,0 +1,644 @@
+{
+  "entities": [
+    {
+      "id": "ent_eee32377e12eee98",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "kind": "topic",
+      "name": "haltbare Alltagsroutine",
+      "status": "aktiv",
+      "aliases": [
+        "Pausenanker",
+        "Notlösung vermeiden"
+      ],
+      "first_seen": "2026-06-09",
+      "last_seen": "2026-06-12",
+      "created_at": "2026-06-10T21:29:57.217849+00:00",
+      "updated_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "id": "ent_38b81b5542a82409",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "kind": "person",
+      "name": "Direkte Kollegin Samira",
+      "status": "Arbeitsumfeld",
+      "aliases": [],
+      "first_seen": "2026-06-09",
+      "last_seen": "2026-06-05",
+      "created_at": "2026-06-10T21:29:57.217849+00:00",
+      "updated_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "id": "ent_cb24d4c7de254282",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "kind": "organization",
+      "name": "Planende Stelle",
+      "status": "wackelig",
+      "aliases": [
+        "Dienstplanung",
+        "Planstelle"
+      ],
+      "first_seen": "2026-01-22",
+      "last_seen": "2026-04-29",
+      "created_at": "2026-06-15T13:32:48+00:00",
+      "updated_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "ent_d5d92d7292fb4efc",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "kind": "project",
+      "name": "Zwei-Wochen-Liste der Pausenverschiebungen",
+      "status": "active",
+      "aliases": [
+        "Pausenverschiebungsliste",
+        "Uhrzeitenliste"
+      ],
+      "first_seen": "2026-05-08",
+      "last_seen": "2026-05-21",
+      "created_at": "2026-06-15T13:32:48+00:00",
+      "updated_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "ent_f89f505f5d734c76",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "kind": "person",
+      "name": "Familienkontakt zuhause",
+      "status": "private",
+      "aliases": [
+        "Familie",
+        "Familienchat"
+      ],
+      "first_seen": "2026-04-16",
+      "last_seen": "2026-03-27",
+      "created_at": "2026-06-15T13:32:48+00:00",
+      "updated_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "ent_302e1a7dc7b6453c",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "kind": "place",
+      "name": "Rehazentrum Rosenheim",
+      "status": "work_context",
+      "aliases": [
+        "Rehazentrum",
+        "Therapieraeume"
+      ],
+      "first_seen": "2026-01-22",
+      "last_seen": "2026-06-12",
+      "created_at": "2026-06-15T13:32:48+00:00",
+      "updated_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "ent_349c09456bc744eb",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "kind": "topic",
+      "name": "Long-Covid-Erschoepfung im Dienst",
+      "status": "active",
+      "aliases": [
+        "Erschoepfungssignal",
+        "Belastungsgrenze"
+      ],
+      "first_seen": "2026-03-03",
+      "last_seen": "2026-06-05",
+      "created_at": "2026-06-15T13:32:48+00:00",
+      "updated_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "ent_f965c21138514940",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "kind": "project",
+      "name": "Deckel-Zettel Pausenanker",
+      "status": "active",
+      "aliases": [
+        "erst sitzen, dann antworten",
+        "Pausenbox-Zettel"
+      ],
+      "first_seen": "2026-02-06",
+      "last_seen": "2026-02-06",
+      "created_at": "2026-06-15T13:32:48+00:00",
+      "updated_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "ent_b534287a8ff84573",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "kind": "topic",
+      "name": "bezahlbare Notloesungen unterwegs",
+      "status": "active",
+      "aliases": [
+        "Bahnhof-Notloesung",
+        "Supermarktoptionen"
+      ],
+      "first_seen": "2026-05-21",
+      "last_seen": "2026-05-21",
+      "created_at": "2026-06-15T13:32:48+00:00",
+      "updated_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "ent_5751926ad49f43e0",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "kind": "place",
+      "name": "Supermarkt am Bahnhof Rosenheim",
+      "status": "work_context",
+      "aliases": [
+        "Bahnhofssupermarkt"
+      ],
+      "first_seen": "2026-05-21",
+      "last_seen": "2026-05-21",
+      "created_at": "2026-06-15T13:32:48+00:00",
+      "updated_at": "2026-06-15T13:32:48+00:00"
+    }
+  ],
+  "entity_facts": [
+    {
+      "id": "fact_eee32377e12eee98",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_eee32377e12eee98",
+      "fact": "Die Persona testet kleine, wiederholbare Alltagsanker statt Idealpläne.",
+      "t_valid": "2026-06-09",
+      "t_invalid": null,
+      "source_event_id": null,
+      "confidence": 0.82,
+      "importance": 4,
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "id": "fact_38b81b5542a82409",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_38b81b5542a82409",
+      "fact": "hilft praktisch, hat aber selbst kaum freie Zeit",
+      "t_valid": "2026-06-09",
+      "t_invalid": null,
+      "source_event_id": null,
+      "confidence": 0.72,
+      "importance": 3,
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "id": "fact_bc4d5d26786a448e",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_eee32377e12eee98",
+      "fact": "Paula bevorzugt kleine, wiederholbare Essens- und Pausenanker, die auch nach Unterbrechungen funktionieren.",
+      "t_valid": "2026-03-03",
+      "t_invalid": null,
+      "source_event_id": "evt_300571f0156c4637",
+      "confidence": 0.86,
+      "importance": 4,
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "fact_293c3fc303744e20",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_38b81b5542a82409",
+      "fact": "Samira hilft Paula praktisch bei knappen Übergaben, braucht aber selbst klare und kurze Bitten.",
+      "t_valid": "2026-06-12",
+      "t_invalid": null,
+      "source_event_id": "evt_300571f0156c4637",
+      "confidence": 0.8,
+      "importance": 4,
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "fact_56c2cb79301e4df9",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_cb24d4c7de254282",
+      "fact": "Die Planende Stelle reagiert auf Pausenthemen eher, wenn Paula konkrete Wege, Uhrzeiten und Versorgungsauswirkungen dokumentiert.",
+      "t_valid": "2026-05-08",
+      "t_invalid": null,
+      "source_event_id": "evt_300571f0156c4637",
+      "confidence": 0.74,
+      "importance": 4,
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "fact_546fbc1d2aed4ffd",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_d5d92d7292fb4efc",
+      "fact": "Paula sammelt seit dem 8. Mai konkrete Uhrzeiten und Raumwechsel, um Pausenverschiebungen nicht als bloßes Bauchgefühl vorbringen zu müssen.",
+      "t_valid": "2026-05-08",
+      "t_invalid": null,
+      "source_event_id": "evt_300571f0156c4637",
+      "confidence": 0.9,
+      "importance": 5,
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "fact_d3e8416ac0b8402a",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_f89f505f5d734c76",
+      "fact": "Paula versucht nach Spätdiensten erst zu essen, bevor sie private Organisationsfragen beantwortet.",
+      "t_valid": "2026-04-16",
+      "t_invalid": null,
+      "source_event_id": "evt_300571f0156c4637",
+      "confidence": 0.78,
+      "importance": 3,
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "fact_fe2d4b2acc114ad8",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_349c09456bc744eb",
+      "fact": "Paula nimmt deutliche Erschöpfungssignale oft spät wahr und übt, Zusatzaufgaben früher abzugeben.",
+      "t_valid": "2026-06-12",
+      "t_invalid": null,
+      "source_event_id": "evt_300571f0156c4637",
+      "confidence": 0.83,
+      "importance": 5,
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "fact_996f3bf7155a4160",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_302e1a7dc7b6453c",
+      "fact": "Wechsel zwischen MTT-Raum, Einzelkabinen, Atemgruppe und Geräteraum erhöhen Paulas Belastung besonders, wenn Pausen direkt daran anschließen.",
+      "t_valid": "2026-05-07",
+      "t_invalid": null,
+      "source_event_id": "evt_300571f0156c4637",
+      "confidence": 0.76,
+      "importance": 3,
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "fact_88430e47b6404939",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_f965c21138514940",
+      "fact": "Ein sichtbarer Zettel auf der Pausenbox hilft Paula, vor dem Reagieren auf Dienstanrufe wenigstens kurz zu essen.",
+      "t_valid": "2026-02-06",
+      "t_invalid": null,
+      "source_event_id": "evt_c24e367fe7e04a4a",
+      "confidence": 0.82,
+      "importance": 4,
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "fact_2ed16bbb46744385",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_38b81b5542a82409",
+      "fact": "Samira kann Paula punktuell drei Minuten abfangen oder einen klar benannten Handgriff uebernehmen, braucht dafuer aber extrem konkrete Bitten.",
+      "t_valid": "2026-02-06",
+      "t_invalid": null,
+      "source_event_id": "evt_c24e367fe7e04a4a",
+      "confidence": 0.84,
+      "importance": 4,
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "fact_3b2f87c4dd2d4f25",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_d5d92d7292fb4efc",
+      "fact": "Paula nutzt die Liste wirksamer, wenn sie Wegezeiten und Raumwechsel markiert statt allgemeine Erschoepfung zu beschreiben.",
+      "t_valid": "2026-04-29",
+      "t_invalid": null,
+      "source_event_id": "evt_c24e367fe7e04a4a",
+      "confidence": 0.86,
+      "importance": 5,
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "fact_e20b8ee2d753480b",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_f89f505f5d734c76",
+      "fact": "Eine konkrete Antwortzeit im Familienchat hilft Paula, nach Spaetdiensten erst zu essen und private Organisation weniger gereizt zu klaeren.",
+      "t_valid": "2026-03-27",
+      "t_invalid": null,
+      "source_event_id": "evt_c24e367fe7e04a4a",
+      "confidence": 0.76,
+      "importance": 3,
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "fact_cc53b5094df1484b",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_b534287a8ff84573",
+      "fact": "Paula vertraegt eine kleine Supermarkt-Kombination aus Naturjoghurt, Nuessen und Wasser besser als spontane suesse Baeckerei-Loesungen und achtet dabei auf Kosten.",
+      "t_valid": "2026-05-21",
+      "t_invalid": null,
+      "source_event_id": "evt_c24e367fe7e04a4a",
+      "confidence": 0.78,
+      "importance": 4,
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "fact_19757a7250334ff5",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_349c09456bc744eb",
+      "fact": "Bei kognitiver Erschoepfung faellt Paula das Sprechen schwer; ein kurzes WhatsApp-Punktzeichen an Samira ist als niedrigschwellige Mikro-Uebergabe vereinbart.",
+      "t_valid": "2026-06-05",
+      "t_invalid": null,
+      "source_event_id": "evt_c24e367fe7e04a4a",
+      "confidence": 0.81,
+      "importance": 5,
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "fact_46f5c56bd5704b51",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_cb24d4c7de254282",
+      "fact": "Die Planende Stelle zeigte sich eher testbereit, als Paula konkrete Raumwechsel und Versorgungsauswirkungen nannte, beschloss aber zunaechst nur eine kleine Anpassung am Atemgruppenblock.",
+      "t_valid": "2026-04-29",
+      "t_invalid": null,
+      "source_event_id": "evt_c24e367fe7e04a4a",
+      "confidence": 0.72,
+      "importance": 4,
+      "created_at": "2026-06-15T13:32:48+00:00"
+    }
+  ],
+  "event_links": [
+    {
+      "event_id": "evt_ce0767b87b4fc2e2",
+      "entity_id": "ent_eee32377e12eee98",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "routine_context",
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "event_id": "evt_60a5e6b6b064b2ea",
+      "entity_id": "ent_eee32377e12eee98",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "routine_context",
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "event_id": "evt_964a7578bc569c8d",
+      "entity_id": "ent_eee32377e12eee98",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "routine_context",
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "event_id": "evt_fb1af3c395067387",
+      "entity_id": "ent_eee32377e12eee98",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "routine_context",
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "event_id": "evt_8f5de8fd52a0fd4a",
+      "entity_id": "ent_eee32377e12eee98",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "routine_context",
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "event_id": "evt_d4c10dc52fffe3d9",
+      "entity_id": "ent_eee32377e12eee98",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "routine_context",
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "event_id": "evt_a236b86d24b12f5f",
+      "entity_id": "ent_eee32377e12eee98",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "routine_context",
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "event_id": "evt_44280e3566a20aca",
+      "entity_id": "ent_eee32377e12eee98",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "routine_context",
+      "created_at": "2026-06-10T21:29:57.217849+00:00"
+    },
+    {
+      "event_id": "evt_300571f0156c4637",
+      "entity_id": "ent_eee32377e12eee98",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "event_id": "evt_1821af7ba9744cea",
+      "entity_id": "ent_eee32377e12eee98",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "event_id": "evt_37b8de81b1c34fbf",
+      "entity_id": "ent_eee32377e12eee98",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "event_id": "evt_06b1f97b0705434a",
+      "entity_id": "ent_eee32377e12eee98",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "event_id": "evt_3091f8e916e44cfe",
+      "entity_id": "ent_eee32377e12eee98",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "event_id": "evt_766bc71610934891",
+      "entity_id": "ent_eee32377e12eee98",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "event_id": "evt_2be581b914ef4eeb",
+      "entity_id": "ent_eee32377e12eee98",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "event_id": "evt_c24e367fe7e04a4a",
+      "entity_id": "ent_f965c21138514940",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "event_id": "evt_b61353e39cc14eda",
+      "entity_id": "ent_f965c21138514940",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "event_id": "evt_7c979a43c0de4d36",
+      "entity_id": "ent_f965c21138514940",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "event_id": "evt_2daff991add84cf2",
+      "entity_id": "ent_f965c21138514940",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "event_id": "evt_9bd2d389af27428d",
+      "entity_id": "ent_f965c21138514940",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "event_id": "evt_009d3ab584ce4d91",
+      "entity_id": "ent_f965c21138514940",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "event_id": "evt_058763351c1d49b3",
+      "entity_id": "ent_f965c21138514940",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T13:32:48+00:00"
+    }
+  ],
+  "threads": [
+    {
+      "id": "thread_d352d3ddaae146e8",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_d5d92d7292fb4efc",
+      "text": "Paula will tatsächliche Pausenverschiebungen mit Uhrzeit, Raumwechsel und Anlass sammeln, bevor sie erneut zur Teamleitung geht.",
+      "status": "open",
+      "opened_on": "2026-05-08",
+      "closed_on": null,
+      "created_at": "2026-06-15T13:32:48+00:00",
+      "updated_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "thread_7d1e6fcbdd524487",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_eee32377e12eee98",
+      "text": "Die drei Essensbausteine Eier, tiefgekühltes Gemüse und Brot sollen zeigen, ob weniger Notkäufe ohne Sonntags-Meal-Prep möglich sind.",
+      "status": "open",
+      "opened_on": "2026-06-03",
+      "closed_on": null,
+      "created_at": "2026-06-15T13:32:48+00:00",
+      "updated_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "thread_aa89dc6cf8114444",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_38b81b5542a82409",
+      "text": "Paula möchte mit Samira eine faire Form für Mikro-Übergaben finden, damit Hilfe nicht einseitig hängen bleibt.",
+      "status": "open",
+      "opened_on": "2026-06-12",
+      "closed_on": null,
+      "created_at": "2026-06-15T13:32:48+00:00",
+      "updated_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "thread_1de6548ab75f4ad7",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_f89f505f5d734c76",
+      "text": "Paula testet, ob eine feste Rückmeldezeit nach dem Essen private Sorgearbeit planbarer macht.",
+      "status": "open",
+      "opened_on": "2026-04-16",
+      "closed_on": null,
+      "created_at": "2026-06-15T13:32:48+00:00",
+      "updated_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "thread_d2716137bd3a4a84",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_cb24d4c7de254282",
+      "text": "Die Randnotiz 'prüfen' aus der Wochenplanung ist noch nicht in eine verlässliche Anpassung der Wege und Pausen übersetzt.",
+      "status": "open",
+      "opened_on": "2026-05-07",
+      "closed_on": null,
+      "created_at": "2026-06-15T13:32:48+00:00",
+      "updated_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "thread_03b239f3b8714886",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_f965c21138514940",
+      "text": "Paula will pruefen, ob der Pausenbox-Zettel auch an hektischen Tagen auffaellt, bevor sie automatisch weiterarbeitet.",
+      "status": "open",
+      "opened_on": "2026-02-06",
+      "closed_on": null,
+      "created_at": "2026-06-15T13:32:48+00:00",
+      "updated_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "thread_a86852b8d8e64c65",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_38b81b5542a82409",
+      "text": "Paula und Samira muessen nach einigen Diensten auswerten, ob Drei-Minuten-Abfanghilfen und das Punktzeichen gegenseitig tragfaehig sind.",
+      "status": "open",
+      "opened_on": "2026-02-06",
+      "closed_on": null,
+      "created_at": "2026-06-15T13:32:48+00:00",
+      "updated_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "thread_fbf0606b1db04123",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_d5d92d7292fb4efc",
+      "text": "Paula sammelt weiter markierte Raumwechsel und Wegezeiten, um den Test mit frueher endendem Atemgruppenblock bewerten zu koennen.",
+      "status": "open",
+      "opened_on": "2026-04-29",
+      "closed_on": null,
+      "created_at": "2026-06-15T13:32:48+00:00",
+      "updated_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "thread_1db8dbd4363a4474",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_b534287a8ff84573",
+      "text": "Paula will drei guenstige, koerperlich vertraegliche Bahnhof- oder Supermarktoptionen auf eine Karte in der Pausenbox schreiben.",
+      "status": "open",
+      "opened_on": "2026-05-21",
+      "closed_on": null,
+      "created_at": "2026-06-15T13:32:48+00:00",
+      "updated_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "thread_32b31f694b7446f0",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_f89f505f5d734c76",
+      "text": "Paula beobachtet, ob der Familienkontakt feste Antwortzeiten nach Spaetdiensten akzeptiert oder weiter Sofortreaktionen erwartet.",
+      "status": "open",
+      "opened_on": "2026-03-27",
+      "closed_on": null,
+      "created_at": "2026-06-15T13:32:48+00:00",
+      "updated_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "thread_2d65272d2af643c9",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "entity_id": "ent_349c09456bc744eb",
+      "text": "Paula uebt, Erschoepfung frueher als konkreten naechsten Handgriff zu uebergeben, statt sie erst nach der Behandlung zu bemerken.",
+      "status": "open",
+      "opened_on": "2026-02-24",
+      "closed_on": null,
+      "created_at": "2026-06-15T13:32:48+00:00",
+      "updated_at": "2026-06-15T13:32:48+00:00"
+    }
+  ],
+  "plans": [],
+  "digests": [
+    {
+      "id": "digest_e861018f901e4b89",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "scope": "llm_authored_memory_depth",
+      "period_start": "2026-01-22",
+      "period_end": "2026-06-12",
+      "summary": "Paula bewegte sich in diesem Zeitraum von spontanen Korrekturen einzelner Diensttage hin zu konkreteren Schutzmechanismen: Wegstrecken vor Frühdiensten prüfen, kleine salzige Pausenboxen nutzen, private Anfragen erst nach dem Essen beantworten und Pausenverschiebungen mit Uhrzeit dokumentieren. Samira blieb eine wichtige, aber begrenzte Stütze, während die Planende Stelle nur auf sehr konkrete Auswirkungen zu reagieren scheint. Die Long-Covid-Erschöpfung blieb ein stilles Risiko, wurde aber am 12. Juni erstmals früher in eine gezielte Mikro-Übergabe übersetzt.",
+      "created_at": "2026-06-15T13:32:48+00:00"
+    },
+    {
+      "id": "digest_49a807649cca45e0",
+      "persona_id": "persona_078ad78989c2f3e0",
+      "scope": "llm_authored_memory_depth",
+      "period_start": "2026-02-06",
+      "period_end": "2026-06-05",
+      "summary": "Paula testete mehrere kleine, realistische Schutzmechanismen fuer Essen, Wege und Erschoepfung: den Pausenbox-Zettel, Zwei-Satz-Uebergaben, feste Antwortzeiten im Familienchat, Wegezeiten fuer die Dienstplanung und ein Punktzeichen mit Samira. Die neuen Erinnerungen zeigen keine geloeste Routine, sondern eine alltagstaugliche Linie: weniger ideal planen, frueher konkret werden und Belastung sichtbar machen, bevor sie in den Abend kippt.",
+      "created_at": "2026-06-15T13:32:48+00:00"
+    }
+  ]
+}

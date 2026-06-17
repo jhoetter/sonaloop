@@ -15,8 +15,8 @@ def test_assets_present_and_app_builds():
 
 def test_sidebar_is_exactly_four_workspace_items():
     """The workspace sidebar (seeded in _nav_seed.py via the same public registry an
-    extension uses): Jobs · Methodologies · Formats · Personas. Activity and
-    Documentation are visible sidebar FOOTER rows (W7)."""
+    extension uses): Jobs · Methodologies · Formats · Personas. Utilities live in
+    the user menu."""
     import re
     from starlette.testclient import TestClient
     from sonaloop.web._i18n import STRINGS
@@ -27,18 +27,53 @@ def test_sidebar_is_exactly_four_workspace_items():
         "/projects", "/methodologies", "/library", "/personas",
     ]
     assert STRINGS["en"]["library_h"] in nav
-    # the retired/utility items answer elsewhere: Activity + Documentation as VISIBLE
-    # footer rows (W7), Runs only via the run chip/palette — none in the nav groups
+    # the retired/utility items answer elsewhere: user menu/palette for utilities,
+    # Runs only via the run chip/palette.
     for gone in ("/runs", "/documentation", "/councils", "/syntheses", "/surveys",
                  "/hypotheses", "/decisions", "/sessions", "/notes", "/prototypes",
                  "/activity"):
         assert f'href="{gone}"' not in nav, f"{gone} should have left the nav"
-    foot = sidebar.split('class="sl-nav sl-sb-foot"')[1].split("</nav>")[0]
-    assert 'href="/documentation"' in foot and STRINGS["en"]["documentation"] in foot
-    assert 'href="/activity"' in foot and STRINGS["en"]["activity_h"] in foot
-    # … and ONLY there (C10 one home): the settings popover dropped its duplicate link
+    assert 'class="sl-nav sl-sb-foot"' not in sidebar
+    # Utility actions are grouped in one menu instead of duplicating footer rows.
     pop = sidebar.split('class="sl-um-pop"')[1].split("sl-um-trigger")[0]
-    assert 'href="/documentation"' not in pop
+    assert 'href="/activity"' in pop and STRINGS["en"]["activity_h"] in pop
+    assert 'href="/documentation"' in pop and STRINGS["en"]["documentation"] in pop
+    assert "data-fb-open" in pop and "data-tour-start" in pop and "data-km-open" in pop
+
+
+def test_user_menu_does_not_render_local_identity_placeholder():
+    from sonaloop.web._components import _user_menu
+    from sonaloop.web._ext import reset_identity, set_identity
+
+    token = set_identity({"name": "Local User"})
+    try:
+        menu = _user_menu()
+        assert "Local User" not in menu
+        assert "sl-um-account" not in menu
+    finally:
+        reset_identity(token)
+
+    token = set_identity({"name": "Jane Doe", "email": "jane@example.com",
+                          "logout_href": "/logout", "plan": "Pro"})
+    try:
+        menu = _user_menu()
+        assert "Jane Doe" in menu and "jane@example.com" in menu
+        assert "Pro" in menu and 'href="/logout"' in menu
+    finally:
+        reset_identity(token)
+
+
+def test_user_menu_icons_are_animation_enabled():
+    import re
+    from starlette.testclient import TestClient
+
+    html = TestClient(web.create_app()).get("/?lang=en").text
+    sidebar = html.split('class="sl-sidebar"')[1].split("</aside>")[0]
+    menu_html = sidebar.split('class="sl-um-pop"')[1].split('class="sl-um-trigger')[0]
+    trigger_html = sidebar.split('class="sl-um-trigger')[1].split("</button>")[0]
+    classes = re.findall(r'<svg class="([^"]+)"', menu_html + trigger_html)
+    assert classes
+    assert all("pi-animate" in cls for cls in classes), classes
 
 
 def test_library_browser_tabs_and_old_routes(store):
@@ -51,22 +86,26 @@ def test_library_browser_tabs_and_old_routes(store):
     client = TestClient(web.create_app())
     html = client.get("/library?lang=en").text
     assert STRINGS["en"]["library_h"] in html
+    assert STRINGS["en"]["library_lead"] in html
     first_route = LIBRARY_TABS[0][1]
     for route in ("/open-questions", "/references", "/councils",
-                  "/prototypes", "/notes", "/syntheses"):
+                  "/sessions", "/notes", "/syntheses"):
         assert f'href="{route}"' in html, f"family link {route} missing"
-    assert 'class="sl-libnav-kind sl-is-active"' in html      # default = first tab
+    assert 'class="sl-taxo-pill sl-taxo-pill--primitive sl-is-active"' in html    # default = first tab
     assert 'aria-current="page"' in html.split(f'href="{first_route}"')[1][:160]
     hyp = client.get("/hypotheses?lang=en").text
     assert "Frame" in hyp and 'href="/open-questions"' in hyp
     assert 'aria-current="page"' in hyp.split('href="/hypotheses"')[1][:160]
     sess = client.get("/sessions?lang=en").text
-    assert "Test" in sess and 'href="/prototypes"' in sess and 'href="/sessions"' in sess
+    assert "Test" in sess and 'href="/sessions"' in sess
     assert 'aria-current="page"' in sess.split('href="/sessions"')[1][:160]
     ask = client.get("/library?family=ask&lang=en").text
+    assert STRINGS["en"]["library_lead"] in ask
+    assert STRINGS["en"]["councils_lead"] not in ask
     assert "Ask" in ask and 'href="/councils"' in ask and 'href="/surveys"' in ask
     assert 'aria-current="page"' in ask.split('href="/councils"')[1][:160]
     dec = client.get("/library?tab=decisions&lang=en").text
+    assert STRINGS["en"]["library_lead"] in dec
     assert "Conclude" in dec and 'href="/syntheses"' in dec
     assert 'aria-current="page"' in dec.split('href="/decisions"')[1][:160]
     fallback = client.get("/library?tab=nope&lang=en").text   # unknown tab → first tab

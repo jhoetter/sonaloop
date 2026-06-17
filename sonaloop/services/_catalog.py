@@ -63,7 +63,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-from ..config import utc_now_iso
+from ..config import embeddings_enabled, utc_now_iso
 from ..storage import Store
 
 CATALOG_REPO = "jhoetter/sonaloop-data"
@@ -509,6 +509,12 @@ def catalog_pull(persona_slugs: list[str] | None = None, pack: str | None = None
                          "(a full 300+-persona import belongs to sonaloop-data's load_into/CLI)")
     store = store or Store()
     pkg = _data_pkg()
+
+    # Embeddings ride the pull whenever a provider is configured (the user's rule:
+    # "create the embeddings as long as an API key is set — this should ALWAYS
+    # happen when personas are synced"). The backfill is fail-soft, so `embed=True`
+    # with no provider is a harmless no-op; callers can still force it on explicitly.
+    embed = embed or embeddings_enabled()
 
     # Drift guard (the pull half of the git analogy): never silently overwrite a
     # persona that lived on locally. Pack membership is only resolved when the

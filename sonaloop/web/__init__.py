@@ -113,12 +113,11 @@ def create_app():
     install_forms(app)
 
     # Opt-in product tour (web/_tour.py): the chrome rides the public body_end slot
-    # (registered on import); the quiet offer is the sidebar-footer row (V7 — the
-    # one-time toast retired).
+    # (registered on import); the quiet offer is in the user menu.
     from . import _tour  # noqa: F401
 
     # Feedback button (web/_feedback.py): modal POST + thanks + the read-only
-    # /feedback admin list; the trigger/modal chrome rides the public slots.
+    # /feedback admin list; the trigger is in the user menu, the modal rides body_end.
     from ._feedback import register_feedback
     register_feedback(app)
 

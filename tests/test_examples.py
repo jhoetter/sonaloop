@@ -175,7 +175,7 @@ def test_onboarding_showcase_loads_every_tour_artifact(store):
     assert plan["methodology"] == "double_diamond"
     assert all(t["status"] == "done" for t in plan["tasks"])
     projects_html = _client().get("/projects?lang=en").text
-    assert "Clinic QuickCheck — assisted pre-visit check-in" in projects_html
+    assert "Pausenschutz im Schichtalltag" in projects_html
     assert "Methodology · Double Diamond" in projects_html
     assert "Run · Finished" in projects_html
     for noisy in ("3 Councils", "2 Reports", "1 Prototype", "3 Sessions", "1 Survey",
@@ -372,23 +372,23 @@ def test_every_major_inspector_page_is_non_empty_after_loading_both(store):
     p3 = services.load_example(ONBOARDING, store=store)
     client = _client()
     checks = {
-        "/projects": ["Klar money coaching", "Schichtwerk", "Clinic QuickCheck"],
+        "/projects": ["Klar money coaching", "Schichtwerk", "Pausenschutz im Schichtalltag"],
         "/personas": ["Maren Ostendorf", "Birgit Krautmann"],
-        "/councils": ["Klar Lite at €19/month", "Position under fire", "better pilot direction"],
-        "/syntheses": ["Pricing story", "fair, audit-proof roster", "assisted check-in pilot"],
-        "/surveys": ["Appointment prep confidence"],
-        "/prototypes": ["QuickCheck assisted pre-visit prototype"],
-        "/references": ["patient portal check-in"],
-        "/open-questions": ["appointment preparation"],
-        "/sessions": ["Luis Rivera", "Evelyn Hart"],
-        "/hypotheses": ["€19/month", "works council", "complete appointment prep"],
-        "/decisions": ["Ship two tiers", "audit-proof roster", "assisted pre-check-in"],
-        "/notes": ["Subscription fatigue", "fairness ledger", "Phone queue is a symptom"],
-        "/assets": ["Prototype screen: SMS invite"],
+        "/councils": ["Klar Lite at €19/month", "Position under fire", "Pilotrichtung"],
+        "/syntheses": ["Pricing story", "fair, audit-proof roster", "Pausenschutz-Pilot"],
+        "/surveys": ["Vertrauen in den Pausenschutz"],
+        "/prototypes": ["Pausenschutz-Prototyp"],
+        "/references": ["Schichtplaner-App"],
+        "/open-questions": ["Pausenschutz"],
+        "/sessions": ["Anna Petersen", "Paula Gruber"],
+        "/hypotheses": ["€19/month", "works council", "Pausenfenster"],
+        "/decisions": ["Ship two tiers", "audit-proof roster", "Pausenschutz für zwei Schicht"],
+        "/notes": ["Subscription fatigue", "fairness ledger", "Ausgefallene Pause ist ein Team-Symptom"],
+        "/assets": ["Pausenfenster-Hinweis"],
         "/activity": ["example.loaded"],
         p1["url"]: ["Willingness-to-pay evidence"],
         p2["url"]: ["Positioning bets"],
-        p3["url"]: ["Clinic QuickCheck"],
+        p3["url"]: ["Pausenschutz im Schichtalltag"],
     }
     for url, needles in checks.items():
         r = client.get(f"{url}?lang=en")

@@ -24,11 +24,12 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 from importlib import resources
 from typing import Any
 
 from .. import config
-from ..config import utc_now_iso
+from ..config import embeddings_enabled, utc_now_iso
 from ..models import ResearchProject
 from ..storage import Store
 from .. import plan as _plan
@@ -36,6 +37,66 @@ from .. import plan as _plan
 from ._common import *  # noqa: F401,F403  (stable_id, slugify, _require_research_project, …)
 
 FIXTURE_SCHEMA = "sonaloop_example/1"
+
+# A fixture persona may declare `catalog_slug` instead of an inline profile: it then
+# IS a real catalog persona (lived days, memory, the "From catalog" badge), so the
+# showcase demonstrates the same personas a user would pull. The data comes from one
+# of two places, in order: a live `catalog_pull` (fresh lived days + hi-res avatar,
+# when the catalog is reachable), else the trimmed snapshot vendored beside the
+# fixtures (offline/CI-safe, downscaled avatars). Set
+# SONALOOP_EXAMPLES_REFRESH_FROM_CATALOG=0 to skip the live attempt entirely (the
+# default the test suite uses — hermetic, no network).
+_CATALOG_REFRESH_ENV = "SONALOOP_EXAMPLES_REFRESH_FROM_CATALOG"
+
+
+def _vendored_catalog_dir():
+    """The trimmed catalog snapshot shipped beside the fixtures (manifest + the
+    selected personas/<slug>/ dirs) — the offline source of truth for example
+    personas. None when it was not vendored (then only the live pull can supply them)."""
+    d = _fixture_dir().joinpath("_catalog")
+    return d if d.joinpath("manifest.json").is_file() else None
+
+
+def _ensure_catalog_personas(slugs: list[str], store: Store) -> set[str]:
+    """Make sure every catalog `slug` exists in the store with its lived days, the
+    way a real `catalog_pull` leaves it (provenance.catalog → the "From catalog"
+    badge). Tries a live pull first (fresh days + hi-res avatar) when refresh is on
+    and the catalog is reachable, then fills any gap from the vendored snapshot.
+    Returns the slugs that landed (so the caller can flag a hard miss)."""
+    if not slugs:
+        return set()
+    embed = embeddings_enabled()
+    landed: set[str] = set()
+    if os.getenv(_CATALOG_REFRESH_ENV, "1").lower() not in {"0", "false", "no"}:
+        try:
+            out = catalog_pull(persona_slugs=slugs, embed=embed, store=store)  # noqa: F821 (bound)
+            landed = {l["slug"] for l in out.get("landed", [])}
+        except Exception:  # noqa: BLE001 — offline / unreachable catalog → vendored fallback
+            landed = set()
+    missing = [s for s in slugs if s not in landed]
+    if missing and (vendor := _vendored_catalog_dir()) is not None:
+        # import_snapshot globs personas/*/, so one call restores every vendored
+        # persona (idempotent upserts); it stamps no provenance, so we add the
+        # catalog stamp the badge keys off, exactly like a real pull would carry.
+        try:
+            import_snapshot(in_dir=str(vendor), store=store, embed=embed)  # noqa: F821 (bound)
+        except ValueError:
+            # import_snapshot computes a ROOT-relative summary AFTER every write; the
+            # vendored snapshot lives in the package, not under ROOT, so that last step
+            # trips. State is fully imported by then — same absorb as the catalog pull.
+            store.commit()
+        now = utc_now_iso()
+        for slug in missing:
+            per = store.get_persona(slug)
+            if not per:
+                continue
+            if not (per.get("provenance") or {}).get("catalog"):
+                per.setdefault("provenance", {})["catalog"] = {
+                    "source": "sonaloop-data (vendored snapshot)", "slug": slug,
+                    "repo": "jhoetter/sonaloop-data", "ref": "vendored", "pulled_at": now}
+                store.upsert_persona(per, reason="example vendored catalog persona")
+            landed.add(slug)
+    return landed
 
 
 # ------------------------------------------------------------------- fixtures
@@ -349,16 +410,27 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
         emit_lifecycle_event("project.created", {"project_id": pid,  # noqa: F821 (bound)
                                                  "title": project["title"]}, store)
 
-    # -- personas (record_persona derives a stable id from description+hint) ----
+    # -- personas: either inline-authored profiles, or real catalog personas -----
+    #    (a `catalog_slug` entry pulls the lived persona — days + memory + badge).
+    catalog_slugs = [p["catalog_slug"] for p in fx.get("personas", []) if p.get("catalog_slug")]
+    _ensure_catalog_personas(catalog_slugs, store)
     pids: dict[str, str] = {}
     for p in fx.get("personas", []):
-        rec = record_persona(p["description"], p["profile"],  # noqa: F821 (bound)
-                             segment_hint=_ns(slug, p["key"]), store=store)
+        if p.get("catalog_slug"):
+            rec = store.get_persona(p["catalog_slug"])
+            if rec is None:
+                raise RuntimeError(
+                    f"example {slug!r}: catalog persona {p['catalog_slug']!r} could not be "
+                    "loaded (no live catalog and no vendored snapshot)")
+        else:
+            rec = record_persona(p["description"], p["profile"],  # noqa: F821 (bound)
+                                 segment_hint=_ns(slug, p["key"]), store=store)
+            rec = _attach_fixture_avatar(rec, p, store)
         if rec.get("provenance", {}).get("example") != slug:
-            # The removal stamp — mirrors sonaloop-data's provenance.catalog.
+            # The removal stamp — mirrors sonaloop-data's provenance.catalog. Catalog
+            # personas keep BOTH stamps: .catalog (badge) + .example (clean removal).
             rec.setdefault("provenance", {})["example"] = slug
             store.upsert_persona(rec, reason="example fixture provenance")
-        rec = _attach_fixture_avatar(rec, p, store)
         pids[p["key"]] = rec["id"]
     project = store.get_research_project(pid)
     missing = [i for i in pids.values() if i not in (project.get("persona_ids") or [])]

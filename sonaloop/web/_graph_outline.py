@@ -518,7 +518,7 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         return marked
 
     def cluster_rows(ris: list[dict]) -> list:
-        """One phase group's rows; evidence assets sit in a quiet *Evidence* sub-group at the
+        """One phase group's rows; incoming assets sit in a quiet *Assets* sub-group at the
         end of their phase (decision §7.2 — cheap, predictable, forward-compatible); deliverable
         assets close the group (they close the Deliver group, which may coincide with it)."""
         main = [it for it in ris if not it.get("evidence") and not it.get("deliverable")]
@@ -526,7 +526,9 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         deliv = [it for it in ris if it.get("deliverable")]
         rows_html = [row(it) for it in mark_kind_runs(main)]
         if ev:
-            rows_html.append(h("div", {"class_": "ol-rlabel"}, f'{t("asset_evidence_h")} ({len(ev)})'))
+            rows_html.append(h("div", {"class_": "ol-rlabel"},
+                               h("span", {"class_": "ol-rlabel__ico"}, raw(_icon("file"))),
+                               h("span", {}, f'{t("asset_evidence_h")} ({len(ev)})')))
             rows_html += [row(it) for it in ev]
         rows_html += [row(it) for it in deliv]
         return rows_html

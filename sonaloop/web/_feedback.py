@@ -1,9 +1,9 @@
-"""Feedback button (ticket feedback-button): sidebar-footer trigger -> small modal ->
+"""Feedback button (ticket feedback-button): user-menu trigger -> small modal ->
 POST through the _forms CSRF kit -> 303 thank-you. Plus the read-only /feedback admin
 list (linked from the settings popover only — deliberately NOT in the main nav).
 
 Chrome-module shaped like web/_tour.py: CSS via register_css, the trigger via the
-"sidebar_footer" slot, the modal + JS via the "body_end" slot — _layout stays untouched.
+user menu, the modal + JS via the "body_end" slot.
 
 The modal is transparent about context: the current page path (filled client-side on
 open; the no-JS fallback form at GET /feedback/new shows the referer-less empty value)
@@ -31,20 +31,6 @@ def _github_issue_href(page: str = "") -> str:
     body = ("<!-- feel free to write in German or English -->\n\n\n---\n"
             + f"App version: {services.app_version()}\npage: {page or '-'}")
     return GITHUB_ISSUES_URL + "?" + urlencode({"title": "Feedback: ", "body": body})
-
-
-def _trigger(store) -> str:
-    """The sidebar-footer row — rendered inside the footer `.sl-nav` cluster, so it gets
-    EXACTLY the nav-row treatment (height, hover, icon size — ux-contract §9 V7)."""
-    return h("button", {"type": "button", "class_": "pi-hover", "data-fb-open": True},
-             raw(_chat_icon()), h("span", {}, t("feedback_h")))
-
-
-def _chat_icon() -> str:
-    # animate=True: the row hover plays the icon's micro-interaction — the SAME liveliness
-    # as every nav row above (owner round 5: the footer rows read as dead without it).
-    from ._components import _icon
-    return _icon("chat", animate=True)
 
 
 def _form_fields(message: str = "", email: str = "", page: str = "",
@@ -191,7 +177,6 @@ document.addEventListener('click',function(e){
 })();</script>"""
 
 
-# Chrome wiring through the public seams (no _layout edit): the sidebar-footer
-# trigger + the per-request modal at body end.
-register_slot("sidebar_footer", _trigger)
+# Chrome wiring through the public seam: the per-request modal at body end. The trigger
+# itself is rendered by the sidebar user menu, so Feedback has one visible home.
 register_slot("body_end", _modal_markup)

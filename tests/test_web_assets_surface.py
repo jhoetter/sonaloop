@@ -1,8 +1,7 @@
 """UX U8 — assets as a first-class surface (spec/ux-contract.md §8.3, ticket
 sonaloop/ux-u8-assets-surface): the Library's Assets tab, the global /assets/{id} detail page
-(U7 anatomy + provenance block), and the project FILES lens (?view=files) — the
-across-many-MCP-messages story: which input files were received, which documents were
-generated, in one chronological provenance timeline."""
+(U7 anatomy + provenance block), and project outline asset rows — the
+across-many-MCP-messages story stays in context with the research graph."""
 from __future__ import annotations
 
 import base64
@@ -57,9 +56,9 @@ def test_asset_detail_page_full_anatomy(store, project, both_directions):
     # the hero FILE card (V9: ext badge identity, the whole card = the one open affordance)
     assert 'class="sl-file"' in html and ">md</span>" in html
     assert f'href="{a["url"]}"' in html
-    # the rail names the project + the files lens
+    # the rail names the project; there is no separate project files lens.
     assert f'/projects/{project["id"]}' in html
-    assert f'/projects/{project["id"]}?view=files' in html
+    assert f'/projects/{project["id"]}?view=files' not in html
     # the document's text excerpt is quoted on the page
     assert "the approval flow confuses" in html
 
@@ -107,7 +106,7 @@ def test_unknown_asset_renders_not_found(store):
 def test_library_assets_tab_rows_with_project_and_direction(store, project, both_directions):
     html = _client().get("/assets?lang=en").text
     # the scoped primitive tab is active, both directions render as compact FILE rows (V9).
-    assert 'class="sl-libnav-kind sl-is-active"' in html and ">Assets<" in html
+    assert 'class="sl-taxo-pill sl-taxo-pill--primitive sl-is-active"' in html and ">Assets<" in html
     assert html.count('class="sl-file sl-file--row"') == 2
     for a in (both_directions["in"], both_directions["out"]):
         assert f'data-drawer="/assets/{a["id"]}"' in html      # slide-over armed (the card body)
@@ -124,55 +123,16 @@ def test_library_assets_tab_empty_state_teaches_attach_asset(store):
     assert "attach_asset" in html                              # the F1 teach line
 
 
-# ------------------------------------------------------------------- the files lens (§8.3)
-
-def test_project_files_lens_chronological_with_day_separators(store, project, both_directions):
-    pid = project["id"]
-    p = store.get_research_project(pid)                        # spread across two days
-    p["assets"][0]["created_at"] = "2026-06-01T09:00:00+00:00"
-    p["assets"][1]["created_at"] = "2026-06-03T10:00:00+00:00"
-    store.upsert_research_project(p)
-    html = _client().get(f"/projects/{pid}?view=files&lang=en").text
-    # both directions interleave chronologically: in (1 Jun) before out (3 Jun)
-    assert html.index("interview-01.md") < html.index("findings.pptx")
-    assert html.count('class="group"') == 2                    # day separators = grid section headers
-    # V9: file CARDS in the grid — each slide-over armed (body = open) with its direction
-    # pill; the deliverable's source chip resolves on the card body
-    assert html.count('class="sl-file-grid"') == 2
-    assert html.count('class="sl-file"') == 2
-    assert f'data-drawer="/assets/{both_directions["in"]["id"]}"' in html
-    assert "Evidence" in html and "Deliverable" in html
-    assert f'/syntheses/{both_directions["syn"]["id"]}' in html
-    # reachable from the project header chip
-    proj_html = _client().get(f"/projects/{pid}?lang=en").text
-    assert f'/projects/{pid}?view=files' in proj_html and "2 files" in proj_html
+# ------------------------------------------------------------------- project outline assets (§8.3)
 
 
-def test_files_lens_cards_carry_file_identity_and_one_affordance(store, project, both_directions):
-    """V9 (ux-contract §9): file identity FIRST — the extension badge (type-toned), the
-    filename WITH extension as the title, size · date meta — and exactly ONE download/open
-    affordance per card (the duplicate left+right download icons are the owner finding)."""
-    html = _client().get(f'/projects/{project["id"]}?view=files&lang=en').text
-    # the markdown evidence: blue text-family badge, filename title, opens in a tab
-    assert ">md</span>" in html and "sl-file__ext--blue" in html
-    assert "interview-01.md" in html
-    # the deck deliverable: amber badge, download attribute hands the binary over
-    assert ">pptx</span>" in html and "sl-file__ext--amber" in html
-    ev, out = both_directions["in"], both_directions["out"]
-    assert f'href="{out["url"]}" download="{out["filename"]}"' in html
-    # exactly ONE affordance per file: each binary URL appears once, in the action slot
-    for a in (ev, out):
-        card = html.split(f'data-drawer="/assets/{a["id"]}"')[1].split("sl-file-grid")[0]
-        assert card.count(f'href="{a["url"]}"') == 1, "duplicate download affordances"
-    assert html.count('class="sl-file__action"') == 2
-
-
-def test_outline_evidence_and_deliver_rows_are_file_rows(store, project, both_directions):
-    """V9: the project outline's Evidence/Deliver asset rows use the compact `.sl-file--row`
+def test_outline_asset_and_deliver_rows_are_file_rows(store, project, both_directions):
+    """V9: the project outline's Assets/Deliver asset rows use the compact `.sl-file--row`
     — ext badge identity instead of a generic icon, one affordance, slide-over armed."""
     html = _client().get(f'/projects/{project["id"]}?lang=en').text
     assert html.count('data-rkind="asset"') == 2
     assert html.count('class="sl-file sl-file--row" data-rkind="asset"') == 2
+    assert ">Assets (1)<" in html
     assert ">md</span>" in html and ">pptx</span>" in html
     for a in (both_directions["in"], both_directions["out"]):
         assert f'data-drawer="/assets/{a["id"]}"' in html
@@ -180,8 +140,7 @@ def test_outline_evidence_and_deliver_rows_are_file_rows(store, project, both_di
         assert chunk.count(f'href="{a["url"]}"') == 1, "one download/open affordance per row"
 
 
-def test_project_files_lens_empty_state_teaches(store, project):
-    html = _client().get(f'/projects/{project["id"]}?view=files&lang=en').text
-    assert "attach_asset" in html
-    proj_html = _client().get(f'/projects/{project["id"]}?lang=en').text
-    assert "0 files" in proj_html                              # the chip is the honest inventory
+def test_project_header_has_no_files_lens_chip(store, project):
+    html = _client().get(f'/projects/{project["id"]}?lang=en').text
+    assert f'/projects/{project["id"]}?view=files' not in html
+    assert "0 files" not in html

@@ -194,6 +194,34 @@ def test_pull_remote_fallback_resolves_packs_and_rejects_unknowns(monkeypatch, t
 # drift-safe pull: local modifications are never silently overwritten          #
 # --------------------------------------------------------------------------- #
 
+def test_pull_auto_embeds_when_a_provider_is_configured(monkeypatch, tmp_path):
+    """The user's rule: pulling personas must ALWAYS re-derive embeddings when a
+    provider is set — never only on an explicit embed=True. So the embed flag that
+    reaches the importer follows the provider, regardless of the caller's value."""
+    _no_data_pkg(monkeypatch)
+    files, personas = _mini_catalog(Store(), ["Anna Architect"])
+    _serve(files, monkeypatch)
+    slug = personas[0]["slug"]
+
+    seen: list[bool] = []
+    real_import = cat.import_snapshot
+    def spy(*a, embed: bool = True, **k):
+        seen.append(embed)
+        return real_import(*a, embed=embed, **k)
+    monkeypatch.setattr(cat, "import_snapshot", spy)
+
+    # provider configured -> embeddings ride the pull even though the caller left embed unset
+    monkeypatch.setattr(cat, "embeddings_enabled", lambda: True)
+    cat.catalog_pull(persona_slugs=[slug], store=Store(tmp_path / "on.db"))
+    assert seen == [True]
+
+    # no provider -> the importer is told to skip (no doomed network calls, no error)
+    seen.clear()
+    monkeypatch.setattr(cat, "embeddings_enabled", lambda: False)
+    cat.catalog_pull(persona_slugs=[slug], store=Store(tmp_path / "off.db"))
+    assert seen == [False]
+
+
 def test_pull_skips_locally_modified_unless_forced(monkeypatch, tmp_path):
     _no_data_pkg(monkeypatch)
     files, personas = _mini_catalog(Store(), ["Anna Architect"])

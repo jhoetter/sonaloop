@@ -107,7 +107,7 @@ def test_web_validation_rerenders_400_and_rate_limit_429(store):
 
 def test_modal_chrome_trigger_context_and_github_link(store):
     html = _client().get("/?lang=en").text
-    # sidebar-footer trigger + the dialog with required message, optional email
+    # user-menu trigger + the dialog with required message, optional email
     assert "data-fb-open" in html and 'id="fb-dialog"' in html
     assert STRINGS["en"]["feedback_msg_l"] in html and STRINGS["en"]["feedback_email_l"] in html
     # the transparent context line (page + app version, shown to the user)
@@ -124,12 +124,13 @@ def test_admin_page_lists_read_only_and_marks_read(store):
     assert "inbox item" in page and "a@b.c" in page and "/runs" in page
     assert STRINGS["en"]["feedback_lead"] in page
     assert services.unread_feedback_count(store=store) == 0      # viewing IS the read
-    # linked from the settings popover only — never the main nav
+    # The submit trigger lives in the user/settings popover only — never the nav/footer.
     home = client.get("/?lang=en").text
     pop = home.split('class="sl-um-pop"')[1].split("sl-um-trigger")[0]
-    assert 'href="/feedback"' in pop
+    assert "data-fb-open" in pop
     nav = home.split('class="sl-sb-scroll"')[1].split("</div>")[0]
-    assert 'href="/feedback"' not in nav
+    assert 'href="/feedback"' not in nav and "data-fb-open" not in nav
+    assert 'class="sl-nav sl-sb-foot"' not in home
 
 
 # ----------------------------------------------------------------------- CLI / info

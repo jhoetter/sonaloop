@@ -1,0 +1,126 @@
+{
+  "id": "persona_a7b9293ffff3e824",
+  "slug": "anna-petersen",
+  "display_name": "Anna Petersen",
+  "source_description": "Krankenpflegerin, Nachtschicht, Hamburg",
+  "provenance": {
+    "source_description": "user",
+    "segment_hint": "user",
+    "profile_fields": "llm_derived_from_source_description",
+    "evidence": "none",
+    "synthetic_notice": "This profile is simulated and must be validated against real customer evidence."
+  },
+  "identity_traits": {
+    "gender_presentation": "weiblich",
+    "gender_confidence": "high",
+    "age_range": "30-39",
+    "appearance_notes": "Dunkelblondes Haar im praktischen Dutt, mittelgroß, sportliche Statur vom vielen Laufen auf Station, Kasack in Petrol, weiße Sneaker, Uhr mit Sekundenzeiger am Handgelenk",
+    "avatar_profile": "Frau Mitte dreißig mit dunkelblondem, streng zurückgebundenem Haar und wachem, etwas übermüdetem Blick. Petrolfarbener Kasack, freundliches, zurückhaltendes Lächeln.",
+    "avatar_constraints": "keine Klinik-Logos, kein Namensschild, kein Schmuck außer schlichter Armbanduhr"
+  },
+  "segment": {
+    "lebensphase": "Vollzeit Nachtschicht im Krankenhaus, lebt mit Partner",
+    "einstellung": "isst nachts unregelmäßig, will den gedrehten Rhythmus in den Griff kriegen",
+    "region": "Deutschland (Hamburg)"
+  },
+  "demographics": {
+    "alter": 34,
+    "beruf": "Krankenpflegerin (Nachtschicht)"
+  },
+  "role": {
+    "title": "Gesundheits- und Krankenpflegerin, Station 4b Innere",
+    "responsibilities": "Nachtdienst auf der internistischen Station 4b: Medikamentengabe, Vitalzeichenkontrollen, Übergaben um 20:45 und 6:15, Notfallversorgung, KIS-Dokumentation",
+    "seniority": "examiniert, 11 Berufsjahre, davon 4 fest im Nachtdienst",
+    "decision_power": "fachlich eigenständig in der Pflege, Anordnungen kommen vom Dienstarzt; bei Verlegungen nur Mitsprache"
+  },
+  "company_context": {
+    "industry": "Krankenhaus / stationäre Pflege",
+    "size": "Klinikum mit ca. 600 Betten, Station 4b mit 28 Betten",
+    "stack": "KIS am Stationsrechner, Visitenlaptop auf dem Medikamentenwagen, Diensthandy, Patientenrufanlage",
+    "operating_model": "Drei-Schicht-System, Nachtdienst meist zu zweit pro Station, Springerpool chronisch dünn"
+  },
+  "goals": [
+    "Den gedrehten Rhythmus so in den Griff kriegen, dass Essen nachts nicht nur Notlösung ist",
+    "Vor jeder Schicht eine echte warme Mahlzeit schaffen, am liebsten mit Jonas",
+    "Die Nächte auf 4b ohne Dokumentationsrückstand beenden",
+    "Im Juli-Dienstplan zwei freie Wochenenden am Stück durchsetzen"
+  ],
+  "constraints": [
+    "Nachtschicht 20:00–6:45, feste Übergaben um 20:45 und 6:15",
+    "Nachts sind nur der Snackautomat auf Ebene 0 und die Stationsküche erreichbar",
+    "Jonas lebt im Tagrhythmus — gemeinsame Mahlzeiten nur an freien Tagen",
+    "Schlaffenster tagsüber etwa 8 bis 14 Uhr, danach klingelt oft schon das Diensthandy"
+  ],
+  "tool_ids": [],
+  "tools": [
+    "Stationsrechner (KIS)",
+    "Übergabe-Raum Station 4b",
+    "Medikamentenwagen",
+    "Patientenzimmer",
+    "Diensthandy",
+    "Personalumkleide",
+    "Stationsküche",
+    "Snackautomat Ebene 0",
+    "WhatsApp (privat)"
+  ],
+  "relationships": [
+    {
+      "name": "Jonas Wittkamp",
+      "type": "Partner",
+      "friction": "Bürojob mit Tagrhythmus; sie sehen sich oft nur beim Übergeben der Wohnung, Essensplanung bleibt an dem hängen, der gerade wach ist"
+    },
+    {
+      "name": "Meltem Aydin",
+      "type": "Kollegin im Nachtdienst auf 4b",
+      "friction": "eingespielt, aber Meltem raucht ihre Pausen weg und schiebt die Doku gern auf Anna"
+    },
+    {
+      "name": "Frau Carstens",
+      "type": "Stationsleitung 4b",
+      "friction": "verteilt Dienstplanwünsche nach Gutsherrenart, Annas Juli-Wunsch hängt seit Wochen"
+    }
+  ],
+  "personality": {
+    "working_style": "strukturiert, arbeitet Listen ab, macht lieber eine Runde mehr als eine Klingel zu spät zu hören",
+    "communication_style": "ruhig, direkt, knapp in Übergaben; bei Angehörigen geduldig",
+    "risk_tolerance": "niedrig im Dienst — lieber einmal mehr den Dienstarzt anrufen; privat pragmatisch",
+    "character_notes": "trockener Humor um vier Uhr morgens, hasst es, Dinge halb fertig zu übergeben; nimmt sich seit Monaten vor, eine Brotdose zu packen, und vergisst es doch"
+  },
+  "pain_points": [
+    "Nachts nur Snackautomat und kalte Reste — eine echte Mahlzeit gibt es nicht",
+    "Gegen drei Uhr morgens sackt die Energie weg, egal was vorher gegessen wurde",
+    "Die KIS-Dokumentation frisst jede Pause auf",
+    "Dauerklingeln, wenn 4b nachts nur zu zweit besetzt ist",
+    "Nach der Schicht zu aufgedreht zum Schlafen, dann unkontrolliertes Essen am Vormittag"
+  ],
+  "success_criteria": [
+    "Übergabe um 6:15 ohne offene Doku-Punkte",
+    "Mindestens eine geplante Mahlzeit pro Nacht statt Automatenzeug",
+    "Kein Patient kommt wegen übersehener Werte zu Schaden",
+    "Juli-Dienstplan mit zwei freien Wochenenden bestätigt"
+  ],
+  "avatar": {
+    "path": "data/avatars/anna-petersen-1de63d7910560a30.png",
+    "prompt": "Create a professional editorial avatar portrait of a fictional person named Anna Petersen, with weiblich gender presentation, age range 30-39, working in the role of Gesundheits- und Krankenpflegerin, Station 4b Innere in Krankenhaus / stationäre Pflege. The person should feel strukturiert, arbeitet Listen ab, macht lieber eine Runde mehr als eine Klingel zu spät zu hören. Neutral studio background, natural expression, clean modern business look, no text, no logos, no photorealistic claim of a real person. Distinct visual profile: Frau Mitte dreißig mit dunkelblondem, streng zurückgebundenem Haar und wachem, etwas übermüdetem Blick. Petrolfarbener Kasack, freundliches, zurückhaltendes Lächeln.. Dunkelblondes Haar im praktischen Dutt, mittelgroß, sportliche Statur vom vielen Laufen auf Station, Kasack in Petrol, weiße Sneaker, Uhr mit Sekundenzeiger am Handgelenk. Hard constraints: keine Klinik-Logos, kein Namensschild, kein Schmuck außer schlichter Armbanduhr. Style: polished semi-realistic professional avatar. Same overall illustration language as the other personas, but a clearly different face, hair, clothing, and silhouette. CRITICAL: match the rendering style, finish, brushwork, lighting, framing and plain studio background of the PROVIDED REFERENCE IMAGES exactly, so this portrait belongs to the same illustrated series. Keep the distinct identity (face, hair, clothing, accessories) of this persona — do not copy the reference people's faces.",
+    "model": "gpt-image-1.5",
+    "references": [
+      "lena-vogt",
+      "mehmet-demir",
+      "sabine-kraus"
+    ],
+    "validated_against": [
+      "display_name",
+      "role",
+      "identity_traits"
+    ],
+    "known_risks": [],
+    "generated_at": "2026-06-10T14:11:44.791535+00:00"
+  },
+  "soul": {
+    "path": "data/personas/anna-petersen/SOUL.md",
+    "updated_at": "2026-06-10T14:11:47.583797+00:00"
+  },
+  "created_at": "2026-06-10T14:10:51.493984+00:00",
+  "updated_at": "2026-06-10T14:11:47.583819+00:00",
+  "capabilities": null
+}

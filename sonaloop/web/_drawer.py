@@ -94,7 +94,7 @@ SPA_JS = """
 # data-drawer="<canonical detail URL>" opens that page's FULL content as a slide-over: the JS
 # fetches the `?slide=1` fragment variant (same route, same renderer — web/_slide.py) while
 # history.pushState's the CONTEXT URL — the background page + `?d=<urlencoded detail path>`
-# (joined onto whatever params the background already carries: tabs, filters, ?view=files).
+# (joined onto whatever params the background already carries: tabs, filters).
 # Reload/share of that URL server-renders the SAME view (background + open panel, no fetch
 # flash); the canonical detail URL stays the full-page address (the expand control navigates
 # to it, and rows keep it as their href for middle-click / no-JS). Esc/scrim/back drops ?d=

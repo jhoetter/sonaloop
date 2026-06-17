@@ -10,6 +10,8 @@ registered — their handlers render the library with that tab active, so deep l
 canonical routes, ?tab= addresses a tab on /library itself. Detail routes unchanged."""
 from __future__ import annotations
 
+from collections import Counter
+
 from ._ctx import *  # noqa: F401,F403  (shared render toolkit)
 from .sessions import _sessions_section
 from .. import ui
@@ -337,83 +339,62 @@ def _entry_blob(x: dict, store: Store) -> str:
     return " ".join(str(p) for p in parts if p)
 
 
-def _taxonomy_context(tab: str, kind: str) -> str:
-    family = primitive_family(kind)
-    purpose = primitive_purpose(kind)
-    if not purpose:
-        return ""
-    return h("div", {"class_": "sl-taxctx", "data-family": family},
-             h("span", {"class_": "sl-taxctx__family"}, family_label(family)),
-             h("span", {"class_": "sl-taxctx__dot"}, "·"),
-             h("span", {"class_": "sl-taxctx__purpose"}, purpose))
+def _taxo_level_label(value_en: str, value_de: str) -> str:
+    return value_de if _lang() == "de" else value_en
 
 
-def _library_taxonomy_map(active_tab: str) -> str:
-    """A visible map of Library primitives and their real subforms.
+def _form_taxonomy_items(tab: str, kind: str, base: str, entries: list[dict],
+                         selected: dict[str, list[str]]) -> str:
+    """Visible form chips for the active primitive.
 
-    The map is intentionally rendered from _primitive_taxonomy's catalogue,
-    while row filtering still uses subtype_value(). That gives users a stable
-    explanation without making row classification depend on prose.
-    """
-    de = _lang() == "de"
-    rows = []
-    for key, route, icon, label, *_ in LIBRARY_TABS:
-        kind = TAB_KIND.get(key, "")
-        family = primitive_family(kind)
-        docs = primitive_subtypes(kind)
-        rows.append(h("section", {"class_": "sl-libmap-card sl-is-active" if key == active_tab else "sl-libmap-card"},
-                      h("header", {"class_": "sl-libmap-card__head"},
-                        h("a", {"href": route}, raw(_icon(icon)), h("span", {}, label())),
-                        h("span", {"class_": "sl-libmap-family"}, family_label(family))),
-                      h("p", {"class_": "sl-libmap-purpose"}, primitive_purpose(kind)),
-                      h("div", {"class_": "sl-libmap-subtypes"},
-                        fragment(*[
-                            h("div", {"class_": "sl-libmap-subtype"},
-                              h("div", {"class_": "sl-libmap-subtype__label"},
-                                raw(_label(subtype_label(d.value), "var(--blue)"))),
-                              h("p", {}, d.meaning_de if de else d.meaning_en),
-                              h("code", {}, d.rule_de if de else d.rule_en))
-                            for d in docs
-                        ]))))
-    summary = ("Format-Primitives und ihre echten Subformen" if de
-               else "Format primitives and their real subforms")
-    lead = ("Subformen sind keine neuen Top-Level-Artefakte. Sie sind Record-Varianten innerhalb eines "
-            "Format-Primitives, z. B. Red-Team als CouncilSession mit `red_team`-Block." if de else
-            "Subforms are not new top-level artifacts. They are record variants inside a Format "
-            "primitive, for example Red-team as a CouncilSession carrying a `red_team` block.")
-    return h("details", {"class_": "sl-libmap"},
-             h("summary", {}, h("span", {}, summary), h("small", {}, lead)),
-             h("div", {"class_": "sl-libmap-grid"}, fragment(*rows)))
-
-
-def _active_subform_guide(tab: str, kind: str, base: str) -> str:
-    """Always-visible guide for the active Library primitive.
-
-    This is the lightweight layer users need while operating the Library:
-    "what forms can this current primitive take?" The full all-primitive map
-    remains available below as a collapsed reference.
+    Forms are part of the operative browser model, not a separate explainer:
+    Family -> Primitive -> Form -> Records. Counts are over the tab's honest
+    unfiltered records, matching the FilterBar's count semantics.
     """
     docs = primitive_subtypes(kind)
     if not docs:
         return ""
     de = _lang() == "de"
-    title = ("Formen in diesem Formate-Tab" if de else "Forms in this Formats tab")
-    cards = []
+    all_label = "Alle" if de else "All"
+    active_values = set(selected.get("subtype") or [])
+    without_subtype = {k: v for k, v in selected.items() if k != "subtype" and v}
+    counts = Counter(subtype_value(x["kind"], x["rec"]) for x in entries)
+    total = len(entries)
+    chips = [
+        h("a", {"class_": "sl-taxo-pill sl-is-active" if not active_values else "sl-taxo-pill",
+                "href": filter_url(base, without_subtype),
+                "aria-current": "page" if not active_values else None},
+          h("span", {"class_": "sl-taxo-pill__label"}, all_label),
+          h("span", {"class_": "sl-taxo-pill__count"}, str(total)))
+    ]
     for d in docs:
-        href = filter_url(base, {"subtype": [d.value]})
-        cards.append(h("a", {"class_": "sl-subform", "href": href},
-                       h("span", {"class_": "sl-subform__label"}, subtype_label(d.value)),
-                       h("span", {"class_": "sl-subform__body"}, d.meaning_de if de else d.meaning_en)))
-    return h("section", {"class_": "sl-subforms", "data-tab": tab},
-             h("div", {"class_": "sl-subforms__head"},
-               raw(_icon("tag")),
-               h("b", {}, title),
-               h("span", {}, "·"),
-               h("span", {}, t("subtype_h"))),
-             h("div", {"class_": "sl-subforms__grid"}, fragment(*cards)))
+        count = counts.get(d.value, 0)
+        on = d.value in active_values
+        cls = "sl-taxo-pill"
+        if on:
+            cls += " sl-is-active"
+        if count == 0 and not on:
+            cls += " sl-is-disabled"
+        attrs = {"class_": cls, "data-value": d.value, "aria-current": "page" if on else None}
+        content = fragment(h("span", {"class_": "sl-taxo-pill__label"}, subtype_label(d.value)),
+                           h("span", {"class_": "sl-taxo-pill__count"}, str(count)))
+        if count == 0 and not on:
+            chips.append(h("span", attrs, content))
+        else:
+            next_selected = {**without_subtype, "subtype": [d.value]}
+            chips.append(h("a", {**attrs, "href": filter_url(base, next_selected)}, content))
+    return h("div", {"class_": "sl-taxo-items", "data-tab": tab}, fragment(*chips))
 
 
-def _library_nav(active_tab: str) -> str:
+def _library_tab_counts(active_tab: str, active_entries: list[dict], store: Store) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for key, *_ in LIBRARY_TABS:
+        counts[key] = len(active_entries) if key == active_tab else len(_tab_entries(key, store))
+    return counts
+
+
+def _library_nav(active_tab: str, counts: dict[str, int], form_items: str,
+                 selected: dict[str, list[str]] | None = None) -> str:
     """Two-level Library navigation: users first choose the role a primitive plays, then the
     specific primitive inside that role. This keeps the mental model visible instead of showing
     twelve peer tabs that look like implementation details."""
@@ -431,18 +412,34 @@ def _library_nav(active_tab: str) -> str:
         first = items[0]
         route = first[1]
         on = fam == active_family
-        primary.append(h("a", {"class_": "sl-libnav-family sl-is-active" if on else "sl-libnav-family",
+        primary.append(h("a", {"class_": "sl-taxo-pill sl-taxo-pill--family sl-is-active" if on
+                               else "sl-taxo-pill sl-taxo-pill--family",
                                "href": route, "aria-current": "page" if on else None},
-                         raw(_icon(family_icon(fam))), h("span", {}, family_label(fam))))
-    secondary = []
+                         raw(_icon(family_icon(fam))),
+                         h("span", {"class_": "sl-taxo-pill__label"}, family_label(fam))))
+    primitive_tabs = []
     for row in next(items for fam, items in families if fam == active_family):
         key, route, icon, label, *_ = row
         on = key == active_tab
-        secondary.append(h("a", {"class_": "sl-libnav-kind sl-is-active" if on else "sl-libnav-kind",
-                                 "href": route, "aria-current": "page" if on else None},
-                           raw(_icon(icon)), h("span", {}, label())))
-    return fragment(h("div", {"class_": "sl-libnav sl-libnav--family"}, fragment(*primary)),
-                    h("div", {"class_": "sl-libnav sl-libnav--kind"}, fragment(*secondary)))
+        primitive_tabs.append(
+            h("a", {"class_": "sl-taxo-pill sl-taxo-pill--primitive sl-is-active" if on
+                    else "sl-taxo-pill sl-taxo-pill--primitive",
+                    "href": route, "aria-current": "page" if on else None},
+              raw(_icon(icon)),
+              h("span", {"class_": "sl-taxo-pill__label"}, label()),
+              h("span", {"class_": "sl-taxo-pill__count"}, str(counts.get(key, 0)))))
+    return h("section", {"class_": "sl-taxonomy"},
+             h("div", {"class_": "sl-taxo-row"},
+               h("div", {"class_": "sl-taxo-label"}, _taxo_level_label("Family", "Familie")),
+               h("div", {"class_": "sl-taxo-items"}, fragment(*primary))),
+             h("div", {"class_": "sl-taxo-row"},
+               h("div", {"class_": "sl-taxo-label"}, _taxo_level_label("Primitive", "Primitive")),
+               h("div", {"class_": "sl-taxo-field"},
+                 h("div", {"class_": "sl-taxo-items"}, fragment(*primitive_tabs)),
+                 h("div", {"class_": "sl-taxo-hint"}, primitive_purpose(active_kind)))),
+             h("div", {"class_": "sl-taxo-row"},
+               h("div", {"class_": "sl-taxo-label"}, _taxo_level_label("Form", "Form")),
+               raw(form_items)))
 
 
 def _first_tab_for_family(family: str) -> str:
@@ -472,16 +469,17 @@ def library_page(tab: str = "questions", store: Store | None = None, *,
     keys = [k for k, *_ in LIBRARY_TABS]
     if tab not in keys:
         tab = keys[0]
-    tabs_html = _library_nav(tab)
-    _k, _route, icon, tab_label, empty_msg, lead, teach = next(
+    _k, _route, icon, tab_label, empty_msg, _lead, teach = next(
         row for row in LIBRARY_TABS if row[0] == tab)
     tab_kind = TAB_KIND.get(tab, "note")
     base0 = base or f"/library?tab={tab}"
     base = base0 + (("&" if "?" in base0 else "?") + f"q={quote(q)}" if q else "")
     selected = {k: v for k, v in (flt or {}).items()}
-    entries = _annotate_library_trace(_tab_entries(tab, store, sessions=sessions), store)
+    raw_entries = _tab_entries(tab, store, sessions=sessions)
+    entries = _annotate_library_trace(raw_entries, store)
     facets = _library_facets(entries, store, with_direction=tab == "assets")
-    subforms = _active_subform_guide(tab, tab_kind, base0)
+    form_items = _form_taxonomy_items(tab, tab_kind, base, entries, selected)
+    tabs_html = _library_nav(tab, _library_tab_counts(tab, raw_entries, store), form_items, selected)
     bar = (str(filter_bar(base, facets, selected,
                           search={"value": q,
                                   "placeholder": t("search_tab_ph", tab=tab_label())}))
@@ -509,19 +507,17 @@ def library_page(tab: str = "questions", store: Store | None = None, *,
                              desc=x["desc"] or None)
             for x in kept]
     if entries and not rows:                       # filters matched nothing — teach (C8/F1)
-        return _list_page(store, title=t("library_h"), lead=lead(), rows=[],
+        return _list_page(store, title=t("library_h"), lead=t("library_lead"), rows=[],
                           empty_icon="filter", empty_msg=t("filter_no_matches_h"),
                           empty_teach=t("filter_no_matches"),
                           empty_action=(t("clear_filter"), base0, "filter"),
                           active="library",
-                          pre=(str(tabs_html) + _taxonomy_context(tab, tab_kind)
-                               + subforms + bar + pre_extra + _library_taxonomy_map(tab)),
+                          pre=(str(tabs_html) + bar + pre_extra),
                           count=0)
-    return _list_page(store, title=t("library_h"), lead=lead(), rows=rows,
+    return _list_page(store, title=t("library_h"), lead=t("library_lead"), rows=rows,
                       empty_icon=icon, empty_msg=empty_msg(), empty_teach=teach(),
                       active="library",
-                      pre=(str(tabs_html) + _taxonomy_context(tab, tab_kind)
-                           + subforms + bar + pre_extra + _library_taxonomy_map(tab)),
+                      pre=(str(tabs_html) + bar + pre_extra),
                       count=len(rows))
 
 
@@ -784,62 +780,28 @@ def register_library(app) -> None:
 
 
 register_css(
-    ".sl-libnav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}"
-    ".sl-libnav--family{margin:0 0 8px;padding:4px;background:var(--panel-2);"
-    "border:1px solid var(--line);border-radius:8px;width:max-content;max-width:100%}"
-    ".sl-libnav-family{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;"
-    "border-radius:6px;color:var(--muted);font-size:var(--t-sm);font-weight:600;"
-    "text-decoration:none;white-space:nowrap}"
-    ".sl-libnav-family svg{width:15px;height:15px;color:var(--faint)}"
-    ".sl-libnav-family.sl-is-active{background:var(--panel);color:var(--ink);box-shadow:0 0 0 1px var(--line)}"
-    ".sl-libnav-family.sl-is-active svg{color:var(--accent)}"
-    ".sl-libnav--kind{margin:0 0 6px;border-bottom:1px solid var(--line)}"
-    ".sl-libnav-kind{display:inline-flex;align-items:center;gap:6px;padding:8px 2px 9px;"
-    "margin-right:22px;color:var(--muted);font-size:var(--t-sm);font-weight:650;"
-    "text-decoration:none;border-bottom:2px solid transparent;white-space:nowrap}"
-    ".sl-libnav-kind svg{width:15px;height:15px;color:var(--faint)}"
-    ".sl-libnav-kind.sl-is-active{color:var(--accent);border-bottom-color:var(--accent)}"
-    ".sl-libnav-kind.sl-is-active svg{color:var(--accent)}"
-    ".sl-taxctx{display:flex;align-items:center;gap:7px;margin:10px 0 0;color:var(--muted);"
-    "font-size:var(--t-sm);line-height:1.45;flex-wrap:wrap}"
-    ".sl-taxctx__family{color:var(--ink);font-weight:650}"
-    ".sl-taxctx__dot{color:var(--faint)}"
-    ".sl-taxctx__purpose{max-width:78ch}"
-    ".sl-subforms{margin:10px 0 12px;padding:10px;border:1px solid var(--line);border-radius:var(--radius);"
-    "background:var(--panel)}"
-    ".sl-subforms__head{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:var(--t-sm);"
-    "margin-bottom:8px}"
-    ".sl-subforms__head svg{width:15px;height:15px;color:var(--accent)}"
-    ".sl-subforms__head b{color:var(--ink)}"
-    ".sl-subforms__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}"
-    ".sl-subform{display:grid;gap:4px;text-decoration:none;color:inherit;border:1px solid var(--line);"
-    "border-radius:var(--radius-sm);background:var(--bg);padding:9px}"
-    ".sl-subform:hover{border-color:color-mix(in srgb,var(--accent) 42%,var(--line));background:var(--panel-2)}"
-    ".sl-subform__label{font-weight:700;color:var(--ink);font-size:var(--t-sm)}"
-    ".sl-subform__body{color:var(--muted);font-size:var(--t-xs);line-height:1.35}"
+    ".sl-taxonomy{display:grid;gap:8px;margin:0 0 14px;padding:10px 12px;border:1px solid var(--line);"
+    "border-radius:9px;background:color-mix(in srgb,var(--panel) 82%,var(--bg));max-width:100%}"
+    ".sl-taxo-row{display:grid;grid-template-columns:78px minmax(0,1fr);align-items:start;gap:10px}"
+    ".sl-taxo-label{padding-top:6px;color:var(--faint);font-size:var(--t-xs);font-weight:750;"
+    "text-transform:uppercase;letter-spacing:.08em}"
+    ".sl-taxo-field{display:grid;gap:4px;min-width:0}"
+    ".sl-taxo-items{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}"
+    ".sl-taxo-hint{color:var(--muted);font-size:var(--t-sm);line-height:1.35;"
+    "white-space:nowrap;overflow:hidden;text-overflow:ellipsis}"
+    ".sl-taxo-pill{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 10px;"
+    "border:1px solid transparent;border-radius:7px;background:transparent;color:var(--muted);"
+    "font-size:var(--t-sm);font-weight:650;text-decoration:none;white-space:nowrap}"
+    ".sl-taxo-pill svg{width:15px;height:15px;color:var(--faint)}"
+    ".sl-taxo-pill:hover{background:var(--panel-2);border-color:var(--line);color:var(--ink)}"
+    ".sl-taxo-pill.sl-is-active{background:var(--panel);border-color:var(--line);color:var(--ink);"
+    "box-shadow:0 1px 1px color-mix(in srgb,var(--ink) 4%,transparent)}"
+    ".sl-taxo-pill.sl-is-active svg{color:var(--accent)}"
+    ".sl-taxo-pill.sl-is-disabled{color:var(--faint);background:transparent}"
+    ".sl-taxo-pill__count{color:var(--faint);font-weight:750}"
+    ".sl-taxo-pill.sl-is-active .sl-taxo-pill__count{color:var(--accent)}"
+    ".sl-taxonomy~.rows{border-top:0}"
     ".sl-note-summary{margin-top:3px}"
-    ".sl-libmap{margin:12px 0 12px;border:1px solid var(--line);border-radius:var(--radius);"
-    "background:var(--panel);overflow:hidden}"
-    ".sl-libmap>summary{display:flex;gap:10px;align-items:baseline;justify-content:space-between;"
-    "padding:12px 14px;cursor:pointer;font-weight:700}"
-    ".sl-libmap>summary small{font-weight:450;color:var(--muted);line-height:1.35;max-width:74ch}"
-    ".sl-libmap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px;"
-    "padding:0 12px 12px}"
-    ".sl-libmap-card{border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--bg);"
-    "padding:12px;display:grid;gap:8px;align-content:start}"
-    ".sl-libmap-card.sl-is-active{border-color:color-mix(in srgb,var(--accent) 44%,var(--line));"
-    "box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 18%,transparent)}"
-    ".sl-libmap-card__head{display:flex;align-items:center;justify-content:space-between;gap:10px}"
-    ".sl-libmap-card__head a{display:inline-flex;align-items:center;gap:7px;color:var(--ink);"
-    "font-weight:700;text-decoration:none}"
-    ".sl-libmap-card__head svg{width:15px;height:15px;color:var(--accent)}"
-    ".sl-libmap-family{font-size:var(--t-xs);color:var(--muted);text-transform:uppercase;letter-spacing:.08em}"
-    ".sl-libmap-purpose{margin:0;color:var(--muted);line-height:1.4}"
-    ".sl-libmap-subtypes{display:grid;gap:8px}"
-    ".sl-libmap-subtype{padding-top:8px;border-top:1px solid var(--line)}"
-    ".sl-libmap-subtype__label{margin-bottom:4px}"
-    ".sl-libmap-subtype p{margin:0 0 5px;line-height:1.4}"
-    ".sl-libmap-subtype code{display:block;white-space:normal;background:var(--panel-2);"
-    "border:1px solid var(--line);border-radius:var(--radius-sm);padding:6px 7px;color:var(--muted);"
-    "font-size:var(--t-xs)}"
+    "@media(max-width:760px){.sl-taxo-row{grid-template-columns:1fr}.sl-taxo-label{padding-top:0}"
+    ".sl-taxo-hint{white-space:normal}}"
 )

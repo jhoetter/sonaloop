@@ -1,0 +1,133 @@
+{
+  "id": "persona_991687e2c4d1368c",
+  "slug": "amelie-kranz",
+  "display_name": "Amelie Kranz",
+  "source_description": "Logopädin mit eigener Praxis, Kindertermine, Kiel",
+  "provenance": {
+    "source_description": "user",
+    "segment_hint": "user",
+    "profile_fields": "host_authored_from_expansion_wave_100",
+    "evidence": "none",
+    "synthetic_notice": "This profile is simulated and must be validated against real customer evidence."
+  },
+  "identity_traits": {
+    "gender_presentation": "weiblich",
+    "gender_confidence": "high",
+    "age_range": "35-44",
+    "appearance_notes": "Logopädin mit alltagsnaher Kleidung, müdem aber wachem Blick, beruflich geprägte Haltung.",
+    "avatar_profile": "Weiblich gelesene Person, 36, im Kontext Logopädin, natürliche professionelle Studioillustration.",
+    "avatar_constraints": "keine Logos, kein Namensschild lesbar, keine stereotype Überzeichnung"
+  },
+  "segment": {
+    "lebensphase": "eigene Praxis, Kindertermine, Bürokratie",
+    "einstellung": "isst zwischen Therapieeinheiten und Berichten",
+    "region": "Deutschland (Kiel)"
+  },
+  "demographics": {
+    "alter": 36,
+    "beruf": "Logopädin"
+  },
+  "role": {
+    "title": "Logopädin",
+    "responsibilities": "Alltags- und Fachaufgaben als Logopädin; Koordination, Dokumentation, Wege, Absprachen und wiederkehrende Routinen.",
+    "seniority": "mehrere Jahre Erfahrung im eigenen Kontext",
+    "decision_power": "begrenzt durch Dienstplan, Budget, Institutionen oder Angehörige"
+  },
+  "company_context": {
+    "industry": "Therapie / eigene Praxis",
+    "size": "Praxis mit 3 Therapeutinnen",
+    "stack": "Diensthandy, Kalender, Pausenbox, WhatsApp, Arbeitsplatz, Küche zuhause",
+    "operating_model": "Tage werden durch Termine, Wege, Verantwortung und knappe Pausen geprägt"
+  },
+  "goals": [
+    "Den Arbeitstag zuverlässig schaffen",
+    "Ein echtes Essensfenster halten",
+    "Private Verpflichtungen nicht komplett verdrängen",
+    "Abends nicht nur improvisieren"
+  ],
+  "constraints": [
+    "Termine und Unterbrechungen bestimmen den Tag",
+    "Pausen sind kurz oder unsicher",
+    "Budget, Wege oder Körper setzen enge Grenzen",
+    "Andere verlassen sich auf diese Person"
+  ],
+  "tool_ids": [],
+  "tools": [
+    "Diensthandy",
+    "Kalender",
+    "Pausenbox",
+    "WhatsApp",
+    "Arbeitsplatz",
+    "Küche zuhause"
+  ],
+  "relationships": [
+    {
+      "name": "Kollegin Alex",
+      "type": "Arbeitsumfeld",
+      "friction": "hilft gelegentlich, ist aber selbst belastet"
+    },
+    {
+      "name": "Familienkontakt",
+      "type": "privates Umfeld",
+      "friction": "erwartet Verlässlichkeit trotz Arbeitsdruck"
+    },
+    {
+      "name": "Vorgesetzte Stelle",
+      "type": "Organisation",
+      "friction": "plant nach Bedarf, nicht nach Pausenlogik"
+    }
+  ],
+  "personality": {
+    "working_style": "pragmatisch, pflichtbewusst und unterbrechungserprobt",
+    "communication_style": "direkt, konkret und alltagsnah",
+    "risk_tolerance": "niedrig bei Verpflichtungen gegenüber anderen, höher bei eigener Belastung",
+    "character_notes": "nimmt eigene Bedürfnisse oft erst ernst, wenn der Tag körperlich kippt"
+  },
+  "pain_points": [
+    "Essensfenster verschwinden zuerst",
+    "Spontane Notlösungen werden teuer oder ungesund",
+    "Nach Feierabend fehlt Energie für Planung",
+    "Offene Aufgaben wandern in den Abend"
+  ],
+  "success_criteria": [
+    "Ein kleiner wiederholbarer Pausenanker",
+    "Weniger Notlösungskäufe",
+    "Abend ohne kompletten Nachholstress"
+  ],
+  "avatar": {
+    "path": "data/avatars/amelie-kranz-13d40f0ef63438a2.png",
+    "prompt": "Reference-style Sonaloop avatar portrait for Amelie Kranz: Weiblich gelesene Person, 36, im Kontext Logopädin, natürliche professionelle Studioillustration.. Constraints: keine Logos, kein Namensschild lesbar, keine stereotype Überzeichnung.",
+    "model": "built-in image_gen",
+    "references": [
+      "anna-petersen"
+    ],
+    "validated_against": [
+      "display_name",
+      "role",
+      "identity_traits"
+    ],
+    "known_risks": [],
+    "generated_at": "2026-06-10T19:35:35.346506+00:00"
+  },
+  "soul": {
+    "path": "data/personas/amelie-kranz/SOUL.md",
+    "updated_at": "2026-06-10T17:40:14.090806+00:00"
+  },
+  "created_at": "2026-06-10T17:40:14.090806+00:00",
+  "updated_at": "2026-06-10T19:35:35.346506+00:00",
+  "capabilities": {
+    "rungs": {
+      "see": true,
+      "walk": true,
+      "drive": true,
+      "login": false
+    },
+    "tech_comfort": 3,
+    "devices": [
+      "desktop",
+      "mobile"
+    ],
+    "accessibility": "none noted",
+    "provenance": "authored"
+  }
+}

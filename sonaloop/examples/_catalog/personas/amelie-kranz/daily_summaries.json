@@ -1,0 +1,521 @@
+[
+  {
+    "id": "day_b02a7173967e4b5f",
+    "persona_id": "persona_991687e2c4d1368c",
+    "date": "2026-04-21",
+    "mood": "angespannt-konzentriert",
+    "completed": [
+      "Korrigierte Heilmittelverordnungen für zwei Kinder bei der Kinderärztin Dr. Petersen nachfordern",
+      "Echtes Mittagsfenster halten trotz verschobenem Termin"
+    ],
+    "blockers": [
+      "Bürokratie frisst die ruhige Morgenzeit",
+      "Essensfenster verschwinden bei Verspätungen zuerst",
+      "Frühstück nur im Stehen"
+    ],
+    "open_loops": [
+      "Korrigierte Verordnungen von Dr. Petersen bestätigen lassen"
+    ],
+    "pain_points": [
+      "Bürokratie frisst die ruhige Morgenzeit",
+      "Essensfenster verschwinden bei Verspätungen zuerst",
+      "Frühstück nur im Stehen"
+    ],
+    "notable_memories": [
+      "Amelie kämpft sich vor der ersten Kindereinheit durch abgelehnte Heilmittelverordnungen und ärgert sich über das Formularchaos.",
+      "Das geplante Mittagsfenster kippt, weil eine Mutter zu spät kommt und Amelie zwischen zwei Türen isst."
+    ],
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "id": "day_c2af792de4c149d6",
+    "persona_id": "persona_991687e2c4d1368c",
+    "date": "2026-05-05",
+    "mood": "fachlich sicher, privat ausgelaugt",
+    "completed": [
+      "Therapieziele für Finn mit den Eltern neu justieren",
+      "Therapiebericht für Finn nach Feierabend nachholen"
+    ],
+    "blockers": [
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen ungesund",
+      "Unterbrechungen während Gesprächen"
+    ],
+    "open_loops": [
+      "Therapiebericht für Finns Krankenkasse fertigstellen",
+      "In vier Wochen Heimübungen evaluieren",
+      "Sonntags-Vorkochen tatsächlich umsetzen"
+    ],
+    "pain_points": [
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen ungesund",
+      "Unterbrechungen während Gesprächen"
+    ],
+    "notable_memories": [
+      "Schwieriges Entwicklungsgespräch mit Eltern eines vierjährigen Jungen, die mehr Fortschritt erwarten als realistisch ist.",
+      "Amelie schreibt den liegengebliebenen Therapiebericht spät am Küchentisch zu Hause und improvisiert dabei das Abendessen."
+    ],
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "id": "day_58f2daf9e3dc4ac8",
+    "persona_id": "persona_991687e2c4d1368c",
+    "date": "2026-05-06",
+    "mood": "übermüdet, organisiert",
+    "completed": [
+      "Dichten Tag mit Hausbesuch und Wegen vorab durchdenken"
+    ],
+    "blockers": [
+      "Wege und Hausbesuche bedrohen das Mittagsfenster"
+    ],
+    "open_loops": [
+      "Alex' Antwort zum 15-Uhr-Slot abwarten"
+    ],
+    "pain_points": [
+      "Wege und Hausbesuche bedrohen das Mittagsfenster"
+    ],
+    "notable_memories": [
+      "Übermüdeter Start nach dem späten Bericht; Amelie strukturiert den Tag noch im Halbschlaf auf dem Diensthandy."
+    ],
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "id": "day_45b8807ce2684984",
+    "persona_id": "persona_991687e2c4d1368c",
+    "date": "2026-05-19",
+    "mood": "gereizt, schuldbewusst",
+    "completed": [
+      "Private Verpflichtung gegen Arbeitsdruck abwägen"
+    ],
+    "blockers": [
+      "Private Erwartungen kollidieren mit dem Dienstplan",
+      "Unterbrechungen bestimmen den Tag"
+    ],
+    "open_loops": [
+      "Mitbringsel am Freitag besorgen",
+      "Reaktion des Familienkontakts auf die Absage am Vormittag"
+    ],
+    "pain_points": [
+      "Private Erwartungen kollidieren mit dem Dienstplan",
+      "Unterbrechungen bestimmen den Tag"
+    ],
+    "notable_memories": [
+      "Mitten in der Sprechstunde drängt der Familienkontakt auf eine Zusage zum Geburtstag, die mit Amelies Dienstplan kollidiert."
+    ],
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "id": "day_df6a89799c7b4f48",
+    "persona_id": "persona_991687e2c4d1368c",
+    "date": "2026-06-03",
+    "mood": "vorsichtig zufrieden",
+    "completed": [
+      "Dienstplan-Engpass und fehlende Pausenfenster ansprechen",
+      "Vorkochen als wiederholbaren Pausenanker etablieren"
+    ],
+    "blockers": [
+      "Nach Feierabend fehlt sonst Energie für Planung",
+      "Pausen sind kurz oder unsicher",
+      "Vorgesetzte plant nach Bedarf, nicht nach Pausenlogik"
+    ],
+    "open_loops": [
+      "Ob der Mittwochsblock auch in vollen Wochen respektiert wird",
+      "Vorkochen zur festen Wochenroutine machen"
+    ],
+    "pain_points": [
+      "Nach Feierabend fehlt sonst Energie für Planung",
+      "Pausen sind kurz oder unsicher",
+      "Vorgesetzte plant nach Bedarf, nicht nach Pausenlogik"
+    ],
+    "notable_memories": [
+      "Abstimmung mit der vorgesetzten Stelle über die Quartalsauslastung, bei der erneut die Pausenlogik untergeht.",
+      "Amelie testet zum ersten Mal das Sonntag-Vorkochen rückwirkend und füllt drei Pausenbox-Portionen für die Woche vor."
+    ],
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "id": "day_fb0040c5cdb4cb64",
+    "persona_id": "persona_991687e2c4d1368c",
+    "date": "2026-06-09",
+    "mood": "angespannt, mit einem brauchbaren Plan",
+    "completed": [
+      "Tagesplan gegen echte Zwänge prüfen",
+      "Abstimmung unter Zeitdruck",
+      "Kurze Mahlzeit ohne Nebenbei-Modus",
+      "Abendliche Nacharbeit und private Grenze"
+    ],
+    "blockers": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "open_loops": [
+      "Tagesplan gegen echte Zwänge prüfen nachhalten",
+      "Abstimmung unter Zeitdruck nachhalten",
+      "Abendliche Nacharbeit und private Grenze nachhalten"
+    ],
+    "pain_points": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "notable_memories": [
+      "Amelie Kranz Abstimmung unter Zeitdruck using Kalender; outcome: left an open follow-up.",
+      "Amelie Kranz Kurze Mahlzeit ohne Nebenbei-Modus using Pausenbox; outcome: resolved enough to move forward.",
+      "Amelie Kranz Abendliche Nacharbeit und private Grenze using WhatsApp; outcome: left an open follow-up."
+    ],
+    "created_at": "2026-06-10T17:40:14.090806+00:00"
+  },
+  {
+    "id": "day_f3665ca5124e4459",
+    "persona_id": "persona_991687e2c4d1368c",
+    "date": "2026-06-10",
+    "mood": "müde, aber klarer sortiert",
+    "completed": [
+      "Tagesplan gegen echte Zwänge prüfen",
+      "Abstimmung unter Zeitdruck",
+      "Kurze Mahlzeit ohne Nebenbei-Modus",
+      "Abendliche Nacharbeit und private Grenze"
+    ],
+    "blockers": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "open_loops": [
+      "Tagesplan gegen echte Zwänge prüfen nachhalten",
+      "Abstimmung unter Zeitdruck nachhalten",
+      "Abendliche Nacharbeit und private Grenze nachhalten"
+    ],
+    "pain_points": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "notable_memories": [
+      "Amelie Kranz Abstimmung unter Zeitdruck using Kalender; outcome: left an open follow-up.",
+      "Amelie Kranz Kurze Mahlzeit ohne Nebenbei-Modus using Pausenbox; outcome: resolved enough to move forward.",
+      "Amelie Kranz Abendliche Nacharbeit und private Grenze using WhatsApp; outcome: left an open follow-up."
+    ],
+    "created_at": "2026-06-10T17:40:14.090806+00:00"
+  },
+  {
+    "id": "day_4507f788ccf37fee",
+    "persona_id": "persona_991687e2c4d1368c",
+    "date": "2026-06-11",
+    "mood": "angespannt, aber sortiert",
+    "completed": [
+      "Morgendlicher Realitätscheck",
+      "Abstimmung mit Gegenwind",
+      "Geplantes Essensfenster verteidigen",
+      "Ungeplante Störung sichtbar machen",
+      "Abendroutine ohne Heldentat"
+    ],
+    "blockers": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten",
+      "Abstimmung mit Gegenwind nachhalten",
+      "Ungeplante Störung sichtbar machen nachhalten"
+    ],
+    "pain_points": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "notable_memories": [
+      "Amelie Kranz Geplantes Essensfenster verteidigen using Pausenbox; outcome: resolved enough to move forward.",
+      "Amelie Kranz Ungeplante Störung sichtbar machen using WhatsApp; outcome: left an open follow-up.",
+      "Amelie Kranz Abendroutine ohne Heldentat using Arbeitsplatz; outcome: resolved enough to move forward."
+    ],
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "day_eb07eb3978c50c2b",
+    "persona_id": "persona_991687e2c4d1368c",
+    "date": "2026-06-12",
+    "mood": "gehetzt und körperlich müde",
+    "completed": [
+      "Morgendlicher Realitätscheck",
+      "Abstimmung mit Gegenwind",
+      "Geplantes Essensfenster verteidigen",
+      "Ungeplante Störung sichtbar machen",
+      "Abendroutine ohne Heldentat"
+    ],
+    "blockers": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten",
+      "Abstimmung mit Gegenwind nachhalten",
+      "Ungeplante Störung sichtbar machen nachhalten"
+    ],
+    "pain_points": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "notable_memories": [
+      "Amelie Kranz Geplantes Essensfenster verteidigen using Pausenbox; outcome: resolved enough to move forward.",
+      "Amelie Kranz Ungeplante Störung sichtbar machen using WhatsApp; outcome: left an open follow-up.",
+      "Amelie Kranz Abendroutine ohne Heldentat using Arbeitsplatz; outcome: resolved enough to move forward."
+    ],
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "day_3583e9f350ee789d",
+    "persona_id": "persona_991687e2c4d1368c",
+    "date": "2026-06-13",
+    "mood": "fokussiert mit knappen Reserven",
+    "completed": [
+      "Morgendlicher Realitätscheck",
+      "Abstimmung mit Gegenwind",
+      "Geplantes Essensfenster verteidigen",
+      "Ungeplante Störung sichtbar machen",
+      "Abendroutine ohne Heldentat"
+    ],
+    "blockers": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten",
+      "Abstimmung mit Gegenwind nachhalten",
+      "Ungeplante Störung sichtbar machen nachhalten"
+    ],
+    "pain_points": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "notable_memories": [
+      "Amelie Kranz Geplantes Essensfenster verteidigen using Pausenbox; outcome: resolved enough to move forward.",
+      "Amelie Kranz Ungeplante Störung sichtbar machen using WhatsApp; outcome: left an open follow-up.",
+      "Amelie Kranz Abendroutine ohne Heldentat using Arbeitsplatz; outcome: resolved enough to move forward."
+    ],
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "day_0693cde1ffc90daf",
+    "persona_id": "persona_991687e2c4d1368c",
+    "date": "2026-06-14",
+    "mood": "stabiler als erwartet",
+    "completed": [
+      "Morgendlicher Realitätscheck",
+      "Abstimmung mit Gegenwind",
+      "Geplantes Essensfenster verteidigen",
+      "Ungeplante Störung sichtbar machen",
+      "Abendroutine ohne Heldentat"
+    ],
+    "blockers": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten",
+      "Abstimmung mit Gegenwind nachhalten",
+      "Ungeplante Störung sichtbar machen nachhalten"
+    ],
+    "pain_points": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "notable_memories": [
+      "Amelie Kranz Geplantes Essensfenster verteidigen using Pausenbox; outcome: resolved enough to move forward.",
+      "Amelie Kranz Ungeplante Störung sichtbar machen using WhatsApp; outcome: left an open follow-up.",
+      "Amelie Kranz Abendroutine ohne Heldentat using Arbeitsplatz; outcome: resolved enough to move forward."
+    ],
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "day_ad8bea819352b438",
+    "persona_id": "persona_991687e2c4d1368c",
+    "date": "2026-06-15",
+    "mood": "angespannt, aber sortiert",
+    "completed": [
+      "Morgendlicher Realitätscheck",
+      "Abstimmung mit Gegenwind",
+      "Geplantes Essensfenster verteidigen",
+      "Ungeplante Störung sichtbar machen",
+      "Abendroutine ohne Heldentat"
+    ],
+    "blockers": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten",
+      "Abstimmung mit Gegenwind nachhalten",
+      "Ungeplante Störung sichtbar machen nachhalten"
+    ],
+    "pain_points": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "notable_memories": [
+      "Amelie Kranz Geplantes Essensfenster verteidigen using Pausenbox; outcome: resolved enough to move forward.",
+      "Amelie Kranz Ungeplante Störung sichtbar machen using WhatsApp; outcome: left an open follow-up.",
+      "Amelie Kranz Abendroutine ohne Heldentat using Arbeitsplatz; outcome: resolved enough to move forward."
+    ],
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "day_a3acabe5fddb42a7",
+    "persona_id": "persona_991687e2c4d1368c",
+    "date": "2026-06-16",
+    "mood": "gehetzt und körperlich müde",
+    "completed": [
+      "Morgendlicher Realitätscheck",
+      "Abstimmung mit Gegenwind",
+      "Geplantes Essensfenster verteidigen",
+      "Ungeplante Störung sichtbar machen",
+      "Abendroutine ohne Heldentat"
+    ],
+    "blockers": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten",
+      "Abstimmung mit Gegenwind nachhalten",
+      "Ungeplante Störung sichtbar machen nachhalten"
+    ],
+    "pain_points": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "notable_memories": [
+      "Amelie Kranz Geplantes Essensfenster verteidigen using Pausenbox; outcome: resolved enough to move forward.",
+      "Amelie Kranz Ungeplante Störung sichtbar machen using WhatsApp; outcome: left an open follow-up.",
+      "Amelie Kranz Abendroutine ohne Heldentat using Arbeitsplatz; outcome: resolved enough to move forward."
+    ],
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "day_3226cb4cf7103691",
+    "persona_id": "persona_991687e2c4d1368c",
+    "date": "2026-06-17",
+    "mood": "fokussiert mit knappen Reserven",
+    "completed": [
+      "Morgendlicher Realitätscheck",
+      "Abstimmung mit Gegenwind",
+      "Geplantes Essensfenster verteidigen",
+      "Ungeplante Störung sichtbar machen",
+      "Abendroutine ohne Heldentat"
+    ],
+    "blockers": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten",
+      "Abstimmung mit Gegenwind nachhalten",
+      "Ungeplante Störung sichtbar machen nachhalten"
+    ],
+    "pain_points": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "notable_memories": [
+      "Amelie Kranz Geplantes Essensfenster verteidigen using Pausenbox; outcome: resolved enough to move forward.",
+      "Amelie Kranz Ungeplante Störung sichtbar machen using WhatsApp; outcome: left an open follow-up.",
+      "Amelie Kranz Abendroutine ohne Heldentat using Arbeitsplatz; outcome: resolved enough to move forward."
+    ],
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "day_28bcd2306a3e4fef",
+    "persona_id": "persona_991687e2c4d1368c",
+    "date": "2026-06-18",
+    "mood": "stabiler als erwartet",
+    "completed": [
+      "Morgendlicher Realitätscheck",
+      "Abstimmung mit Gegenwind",
+      "Geplantes Essensfenster verteidigen",
+      "Ungeplante Störung sichtbar machen",
+      "Abendroutine ohne Heldentat"
+    ],
+    "blockers": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten",
+      "Abstimmung mit Gegenwind nachhalten",
+      "Ungeplante Störung sichtbar machen nachhalten"
+    ],
+    "pain_points": [
+      "Essensfenster verschwinden zuerst",
+      "Nach Feierabend fehlt Energie für Planung",
+      "Offene Aufgaben wandern in den Abend",
+      "Spontane Notlösungen werden teuer oder ungesund"
+    ],
+    "notable_memories": [
+      "Amelie Kranz Geplantes Essensfenster verteidigen using Pausenbox; outcome: resolved enough to move forward.",
+      "Amelie Kranz Ungeplante Störung sichtbar machen using WhatsApp; outcome: left an open follow-up.",
+      "Amelie Kranz Abendroutine ohne Heldentat using Arbeitsplatz; outcome: resolved enough to move forward."
+    ],
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "day_b44322a961b3481b",
+    "persona_id": "persona_991687e2c4d1368c",
+    "date": "2026-06-22",
+    "mood": "erschöpft, aber selbstwirksam",
+    "completed": [
+      "Tag mit Personalausfall überstehen ohne komplett auszufallen"
+    ],
+    "blockers": [
+      "Andere verlassen sich auf diese Person",
+      "Termine und Unterbrechungen bestimmen den Tag"
+    ],
+    "open_loops": [
+      "Mit Alex über Vertretungsregelung bei Krankheit sprechen",
+      "Mittwochsblock auch in Ausfallwochen behalten"
+    ],
+    "pain_points": [
+      "Andere verlassen sich auf diese Person",
+      "Termine und Unterbrechungen bestimmen den Tag"
+    ],
+    "notable_memories": [
+      "Ein akut kranker Praxistag bringt Amelie an die Belastungsgrenze, doch der Mittwochsblock und die Pausenbox retten den Tag."
+    ],
+    "created_at": "2026-06-15T08:09:19+00:00"
+  }
+]

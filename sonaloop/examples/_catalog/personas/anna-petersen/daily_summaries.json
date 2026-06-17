@@ -1,0 +1,458 @@
+[
+  {
+    "id": "day_095269afed45473e",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "date": "2026-03-31",
+    "mood": "ausgelaugt, leicht gereizt",
+    "completed": [
+      "Pausenversorgung am Snackautomat Ebene 0 nach drei Stunden Dauerklingeln"
+    ],
+    "blockers": [
+      "4b nachts zu zweit, Dauerklingeln",
+      "Drei-Uhr-Loch trifft hart",
+      "Snackautomat unzuverlässig und leergekauft"
+    ],
+    "open_loops": [
+      "Idee mit der Brotdose mal wirklich mit Jonas besprechen",
+      "Reihe E der Hauswirtschaft melden"
+    ],
+    "pain_points": [
+      "4b nachts zu zweit, Dauerklingeln",
+      "Drei-Uhr-Loch trifft hart",
+      "Snackautomat unzuverlässig und leergekauft"
+    ],
+    "notable_memories": [
+      "Mitten in einer unterbesetzten Nacht klemmte der Snackautomat Reihe E und Anna stand mit knurrendem Magen vor dem leeren Fach."
+    ],
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "day_8d0d9c75d59c4782",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "date": "2026-04-15",
+    "mood": "zerknirscht, übermüdet",
+    "completed": [
+      "Versuch zu schlafen nach der Nacht, stattdessen unkontrolliertes Essen am Vormittag"
+    ],
+    "blockers": [
+      "Gemeinsame Mahlzeiten mit Jonas nur an freien Tagen",
+      "Nach der Schicht zu aufgedreht zum Schlafen, dann unkontrolliertes Essen"
+    ],
+    "open_loops": [
+      "Schlafhygiene nach der Schicht: Verdunklung im Schlafzimmer verbessern",
+      "Mit Jonas einen festen Vorkoch-Sonntag finden"
+    ],
+    "pain_points": [
+      "Gemeinsame Mahlzeiten mit Jonas nur an freien Tagen",
+      "Nach der Schicht zu aufgedreht zum Schlafen, dann unkontrolliertes Essen"
+    ],
+    "notable_memories": [
+      "Nach der Schicht zu aufgedreht zum Schlafen aß Anna sich am Vormittag durch den Kühlschrank, gerade als Jonas zur Mittagspause heimkam."
+    ],
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "day_284ee5c9fd094630",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "date": "2026-04-22",
+    "mood": "ausgelaugt, leicht gereizt",
+    "completed": [
+      "Nachtpause irgendwie über die Runden bringen, während die Energie wegsackt"
+    ],
+    "blockers": [
+      "Dauerklingeln, wenn Meltem raucht",
+      "Energie sackt gegen drei Uhr weg",
+      "Nachts nur Snackautomat und kalte Reste"
+    ],
+    "open_loops": [
+      "Brotdose-Idee endlich umsetzen",
+      "Automat Reihe E der Haustechnik melden"
+    ],
+    "pain_points": [
+      "Dauerklingeln, wenn Meltem raucht",
+      "Energie sackt gegen drei Uhr weg",
+      "Nachts nur Snackautomat und kalte Reste"
+    ],
+    "notable_memories": [
+      "Im Drei-Uhr-Loch stand Anna vor einem leergekauften Snackautomaten und musste sich mit kalten Resten aus der Stationsküche durchschlagen."
+    ],
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "day_902ad85350c5496f",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "date": "2026-05-03",
+    "mood": "warm, ein bisschen wehmütig",
+    "completed": [
+      "Endlich mal in Ruhe warm mit Jonas essen und gleich für die Woche vorkochen"
+    ],
+    "blockers": [
+      "Essensplanung bleibt am Wachen hängen",
+      "Gemeinsame Mahlzeiten nur an freien Tagen"
+    ],
+    "open_loops": [
+      "Ob es im Schichtstress wirklich durchhält"
+    ],
+    "pain_points": [
+      "Essensplanung bleibt am Wachen hängen",
+      "Gemeinsame Mahlzeiten nur an freien Tagen"
+    ],
+    "notable_memories": [
+      "An einem freien Sonntag kochten Anna und Jonas zusammen Linseneintopf und legten halb im Scherz, halb ernst eine Vorkoch-Idee für die Nächte fest."
+    ],
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "day_54f4d09789824e45",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "date": "2026-05-04",
+    "mood": "übermüdet, frustriert",
+    "completed": [
+      "Tagsüber schlafen, bevor die nächste Reihe Nächte beginnt"
+    ],
+    "blockers": [
+      "Diensthandy klingelt mitten im Schlaffenster",
+      "Nach Tagrhythmus zu aufgedreht zum Schlafen",
+      "unkontrolliertes Essen am Vormittag"
+    ],
+    "open_loops": [
+      "Schlaffenster gegen Diensthandy-Anrufe besser abschirmen"
+    ],
+    "pain_points": [
+      "Diensthandy klingelt mitten im Schlaffenster",
+      "Nach Tagrhythmus zu aufgedreht zum Schlafen",
+      "unkontrolliertes Essen am Vormittag"
+    ],
+    "notable_memories": [
+      "Nach dem freien Sonntag verschob sich Annas Schlaf, das Diensthandy klingelte um zehn und sie aß den Vormittag über unkontrolliert weiter."
+    ],
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "day_317d506d039b4ab7",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "date": "2026-05-12",
+    "mood": "fokussiert, angespannt",
+    "completed": [
+      "Sturz mit Kopfplatzwunde bei Frau Köhler versorgen und Dr. Yilmaz rufen",
+      "Frühübergabe an Sandra trotz Sturzprotokoll-Rückstand"
+    ],
+    "blockers": [
+      "Dauerklingeln bei Doppelbesetzung",
+      "KIS-Dokumentation frisst jede Pause auf",
+      "Meltem schiebt Doku auf Anna",
+      "geplante Mahlzeit fällt bei Notfall aus",
+      "Übergabe nicht ganz ohne offene Punkte"
+    ],
+    "open_loops": [
+      "CT-Abklärung Köhler am Morgen mit Frühdienst klären",
+      "Sturzursache: Infusionsständer-Stellplatz überdenken",
+      "Mit Meltem klären, dass sie ihre eigene Doku nicht auf Anna abschiebt",
+      "CT-Befund Köhler im nächsten Dienst nachfragen"
+    ],
+    "pain_points": [
+      "Dauerklingeln bei Doppelbesetzung",
+      "KIS-Dokumentation frisst jede Pause auf",
+      "Meltem schiebt Doku auf Anna",
+      "geplante Mahlzeit fällt bei Notfall aus",
+      "Übergabe nicht ganz ohne offene Punkte"
+    ],
+    "notable_memories": [
+      "Ein nächtlicher Sturz mit Platzwunde bei Frau Köhler band Anna und den Dienstarzt, danach lief die Doku der ganzen Nacht hinterher.",
+      "Trotz Sturznacht schaffte Anna die Übergabe um 6:15 nur mit zwei offenen Doku-Punkten und ärgerte sich über das halbfertige Ende."
+    ],
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "day_586c8b8cf1da4c1d",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "date": "2026-05-19",
+    "mood": "bestimmt, leicht angespannt",
+    "completed": [
+      "Juli-Dienstplanwunsch formell und schriftlich einreichen"
+    ],
+    "blockers": [
+      "Carstens verteilt Wünsche nach Gutsherrenart",
+      "Juli-Wunsch hängt seit Wochen"
+    ],
+    "open_loops": [
+      "Juli-Plan kommt erst Mitte Juni",
+      "Zwei zusammenhängende freie Wochenenden noch offen"
+    ],
+    "pain_points": [
+      "Carstens verteilt Wünsche nach Gutsherrenart",
+      "Juli-Wunsch hängt seit Wochen"
+    ],
+    "notable_memories": [
+      "Zu Schichtbeginn legte Anna Carstens ihren schriftlichen Wunsch für zwei freie Juli-Wochenenden am Stück vor."
+    ],
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "day_243bfaa5510a41ce",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "date": "2026-05-27",
+    "mood": "entschlossen, leicht genervt",
+    "completed": [
+      "Stand des Juli-Wunschzettels bei der Stationsleitung erfragen"
+    ],
+    "blockers": [
+      "Carstens verteilt Wünsche nach Gutsherrenart",
+      "Juli-Wunsch hängt seit Wochen"
+    ],
+    "open_loops": [
+      "Nächste Woche erneut bei Carstens nachfragen",
+      "Verbindlichkeit von Wunschzetteln beim Personalrat prüfen"
+    ],
+    "pain_points": [
+      "Carstens verteilt Wünsche nach Gutsherrenart",
+      "Juli-Wunsch hängt seit Wochen"
+    ],
+    "notable_memories": [
+      "Anna hakte bei Frau Carstens zum hängenden Juli-Wunsch nach und bekam nur ein Vertrösten, das den Frust über die Gutsherrenart schürte."
+    ],
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "day_d81f9bb6e0fd417a",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "date": "2026-05-31",
+    "mood": "zufrieden, hoffnungsvoll",
+    "completed": [
+      "Erster fester Sonntags-Vorkochtag mit Portionieren für die Nächte"
+    ],
+    "blockers": [
+      "Gemeinsame Mahlzeiten mit Jonas nur an freien Tagen"
+    ],
+    "open_loops": [
+      "Prüfen, ob die Stationsküche nachts zuverlässig eine Mikrowelle frei hat",
+      "Mengen so anpassen, dass eine ganze Nachtreihe abgedeckt ist"
+    ],
+    "pain_points": [
+      "Gemeinsame Mahlzeiten mit Jonas nur an freien Tagen"
+    ],
+    "notable_memories": [
+      "Anna und Jonas zogen den ersten richtigen Vorkoch-Sonntag durch und füllten Dosen mit Linsencurry für Annas kommende Nachtreihe ab."
+    ],
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "day_b7e97edc0d996abe",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "date": "2026-06-06",
+    "mood": "wach, aber mit Respekt vor der dritten Nacht in Folge",
+    "completed": [
+      "Halb drei am Snackautomaten auf Ebene 0"
+    ],
+    "blockers": [
+      "Dauerklingeln, wenn 4b nachts nur zu zweit besetzt ist",
+      "Die KIS-Dokumentation frisst jede Pause auf",
+      "Gegen drei Uhr morgens sackt die Energie weg, egal was vorher gegessen wurde",
+      "Nach der Schicht zu aufgedreht zum Schlafen, dann unkontrolliertes Essen am Vormittag"
+    ],
+    "open_loops": [
+      "Einstempeln und Umziehen vor der dritten Nacht",
+      "Übergabe vom Spätdienst auf 4b",
+      "Medikamentenrunde und Vitalzeichen vor Mitternacht",
+      "Zimmer 412: Brodersens Blutzucker entgleist",
+      "Nachdokumentation der Hypoglykämie im KIS",
+      "Übergabe an den Frühdienst um 6:15"
+    ],
+    "pain_points": [
+      "Dauerklingeln, wenn 4b nachts nur zu zweit besetzt ist",
+      "Die KIS-Dokumentation frisst jede Pause auf",
+      "Gegen drei Uhr morgens sackt die Energie weg, egal was vorher gegessen wurde",
+      "Nach der Schicht zu aufgedreht zum Schlafen, dann unkontrolliertes Essen am Vormittag",
+      "Nachts nur Snackautomat und kalte Reste — eine echte Mahlzeit gibt es nicht"
+    ],
+    "notable_memories": [
+      "Anna Petersen Halb drei am Snackautomaten auf Ebene 0 using Snackautomat Ebene 0; outcome: resolved enough to move forward.",
+      "Anna Petersen Nachdokumentation der Hypoglykämie im KIS using Stationsrechner (KIS); outcome: left an open follow-up.",
+      "Anna Petersen Übergabe an den Frühdienst um 6:15 using Übergabe-Raum Station 4b; outcome: left an open follow-up."
+    ],
+    "created_at": "2026-06-10T14:11:44.802945+00:00"
+  },
+  {
+    "id": "day_289dae421b274413",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "date": "2026-06-07",
+    "mood": "ernüchtert",
+    "completed": [
+      "Halb drei am Snackautomaten auf Ebene 0",
+      "Nachdokumentation der Hypoglykämie im KIS",
+      "Übergabe an den Frühdienst um 6:15"
+    ],
+    "blockers": [
+      "Die KIS-Dokumentation frisst jede Pause auf",
+      "Gegen drei Uhr morgens sackt die Energie weg, egal was vorher gegessen wurde",
+      "Nach der Schicht zu aufgedreht zum Schlafen, dann unkontrolliertes Essen am Vormittag",
+      "Nachts nur Snackautomat und kalte Reste — eine echte Mahlzeit gibt es nicht"
+    ],
+    "open_loops": [
+      "Fehlende Spätdienst-Abzeichnung der Lemke-Kurve an den Frühdienst weitergeben",
+      "Brodersens Oberarzt-Vorstellung und mögliche Verlegung — Stand erst Montagnacht klar"
+    ],
+    "pain_points": [
+      "Die KIS-Dokumentation frisst jede Pause auf",
+      "Gegen drei Uhr morgens sackt die Energie weg, egal was vorher gegessen wurde",
+      "Nach der Schicht zu aufgedreht zum Schlafen, dann unkontrolliertes Essen am Vormittag",
+      "Nachts nur Snackautomat und kalte Reste — eine echte Mahlzeit gibt es nicht"
+    ],
+    "notable_memories": [
+      "Anna Petersen Halb drei am Snackautomaten auf Ebene 0 using Snackautomat Ebene 0; outcome: resolved enough to move forward.",
+      "Anna Petersen Nachdokumentation der Hypoglykämie im KIS using Stationsrechner (KIS); outcome: left an open follow-up.",
+      "Anna Petersen Übergabe an den Frühdienst um 6:15 using Übergabe-Raum Station 4b; outcome: left an open follow-up."
+    ],
+    "created_at": "2026-06-15T14:55:40+00:00"
+  },
+  {
+    "id": "day_74651de5f56603dc",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "date": "2026-06-08",
+    "mood": "ausgeruhter als Samstag, mit der Brotdose als kleinem Trumpf in der Tasche",
+    "completed": [
+      "Abendrunde mit zwei Neuaufnahmen",
+      "Brotdosen-Pause in der Stationsküche",
+      "Sturzprotokoll und Nachtdoku im KIS"
+    ],
+    "blockers": [
+      "Dauerklingeln, wenn 4b nachts nur zu zweit besetzt ist",
+      "Die KIS-Dokumentation frisst jede Pause auf",
+      "Nach der Schicht zu aufgedreht zum Schlafen, dann unkontrolliertes Essen am Vormittag"
+    ],
+    "open_loops": [
+      "Dienstbeginn: Carstens wegen des Juli-Plans abpassen",
+      "Übergabe: Brodersen ist zurück aus der Überwachung",
+      "Sturzalarm in Zimmer 408 bei Frau Lemke",
+      "Frühübergabe mit Sturzbericht an Sandra"
+    ],
+    "pain_points": [
+      "Dauerklingeln, wenn 4b nachts nur zu zweit besetzt ist",
+      "Die KIS-Dokumentation frisst jede Pause auf",
+      "Gegen drei Uhr morgens sackt die Energie weg, egal was vorher gegessen wurde",
+      "Nach der Schicht zu aufgedreht zum Schlafen, dann unkontrolliertes Essen am Vormittag"
+    ],
+    "notable_memories": [
+      "Anna Petersen Brotdosen-Pause in der Stationsküche using Stationsküche; outcome: resolved enough to move forward.",
+      "Anna Petersen Sturzprotokoll und Nachtdoku im KIS using Stationsrechner (KIS); outcome: resolved enough to move forward.",
+      "Anna Petersen Frühübergabe mit Sturzbericht an Sandra using Übergabe-Raum Station 4b; outcome: left an open follow-up."
+    ],
+    "created_at": "2026-06-10T14:11:47.246407+00:00"
+  },
+  {
+    "id": "day_c39f5ae06cbc4538",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "date": "2026-06-09",
+    "mood": "angespannt-kontrolliert",
+    "completed": [
+      "Sturzalarm in Zimmer 408 bei Frau Lemke",
+      "Brotdosen-Pause in der Stationsküche",
+      "Sturzprotokoll und Nachtdoku im KIS",
+      "Frühübergabe mit Sturzbericht an Sandra"
+    ],
+    "blockers": [
+      "Dauerklingeln, wenn 4b nachts nur zu zweit besetzt ist",
+      "Die KIS-Dokumentation frisst jede Pause auf",
+      "Gegen drei Uhr morgens sackt die Energie weg, egal was vorher gegessen wurde"
+    ],
+    "open_loops": [
+      "Röntgenbefund Handgelenk Lemke steht aus",
+      "Röntgenbefund Lemke beim nächsten Dienst nachfragen",
+      "Donnerstag: Carstens-Frist für das zweite Juli-Wochenende"
+    ],
+    "pain_points": [
+      "Dauerklingeln, wenn 4b nachts nur zu zweit besetzt ist",
+      "Die KIS-Dokumentation frisst jede Pause auf",
+      "Gegen drei Uhr morgens sackt die Energie weg, egal was vorher gegessen wurde"
+    ],
+    "notable_memories": [
+      "Anna Petersen Brotdosen-Pause in der Stationsküche using Stationsküche; outcome: resolved enough to move forward.",
+      "Anna Petersen Sturzprotokoll und Nachtdoku im KIS using Stationsrechner (KIS); outcome: resolved enough to move forward.",
+      "Anna Petersen Frühübergabe mit Sturzbericht an Sandra using Übergabe-Raum Station 4b; outcome: left an open follow-up."
+    ],
+    "created_at": "2026-06-15T14:55:40+00:00"
+  },
+  {
+    "id": "day_ed88fb4da71f417f",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "date": "2026-06-11",
+    "mood": "erleichtert, kleiner Triumph",
+    "completed": [
+      "Carstens an die Donnerstag-Frist für das zweite Juli-Wochenende erinnern",
+      "Röntgenbefund Handgelenk Lemke nachverfolgen und in die Doku übernehmen"
+    ],
+    "blockers": [
+      "Carstens verteilt Wünsche nach Gutsherrenart",
+      "offene Doku-Punkte über mehrere Dienste mitschleppen"
+    ],
+    "open_loops": [
+      "Lemke nachts engmaschiger beobachten wegen Unruhe"
+    ],
+    "pain_points": [
+      "Carstens verteilt Wünsche nach Gutsherrenart",
+      "offene Doku-Punkte über mehrere Dienste mitschleppen"
+    ],
+    "notable_memories": [
+      "Am vereinbarten Donnerstag stellte Anna Carstens zur Frist und bekam endlich beide Juli-Wochenenden zugesagt.",
+      "In der Übergabe klärte sich endlich der ausstehende Röntgenbefund von Frau Lemke: nur eine Prellung, kein Bruch."
+    ],
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "day_ae0d09580ba548ec",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "date": "2026-06-12",
+    "mood": "fokussiert, angespannt",
+    "completed": [
+      "Neuaufnahme Herr Tahir aus der ZNA versorgen und überwachen",
+      "Geplante warme Pause mit der Brotdose statt Automatenzeug",
+      "Frühübergabe um 6:15 ohne Dokumentationsrückstand"
+    ],
+    "blockers": [
+      "Dauerklingeln bei Zweierbesetzung",
+      "Energie sackt gegen drei Uhr weg",
+      "KIS-Doku frisst sonst jede Pause",
+      "Notfall und Routine kollidieren"
+    ],
+    "open_loops": [
+      "Zweite Troponin-Bestimmung bei Tahir gegen 4 Uhr",
+      "EKG-Befund am Morgen kardiologisch beurteilen lassen",
+      "Mit Jonas absprechen, sonntags eine größere Menge zu kochen",
+      "Kardiologische EKG-Beurteilung Tahir am Vormittag durch den Frühdienst"
+    ],
+    "pain_points": [
+      "Dauerklingeln bei Zweierbesetzung",
+      "Energie sackt gegen drei Uhr weg",
+      "KIS-Doku frisst sonst jede Pause",
+      "Notfall und Routine kollidieren"
+    ],
+    "notable_memories": [
+      "Eine nächtliche Notaufnahme aus der ZNA — Herr Tahir mit Brustschmerz — band Anna und den Dienstarzt für eine Stunde.",
+      "Mitten in der Nacht zwischen zwei Kontrollgängen aß Anna ihren vorgekochten Ofengemüse-Reis und merkte, wie das Drei-Uhr-Loch flacher blieb.",
+      "Anna beendete den Dienst um 6:15 ohne offene Doku-Punkte und übergab Tahir mit lückenloser Verlaufskurve."
+    ],
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "day_be00b0362b7d485d",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "date": "2026-06-14",
+    "mood": "entspannt, häuslich",
+    "completed": [
+      "Sonntags-Vorkochen für die Nachtdienste der Woche"
+    ],
+    "blockers": [
+      "Essensplanung bleibt sonst am Wachen hängen",
+      "vergisst die Brotdose immer wieder"
+    ],
+    "open_loops": [],
+    "pain_points": [
+      "Essensplanung bleibt sonst am Wachen hängen",
+      "vergisst die Brotdose immer wieder"
+    ],
+    "notable_memories": [
+      "Am freien Sonntag kochten Anna und Jonas im Großen vor und füllten Dosen für Annas kommende Nachtreihe und für Meltem ab."
+    ],
+    "created_at": "2026-06-15T08:31:50+00:00"
+  }
+]

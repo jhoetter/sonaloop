@@ -1,4 +1,4 @@
-"""Opt-in product tour (web/_tour.py): chrome presence, the quiet sidebar-footer offer,
+"""Opt-in product tour (web/_tour.py): chrome presence, the quiet user-menu offer,
 i18n'd copy, and THE CANARY — every artifact-tour selector must keep existing on
 the page it claims to explain."""
 from __future__ import annotations
@@ -25,24 +25,16 @@ def test_tour_chrome_is_injected_on_every_page(store):
         assert "data-tour-start" in html, f"no tour trigger on {path}"
 
 
-def test_tour_offer_is_a_sidebar_footer_row_not_a_toast(store):
-    """V7: the floating offer toast retired; the quiet always-available offer is ONE row
-    in the sidebar footer's `.sl-nav` cluster (exactly the nav-row idiom, like Feedback
-    and the `?` shortcuts hint) — and the tour still never auto-starts."""
+def test_tour_offer_is_in_user_menu_not_a_toast(store):
+    """The floating offer toast retired; the quiet always-available offer is one row
+    in the user menu — and the tour still never auto-starts."""
     first = _client().get("/?lang=en")
     assert 'id="tour-offer"' not in first.text                   # the toast is gone …
     assert "tour-offer" not in first.headers.get("set-cookie", "")  # … and so is its cookie
-    foot = first.text.split('class="sl-nav sl-sb-foot"')[1].split("</nav>")[0]
-    assert STRINGS["en"]["tour_take"] in foot and "data-tour-start" in foot
-    # the footer rows share ONE row contract: Activity, Documentation (W7), Feedback, the tour, the ? hint
-    assert STRINGS["en"]["feedback_h"] in foot and "data-km-open" in foot
-    assert 'href="/documentation"' in foot
-    assert STRINGS["en"]["documentation"] in foot
-    assert 'href="/activity"' in foot
-    assert STRINGS["en"]["activity_h"] in foot
-    assert foot.count('class="pi-hover"') == 5
-    # the ? keycap is the real .sl-kbd chip (W7 footer polish)
-    assert '<kbd class="sl-kbd">?</kbd>' in foot
+    pop = first.text.split('class="sl-um-pop"')[1].split("sl-um-trigger")[0]
+    assert STRINGS["en"]["tour_take"] in pop and "data-tour-start" in pop
+    assert 'href="/activity"' in pop and STRINGS["en"]["activity_h"] in pop
+    assert 'class="sl-nav sl-sb-foot"' not in first.text
     # never auto-start: the overlay ships hidden; only [data-tour-start] opens it
     assert re.search(r'id="tourov"[^>]*hidden', first.text)
 
@@ -142,8 +134,8 @@ def test_take_the_tour_link_on_home_both_states(store):
     empty = client.get("/?lang=en").text
     assert STRINGS["en"]["first_steps_h"] in empty
     assert STRINGS["en"]["tour_take"] in empty and "data-tour-start" in empty
-    # populated home (projects list): exactly ONE entry point — the sidebar footer row
-    # (V7); the old floating link under the list is gone (round-3 craft pass, C10).
+    # populated home (projects list): the persistent entry point is the user-menu row;
+    # the old floating link under the list is gone.
     services.create_research_project("Tour link", goal="g", store=store)
     home = client.get("/?lang=en").text
     assert "tour-take-row" not in home

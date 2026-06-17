@@ -1,0 +1,135 @@
+{
+  "id": "persona_078ad78989c2f3e0",
+  "slug": "paula-gruber",
+  "display_name": "Paula Gruber",
+  "source_description": "Physiotherapeutin im Rehazentrum, Rosenheim, Taktung alle 20 Minuten, eigene Long-Covid-Erschöpfung",
+  "provenance": {
+    "source_description": "host_authored",
+    "segment_hint": "persona_wave_250",
+    "profile_fields": "host_authored_from_coverage_gap_wave",
+    "evidence": "none",
+    "synthetic_notice": "This profile is simulated and must be validated against real customer evidence."
+  },
+  "identity_traits": {
+    "gender_presentation": "weiblich",
+    "gender_confidence": "high",
+    "age_range": "30-39",
+    "appearance_notes": "Physiotherapeutin im Rehazentrum aus Rosenheim, alltagsnahe Kleidung, konzentrierter Blick, sichtbar durch Arbeitsrhythmus geprägt.",
+    "avatar_profile": "Weiblich gelesene Person, 30, im Kontext Physiotherapeutin im Rehazentrum, natürliche professionelle Studioillustration.",
+    "avatar_constraints": "keine Logos, kein Namensschild lesbar, keine stereotype Überzeichnung"
+  },
+  "segment": {
+    "lebensphase": "Taktung alle 20 Minuten, eigene Long-Covid-Erschöpfung",
+    "einstellung": "will keine Idealroutine, sondern etwas, das zwischen Wegen, Verantwortung und Körper wirklich hält",
+    "region": "Deutschland (Rosenheim)"
+  },
+  "demographics": {
+    "alter": 30,
+    "beruf": "Physiotherapeutin im Rehazentrum"
+  },
+  "role": {
+    "title": "Physiotherapeutin im Rehazentrum",
+    "responsibilities": "Koordiniert den Alltag als Physiotherapeutin im Rehazentrum: Termine, Übergaben, Wege, Menschenkontakt, Dokumentation und kleine Improvisationen.",
+    "seniority": "routiniert im Alltag, aber ohne großen Spielraum",
+    "decision_power": "begrenzt durch Dienstplan, Einkommen, Institutionen, Angehörige oder Kundschaft"
+  },
+  "company_context": {
+    "industry": "Reha",
+    "size": "kleine bis mittlere lokale Organisation oder Einsatzstelle",
+    "stack": "Diensthandy, Kalender, WhatsApp, Pausenbox, Papiernotizen, Küche zuhause",
+    "operating_model": "Der Tag entsteht aus fixen Blöcken, spontanen Unterbrechungen, kurzen Wegen und knappen Pausen."
+  },
+  "goals": [
+    "Den Tag verlässlich schaffen, ohne danach komplett leer zu sein",
+    "Ein realistisches Essensfenster schützen",
+    "Private Sorgearbeit nicht unsichtbar in die Nacht schieben",
+    "Mit einfachen Routinen weniger Notlösungen brauchen"
+  ],
+  "constraints": [
+    "Zeitfenster lassen sich selten komplett selbst wählen",
+    "Andere Menschen hängen direkt an Entscheidungen und Reaktionszeiten",
+    "Gesundheit, Budget oder Mobilität setzen harte Grenzen",
+    "Planung muss ohne lange Bildschirmzeit funktionieren"
+  ],
+  "tool_ids": [],
+  "tools": [
+    "Diensthandy",
+    "Kalender",
+    "WhatsApp",
+    "Pausenbox",
+    "Papiernotizen",
+    "Küche zuhause"
+  ],
+  "relationships": [
+    {
+      "name": "Direkte Kollegin Samira",
+      "type": "Arbeitsumfeld",
+      "friction": "hilft praktisch, hat aber selbst kaum freie Zeit"
+    },
+    {
+      "name": "Familienkontakt zuhause",
+      "type": "privates Umfeld",
+      "friction": "braucht Verlässlichkeit genau dann, wenn der Dienst kippt"
+    },
+    {
+      "name": "Planende Stelle",
+      "type": "Organisation",
+      "friction": "optimiert für Abdeckung, nicht für Pausen oder Wege"
+    }
+  ],
+  "personality": {
+    "working_style": "pragmatisch, beobachtend, unterbrechungserprobt",
+    "communication_style": "konkret, knapp und beispielnah",
+    "risk_tolerance": "niedrig bei Verpflichtungen gegenüber anderen, mittel bei eigener Belastung",
+    "character_notes": "merkt erst spät, wie viel eigene Energie im Dienst an anderen verschwindet"
+  },
+  "pain_points": [
+    "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+    "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+    "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung",
+    "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag"
+  ],
+  "success_criteria": [
+    "Ein Pausenanker, der auch an schlechten Tagen funktioniert",
+    "Weniger teure oder körperlich schlechte Notlösungen",
+    "Abends bleiben ein paar Entscheidungen weniger offen"
+  ],
+  "avatar": {
+    "path": "avatar.png",
+    "prompt": "Create a professional editorial avatar portrait of a fictional person named Paula Gruber, with weiblich gender presentation, age range 30-39, working in the role of Physiotherapeutin im Rehazentrum in Reha. The person should feel pragmatisch, beobachtend, unterbrechungserprobt. Neutral plain studio background, natural expression, clean modern editorial look, no text, no logos, no photorealistic claim of a real person. Distinct visual profile: Weiblich gelesene Person, 30, im Kontext Physiotherapeutin im Rehazentrum, natürliche professionelle Studioillustration.. Hard constraints: keine Logos, kein Namensschild lesbar, keine stereotype Überzeichnung. Style: polished semi-realistic professional avatar. Same overall illustration language as the provided reference avatars, but a clearly different face, hair, clothing, and silhouette. CRITICAL: match the rendering style, finish, brushwork, lighting, framing and plain studio background of the PROVIDED REFERENCE IMAGES, so this portrait belongs to the same illustrated series. Keep the distinct identity of this persona; do not copy the reference people's faces.",
+    "model": "gpt-image-1",
+    "references": [
+      "erik-janssen",
+      "gabor-szabo",
+      "henning-albers"
+    ],
+    "validated_against": [
+      "display_name",
+      "role",
+      "identity_traits"
+    ],
+    "known_risks": [],
+    "generated_at": "2026-06-11T19:46:24.667077+00:00"
+  },
+  "soul": {
+    "path": "data/personas/paula-gruber/SOUL.md",
+    "updated_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  "created_at": "2026-06-10T21:29:57.217849+00:00",
+  "updated_at": "2026-06-11T19:46:24.667077+00:00",
+  "capabilities": {
+    "rungs": {
+      "see": true,
+      "walk": true,
+      "drive": true,
+      "login": false
+    },
+    "tech_comfort": 3,
+    "devices": [
+      "mobile",
+      "desktop"
+    ],
+    "accessibility": "Alltagsbelastung durch Gesundheit, Sorgearbeit, Schicht- oder Mobilitätsgrenzen beachten",
+    "provenance": "authored"
+  }
+}

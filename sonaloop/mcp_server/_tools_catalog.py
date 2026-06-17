@@ -69,7 +69,8 @@ def register_catalog(mcp):
         PREMIUM personas need SONALOOP_CATALOG_TOKEN (the catalog token from
         app.sonaloop.com's Workspace page) — without it they are skipped and reported
         in-band (`skipped_premium`, with the sign-in recipe) while the free selection still
-        lands. `embed=True` re-derives embedding vectors (needs a configured provider;
-        skipped gracefully otherwise). Returns what landed (slug, id, provenance)."""
+        lands. Embedding vectors are re-derived automatically whenever an embeddings provider
+        is configured (e.g. OPENAI_API_KEY) — `embed=True` only forces the backfill on when no
+        provider is detected (a no-op without one). Returns what landed (slug, id, provenance)."""
         t = time.perf_counter()
         return _env("catalog_pull", services.catalog_pull(persona_slugs, pack, ref, embed, force), t)

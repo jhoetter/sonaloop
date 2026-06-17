@@ -1,0 +1,1056 @@
+[
+  {
+    "date": "2026-01-22",
+    "timestamp": "2026-01-22T06:48:00+01:00",
+    "event_type": "fruehdienst_vorbereitung_histamin",
+    "summary": "Lucia packte vor einem engen Infusionstag eine abgesicherte Pausenbox, weil der Vortag mit Breze und Bauchdruck geendet hatte.",
+    "task": "histaminarme Pausenbox vor Fruehdienst vorbereiten",
+    "tool": "Kueche zuhause, Pausenbox, Papiernotiz am Kuehlschrank",
+    "participants": [
+      "Familienkontakt zuhause"
+    ],
+    "collaboration_mode": "private_context",
+    "what_happened": "Noch vor dem ersten Kaffee schnitt Lucia gekochte Kartoffeln vom Vorabend klein, legte Gurke und Frischkaese getrennt in die Box und schrieb auf einen Zettel, was sie mittags sicher essen kann. Der Familienkontakt fragte nebenbei nach einem spaeteren Apothekenweg, aber Lucia merkte, dass sie ohne fertige Box wieder irgendeinen Semmel-Notkauf machen wuerde. Sie stellte die Box sichtbar neben den Wohnungsschluessel, damit sie sie nicht im Kuehlschrank vergisst.",
+    "key_quotes": [
+      "Wenn ich es nicht sehe, bleibt es hier.",
+      "Heute nichts Riskantes vor den Infusionen.",
+      "Die Apotheke schaffe ich nur, wenn ich nicht leer laufe."
+    ],
+    "actions_done": [
+      "Kartoffeln, Gurke und Frischkaese getrennt verpackt",
+      "Papiernotiz mit sicheren Lebensmitteln geschrieben",
+      "Pausenbox neben den Schluessel gestellt",
+      "Apothekenweg als spaeten offenen Punkt notiert"
+    ],
+    "artifacts_touched": [
+      "Pausenbox",
+      "Papiernotiz am Kuehlschrank",
+      "Wohnungsschluessel",
+      "Kueche zuhause"
+    ],
+    "persona_thought": "Ich brauche keinen schoenen Plan, ich brauche etwas, das ich im Halbschlaf greifen kann.",
+    "decision": "Die Pausenbox kommt morgens sichtbar an die Wohnungstuer, nicht in den Kuehlschrank.",
+    "open_loops": [
+      "Apothekenweg fuer zuhause nach Dienstende klaeren",
+      "Pruefen, ob Kartoffel-Gurke als sicherer Pausenanker reicht"
+    ],
+    "impact": {
+      "mood": "angespannt, aber handlungsfaehig",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit fuer Planung",
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag"
+    ],
+    "goal_refs": [
+      "Ein realistisches Essensfenster schuetzen",
+      "Mit einfachen Routinen weniger Notloesungen brauchen"
+    ],
+    "id": "evt_3e074b4069734a7a",
+    "persona_id": "persona_1317d5cacfe44114",
+    "conversation": [],
+    "calendar_event_id": "cal_2261e1a167564475",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "date": "2026-01-30",
+    "timestamp": "2026-01-30T06:52:00+01:00",
+    "event_type": "dienstplan_korrektur",
+    "summary": "Lucia bemerkte vor dem Frühdienst, dass ein zusätzlicher Infusionsblock ihre geplante Essenspause genau überdecken würde.",
+    "task": "Dienstplan mit Essensfenster abgleichen",
+    "tool": "Kalender und Papiernotiz am Kühlschrank",
+    "participants": [
+      "Lucia Moreno",
+      "Planende Stelle",
+      "Familienkontakt zuhause"
+    ],
+    "collaboration_mode": "solo",
+    "what_happened": "Lucia stand schon mit Jacke in der Küche, als sie im Kalender sah, dass der neue Infusionsblock um 12:15 Uhr eingetragen war. Eigentlich hatte sie für 12:30 Uhr die Kartoffel-Gurke-Box vorgesehen, weil sie am Vortag auf Kantinenessen reagiert hatte. Sie schrieb sich auf einen Zettel, den Block später mit Samira zu tauschen, legte aber vorsichtshalber nur die halbe Portion in die Pausenbox, damit sie notfalls in zwei kurzen Momenten essen konnte. Der Familienkontakt zuhause fragte parallel per WhatsApp, ob sie nach Dienstschluss noch ein Rezept abholen könne, was Lucia zunächst nicht beantwortete.",
+    "key_quotes": [
+      "Wenn ich das erst um zwölf sehe, ist es wieder zu spät.",
+      "Halbe Portion ist nicht ideal, aber besser als gar nichts."
+    ],
+    "actions_done": [
+      "Kalendereintrag mit Papiernotiz gespiegelt",
+      "Pausenbox in zwei kleine Portionen aufgeteilt",
+      "WhatsApp-Anfrage zuhause bewusst unbeantwortet gelassen bis nach Dienstbeginn"
+    ],
+    "artifacts_touched": [
+      "Kalender",
+      "Papiernotiz am Kühlschrank",
+      "Pausenbox",
+      "WhatsApp"
+    ],
+    "persona_thought": "Ich brauche keinen perfekten Plan, ich brauche einen Plan, der nicht beim ersten Telefonat umfällt.",
+    "decision": "Die Pausenbox wird an Tagen mit unklarem Infusionsblock in zwei kleine Einheiten gepackt.",
+    "open_loops": [
+      "Mit Samira klären, ob der 12:15-Block künftig früher markiert werden kann",
+      "Rezeptabholung zuhause bis zur Mittagspause zurückmelden"
+    ],
+    "impact": {
+      "mood": "angespannt, aber handlungsfähig",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben",
+      "Planung muss ohne lange Bildschirmzeit funktionieren"
+    ],
+    "goal_refs": [
+      "Ein realistisches Essensfenster schützen",
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben",
+      "Mit einfachen Routinen weniger Notlösungen brauchen"
+    ],
+    "id": "evt_8f1508e8583c48af",
+    "persona_id": "persona_1317d5cacfe44114",
+    "conversation": [],
+    "calendar_event_id": "cal_b6e6034d83104042",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "date": "2026-02-06",
+    "timestamp": "2026-02-06T11:35:00+01:00",
+    "event_type": "infusionsplan_verschiebung",
+    "summary": "Eine kurzfristige Verschiebung im Infusionsplan drueckte Lucias geplantes Essensfenster zusammen und machte Samiras Hilfe noetig.",
+    "task": "Infusionstermine nach Arztverzoegerung neu takten",
+    "tool": "Kalender, Diensthandy, Papiernotizen am Tresen",
+    "participants": [
+      "Direkte Kollegin Samira",
+      "onkologische Aerztin",
+      "Patientin mit Taxol-Termin",
+      "Angehoeriger im Wartebereich"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Die Aerztin hing in einem Aufklaerungsgespraech fest, waehrend eine Patientin schon fuer die naechste Infusion sass und der Angehoerige alle zehn Minuten nachfragte. Lucia strich zwei Uhrzeiten auf dem Papierplan durch, rief eine spaetere Patientin ueber das Diensthandy an und bat Samira, die Vitalwerte im Nebenraum zu uebernehmen. Ihr eigenes Essen rutschte von 12:10 auf 13:25, aber sie bestand darauf, wenigstens zehn Minuten ohne Telefon am Fenster zu sitzen.",
+    "key_quotes": [
+      "Ich verschiebe nicht die Menschen, ich verschiebe nur die Reihenfolge.",
+      "Samira, kannst du einmal Vitalwerte abfangen?",
+      "Zehn Minuten ohne Klingeln, sonst kippe ich nachmittags."
+    ],
+    "actions_done": [
+      "Zwei Infusionstermine im Kalender verschoben",
+      "Patientin telefonisch ueber Wartezeit informiert",
+      "Samira um Uebernahme der Vitalwerte gebeten",
+      "Kurze Telefonpause am Fenster markiert"
+    ],
+    "artifacts_touched": [
+      "Kalender",
+      "Diensthandy",
+      "Papiernotizen am Tresen",
+      "Infusionszimmer 2"
+    ],
+    "persona_thought": "Alle sehen nur die Termine, aber mein Koerper haengt auch in diesem Plan.",
+    "decision": "Bei Arztverzoegerungen markiert Lucia sofort ein kleines Ersatz-Essensfenster, bevor sie alle anderen Luecken fuellt.",
+    "open_loops": [
+      "Mit Samira klaeren, ob ein gemeinsames Zeichen fuer ungestoerte Pausen moeglich ist",
+      "Rueckmeldung der spaeteren Patientin im Kalender nachtragen"
+    ],
+    "impact": {
+      "mood": "konzentriert mit gereiztem Unterton",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Pausen sind abhaengig von anderen Menschen, nicht vom eigenen Hunger",
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt"
+    ],
+    "goal_refs": [
+      "Den Tag verlaesslich schaffen, ohne danach komplett leer zu sein",
+      "Ein realistisches Essensfenster schuetzen"
+    ],
+    "id": "evt_cd915487f8dd4528",
+    "persona_id": "persona_1317d5cacfe44114",
+    "conversation": [],
+    "calendar_event_id": "cal_3fdbc12e49494cf0",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "date": "2026-02-24",
+    "timestamp": "2026-02-24T13:08:00+01:00",
+    "event_type": "wartezimmer_eskalation",
+    "summary": "Nach einem angespannten Gespräch mit einer Patiententochter wich Lucia in den Aktenraum aus und rettete dort eine kurze, histaminarme Pause.",
+    "task": "Emotionale Unterbrechung nach Infusionstermin abfedern",
+    "tool": "Aktenraum der Praxis und Kartoffel-Gurke-Box",
+    "participants": [
+      "Lucia Moreno",
+      "Direkte Kollegin Samira",
+      "Patiententochter",
+      "Onkologe im Dienst"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Kurz vor Lucias geplanter Pause beschwerte sich eine Patiententochter am Tresen, weil die Blutwerte noch nicht freigegeben waren. Lucia erklärte knapp den Ablauf, blieb ruhig und merkte erst danach, wie sehr sie gezittert hatte. Samira übernahm für sieben Minuten das Diensthandy, während Lucia im Aktenraum die Kartoffel-Gurke-Box aß und auf einem Rand einer alten Laborliste notierte, welche Rückfragen immer wieder eskalieren. Sie nahm sich vor, künftig eine Standardsatzkarte für Wartezeiten zu schreiben, damit sie in solchen Momenten weniger improvisieren muss.",
+    "key_quotes": [
+      "Ich kann freundlich bleiben, aber nicht alles schlucken.",
+      "Sieben Minuten reichen, wenn ich sie wirklich nehme."
+    ],
+    "actions_done": [
+      "Diensthandy kurzfristig an Samira übergeben",
+      "Im Aktenraum gegessen statt am Tresen",
+      "Wiederkehrende Wartezeit-Fragen auf Laborlistenrand gesammelt"
+    ],
+    "artifacts_touched": [
+      "Diensthandy",
+      "Aktenraum der Praxis",
+      "Kartoffel-Gurke-Box",
+      "Laborliste"
+    ],
+    "persona_thought": "Ich merke immer erst hinterher, wie viel Nähe und Druck durch den Tresen gehen.",
+    "decision": "Eine kleine Standardsatzkarte für Blutwert-Wartezeiten soll vorbereitet werden.",
+    "open_loops": [
+      "Formulierungen für Wartezeitkarte sammeln",
+      "Mit Samira abstimmen, ob die Karte am Tresen liegen darf"
+    ],
+    "impact": {
+      "mood": "erschöpft und dünnhäutig",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Andere Menschen hängen direkt an Entscheidungen und Reaktionszeiten"
+    ],
+    "goal_refs": [
+      "Den Tag verlässlich schaffen, ohne danach komplett leer zu sein",
+      "Ein realistisches Essensfenster schützen"
+    ],
+    "id": "evt_1da28ec808d04599",
+    "persona_id": "persona_1317d5cacfe44114",
+    "conversation": [],
+    "calendar_event_id": "cal_e8b60c63d9f1459f",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "date": "2026-03-18",
+    "timestamp": "2026-03-18T17:52:00+01:00",
+    "event_type": "dienstplan_rueckfrage",
+    "summary": "Lucia widersprach einer Dienstplanluecke, weil sie sonst nach Feierabend Sorgearbeit und Einkauf nicht mehr sortiert bekommen haette.",
+    "task": "Dienstplanrueckfrage wegen spaetem Mittwochsdienst formulieren",
+    "tool": "WhatsApp, Dienstplan-Ausdruck, Kuechentisch",
+    "participants": [
+      "Planende Stelle",
+      "Direkte Kollegin Samira",
+      "Familienkontakt zuhause"
+    ],
+    "collaboration_mode": "handoff",
+    "what_happened": "Nach Dienstende fotografierte Lucia den Dienstplan-Ausdruck und schrieb der planenden Stelle knapp, dass der spaete Mittwoch nach zwei Infusionstagen hintereinander fuer sie nicht dauerhaft geht. Sie fragte Samira vorher, ob sie die Formulierung zu scharf findet, weil Lucia ungern als schwierig gilt. Zuhause wartete gleichzeitig die Frage, wer am Freitag den Familienkontakt zu einem Termin begleitet, wodurch der Dienstplan ploetzlich direkt in den Kuechentisch hineinragte.",
+    "key_quotes": [
+      "Ich will nicht jammern, ich will nur nicht jede Woche danach zusammenfallen.",
+      "Schreib es sachlich, nicht entschuldigend.",
+      "Wenn Mittwoch spaet bleibt, ist Freitag zuhause wieder Chaos."
+    ],
+    "actions_done": [
+      "Dienstplan-Ausdruck fotografiert",
+      "WhatsApp-Nachricht an planende Stelle formuliert",
+      "Samira um kurze Textpruefung gebeten",
+      "Freitagstermin zuhause auf Papier notiert"
+    ],
+    "artifacts_touched": [
+      "Dienstplan-Ausdruck",
+      "WhatsApp",
+      "Kuechentisch",
+      "Papiernotiz fuer Freitag"
+    ],
+    "persona_thought": "Ich muss es sagen, bevor mein Schweigen wieder als Reserve eingeplant wird.",
+    "decision": "Lucia bittet um Wechsel des spaeten Mittwochsdienstes mindestens jede zweite Woche.",
+    "open_loops": [
+      "Antwort der planenden Stelle abwarten",
+      "Freitagstermin mit Familienkontakt fest zusagen oder Ersatz finden"
+    ],
+    "impact": {
+      "mood": "unsicher, aber klarer als sonst",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Zeitfenster lassen sich selten komplett selbst waehlen",
+      "Private Sorgearbeit wird unsichtbar in die Nacht geschoben"
+    ],
+    "goal_refs": [
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben",
+      "Den Tag verlaesslich schaffen, ohne danach komplett leer zu sein"
+    ],
+    "id": "evt_5131714749cd4799",
+    "persona_id": "persona_1317d5cacfe44114",
+    "conversation": [],
+    "calendar_event_id": "cal_4f3e638db5e84de7",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "date": "2026-03-19",
+    "timestamp": "2026-03-19T09:18:00+01:00",
+    "event_type": "dienstplan_nachverhandlung",
+    "summary": "Die planende Stelle bot Lucia nur einen einmaligen Tausch an, wodurch die Grundfrage ihrer Belastung offen blieb.",
+    "task": "Antwort auf Dienstplanrueckfrage einordnen",
+    "tool": "Diensthandy, Kalender, Papiernotiz in Kitteltasche",
+    "participants": [
+      "Planende Stelle",
+      "Direkte Kollegin Samira"
+    ],
+    "collaboration_mode": "review",
+    "what_happened": "Am Vormittag kam die knappe Antwort, dass der naechste Mittwoch getauscht werden koenne, aber die Folgewoche offen bleibe. Lucia zeigte Samira die Nachricht zwischen zwei Blutabnahmen und schrieb sich in die Kitteltasche, dass sie nicht nur den einzelnen Mittwoch, sondern das Muster ansprechen muss. Sie fuehlte Erleichterung fuer die kommende Woche und gleichzeitig Aerger, weil die Begruendung der planenden Stelle nur Abdeckung kannte.",
+    "key_quotes": [
+      "Einmal tauschen hilft, aber das Muster bleibt.",
+      "Die schauen auf Loecher, nicht auf Wege.",
+      "Ich schreibe mir das auf, sonst schlucke ich es wieder runter."
+    ],
+    "actions_done": [
+      "Kalender fuer den naechsten Mittwoch aktualisiert",
+      "Papiernotiz zum wiederkehrenden Muster geschrieben",
+      "Samira ueber den Teilerfolg informiert"
+    ],
+    "artifacts_touched": [
+      "Diensthandy",
+      "Kalender",
+      "Papiernotiz in Kitteltasche"
+    ],
+    "persona_thought": "Ein freier Mittwoch loest nicht, dass mein Koerper als Puffer benutzt wird.",
+    "decision": "Lucia haelt das Thema Dienstplanmuster offen statt den einmaligen Tausch als erledigt zu behandeln.",
+    "open_loops": [
+      "In zwei Wochen erneut auf spaete Mittwochsdienste schauen",
+      "Moegliche feste Tauschregel mit Samira besprechen"
+    ],
+    "impact": {
+      "mood": "kurz erleichtert, dann ernuechtert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Planende Stelle optimiert fuer Abdeckung, nicht fuer Pausen oder Wege",
+      "Andere Menschen haengen direkt an Entscheidungen und Reaktionszeiten"
+    ],
+    "goal_refs": [
+      "Den Tag verlaesslich schaffen, ohne danach komplett leer zu sein",
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben"
+    ],
+    "id": "evt_cedf207a04f14287",
+    "persona_id": "persona_1317d5cacfe44114",
+    "conversation": [],
+    "calendar_event_id": "cal_b96ec3da72944caa",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "date": "2026-04-08",
+    "timestamp": "2026-04-08T17:42:00+02:00",
+    "event_type": "apotheken_umweg",
+    "summary": "Lucia musste nach einem vollen Infusionstag noch zur Apotheke und merkte, dass der Heimweg ihre Abendplanung regelmäßig auffrisst.",
+    "task": "Rezeptabholung mit Heimweg und Abendessen verbinden",
+    "tool": "WhatsApp, Apotheke am U-Bahnhof und Küche zuhause",
+    "participants": [
+      "Lucia Moreno",
+      "Familienkontakt zuhause",
+      "Apothekenmitarbeiterin"
+    ],
+    "collaboration_mode": "private_context",
+    "what_happened": "Lucia nahm nach Dienstschluss doch noch den Umweg zur Apotheke am U-Bahnhof, weil zuhause das Medikament nicht bis zum Wochenende reichen würde. In der Schlange merkte sie, dass sie seit dem Vormittag nur die halbe Pausenbox gegessen hatte, kaufte aber nichts dazu, weil Bäcker und Imbiss wegen der Histaminintoleranz unsicher waren und das Budget eng war. Zuhause kochte sie Reis mit Ei und Zucchini, schrieb auf einen Magnetzettel 'Apotheke nicht nach Spätdienst' und bat den Familienkontakt, Rezeptthemen künftig spätestens am Vorabend zu schicken.",
+    "key_quotes": [
+      "Nach Dienstschluss ist mein Kopf keine Planstelle mehr.",
+      "Wenn es dringend ist, muss es früher bei mir landen."
+    ],
+    "actions_done": [
+      "Medikament an der Apotheke am U-Bahnhof abgeholt",
+      "Unsichere Snackkäufe vermieden",
+      "Reis-Ei-Zucchini als Abendbasis gekocht",
+      "Regel für Rezeptanfragen auf Magnetzettel notiert"
+    ],
+    "artifacts_touched": [
+      "WhatsApp",
+      "Apotheke am U-Bahnhof",
+      "Küche zuhause",
+      "Magnetzettel",
+      "Reis-Ei-Zucchini"
+    ],
+    "persona_thought": "Ich will helfen, aber nicht jedes private Thema darf in den Rest meiner Kraft fallen.",
+    "decision": "Rezept- und Apothekenthemen sollen zuhause am Vorabend geklärt werden, nicht nach einem Spätdienst.",
+    "open_loops": [
+      "Familienkontakt an neue Vorabend-Regel erinnern",
+      "Prüfen, ob Stammapotheke Vorbestellung per Telefon annimmt"
+    ],
+    "impact": {
+      "mood": "müde, aber abgegrenzt",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung",
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag",
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben"
+    ],
+    "goal_refs": [
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben",
+      "Mit einfachen Routinen weniger Notlösungen brauchen",
+      "Den Tag verlässlich schaffen, ohne danach komplett leer zu sein"
+    ],
+    "id": "evt_498c0befe84d4199",
+    "persona_id": "persona_1317d5cacfe44114",
+    "conversation": [],
+    "calendar_event_id": "cal_ec8e71e84f56423f",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "date": "2026-04-27",
+    "timestamp": "2026-04-27T13:08:00+02:00",
+    "event_type": "pausenanker_test",
+    "summary": "Lucia testete eine stille Zehn-Minuten-Pause im Aktenraum, nachdem das Wartezimmer durch eine belastete Angehoerige unruhig geworden war.",
+    "task": "Pausenanker trotz emotionaler Unterbrechung schuetzen",
+    "tool": "Pausenbox, Timer am Diensthandy, Aktenraum",
+    "participants": [
+      "Angehoerige einer Patientin",
+      "Direkte Kollegin Samira"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Eine Angehoerige fing im Wartebereich an zu weinen, weil die Therapie ihrer Mutter verlaengert wurde. Lucia setzte sich erst dazu, holte Wasser und erklaerte den naechsten Schritt, merkte aber danach, dass ihr die Haende zitterten. Samira nickte ihr zu und uebernahm fuer zehn Minuten den Tresen. Lucia stellte den Timer am Diensthandy, ass drei Loeffel aus der Box im Aktenraum und schrieb danach nur ein Stichwort in die Dokumentation, statt die Pause sofort wieder mit Nacharbeit zu fuellen.",
+    "key_quotes": [
+      "Ich bin gleich wieder da, ich brauche zehn Minuten ohne Tresen.",
+      "Iss erst, dokumentier danach.",
+      "Nicht jede Traene muss ich im Stehen halten."
+    ],
+    "actions_done": [
+      "Angehoerige beruhigt und naechsten Schritt erklaert",
+      "Samira um Tresen-Uebernahme gebeten",
+      "Zehn-Minuten-Timer gestellt",
+      "Kurze Dokumentationsnotiz nach der Pause ergaenzt"
+    ],
+    "artifacts_touched": [
+      "Pausenbox",
+      "Diensthandy-Timer",
+      "Aktenraum",
+      "Patientendokumentation"
+    ],
+    "persona_thought": "Nahe bei Menschen sein heisst nicht, dass ich mich selbst auslasse.",
+    "decision": "Nach emotional schweren Gespraechen nimmt Lucia eine kurze geschuetzte Pause, bevor sie Dokumentation nachzieht.",
+    "open_loops": [
+      "Mit Samira absprechen, ob sie dieses Zeichen auch fuer sich nutzen will",
+      "Pruefen, ob Aktenraum mittags regelmaessig frei bleibt"
+    ],
+    "impact": {
+      "mood": "beruehrt und erschoepft, danach stabiler",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Emotionale Naehe frisst unbemerkt Energie",
+      "Pausen sind abhaengig von anderen Menschen, nicht vom eigenen Hunger"
+    ],
+    "goal_refs": [
+      "Den Tag verlaesslich schaffen, ohne danach komplett leer zu sein",
+      "Ein realistisches Essensfenster schuetzen"
+    ],
+    "id": "evt_99869f86f47d4002",
+    "persona_id": "persona_1317d5cacfe44114",
+    "conversation": [],
+    "calendar_event_id": "cal_e5c9b2ee48d74de9",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "date": "2026-05-06",
+    "timestamp": "2026-05-06T10:36:00+02:00",
+    "event_type": "pausenzeichen_probe",
+    "summary": "Lucia und Samira testeten erstmals ein sichtbares Zeichen am Tresen, damit kurze Pausen nicht jedes Mal neu verhandelt werden müssen.",
+    "task": "Pausenzeichen im Praxisablauf ausprobieren",
+    "tool": "gelber Klebepunkt, Tresenablage und Diensthandy",
+    "participants": [
+      "Lucia Moreno",
+      "Direkte Kollegin Samira",
+      "Empfangskraft",
+      "Onkologe im Dienst"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Zwischen zwei Infusionsgruppen klebte Samira einen gelben Punkt auf eine kleine Karte an der Tresenablage und schrieb '10 Min. nur dringend' darunter. Lucia fand die Formulierung erst zu hart, ließ sie aber liegen, weil sie merkte, dass eine sichtbare Grenze weniger Erklärung braucht als ein geflüstertes 'ich muss kurz'. Als während der Probe das Diensthandy klingelte, nahm die Empfangskraft den Anruf an und legte eine Rückrufnotiz statt Lucia direkt zu holen. Nach der Pause war nicht alles erledigt, aber niemand hatte den Punkt als unkollegial kommentiert.",
+    "key_quotes": [
+      "Sichtbar ist besser als jedes Mal bitten.",
+      "Nur dringend ist eigentlich genau der Satz, den ich brauche."
+    ],
+    "actions_done": [
+      "Gelben Punkt auf Pausenkarte angebracht",
+      "Diensthandy während zehn Minuten an der Tresenablage gelassen",
+      "Rückrufnotiz nach der Pause abgearbeitet",
+      "Mit Samira kurze Rückmeldung nach Test gesammelt"
+    ],
+    "artifacts_touched": [
+      "gelber Punkt als Pausenzeichen",
+      "Tresenablage",
+      "Diensthandy",
+      "Rückrufnotiz"
+    ],
+    "persona_thought": "Vielleicht darf eine Pause sichtbar sein, ohne dass ich mich dafür entschuldige.",
+    "decision": "Der gelbe Punkt bleibt testweise am Tresen, solange er klar mit medizinischer Dringlichkeit begrenzt ist.",
+    "open_loops": [
+      "Nach einer Woche prüfen, ob der Punkt wirklich respektiert wird",
+      "Formulierung auf der Karte eventuell knapper machen"
+    ],
+    "impact": {
+      "mood": "vorsichtig erleichtert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Andere Menschen hängen direkt an Entscheidungen und Reaktionszeiten",
+      "Planung muss ohne lange Bildschirmzeit funktionieren"
+    ],
+    "goal_refs": [
+      "Ein Pausenanker, der auch an schlechten Tagen funktioniert",
+      "Den Tag verlässlich schaffen, ohne danach komplett leer zu sein"
+    ],
+    "id": "evt_268bc312f4f7473d",
+    "persona_id": "persona_1317d5cacfe44114",
+    "conversation": [],
+    "calendar_event_id": "cal_bb218a7816014b73",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "date": "2026-05-14",
+    "timestamp": "2026-05-14T19:26:00+02:00",
+    "event_type": "budget_notloesung_vermeiden",
+    "summary": "Lucia entschied sich gegen einen teuren Spontaneinkauf am Bahnhof und baute zuhause eine einfache sichere Abendbasis fuer zwei Dienste vor.",
+    "task": "Abendessen und naechste Pausenbox ohne teuren Notkauf sichern",
+    "tool": "Kueche zuhause, Kassenbon, kleine Vorratsliste",
+    "participants": [
+      "Familienkontakt zuhause"
+    ],
+    "collaboration_mode": "private_context",
+    "what_happened": "Nach einem langen Heimweg stieg Lucia am Bahnhof fast zum Baecker ab, sah aber den Preis fuer belegte Broetchen und dachte an den Bauchdruck nach histaminreichen Ausweichessen. Zuhause legte sie den Kassenbon vom Wocheneinkauf neben eine kleine Vorratsliste und kochte Reis, Ei und Zucchini so schlicht, dass es fuer Abendessen und morgige Box reichte. Der Familienkontakt wollte noch ueber einen Brief der Krankenkasse sprechen, aber Lucia bat um zwanzig Minuten Kuechenruhe, bevor sie sich den Brief ansieht.",
+    "key_quotes": [
+      "Ich kaufe jetzt nicht fuer neun Euro Bauchweh.",
+      "Zwanzig Minuten Kueche, dann Krankenkasse.",
+      "Einfach reicht, wenn es morgen auch reicht."
+    ],
+    "actions_done": [
+      "Bahnhofs-Notkauf ausgelassen",
+      "Reis, Ei und Zucchini fuer zwei Mahlzeiten vorbereitet",
+      "Kassenbon gegen Vorratsliste geprueft",
+      "Krankenkassenbrief fuer spaeter sichtbar hingelegt"
+    ],
+    "artifacts_touched": [
+      "Kueche zuhause",
+      "Kassenbon",
+      "Vorratsliste",
+      "Brief der Krankenkasse",
+      "Pausenbox"
+    ],
+    "persona_thought": "Sparen ist nicht nur Geld, es ist auch weniger Risiko fuer morgen.",
+    "decision": "Lucia haelt Reis-Ei-Zucchini als guenstige sichere Basis fuer Tage nach spaetem Dienst fest.",
+    "open_loops": [
+      "Krankenkassenbrief nach dem Essen lesen",
+      "Vorratsliste um zwei sichere Notfallzutaten ergaenzen"
+    ],
+    "impact": {
+      "mood": "matt, aber zufrieden ueber die vermiedene Notloesung",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Weniger teure oder koerperlich schlechte Notloesungen fehlen im Alltag",
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit fuer Planung"
+    ],
+    "goal_refs": [
+      "Mit einfachen Routinen weniger Notloesungen brauchen",
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben"
+    ],
+    "id": "evt_5a45c5425a6c400f",
+    "persona_id": "persona_1317d5cacfe44114",
+    "conversation": [],
+    "calendar_event_id": "cal_e23b6f878c4d4664",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "date": "2026-05-29",
+    "timestamp": "2026-05-29T19:18:00+02:00",
+    "event_type": "wochenende_vorbereitung",
+    "summary": "Lucia bereitete nach einer belastenden Woche keine Idealroutine vor, sondern drei sichere Bausteine für Diensttage mit wenig Reserve.",
+    "task": "Histaminarme Basis für mehrere Dienste vorbereiten",
+    "tool": "Küche zuhause, Einkaufszettel und Pausenboxen",
+    "participants": [
+      "Lucia Moreno",
+      "Familienkontakt zuhause"
+    ],
+    "collaboration_mode": "private_context",
+    "what_happened": "Lucia kam später als geplant heim, weil eine Infusion am Nachmittag neu gelegt werden musste und die Dokumentation liegen geblieben war. Sie wollte erst nur duschen und schlafen, stellte dann aber drei kleine Boxen bereit: gekochte Kartoffeln, Gurke separat und Reis für den nächsten Tag. Der Familienkontakt fragte, ob man am Wochenende zusammen einkaufen könne; Lucia sagte ja, aber nur mit Liste und ohne großen Marktweg. Sie schrieb auf den Einkaufszettel nicht 'gesund kochen', sondern 'Montag halten', weil ihr das realistischer vorkam.",
+    "key_quotes": [
+      "Ich plane nicht die perfekte Woche, ich sichere Montag ab.",
+      "Getrennt packen, dann kippt es nicht gleich."
+    ],
+    "actions_done": [
+      "Drei einfache Essensbausteine vorbereitet",
+      "Gurke getrennt von Kartoffeln gepackt",
+      "Einkaufszettel auf sichere Basiszutaten begrenzt",
+      "Wochenendeinkauf mit Familienkontakt zeitlich eingegrenzt"
+    ],
+    "artifacts_touched": [
+      "Küche zuhause",
+      "Pausenboxen",
+      "Einkaufszettel",
+      "Kartoffel-Gurke-Box",
+      "Reis"
+    ],
+    "persona_thought": "Wenn ich nur einen einzigen Arbeitstag weniger improvisieren muss, ist das schon viel.",
+    "decision": "Wochenendvorbereitung wird auf drei sichere Bausteine begrenzt, nicht auf komplette Mahlzeiten.",
+    "open_loops": [
+      "Samstagseinkauf mit Familienkontakt kurz halten",
+      "Montagsbox morgens sichtbar an die Wohnungstür stellen"
+    ],
+    "impact": {
+      "mood": "ausgelaugt, aber geordnet",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung",
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag",
+      "Mit einfachen Routinen weniger Notlösungen brauchen"
+    ],
+    "goal_refs": [
+      "Mit einfachen Routinen weniger Notlösungen brauchen",
+      "Ein realistisches Essensfenster schützen",
+      "Abends bleiben ein paar Entscheidungen weniger offen"
+    ],
+    "id": "evt_f75d8d6c35b04af9",
+    "persona_id": "persona_1317d5cacfe44114",
+    "conversation": [],
+    "calendar_event_id": "cal_9d0b9c6294a34c0f",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "date": "2026-06-03",
+    "timestamp": "2026-06-03T08:42:00+02:00",
+    "event_type": "uebergabe_pausenzeichen",
+    "summary": "Lucia und Samira einigten sich auf ein kleines Pausenzeichen am Tresen, damit kurze Essensfenster nicht jedes Mal neu erklaert werden muessen.",
+    "task": "praktisches Pausenzeichen fuer Infusionstage vereinbaren",
+    "tool": "Papiernotiz, Kalender, Tresenablage",
+    "participants": [
+      "Direkte Kollegin Samira"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Zwischen Blutabnahme und Telefonsprechstunde legte Lucia eine kleine gelbe Papiernotiz mit einem Punkt auf die Tresenablage und fragte Samira, ob das als Zeichen fuer zehn Minuten Pause taugt. Samira lachte erst, sagte dann aber, dass sie selbst oft nicht fragt, weil immer jemand wartet. Sie trugen beide im Kalender keine feste Pause ein, sondern markierten nur die Tage mit vielen parallelen Infusionen, an denen das Zeichen besonders gelten soll.",
+    "key_quotes": [
+      "Der Punkt heisst: bitte nur wirklich Dringendes.",
+      "Ich brauche kein System, nur ein Zeichen.",
+      "Dann gilt das fuer uns beide, nicht nur fuer dich."
+    ],
+    "actions_done": [
+      "Gelbe Punkt-Notiz als Pausenzeichen ausprobiert",
+      "Samira die Bedeutung erklaert",
+      "Infusionstage mit hohem Druck im Kalender markiert",
+      "Regel fuer dringende Unterbrechungen festgelegt"
+    ],
+    "artifacts_touched": [
+      "Papiernotiz mit gelbem Punkt",
+      "Kalender",
+      "Tresenablage",
+      "Diensthandy"
+    ],
+    "persona_thought": "Vielleicht muss ich Pausen nicht jedes Mal rechtfertigen, wenn das Zeichen fuer uns beide gilt.",
+    "decision": "Gelber Punkt auf der Tresenablage bedeutet zehn Minuten geschuetzte Pause, ausser bei medizinischer Dringlichkeit.",
+    "open_loops": [
+      "Nach zwei Wochen pruefen, ob das Zeichen wirklich respektiert wird",
+      "Planende Stelle noch nicht einbeziehen, bevor Samira und Lucia es getestet haben"
+    ],
+    "impact": {
+      "mood": "vorsichtig hoffnungsvoll",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Pausen sind abhaengig von anderen Menschen, nicht vom eigenen Hunger",
+      "Planung muss ohne lange Bildschirmzeit funktionieren"
+    ],
+    "goal_refs": [
+      "Ein realistisches Essensfenster schuetzen",
+      "Den Tag verlaesslich schaffen, ohne danach komplett leer zu sein"
+    ],
+    "id": "evt_ea66f8b176364089",
+    "persona_id": "persona_1317d5cacfe44114",
+    "conversation": [],
+    "calendar_event_id": "cal_ce95380fe9ee4a65",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "evt_3462505282311317",
+    "persona_id": "persona_1317d5cacfe44114",
+    "timestamp": "2026-06-09T07:20",
+    "event_type": "admin",
+    "summary": "Lucia Moreno Morgendlicher Realitätscheck using Diensthandy; outcome: left an open follow-up.",
+    "task": "Morgendlicher Realitätscheck",
+    "tool": "Diensthandy",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Lucia Moreno arbeitet an `Morgendlicher Realitätscheck` im Kontext MFA in onkologischer Praxis. Der Moment zeigt, wie Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger. Die Persona entscheidet sich für einen kleinen nächsten Schritt und markiert, was offen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Wenn es nur im perfekten Tag funktioniert, hilft es mir nicht."
+    ],
+    "actions_done": [
+      "Morgendlicher Realitätscheck"
+    ],
+    "artifacts_touched": [
+      "Diensthandy"
+    ],
+    "persona_thought": "Ich brauche etwas, das zwischen echten Unterbrechungen noch hält.",
+    "decision": null,
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten"
+    ],
+    "impact": {
+      "mood": "angespannt, aber handlungsfähig",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger"
+    ],
+    "goal_refs": [
+      "Den Tag verlässlich schaffen, ohne danach komplett leer zu sein"
+    ],
+    "calendar_event_id": "cal_3462505282311317",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "evt_0c915c9ec22d3cad",
+    "persona_id": "persona_1317d5cacfe44114",
+    "timestamp": "2026-06-09T10:15",
+    "event_type": "meeting",
+    "summary": "Lucia Moreno Abstimmung mit knapper Reserve using Kalender; outcome: left an open follow-up.",
+    "task": "Abstimmung mit knapper Reserve",
+    "tool": "Kalender",
+    "participants": [
+      "Direkte Kollegin Samira"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Lucia Moreno arbeitet an `Abstimmung mit knapper Reserve` im Kontext MFA in onkologischer Praxis. Der Moment zeigt, wie Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt. Die Persona entscheidet sich für einen kleinen nächsten Schritt und markiert, was offen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Wenn es nur im perfekten Tag funktioniert, hilft es mir nicht."
+    ],
+    "actions_done": [
+      "Abstimmung mit knapper Reserve"
+    ],
+    "artifacts_touched": [
+      "Kalender"
+    ],
+    "persona_thought": "Ich brauche etwas, das zwischen echten Unterbrechungen noch hält.",
+    "decision": null,
+    "open_loops": [
+      "Abstimmung mit knapper Reserve nachhalten"
+    ],
+    "impact": {
+      "mood": "angespannt, aber handlungsfähig",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt"
+    ],
+    "goal_refs": [
+      "Ein realistisches Essensfenster schützen"
+    ],
+    "calendar_event_id": "cal_0c915c9ec22d3cad",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "evt_1461a9f012431053",
+    "persona_id": "persona_1317d5cacfe44114",
+    "timestamp": "2026-06-09T12:40",
+    "event_type": "focus",
+    "summary": "Lucia Moreno Essensfenster gegen Nebenbei-Arbeit schützen using Pausenbox; outcome: resolved enough to move forward.",
+    "task": "Essensfenster gegen Nebenbei-Arbeit schützen",
+    "tool": "Pausenbox",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Lucia Moreno arbeitet an `Essensfenster gegen Nebenbei-Arbeit schützen` im Kontext MFA in onkologischer Praxis. Der Moment zeigt, wie Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung. Die Persona entscheidet sich für einen kleinen nächsten Schritt und markiert, was offen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Wenn es nur im perfekten Tag funktioniert, hilft es mir nicht."
+    ],
+    "actions_done": [
+      "Essensfenster gegen Nebenbei-Arbeit schützen"
+    ],
+    "artifacts_touched": [
+      "Pausenbox"
+    ],
+    "persona_thought": "Ich brauche etwas, das zwischen echten Unterbrechungen noch hält.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "angespannt, aber handlungsfähig",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung"
+    ],
+    "goal_refs": [
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben"
+    ],
+    "calendar_event_id": "cal_1461a9f012431053",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "evt_6483d8494c19f14d",
+    "persona_id": "persona_1317d5cacfe44114",
+    "timestamp": "2026-06-09T18:30",
+    "event_type": "focus",
+    "summary": "Lucia Moreno Abendroutine ohne Idealplan using Küche zuhause; outcome: resolved enough to move forward.",
+    "task": "Abendroutine ohne Idealplan",
+    "tool": "Küche zuhause",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Lucia Moreno arbeitet an `Abendroutine ohne Idealplan` im Kontext MFA in onkologischer Praxis. Der Moment zeigt, wie Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag. Die Persona entscheidet sich für einen kleinen nächsten Schritt und markiert, was offen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Wenn es nur im perfekten Tag funktioniert, hilft es mir nicht."
+    ],
+    "actions_done": [
+      "Abendroutine ohne Idealplan"
+    ],
+    "artifacts_touched": [
+      "Küche zuhause"
+    ],
+    "persona_thought": "Ich brauche etwas, das zwischen echten Unterbrechungen noch hält.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "angespannt, aber handlungsfähig",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag"
+    ],
+    "goal_refs": [
+      "Mit einfachen Routinen weniger Notlösungen brauchen"
+    ],
+    "calendar_event_id": "cal_6483d8494c19f14d",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "evt_5d7792febc6121f3",
+    "persona_id": "persona_1317d5cacfe44114",
+    "timestamp": "2026-06-10T07:20",
+    "event_type": "admin",
+    "summary": "Lucia Moreno Morgendlicher Realitätscheck using Diensthandy; outcome: left an open follow-up.",
+    "task": "Morgendlicher Realitätscheck",
+    "tool": "Diensthandy",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Lucia Moreno arbeitet an `Morgendlicher Realitätscheck` im Kontext MFA in onkologischer Praxis. Der Moment zeigt, wie Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger. Die Persona entscheidet sich für einen kleinen nächsten Schritt und markiert, was offen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Wenn es nur im perfekten Tag funktioniert, hilft es mir nicht."
+    ],
+    "actions_done": [
+      "Morgendlicher Realitätscheck"
+    ],
+    "artifacts_touched": [
+      "Diensthandy"
+    ],
+    "persona_thought": "Ich brauche etwas, das zwischen echten Unterbrechungen noch hält.",
+    "decision": null,
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten"
+    ],
+    "impact": {
+      "mood": "müde und etwas klarer sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger"
+    ],
+    "goal_refs": [
+      "Den Tag verlässlich schaffen, ohne danach komplett leer zu sein"
+    ],
+    "calendar_event_id": "cal_5d7792febc6121f3",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "evt_c094e0e176dc5dbd",
+    "persona_id": "persona_1317d5cacfe44114",
+    "timestamp": "2026-06-10T10:15",
+    "event_type": "meeting",
+    "summary": "Lucia Moreno Abstimmung mit knapper Reserve using Kalender; outcome: left an open follow-up.",
+    "task": "Abstimmung mit knapper Reserve",
+    "tool": "Kalender",
+    "participants": [
+      "Direkte Kollegin Samira"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Lucia Moreno arbeitet an `Abstimmung mit knapper Reserve` im Kontext MFA in onkologischer Praxis. Der Moment zeigt, wie Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt. Die Persona entscheidet sich für einen kleinen nächsten Schritt und markiert, was offen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Wenn es nur im perfekten Tag funktioniert, hilft es mir nicht."
+    ],
+    "actions_done": [
+      "Abstimmung mit knapper Reserve"
+    ],
+    "artifacts_touched": [
+      "Kalender"
+    ],
+    "persona_thought": "Ich brauche etwas, das zwischen echten Unterbrechungen noch hält.",
+    "decision": null,
+    "open_loops": [
+      "Abstimmung mit knapper Reserve nachhalten"
+    ],
+    "impact": {
+      "mood": "müde und etwas klarer sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt"
+    ],
+    "goal_refs": [
+      "Ein realistisches Essensfenster schützen"
+    ],
+    "calendar_event_id": "cal_c094e0e176dc5dbd",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "evt_7ab83d1946d7c541",
+    "persona_id": "persona_1317d5cacfe44114",
+    "timestamp": "2026-06-10T12:40",
+    "event_type": "focus",
+    "summary": "Lucia Moreno Essensfenster gegen Nebenbei-Arbeit schützen using Pausenbox; outcome: resolved enough to move forward.",
+    "task": "Essensfenster gegen Nebenbei-Arbeit schützen",
+    "tool": "Pausenbox",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Lucia Moreno arbeitet an `Essensfenster gegen Nebenbei-Arbeit schützen` im Kontext MFA in onkologischer Praxis. Der Moment zeigt, wie Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung. Die Persona entscheidet sich für einen kleinen nächsten Schritt und markiert, was offen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Wenn es nur im perfekten Tag funktioniert, hilft es mir nicht."
+    ],
+    "actions_done": [
+      "Essensfenster gegen Nebenbei-Arbeit schützen"
+    ],
+    "artifacts_touched": [
+      "Pausenbox"
+    ],
+    "persona_thought": "Ich brauche etwas, das zwischen echten Unterbrechungen noch hält.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "müde und etwas klarer sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung"
+    ],
+    "goal_refs": [
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben"
+    ],
+    "calendar_event_id": "cal_7ab83d1946d7c541",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "evt_e5c3d4be3fb61f52",
+    "persona_id": "persona_1317d5cacfe44114",
+    "timestamp": "2026-06-10T18:30",
+    "event_type": "focus",
+    "summary": "Lucia Moreno Abendroutine ohne Idealplan using Küche zuhause; outcome: resolved enough to move forward.",
+    "task": "Abendroutine ohne Idealplan",
+    "tool": "Küche zuhause",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Lucia Moreno arbeitet an `Abendroutine ohne Idealplan` im Kontext MFA in onkologischer Praxis. Der Moment zeigt, wie Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag. Die Persona entscheidet sich für einen kleinen nächsten Schritt und markiert, was offen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Wenn es nur im perfekten Tag funktioniert, hilft es mir nicht."
+    ],
+    "actions_done": [
+      "Abendroutine ohne Idealplan"
+    ],
+    "artifacts_touched": [
+      "Küche zuhause"
+    ],
+    "persona_thought": "Ich brauche etwas, das zwischen echten Unterbrechungen noch hält.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "müde und etwas klarer sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag"
+    ],
+    "goal_refs": [
+      "Mit einfachen Routinen weniger Notlösungen brauchen"
+    ],
+    "calendar_event_id": "cal_e5c3d4be3fb61f52",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "date": "2026-06-12",
+    "timestamp": "2026-06-12T11:54:00+02:00",
+    "event_type": "dienstplanung_rueckmeldung",
+    "summary": "Lucia gab der planenden Stelle erstmals eine konkrete Rückmeldung zu zwei Infusionsblöcken statt nur einen einzelnen Diensttausch zu erbitten.",
+    "task": "Belastungsmuster bei Infusionsblöcken benennen",
+    "tool": "Diensthandy, Kalenderausdruck und gelber Punkt als Pausenzeichen",
+    "participants": [
+      "Lucia Moreno",
+      "Planende Stelle",
+      "Direkte Kollegin Samira"
+    ],
+    "collaboration_mode": "review",
+    "what_happened": "Nachdem zwei Wochen hintereinander die Mittagsinfusionen Lucias Essensfenster verschoben hatten, nahm sie den Kalenderausdruck mit den markierten 12-Uhr-Blöcken zur kurzen Rücksprache. Sie sagte nicht, dass sie 'mehr Pause' brauche, sondern zeigte drei konkrete Tage, an denen Dokumentation, Telefon und Essen zusammengefallen waren. Die planende Stelle versprach keine grundsätzliche Änderung, bot aber an, bei neuen Serieninfusionen die 12-Uhr-Lage früher im Dienstplan zu markieren. Samira nickte neben ihr und ergänzte, dass der gelbe Punkt am Tresen nur funktioniert, wenn der kritische Block vorher sichtbar ist.",
+    "key_quotes": [
+      "Ich brauche keine Sonderlösung, ich brauche die Kollision früher sichtbar.",
+      "Der Punkt hilft nur, wenn wir vorher wissen, wann es eng wird."
+    ],
+    "actions_done": [
+      "Kalenderausdruck mit drei Kollisionszeiten markiert",
+      "Belastungsmuster statt Einzeldiensttausch beschrieben",
+      "Samiras Beobachtung zum Pausenzeichen eingebunden",
+      "Frühere Markierung neuer Serieninfusionen angefragt"
+    ],
+    "artifacts_touched": [
+      "Diensthandy",
+      "Kalenderausdruck",
+      "gelber Punkt als Pausenzeichen",
+      "Dienstplan"
+    ],
+    "persona_thought": "Wenn ich es als Muster zeige, klingt es weniger wie Jammern und mehr wie Ablauf.",
+    "decision": "Neue Serieninfusionen sollen im Kalender früher als potenzielle Pausenkollision markiert werden.",
+    "open_loops": [
+      "Prüfen, ob die Markierung in der nächsten Dienstplanversion wirklich auftaucht",
+      "Mit Samira nach zwei Wochen Rückmeldung sammeln"
+    ],
+    "impact": {
+      "mood": "nervös, aber klar",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Zeitfenster lassen sich selten komplett selbst wählen",
+      "Planende Stelle optimiert für Abdeckung, nicht für Pausen oder Wege",
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger"
+    ],
+    "goal_refs": [
+      "Ein realistisches Essensfenster schützen",
+      "Den Tag verlässlich schaffen, ohne danach komplett leer zu sein",
+      "Ein Pausenanker, der auch an schlechten Tagen funktioniert"
+    ],
+    "id": "evt_94dbac56fb444777",
+    "persona_id": "persona_1317d5cacfe44114",
+    "conversation": [],
+    "calendar_event_id": "cal_35b0d8783f3f4d58",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  }
+]

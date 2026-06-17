@@ -19,8 +19,7 @@ from ._palette import PALETTE_CSS, PALETTE_JS, palette_markup
 from ._slide import slide_mode
 from ._live import LIVE_CSS, LIVE_JS, live_markup
 from ._runs_widget import RUNS_WIDGET_CSS, RUNS_WIDGET_JS, runs_widget_markup
-from ._keymap import KEYMAP_CSS, KEYMAP_JS, keymap_markup, keymap_hint
-from ._tour import tour_footer_entry
+from ._keymap import KEYMAP_CSS, KEYMAP_JS, keymap_markup
 from ._ext import (  # noqa: F401  (extension seams; public surface re-exported by web/__init__)
     register_nav_section, register_nav_item, resolve_label, nav_model,
     render_slot, theme_override_css, brand_name, brand_logo, title_brand,
@@ -270,82 +269,172 @@ def _nav(active: str, store: Store) -> str:
     return fragment(*blocks)
 
 
-_USER_MENU_ID_CSS = register_css(
-    ".sl-um-ava--initials{display:inline-flex;align-items:center;justify-content:center;"
-    "width:22px;height:22px;border-radius:999px;background:var(--accent);color:#fff;"
-    "font-size:10px;font-weight:650;letter-spacing:.02em;flex:none}"
-    ".sl-um-who{display:flex;flex-direction:column;gap:1px;margin:0 0 8px}"
-    ".sl-um-who strong{font-size:13px;font-weight:600}"
-    ".sl-um-who span{font-size:12px;color:var(--muted);word-break:break-all}")
+_USER_MENU_ID_CSS = register_css(r"""
+.sl-um-pop{left:8px;right:8px;width:auto;padding:6px;border-radius:var(--radius);
+  box-shadow:0 18px 52px rgba(0,0,0,.18),0 1px 2px rgba(0,0,0,.06)}
+.sl-um-group{padding:4px 0;border-top:1px solid var(--line)}
+.sl-um-group:first-child{border-top:0;padding-top:0}
+.sl-um-group:last-child{padding-bottom:0}
+.sl-um-row{display:flex;align-items:center;gap:10px;width:100%;min-height:36px;padding:7px 8px;border:0;
+  border-radius:var(--radius-sm);background:transparent;color:var(--ink);font:inherit;font-size:var(--t-body);
+  font-weight:500;text-align:left;text-decoration:none;cursor:pointer}
+.sl-um-row:hover{background:var(--hover)}
+.sl-um-row svg{width:17px;height:17px;color:var(--faint);flex:none}
+.sl-um-row span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sl-um-row--danger{color:var(--ink)}
+.sl-um-account{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:center;padding:8px}
+.sl-um-ava--initials{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;
+  border-radius:var(--radius-full);background:var(--accent);color:var(--accent-ink);font-size:11px;
+  font-weight:650;letter-spacing:.02em;flex:none}
+.sl-um-account-main{min-width:0;display:flex;flex-direction:column;gap:1px}
+.sl-um-account-main strong{font-size:var(--t-md);font-weight:600;color:var(--ink);line-height:1.25;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sl-um-account-main span{font-size:var(--t-sm);color:var(--muted);line-height:1.25;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.sl-um-trigger-text{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0;text-align:left}
+.sl-um-trigger-text .sl-um-name{display:block;flex:none}
+.sl-um-trigger-sub{font-size:var(--t-xs);font-weight:500;color:var(--muted);line-height:1.1;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.sl-um-control{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:40px;padding:6px 8px;
+  border-radius:var(--radius-sm)}
+.sl-um-control:hover{background:var(--hover)}
+.sl-um-control-label{display:inline-flex;align-items:center;gap:10px;min-width:0;color:var(--ink);font-size:var(--t-body);
+  font-weight:500}
+.sl-um-control-label svg{width:17px;height:17px;color:var(--faint);flex:none}
+.sl-um-control-label span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sl-um-switch{display:inline-flex;align-items:center;gap:2px;padding:2px;border:1px solid var(--line);
+  border-radius:var(--radius-sm);background:var(--panel-2);flex:none}
+.sl-um-choice{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;
+  border:0;border-radius:5px;background:transparent;color:var(--muted);font:inherit;font-size:var(--t-sm);
+  font-weight:600;line-height:1;cursor:pointer;text-decoration:none}
+.sl-um-choice svg{width:15px;height:15px}
+.sl-um-choice:hover{color:var(--ink)}
+.sl-um-choice.is-active{background:var(--panel);color:var(--ink);box-shadow:var(--shadow-sm)}
+.sl-um-choice.is-active svg{color:var(--accent)}
+""")
+
+
+def _known_identity() -> dict | None:
+    ident = current_identity()
+    if not ident:
+        return None
+    name = str(ident.get("name") or "").strip()
+    email = str(ident.get("email") or "").strip()
+    sub = str(ident.get("sub") or "").strip()
+    local_flags = ident.get("local") or ident.get("is_local") or ident.get("anonymous")
+    placeholder = (name.lower() in {"local user", "localuser", "anonymous", "guest"}
+                   or sub.lower() in {"local", "local-user", "local_user"})
+    if local_flags or (placeholder and not email):
+        return None
+    if not (name or email or sub):
+        return None
+    return ident
+
+
+def _initials(text: str) -> str:
+    parts = re.findall(r"[A-Za-z0-9À-ÖØ-öø-ÿ]+", text or "")
+    return ("".join(p[0] for p in parts[:2]) or "?").upper()
+
+
+def _user_menu_row(label: str, icon: str, *, href: str | None = None,
+                   attrs: dict | None = None) -> str:
+    base = {"class_": "sl-um-row pi-hover", **(attrs or {})}
+    kids = (raw(_icon(icon, animate=True)), h("span", {}, label))
+    if href:
+        return h("a", {**base, "href": href}, *kids)
+    return h("button", {**base, "type": "button"}, *kids)
+
+
+def _user_menu_control(label: str, icon: str, control: str) -> str:
+    return h("div", {"class_": "sl-um-control pi-hover"},
+             h("div", {"class_": "sl-um-control-label"}, raw(_icon(icon, animate=True)), h("span", {}, label)),
+             raw(control))
 
 
 def docs_footer_entry(active: str) -> str:
-    """Documentation as a VISIBLE sidebar-footer row (ux-contract §10 W7 — the owner looked
-    for it there): the same nav-row idiom as the tour offer and the `?` shortcuts hint.
-    Reference, not workspace (§3.5) — footer cluster, off the 4-item nav; it left the
-    settings popover (C10: one home per concept)."""
+    """Legacy footer entry helper. The core shell now renders Documentation from the
+    user menu so the sidebar footer stays focused."""
     return h("a", {"href": "/documentation",
                    "class_": "pi-hover is-active" if active == "docs" else "pi-hover"},
              raw(_icon("overview", animate=True)), h("span", {}, t("documentation")))
 
 
 def activity_footer_entry(active: str) -> str:
-    """Activity is a utility surface: keep the live feed reachable, but below workspace nav."""
+    """Legacy footer entry helper. The core shell now renders Activity from the user menu."""
     return h("a", {"href": "/activity",
                    "class_": "pi-hover is-active" if active == "activity" else "pi-hover"},
              raw(_icon("clock", animate=True)), h("span", {}, t("activity_h")))
 
 
 def _user_menu() -> str:
-    """Modern user/settings menu pinned to the bottom of the sidebar — a popover with a
-    sun/system/moon theme switch and a language switch (replaces the old topbar buttons).
-    When an extension provides an authenticated identity (current_identity — multi-user
-    cloud mode), the trigger becomes the user chip and the popover gains an account
-    section with sign-out: Settings folds into the user menu. Local mode unchanged."""
+    """User/settings menu pinned to the bottom of the sidebar.
+
+    Real identities get an account chip; local placeholders from auth-less installs are
+    intentionally treated as anonymous so "Local User" never appears as a fake account.
+    """
     cur = _lang()
-    ident = current_identity()
+    ident = _known_identity()
     themes = [("light", "sun", t("theme_light")), ("system", "monitor", t("theme_system")), ("dark", "moon", t("theme_dark"))]
-    theme_opts = [h("button", {"type": "button", "class_": "sl-segmented__item", "data-theme-set": val,
-                                "title": label, "aria-label": label}, raw(_icon(icon)), h("span", {}, label))
+    theme_opts = [h("button", {"type": "button", "class_": "sl-um-choice pi-hover", "data-theme-set": val,
+                                "title": label, "aria-label": label}, raw(_icon(icon, animate=True)))
                   for val, icon, label in themes]
     langs = [("de", "Deutsch", "DE"), ("en", "English", "EN")]
-    lang_opts = [h("a", {"class_": f'sl-segmented__item{" is-active" if code == cur else ""}', "href": f"?lang={code}",
+    lang_opts = [h("a", {"class_": f'sl-um-choice{" is-active" if code == cur else ""}', "href": f"?lang={code}",
                          "title": full, "aria-label": full}, h("span", {}, short)) for code, full, short in langs]
     account_sec = None
     if ident:
         who = ident.get("name") or ident.get("email") or "?"
-        account_sec = h("div", {"class_": "sl-um-sec"},
-                        h("div", {"class_": "sl-um-lbl"}, t("signed_in_as")),
-                        h("div", {"class_": "sl-um-who"},
-                          h("strong", {}, who),
-                          h("span", {}, ident["email"]) if ident.get("name") and ident.get("email") else None),
-                        h("a", {"class_": "sl-btn", "href": ident["logout_href"]},
-                          raw(_icon("external")), " ", t("logout")) if ident.get("logout_href") else None)
+        account_bits = [h("strong", {}, who)]
+        if ident.get("name") and ident.get("email"):
+            account_bits.append(h("span", {}, ident["email"]))
+        if ident.get("plan") or ident.get("tier"):
+            account_bits.append(h("span", {}, ident.get("plan") or ident.get("tier")))
+        account_sec = h("div", {"class_": "sl-um-account"},
+                        h("span", {"class_": "sl-um-ava sl-um-ava--initials"}, _initials(who)),
+                        h("div", {"class_": "sl-um-account-main"}, *account_bits))
+    link_sec = h("div", {"class_": "sl-um-group"},
+                 _user_menu_row(t("activity_h"), "activity", href="/activity"),
+                 _user_menu_row(t("documentation"), "overview", href="/documentation"),
+                 _user_menu_row(t("feedback_h"), "chat", attrs={"data-fb-open": True}),
+                 _user_menu_row(t("tour_take"), "compass", attrs={"data-tour-start": True}),
+                 _user_menu_row(t("kbd_cheatsheet_h"), "command", attrs={"data-km-open": True}))
+    controls_sec = h("div", {"class_": "sl-um-group"},
+                     _user_menu_control(t("theme"), "sun",
+                                        h("div", {"class_": "sl-um-switch"}, theme_opts)),
+                     _user_menu_control(t("language"), "globe",
+                                        h("div", {"class_": "sl-um-switch"}, lang_opts)))
+    logout_sec = (h("div", {"class_": "sl-um-group"},
+                    _user_menu_row(t("logout"), "external", href=ident["logout_href"],
+                                   attrs={"class_": "sl-um-row sl-um-row--danger pi-hover"}))
+                  if ident and ident.get("logout_href") else None)
     if ident:
         who = ident.get("name") or ident.get("email") or "?"
-        initials = ("".join(part[0] for part in who.split()[:2]) or "?").upper()
-        trigger_parts = (h("span", {"class_": "sl-um-ava sl-um-ava--initials"}, initials),
-                         h("span", {"class_": "sl-um-name"}, who),
-                         h("span", {"class_": "sl-um-caret"}, raw(_icon("chevron"))))
+        plan = ident.get("plan") or ident.get("tier")
+        trigger_parts = (h("span", {"class_": "sl-um-ava sl-um-ava--initials"}, _initials(who)),
+                         h("span", {"class_": "sl-um-trigger-text"},
+                           h("span", {"class_": "sl-um-name"}, who),
+                           h("span", {"class_": "sl-um-trigger-sub"}, plan) if plan else None),
+                         h("span", {"class_": "sl-um-caret"}, raw(_icon("chevron", animate=True))))
     else:
         trigger_parts = (h("span", {"class_": "sl-um-ava"}, raw(_icon("settings", animate=True))),
                          h("span", {"class_": "sl-um-name"}, t("settings")),
-                         h("span", {"class_": "sl-um-caret"}, raw(_icon("chevron"))))
+                         h("span", {"class_": "sl-um-caret"}, raw(_icon("chevron", animate=True))))
     return h("div", {"class_": "sl-usermenu"},
              h("div", {"class_": "sl-um-pop", "hidden": True},
                account_sec,
-               h("div", {"class_": "sl-um-sec"}, h("div", {"class_": "sl-um-lbl"}, t("theme")),
-                 h("div", {"class_": "sl-segmented sl-segmented--fill sl-segmented--stacked"}, theme_opts)),
-               h("div", {"class_": "sl-um-sec"}, h("div", {"class_": "sl-um-lbl"}, t("language")),
-                 h("div", {"class_": "sl-segmented sl-segmented--fill"}, lang_opts)),
-               h("div", {"class_": "sl-um-sec"},
-                 # the tour offer + Documentation live in the sidebar footer rows now
-                 # (V7/W7 — concept economy C10: one home per concept)
-                 h("a", {"class_": "sl-btn", "href": "/feedback"},  # inbox: linked from HERE only
-                   raw(_icon("chat")), " ", t("feedback_h")))),
+               link_sec,
+               controls_sec,
+               logout_sec),
              h("button", {"type": "button", "class_": "sl-um-trigger pi-hover",
                           "aria-haspopup": "true", "aria-expanded": "false"},
                *trigger_parts))
+
+
+def _sidebar_footer(store: Store) -> str:
+    footer = render_slot("sidebar_footer", store)
+    if not footer:
+        return ""
+    return f'<nav class="sl-nav sl-sb-foot">{footer}</nav>'
 
 
 def _star(kind: str, ident: str, label: str, href: str) -> str:
@@ -438,7 +527,7 @@ def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
     <div class="sl-brand"><a class="sl-logo" href="/">{_lockup}</a></div>
     <div class="sl-sb-search"><button type="button" class="sl-cmdk-trigger" data-cmdk-open aria-label="{t("search")}">{_icon("search")}<span>{t("search")}</span><kbd class="sl-kbd">⌘K</kbd></button></div>
     <div class="sl-sb-scroll">{_nav(active, store)}{render_slot("sidebar_extra", store)}</div>
-    <nav class="sl-nav sl-sb-foot">{activity_footer_entry(active)}{docs_footer_entry(active)}{render_slot("sidebar_footer", store)}{tour_footer_entry()}{keymap_hint()}</nav>
+    {_sidebar_footer(store)}
     {_user_menu()}
   </aside>
   <div class="sl-resize" id="rz" role="separator" aria-orientation="vertical" aria-label="{t("sidebar")}"></div>

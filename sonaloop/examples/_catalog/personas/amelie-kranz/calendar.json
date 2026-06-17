@@ -1,0 +1,744 @@
+[
+  {
+    "id": "cal_d988ad76fa4c4f7f",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-04-21T08:05",
+    "end": "2026-04-21T08:50",
+    "title": "Korrigierte Heilmittelverordnungen für zwei Kinder bei der Kinderärztin Dr. Petersen nachfordern",
+    "participants": [
+      "Kinderärztin Dr. Petersen (Praxis)",
+      "Kollegin Alex"
+    ],
+    "location_or_tool": "Diensthandy + Praxisverwaltung am Arbeitsplatz",
+    "intent": "Amelie kämpft sich vor der ersten Kindereinheit durch abgelehnte Heilmittelverordnungen und ärgert sich über das Formularchaos.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "id": "cal_df4f7e78d9ff4102",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-04-21T13:20",
+    "end": "2026-04-21T14:05",
+    "title": "Echtes Mittagsfenster halten trotz verschobenem Termin",
+    "participants": [
+      "Mutter von Mia (verspätet)"
+    ],
+    "location_or_tool": "Pausenbox + Küche der Praxis",
+    "intent": "Das geplante Mittagsfenster kippt, weil eine Mutter zu spät kommt und Amelie zwischen zwei Türen isst.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "id": "cal_6be5fb40d937408d",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-05-05T16:40",
+    "end": "2026-05-05T17:25",
+    "title": "Therapieziele für Finn mit den Eltern neu justieren",
+    "participants": [
+      "Eltern von Finn",
+      "Kollegin Alex (kurz dazu)"
+    ],
+    "location_or_tool": "Arbeitsplatz + Therapiebericht",
+    "intent": "Schwieriges Entwicklungsgespräch mit Eltern eines vierjährigen Jungen, die mehr Fortschritt erwarten als realistisch ist.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "id": "cal_55d0f4e037e04842",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-05-05T20:55",
+    "end": "2026-05-05T21:40",
+    "title": "Therapiebericht für Finn nach Feierabend nachholen",
+    "participants": [],
+    "location_or_tool": "Laptop + Küche zuhause",
+    "intent": "Amelie schreibt den liegengebliebenen Therapiebericht spät am Küchentisch zu Hause und improvisiert dabei das Abendessen.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "id": "cal_1ddba41566f447ae",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-05-06T07:35",
+    "end": "2026-05-06T08:20",
+    "title": "Dichten Tag mit Hausbesuch und Wegen vorab durchdenken",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "location_or_tool": "Diensthandy + Kalender",
+    "intent": "Übermüdeter Start nach dem späten Bericht; Amelie strukturiert den Tag noch im Halbschlaf auf dem Diensthandy.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "id": "cal_76fe52ab4e324879",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-05-19T12:10",
+    "end": "2026-05-19T12:55",
+    "title": "Private Verpflichtung gegen Arbeitsdruck abwägen",
+    "participants": [
+      "Familienkontakt"
+    ],
+    "location_or_tool": "WhatsApp + Kalender",
+    "intent": "Mitten in der Sprechstunde drängt der Familienkontakt auf eine Zusage zum Geburtstag, die mit Amelies Dienstplan kollidiert.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "id": "cal_403d43a60c3242bc",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-03T09:30",
+    "end": "2026-06-03T10:15",
+    "title": "Dienstplan-Engpass und fehlende Pausenfenster ansprechen",
+    "participants": [
+      "Vorgesetzte Stelle",
+      "Kollegin Alex"
+    ],
+    "location_or_tool": "Arbeitsplatz + Kalender",
+    "intent": "Abstimmung mit der vorgesetzten Stelle über die Quartalsauslastung, bei der erneut die Pausenlogik untergeht.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "id": "cal_6f1ebe4e35204c17",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-03T19:15",
+    "end": "2026-06-03T20:00",
+    "title": "Vorkochen als wiederholbaren Pausenanker etablieren",
+    "participants": [],
+    "location_or_tool": "Küche zuhause + Pausenbox",
+    "intent": "Amelie testet zum ersten Mal das Sonntag-Vorkochen rückwirkend und füllt drei Pausenbox-Portionen für die Woche vor.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:09:19+00:00"
+  },
+  {
+    "id": "cal_386ffba8db5bffd8",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-09T07:25",
+    "end": "2026-06-09T08:05",
+    "title": "Tagesplan gegen echte Zwänge prüfen",
+    "participants": [],
+    "location_or_tool": "Diensthandy",
+    "intent": "Amelie Kranz needs to Tagesplan gegen echte Zwänge prüfen.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:40:14.090806+00:00"
+  },
+  {
+    "id": "cal_2f285e24e9dafb35",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-09T10:35",
+    "end": "2026-06-09T11:25",
+    "title": "Abstimmung unter Zeitdruck",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "location_or_tool": "Kalender",
+    "intent": "Amelie Kranz needs to Abstimmung unter Zeitdruck.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:40:14.090806+00:00"
+  },
+  {
+    "id": "cal_fb46914bdf7c8a61",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-09T13:10",
+    "end": "2026-06-09T13:40",
+    "title": "Kurze Mahlzeit ohne Nebenbei-Modus",
+    "participants": [],
+    "location_or_tool": "Pausenbox",
+    "intent": "Amelie Kranz needs to Kurze Mahlzeit ohne Nebenbei-Modus.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T17:40:14.090806+00:00"
+  },
+  {
+    "id": "cal_b9b885c2ff1bc5ff",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-09T18:20",
+    "end": "2026-06-09T19:05",
+    "title": "Abendliche Nacharbeit und private Grenze",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "location_or_tool": "WhatsApp",
+    "intent": "Amelie Kranz needs to Abendliche Nacharbeit und private Grenze.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:40:14.090806+00:00"
+  },
+  {
+    "id": "cal_ad600f45c36a0c5d",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-10T07:25",
+    "end": "2026-06-10T08:05",
+    "title": "Tagesplan gegen echte Zwänge prüfen",
+    "participants": [],
+    "location_or_tool": "Diensthandy",
+    "intent": "Amelie Kranz needs to Tagesplan gegen echte Zwänge prüfen.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:40:14.090806+00:00"
+  },
+  {
+    "id": "cal_20de24c5318d95ce",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-10T10:35",
+    "end": "2026-06-10T11:25",
+    "title": "Abstimmung unter Zeitdruck",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "location_or_tool": "Kalender",
+    "intent": "Amelie Kranz needs to Abstimmung unter Zeitdruck.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:40:14.090806+00:00"
+  },
+  {
+    "id": "cal_44f8cdc67f832b17",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-10T13:10",
+    "end": "2026-06-10T13:40",
+    "title": "Kurze Mahlzeit ohne Nebenbei-Modus",
+    "participants": [],
+    "location_or_tool": "Pausenbox",
+    "intent": "Amelie Kranz needs to Kurze Mahlzeit ohne Nebenbei-Modus.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T17:40:14.090806+00:00"
+  },
+  {
+    "id": "cal_50d6274c160cdd98",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-10T18:20",
+    "end": "2026-06-10T19:05",
+    "title": "Abendliche Nacharbeit und private Grenze",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "location_or_tool": "WhatsApp",
+    "intent": "Amelie Kranz needs to Abendliche Nacharbeit und private Grenze.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:40:14.090806+00:00"
+  },
+  {
+    "id": "cal_e2e6844187f91be2",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-11T07:20",
+    "end": "2026-06-11T07:58",
+    "title": "Morgendlicher Realitätscheck",
+    "participants": [],
+    "location_or_tool": "Diensthandy",
+    "intent": "Amelie Kranz needs to Morgendlicher Realitätscheck.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_2260a2199d044ddc",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-11T09:45",
+    "end": "2026-06-11T10:37",
+    "title": "Abstimmung mit Gegenwind",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "location_or_tool": "Kalender",
+    "intent": "Amelie Kranz needs to Abstimmung mit Gegenwind.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_c0104458b5b6a44d",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-11T12:35",
+    "end": "2026-06-11T13:03",
+    "title": "Geplantes Essensfenster verteidigen",
+    "participants": [],
+    "location_or_tool": "Pausenbox",
+    "intent": "Amelie Kranz needs to Geplantes Essensfenster verteidigen.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_bd391cca5b05f5bd",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-11T15:10",
+    "end": "2026-06-11T15:46",
+    "title": "Ungeplante Störung sichtbar machen",
+    "participants": [
+      "Familienkontakt"
+    ],
+    "location_or_tool": "WhatsApp",
+    "intent": "Amelie Kranz needs to Ungeplante Störung sichtbar machen.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_b1583c2a923e5112",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-11T18:40",
+    "end": "2026-06-11T19:22",
+    "title": "Abendroutine ohne Heldentat",
+    "participants": [],
+    "location_or_tool": "Arbeitsplatz",
+    "intent": "Amelie Kranz needs to Abendroutine ohne Heldentat.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_4334ea457b5e5b10",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-12T07:20",
+    "end": "2026-06-12T07:58",
+    "title": "Morgendlicher Realitätscheck",
+    "participants": [],
+    "location_or_tool": "Diensthandy",
+    "intent": "Amelie Kranz needs to Morgendlicher Realitätscheck.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_b82e507b9f2f6a65",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-12T09:45",
+    "end": "2026-06-12T10:37",
+    "title": "Abstimmung mit Gegenwind",
+    "participants": [
+      "Familienkontakt"
+    ],
+    "location_or_tool": "Kalender",
+    "intent": "Amelie Kranz needs to Abstimmung mit Gegenwind.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_9b10b298af652c21",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-12T12:35",
+    "end": "2026-06-12T13:03",
+    "title": "Geplantes Essensfenster verteidigen",
+    "participants": [],
+    "location_or_tool": "Pausenbox",
+    "intent": "Amelie Kranz needs to Geplantes Essensfenster verteidigen.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_43f2e6c068708d43",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-12T15:10",
+    "end": "2026-06-12T15:46",
+    "title": "Ungeplante Störung sichtbar machen",
+    "participants": [
+      "Vorgesetzte Stelle"
+    ],
+    "location_or_tool": "WhatsApp",
+    "intent": "Amelie Kranz needs to Ungeplante Störung sichtbar machen.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_adc7b662dd88dbf7",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-12T18:40",
+    "end": "2026-06-12T19:22",
+    "title": "Abendroutine ohne Heldentat",
+    "participants": [],
+    "location_or_tool": "Arbeitsplatz",
+    "intent": "Amelie Kranz needs to Abendroutine ohne Heldentat.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_fad29470309d7137",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-13T07:20",
+    "end": "2026-06-13T07:58",
+    "title": "Morgendlicher Realitätscheck",
+    "participants": [],
+    "location_or_tool": "Diensthandy",
+    "intent": "Amelie Kranz needs to Morgendlicher Realitätscheck.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_9cebad233cc53cc7",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-13T09:45",
+    "end": "2026-06-13T10:37",
+    "title": "Abstimmung mit Gegenwind",
+    "participants": [
+      "Vorgesetzte Stelle"
+    ],
+    "location_or_tool": "Kalender",
+    "intent": "Amelie Kranz needs to Abstimmung mit Gegenwind.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_a619011057cdfcb7",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-13T12:35",
+    "end": "2026-06-13T13:03",
+    "title": "Geplantes Essensfenster verteidigen",
+    "participants": [],
+    "location_or_tool": "Pausenbox",
+    "intent": "Amelie Kranz needs to Geplantes Essensfenster verteidigen.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_749797eb53ab3c50",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-13T15:10",
+    "end": "2026-06-13T15:46",
+    "title": "Ungeplante Störung sichtbar machen",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "location_or_tool": "WhatsApp",
+    "intent": "Amelie Kranz needs to Ungeplante Störung sichtbar machen.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_e3ea74902f973d0a",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-13T18:40",
+    "end": "2026-06-13T19:22",
+    "title": "Abendroutine ohne Heldentat",
+    "participants": [],
+    "location_or_tool": "Arbeitsplatz",
+    "intent": "Amelie Kranz needs to Abendroutine ohne Heldentat.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_993650d6c5d71d7e",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-14T07:20",
+    "end": "2026-06-14T07:58",
+    "title": "Morgendlicher Realitätscheck",
+    "participants": [],
+    "location_or_tool": "Diensthandy",
+    "intent": "Amelie Kranz needs to Morgendlicher Realitätscheck.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_5d17b1246e61987e",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-14T09:45",
+    "end": "2026-06-14T10:37",
+    "title": "Abstimmung mit Gegenwind",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "location_or_tool": "Kalender",
+    "intent": "Amelie Kranz needs to Abstimmung mit Gegenwind.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_f302f143595b6474",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-14T12:35",
+    "end": "2026-06-14T13:03",
+    "title": "Geplantes Essensfenster verteidigen",
+    "participants": [],
+    "location_or_tool": "Pausenbox",
+    "intent": "Amelie Kranz needs to Geplantes Essensfenster verteidigen.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_c3ba0dd749100b0e",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-14T15:10",
+    "end": "2026-06-14T15:46",
+    "title": "Ungeplante Störung sichtbar machen",
+    "participants": [
+      "Familienkontakt"
+    ],
+    "location_or_tool": "WhatsApp",
+    "intent": "Amelie Kranz needs to Ungeplante Störung sichtbar machen.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_59972c8bb0eec7d1",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-14T18:40",
+    "end": "2026-06-14T19:22",
+    "title": "Abendroutine ohne Heldentat",
+    "participants": [],
+    "location_or_tool": "Arbeitsplatz",
+    "intent": "Amelie Kranz needs to Abendroutine ohne Heldentat.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_1dbdeed3b7403dde",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-15T07:20",
+    "end": "2026-06-15T07:58",
+    "title": "Morgendlicher Realitätscheck",
+    "participants": [],
+    "location_or_tool": "Diensthandy",
+    "intent": "Amelie Kranz needs to Morgendlicher Realitätscheck.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_7d9160a3e1c0f4c2",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-15T09:45",
+    "end": "2026-06-15T10:37",
+    "title": "Abstimmung mit Gegenwind",
+    "participants": [
+      "Familienkontakt"
+    ],
+    "location_or_tool": "Kalender",
+    "intent": "Amelie Kranz needs to Abstimmung mit Gegenwind.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_30583e0fdeb99c9d",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-15T12:35",
+    "end": "2026-06-15T13:03",
+    "title": "Geplantes Essensfenster verteidigen",
+    "participants": [],
+    "location_or_tool": "Pausenbox",
+    "intent": "Amelie Kranz needs to Geplantes Essensfenster verteidigen.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_bd2c9602a3d49684",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-15T15:10",
+    "end": "2026-06-15T15:46",
+    "title": "Ungeplante Störung sichtbar machen",
+    "participants": [
+      "Vorgesetzte Stelle"
+    ],
+    "location_or_tool": "WhatsApp",
+    "intent": "Amelie Kranz needs to Ungeplante Störung sichtbar machen.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_ce1c8c78ae50e9a1",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-15T18:40",
+    "end": "2026-06-15T19:22",
+    "title": "Abendroutine ohne Heldentat",
+    "participants": [],
+    "location_or_tool": "Arbeitsplatz",
+    "intent": "Amelie Kranz needs to Abendroutine ohne Heldentat.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_8780a7a8e18dc8a4",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-16T07:20",
+    "end": "2026-06-16T07:58",
+    "title": "Morgendlicher Realitätscheck",
+    "participants": [],
+    "location_or_tool": "Diensthandy",
+    "intent": "Amelie Kranz needs to Morgendlicher Realitätscheck.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_3a4c22ed76768946",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-16T09:45",
+    "end": "2026-06-16T10:37",
+    "title": "Abstimmung mit Gegenwind",
+    "participants": [
+      "Vorgesetzte Stelle"
+    ],
+    "location_or_tool": "Kalender",
+    "intent": "Amelie Kranz needs to Abstimmung mit Gegenwind.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_3bbf4e0ccdfe47b8",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-16T12:35",
+    "end": "2026-06-16T13:03",
+    "title": "Geplantes Essensfenster verteidigen",
+    "participants": [],
+    "location_or_tool": "Pausenbox",
+    "intent": "Amelie Kranz needs to Geplantes Essensfenster verteidigen.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_d3089f381c9544ce",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-16T15:10",
+    "end": "2026-06-16T15:46",
+    "title": "Ungeplante Störung sichtbar machen",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "location_or_tool": "WhatsApp",
+    "intent": "Amelie Kranz needs to Ungeplante Störung sichtbar machen.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_dbdbe371089cd802",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-16T18:40",
+    "end": "2026-06-16T19:22",
+    "title": "Abendroutine ohne Heldentat",
+    "participants": [],
+    "location_or_tool": "Arbeitsplatz",
+    "intent": "Amelie Kranz needs to Abendroutine ohne Heldentat.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_7b1410a60c8e2c1f",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-17T07:20",
+    "end": "2026-06-17T07:58",
+    "title": "Morgendlicher Realitätscheck",
+    "participants": [],
+    "location_or_tool": "Diensthandy",
+    "intent": "Amelie Kranz needs to Morgendlicher Realitätscheck.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_6542e7580d5205a0",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-17T09:45",
+    "end": "2026-06-17T10:37",
+    "title": "Abstimmung mit Gegenwind",
+    "participants": [
+      "Kollegin Alex"
+    ],
+    "location_or_tool": "Kalender",
+    "intent": "Amelie Kranz needs to Abstimmung mit Gegenwind.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_4412ad590430f53e",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-17T12:35",
+    "end": "2026-06-17T13:03",
+    "title": "Geplantes Essensfenster verteidigen",
+    "participants": [],
+    "location_or_tool": "Pausenbox",
+    "intent": "Amelie Kranz needs to Geplantes Essensfenster verteidigen.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_e47a2eb954f95b1c",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-17T15:10",
+    "end": "2026-06-17T15:46",
+    "title": "Ungeplante Störung sichtbar machen",
+    "participants": [
+      "Familienkontakt"
+    ],
+    "location_or_tool": "WhatsApp",
+    "intent": "Amelie Kranz needs to Ungeplante Störung sichtbar machen.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_c2a93aa5406d85ef",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-17T18:40",
+    "end": "2026-06-17T19:22",
+    "title": "Abendroutine ohne Heldentat",
+    "participants": [],
+    "location_or_tool": "Arbeitsplatz",
+    "intent": "Amelie Kranz needs to Abendroutine ohne Heldentat.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_89d4a4086294e24d",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-18T07:20",
+    "end": "2026-06-18T07:58",
+    "title": "Morgendlicher Realitätscheck",
+    "participants": [],
+    "location_or_tool": "Diensthandy",
+    "intent": "Amelie Kranz needs to Morgendlicher Realitätscheck.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_fbe36a55a232e4dc",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-18T09:45",
+    "end": "2026-06-18T10:37",
+    "title": "Abstimmung mit Gegenwind",
+    "participants": [
+      "Familienkontakt"
+    ],
+    "location_or_tool": "Kalender",
+    "intent": "Amelie Kranz needs to Abstimmung mit Gegenwind.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_4a14264f39808890",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-18T12:35",
+    "end": "2026-06-18T13:03",
+    "title": "Geplantes Essensfenster verteidigen",
+    "participants": [],
+    "location_or_tool": "Pausenbox",
+    "intent": "Amelie Kranz needs to Geplantes Essensfenster verteidigen.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_0a6844c02a2d4cf1",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-18T15:10",
+    "end": "2026-06-18T15:46",
+    "title": "Ungeplante Störung sichtbar machen",
+    "participants": [
+      "Vorgesetzte Stelle"
+    ],
+    "location_or_tool": "WhatsApp",
+    "intent": "Amelie Kranz needs to Ungeplante Störung sichtbar machen.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_7280b3080182d3b2",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-18T18:40",
+    "end": "2026-06-18T19:22",
+    "title": "Abendroutine ohne Heldentat",
+    "participants": [],
+    "location_or_tool": "Arbeitsplatz",
+    "intent": "Amelie Kranz needs to Abendroutine ohne Heldentat.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T17:46:32.262049+00:00"
+  },
+  {
+    "id": "cal_3991aaba68864b7d",
+    "persona_id": "persona_991687e2c4d1368c",
+    "start": "2026-06-22T11:50",
+    "end": "2026-06-22T12:35",
+    "title": "Tag mit Personalausfall überstehen ohne komplett auszufallen",
+    "participants": [
+      "Kollegin Alex (krank gemeldet)",
+      "Vorgesetzte Stelle"
+    ],
+    "location_or_tool": "Diensthandy + Pausenbox + Kalender",
+    "intent": "Ein akut kranker Praxistag bringt Amelie an die Belastungsgrenze, doch der Mittwochsblock und die Pausenbox retten den Tag.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:09:19+00:00"
+  }
+]

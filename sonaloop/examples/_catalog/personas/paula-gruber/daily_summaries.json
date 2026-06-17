@@ -1,0 +1,407 @@
+[
+  {
+    "id": "day_f2c4006fc13647cd",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "date": "2026-01-22",
+    "mood": "angespannt, aber handlungsfähig",
+    "completed": [
+      "Therapieblock mit Wegstrecken abgleichen"
+    ],
+    "blockers": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Planung muss ohne lange Bildschirmzeit funktionieren",
+      "Zeitfenster lassen sich selten komplett selbst wählen"
+    ],
+    "open_loops": [
+      "Prüfen, ob die Planende Stelle Wegstrecken bei knappen Pausen überhaupt mitdenkt",
+      "Samira zurückgeben, wenn sie wegen der Abdeckung selbst Druck bekommt"
+    ],
+    "pain_points": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Planung muss ohne lange Bildschirmzeit funktionieren",
+      "Zeitfenster lassen sich selten komplett selbst wählen"
+    ],
+    "notable_memories": [
+      "Paula tauschte vor dem Frühdienst zwei Behandlungen in ihrem Kalender, damit der längere Gang zur Gangschule nicht direkt vor ihrer einzigen Essenspause lag."
+    ],
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "id": "day_1d114a54bd68459b",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "date": "2026-02-06",
+    "mood": "angespannt, aber etwas geerdet",
+    "completed": [
+      "Pausenbox fuer lueckenlosen Vormittag vorbereiten",
+      "Essensfenster trotz Rueckfrage sichern"
+    ],
+    "blockers": [
+      "Andere Menschen haengen direkt an Entscheidungen und Reaktionszeiten",
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Pausen sind abhaengig von anderen Menschen, nicht vom eigenen Hunger",
+      "Planung muss ohne lange Bildschirmzeit funktionieren"
+    ],
+    "open_loops": [
+      "Pruefen, ob der Deckel-Zettel im Dienst wirklich auffaellt, bevor sie automatisch weiterarbeitet",
+      "Mit Samira klaeren, ob solche Drei-Minuten-Abfanghilfen gegenseitig realistisch bleiben",
+      "Uhrzeit 12:18 in die Pausenverschiebungsliste uebertragen"
+    ],
+    "pain_points": [
+      "Andere Menschen haengen direkt an Entscheidungen und Reaktionszeiten",
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Pausen sind abhaengig von anderen Menschen, nicht vom eigenen Hunger",
+      "Planung muss ohne lange Bildschirmzeit funktionieren"
+    ],
+    "notable_memories": [
+      "Paula legte vor einem langen Freitag eine sehr kleine Pausenbox-Strategie fest, weil die ersten drei Behandlungen ohne echten Puffer getaktet waren.",
+      "Der Zettel auf der Pausenbox stoppte Paula kurz genug, um vor einer Rueckfrage der Dienstplanung wirklich zu essen."
+    ],
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "id": "day_b4a40dea5fc042ac",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "date": "2026-02-24",
+    "mood": "muede, aber weniger allein verantwortlich",
+    "completed": [
+      "Dokumentationsrest ohne Abendverschiebung klaeren"
+    ],
+    "blockers": [
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit fuer Planung",
+      "merkt erst spaet, wie viel eigene Energie im Dienst an anderen verschwindet"
+    ],
+    "open_loops": [
+      "Rueckmeldung von Samira zum Stufenwechsel bei Herrn K. abholen",
+      "Pruefen, ob Zwei-Satz-Uebergaben auch bei komplexeren Faellen reichen"
+    ],
+    "pain_points": [
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit fuer Planung",
+      "merkt erst spaet, wie viel eigene Energie im Dienst an anderen verschwindet"
+    ],
+    "notable_memories": [
+      "Nach einer anstrengenden Gangschule bat Paula erstmals vor Dienstende um eine gezielte Mini-Uebergabe statt die Dokumentation mitzunehmen."
+    ],
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "id": "day_ad5878e5bfc94dd8",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "date": "2026-03-03",
+    "mood": "dankbar und erschöpft",
+    "completed": [
+      "Essensfenster im Therapietakt halten"
+    ],
+    "blockers": [
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag"
+    ],
+    "open_loops": [
+      "Zwei salzige Varianten finden, die nicht teuer sind",
+      "Mit Samira klären, ob beide ihre Boxen sichtbar in dasselbe Kühlschrankfach legen"
+    ],
+    "pain_points": [
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag"
+    ],
+    "notable_memories": [
+      "Paula testete eine kleinere Pausenbox mit salzigem Essen, weil süße Notlösungen sie nach der Long-Covid-Erschöpfung schneller abstürzen ließen."
+    ],
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "id": "day_f89cf64a25974df0",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "date": "2026-03-27",
+    "mood": "reizbar, dann ruhiger",
+    "completed": [
+      "Private Sorgearbeit nach Spaetdienst begrenzen"
+    ],
+    "blockers": [
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit fuer Planung",
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben"
+    ],
+    "open_loops": [
+      "Beobachten, ob der Familienkontakt die feste Antwortzeit akzeptiert",
+      "Am Sonntag klaeren, wer das Rezept tatsaechlich abholt"
+    ],
+    "pain_points": [
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit fuer Planung",
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben"
+    ],
+    "notable_memories": [
+      "Paula verschob eine private Organisationsfrage bewusst um eine Stunde, weil sie nach dem Spaetdienst erst essen und herunterfahren musste."
+    ],
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "id": "day_f3c62f2ffc4c48ae",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "date": "2026-04-16",
+    "mood": "schutzbedürftig, aber klar",
+    "completed": [
+      "Private Sorgearbeit nach Dienstende begrenzen"
+    ],
+    "blockers": [
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung",
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben"
+    ],
+    "open_loops": [
+      "Familienkontakt an die spätere Rückmeldezeit gewöhnen",
+      "Klären, wer den Arzttermin tatsächlich begleitet"
+    ],
+    "pain_points": [
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung",
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben"
+    ],
+    "notable_memories": [
+      "Paula verschob einen Familienanruf bewusst auf nach dem Essen, weil sie nach dem Dienst keine Entscheidungen mehr gleichzeitig tragen wollte."
+    ],
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "id": "day_b5b75dfb3ce24d3d",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "date": "2026-04-29",
+    "mood": "vorsichtig bestaetigt, aber nicht erleichtert",
+    "completed": [
+      "Pausenverschiebungen mit konkreten Wegen belegen"
+    ],
+    "blockers": [
+      "Pausen sind abhaengig von anderen Menschen, nicht vom eigenen Hunger",
+      "Planende Stelle optimiert fuer Abdeckung, nicht fuer Pausen oder Wege"
+    ],
+    "open_loops": [
+      "Naechste Woche pruefen, ob der fruehere Atemgruppenabschluss wirklich ein Essensfenster oeffnet",
+      "Weitere zwei Beispiele aus MTT-Tagen sammeln"
+    ],
+    "pain_points": [
+      "Pausen sind abhaengig von anderen Menschen, nicht vom eigenen Hunger",
+      "Planende Stelle optimiert fuer Abdeckung, nicht fuer Pausen oder Wege"
+    ],
+    "notable_memories": [
+      "Paula brachte der Planenden Stelle eine knappe Liste mit Wegezeiten statt eine allgemeine Beschwerde ueber fehlende Pausen."
+    ],
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "id": "day_c27f7ec077674fb9",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "date": "2026-05-07",
+    "mood": "vorsichtig entschlossen",
+    "completed": [
+      "Pausenanker in der Wochenplanung ansprechen"
+    ],
+    "blockers": [
+      "Andere Menschen hängen direkt an Entscheidungen und Reaktionszeiten",
+      "Planende Stelle optimiert für Abdeckung, nicht für Pausen oder Wege"
+    ],
+    "open_loops": [
+      "Nachfragen, was aus der Randnotiz 'prüfen' wird",
+      "Samira um ein zweites konkretes Beispiel für die Planende Stelle bitten"
+    ],
+    "pain_points": [
+      "Andere Menschen hängen direkt an Entscheidungen und Reaktionszeiten",
+      "Planende Stelle optimiert für Abdeckung, nicht für Pausen oder Wege"
+    ],
+    "notable_memories": [
+      "Paula brachte in der Teamübergabe einen Pausenanker zur Sprache, ohne ihn als Sonderwunsch wegen ihrer Erschöpfung zu erklären."
+    ],
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "id": "day_1fd504b32e6442ee",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "date": "2026-05-08",
+    "mood": "frustriert und nüchtern",
+    "completed": [
+      "Nicht umgesetzte Planänderung nachhalten"
+    ],
+    "blockers": [
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger"
+    ],
+    "open_loops": [
+      "Zwei-Wochen-Liste der Pausenverschiebungen weiterführen",
+      "Teamleitung mit konkreten Beispielen ansprechen",
+      "Prüfen, ob die kleinere Pausenbox für sehr späte Pausen reicht"
+    ],
+    "pain_points": [
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger"
+    ],
+    "notable_memories": [
+      "Paula merkte am Folgetag, dass der angesprochene Pausenanker im Plan nicht umgesetzt war, und dokumentierte die konkrete Auswirkung statt erneut allgemein zu bitten."
+    ],
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "id": "day_3269b31322504957",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "date": "2026-05-21",
+    "mood": "erschoepft, aber selbstwirksam",
+    "completed": [
+      "Koerperlich bessere Notloesung mit kleinem Budget finden"
+    ],
+    "blockers": [
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag",
+      "Weniger teure oder koerperlich schlechte Notloesungen brauchen"
+    ],
+    "open_loops": [
+      "Drei konkrete Bahnhof- oder Supermarktoptionen notieren",
+      "Pruefen, welche Option bei Atemgruppen-Tagen gut vertraeglich bleibt"
+    ],
+    "pain_points": [
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag",
+      "Weniger teure oder koerperlich schlechte Notloesungen brauchen"
+    ],
+    "notable_memories": [
+      "Paula kaufte kein teures Baeckerei-Mittagessen, sondern kombinierte Supermarktjoghurt mit Pausenbox-Resten und hielt die Kosten auf ihrer Notiz fest."
+    ],
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "id": "day_e6d5eeffb8a6481d",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "date": "2026-06-03",
+    "mood": "müde, aber erleichtert",
+    "completed": [
+      "Günstige Essensbausteine für Diensttage festlegen"
+    ],
+    "blockers": [
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag",
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung"
+    ],
+    "open_loops": [
+      "Nach einer Woche prüfen, ob die drei Bausteine Notkäufe reduzieren",
+      "Eine Variante finden, die auch nach Spätdienst nicht schwer im Magen liegt"
+    ],
+    "pain_points": [
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag",
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung"
+    ],
+    "notable_memories": [
+      "Paula rechnete zuhause nach, welche einfachen Abendessen ihre Notkäufe ersetzen können, ohne am Sonntag einen großen Kochplan zu brauchen."
+    ],
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "id": "day_ee288a9fe4c94a3d",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "date": "2026-06-05",
+    "mood": "verletzlich, dann pragmatisch",
+    "completed": [
+      "Mikro-Uebergaben bei Long-Covid-Erschoepfung vereinbaren"
+    ],
+    "blockers": [
+      "Andere Menschen haengen direkt an Entscheidungen und Reaktionszeiten",
+      "Long-Covid-Erschoepfung wird oft erst spaet bemerkt"
+    ],
+    "open_loops": [
+      "Nach zwei Wochen mit Samira auswerten, ob das Punktzeichen stoert oder hilft",
+      "Handgriffe fuer Atemgruppen-Ende an die Innenseite der Materialschranktuer kleben"
+    ],
+    "pain_points": [
+      "Andere Menschen haengen direkt an Entscheidungen und Reaktionszeiten",
+      "Long-Covid-Erschoepfung wird oft erst spaet bemerkt"
+    ],
+    "notable_memories": [
+      "Paula und Samira legten ein kurzes Zeichen fuer Mikro-Uebergaben fest, nachdem Paula in der Atemgruppe wieder zu spaet merkte, dass ihre Konzentration abfiel."
+    ],
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "id": "day_35170564d2e06afd",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "date": "2026-06-09",
+    "mood": "angespannt, aber handlungsfähig",
+    "completed": [
+      "Morgendlicher Realitätscheck",
+      "Abstimmung mit knapper Reserve",
+      "Essensfenster gegen Nebenbei-Arbeit schützen",
+      "Abendroutine ohne Idealplan"
+    ],
+    "blockers": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung",
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag"
+    ],
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten",
+      "Abstimmung mit knapper Reserve nachhalten"
+    ],
+    "pain_points": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung",
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag"
+    ],
+    "notable_memories": [
+      "Paula Gruber Abstimmung mit knapper Reserve using Kalender; outcome: left an open follow-up.",
+      "Paula Gruber Essensfenster gegen Nebenbei-Arbeit schützen using Pausenbox; outcome: resolved enough to move forward.",
+      "Paula Gruber Abendroutine ohne Idealplan using Küche zuhause; outcome: resolved enough to move forward."
+    ],
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "day_50fe9ac1f41a9618",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "date": "2026-06-10",
+    "mood": "müde und etwas klarer sortiert",
+    "completed": [
+      "Morgendlicher Realitätscheck",
+      "Abstimmung mit knapper Reserve",
+      "Essensfenster gegen Nebenbei-Arbeit schützen",
+      "Abendroutine ohne Idealplan"
+    ],
+    "blockers": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung",
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag"
+    ],
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten",
+      "Abstimmung mit knapper Reserve nachhalten"
+    ],
+    "pain_points": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung",
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag"
+    ],
+    "notable_memories": [
+      "Paula Gruber Abstimmung mit knapper Reserve using Kalender; outcome: left an open follow-up.",
+      "Paula Gruber Essensfenster gegen Nebenbei-Arbeit schützen using Pausenbox; outcome: resolved enough to move forward.",
+      "Paula Gruber Abendroutine ohne Idealplan using Küche zuhause; outcome: resolved enough to move forward."
+    ],
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "day_79f7bbe087dd4c5a",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "date": "2026-06-12",
+    "mood": "verletzlich, aber stabilisiert",
+    "completed": [
+      "Belastungsgrenze während Atemgruppe absichern"
+    ],
+    "blockers": [
+      "Andere Menschen hängen direkt an Entscheidungen und Reaktionszeiten",
+      "Gesundheit setzt harte Grenzen",
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger"
+    ],
+    "open_loops": [
+      "Mit Samira vereinbaren, wie solche Mikro-Übergaben gegenseitig funktionieren",
+      "Beobachten, ob die Vier-Minuten-Pause nach Atemgruppen wiederholbar ist"
+    ],
+    "pain_points": [
+      "Andere Menschen hängen direkt an Entscheidungen und Reaktionszeiten",
+      "Gesundheit setzt harte Grenzen",
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger"
+    ],
+    "notable_memories": [
+      "Paula brach den stillen Versuch ab, ihre Erschöpfung zu überspielen, und bat Samira um eine gezielte Übergabe nach der Atemgruppe."
+    ],
+    "created_at": "2026-06-15T13:32:48+00:00"
+  }
+]

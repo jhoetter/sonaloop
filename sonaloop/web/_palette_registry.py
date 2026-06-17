@@ -289,7 +289,7 @@ def closest_rows(q: str, store: Store | None = None, limit: int = 4) -> list[dic
 def palette_nav() -> list[dict[str, Any]]:
     """The palette's STRUCTURED Navigate model (ux-contract §9 V6 + C10): every registered
     nav item (core seeds AND extension registrations — the nav registry stays the source of
-    truth) with its icon, then the chrome/footer surfaces (Activity, Settings popover on
+    truth) with its icon, then the chrome/menu surfaces (Activity, Settings popover on
     '#settings', Documentation, the ? cheat sheet on '#shortcuts') and the /runs journal. The Library's
     kind lists are NOT flat top-level commands anymore — they ride the /library item as
     `children` (rendered as one expandable "Library" entry; each child stays individually

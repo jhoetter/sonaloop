@@ -61,9 +61,9 @@ readable. `record_asset_supersession` is the service seam that writes it.
   source resolved as a chip, direction, supersede chain, notes.
 - **Library → Assets tab** (`/assets`): every asset across projects, badged by
   kind + direction, owning project on the row.
-- **Project files lens** (`/projects/{id}?view=files`, the "N files" header
-  chip): all of a project's assets chronologically — inputs received across
-  many MCP messages interleaved with the documents generated from them.
+- **Project outline** (`/projects/{id}`): every project asset appears in context
+  under an Assets subgroup for incoming files, or as a deliverable row when the
+  software generated it.
 
 ## Persistence
 

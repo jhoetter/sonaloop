@@ -1,0 +1,1675 @@
+[
+  {
+    "date": "2026-03-31",
+    "timestamp": "2026-03-31T03:40+02:00",
+    "event_type": "Nachtschicht-Tief",
+    "summary": "Mitten in einer unterbesetzten Nacht klemmte der Snackautomat Reihe E und Anna stand mit knurrendem Magen vor dem leeren Fach.",
+    "task": "Pausenversorgung am Snackautomat Ebene 0 nach drei Stunden Dauerklingeln",
+    "tool": "Snackautomat Ebene 0",
+    "participants": [
+      "Meltem Aydin"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Gegen halb vier war 4b zu zweit für 28 Betten, Meltem stand draußen rauchen, und Anna fing fünf Klingeln allein ab. Als sie es endlich zum Automaten auf Ebene 0 schaffte, fraß Reihe E ihre zwei Euro und gab nichts heraus. Übrig blieb ein labbriger Müsliriegel aus Reihe C. Das Drei-Uhr-Loch traf sie diesmal voll, die Hände zitterten leicht bei der nächsten BZ-Kontrolle.",
+    "key_quotes": [
+      "Zwei Euro weg und ich kau auf Pappe rum.",
+      "Wenn Reihe E nochmal schluckt, häng ich einen Zettel dran."
+    ],
+    "actions_done": [
+      "Fünf Klingeln in Meltems Pause allein abgefangen",
+      "Reihe E ohne Erfolg zweimal probiert",
+      "Müsliriegel aus Reihe C als Notlösung gegessen",
+      "Danach BZ-Kontrolle bei zwei Diabetikern fortgesetzt"
+    ],
+    "artifacts_touched": [
+      "Snackautomat Ebene 0",
+      "Patientenrufanlage",
+      "Medikamentenwagen",
+      "Diensthandy"
+    ],
+    "persona_thought": "So kann das nicht weitergehen — ich kann nachts keinen Notdienst auf Pappriegeln fahren.",
+    "decision": "Sich endlich ernsthaft eine vorgekochte Lösung für die Nächte überlegen.",
+    "open_loops": [
+      "Idee mit der Brotdose mal wirklich mit Jonas besprechen",
+      "Reihe E der Hauswirtschaft melden"
+    ],
+    "impact": {
+      "mood": "ausgelaugt, leicht gereizt",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Snackautomat unzuverlässig und leergekauft",
+      "Drei-Uhr-Loch trifft hart",
+      "4b nachts zu zweit, Dauerklingeln"
+    ],
+    "goal_refs": [
+      "Den gedrehten Rhythmus in den Griff kriegen",
+      "Eine geplante Mahlzeit pro Nacht statt Automatenzeug"
+    ],
+    "id": "evt_e59d3a8c682f4e3f",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "conversation": [],
+    "calendar_event_id": "cal_9a310ae640b84699",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "date": "2026-04-15",
+    "timestamp": "2026-04-15T11:20+02:00",
+    "event_type": "privater Konflikt",
+    "summary": "Nach der Schicht zu aufgedreht zum Schlafen aß Anna sich am Vormittag durch den Kühlschrank, gerade als Jonas zur Mittagspause heimkam.",
+    "task": "Versuch zu schlafen nach der Nacht, stattdessen unkontrolliertes Essen am Vormittag",
+    "tool": "WhatsApp (privat)",
+    "participants": [
+      "Jonas Wittkamp"
+    ],
+    "collaboration_mode": "private_context",
+    "what_happened": "Anna kam um kurz nach sieben heim, lag bis halb elf wach, stand dann wieder auf und aß stehend Reste, Käse, zwei Scheiben Brot mit Nutella. Als Jonas zur Mittagspause kurz reinkam, lag das Brettchen voll Krümel auf dem Tisch. Es gab keinen Streit, aber so ein Schweigen, in dem beide merken, dass das Schlaffenster und sein Tagrhythmus einfach nicht zusammenpassen. Sie schrieb ihm nachmittags eine Sprachnachricht, dass sie das anders hinkriegen will.",
+    "key_quotes": [
+      "Ich bin nach der Nacht zu wach zum Schlafen und zu müde, um vernünftig zu essen.",
+      "Lass uns sonntags vorkochen, dann hab ich wenigstens nachts was Echtes."
+    ],
+    "actions_done": [
+      "Erfolglos bis 10:30 im Schlaffenster gelegen",
+      "Am Vormittag ungeplant Reste gegessen",
+      "Jonas per WhatsApp-Sprachnachricht den Vorkoch-Plan vorgeschlagen"
+    ],
+    "artifacts_touched": [
+      "WhatsApp (privat)",
+      "Küche"
+    ],
+    "persona_thought": "Nicht der Hunger ist das Problem, sondern dass ich nach der Nacht nicht runterkomme.",
+    "decision": "Sonntags-Vorkochen als feste Sache mit Jonas etablieren.",
+    "open_loops": [
+      "Schlafhygiene nach der Schicht: Verdunklung im Schlafzimmer verbessern",
+      "Mit Jonas einen festen Vorkoch-Sonntag finden"
+    ],
+    "impact": {
+      "mood": "zerknirscht, übermüdet",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Nach der Schicht zu aufgedreht zum Schlafen, dann unkontrolliertes Essen",
+      "Gemeinsame Mahlzeiten mit Jonas nur an freien Tagen"
+    ],
+    "goal_refs": [
+      "Vor jeder Schicht eine echte warme Mahlzeit, am liebsten mit Jonas",
+      "Den gedrehten Rhythmus in den Griff kriegen"
+    ],
+    "id": "evt_2ad608f6fbb94293",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "conversation": [],
+    "calendar_event_id": "cal_91c0b55739d249f7",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "date": "2026-04-22",
+    "timestamp": "2026-04-22T03:25",
+    "event_type": "Energietief / Versorgungslücke",
+    "summary": "Im Drei-Uhr-Loch stand Anna vor einem leergekauften Snackautomaten und musste sich mit kalten Resten aus der Stationsküche durchschlagen.",
+    "task": "Nachtpause irgendwie über die Runden bringen, während die Energie wegsackt",
+    "tool": "Snackautomat Ebene 0",
+    "participants": [
+      "Meltem Aydin"
+    ],
+    "collaboration_mode": "solo",
+    "what_happened": "Gegen halb vier ging Anna die zwei Etagen runter zum Automaten, weil oben nichts mehr da war. Reihe E hing wieder fest, der Riegel baumelte halb über der Spirale, und der Schlitz spuckte ihre 1,80 € nicht zurück. Sie kam mit leeren Händen hoch, aß im Stehen einen trockenen Brötchenrest vom Frühdienst und einen Becher lauwarmen Kaffee. Meltem war derweil draußen rauchen, die Klingel von 410 lief drei Minuten ins Leere, bis Anna sie übernahm. Das Loch um drei kam trotzdem, schwer und zäh, sie merkte wie ihr beim Vitalzeichenwagen kurz die Konzentration wegrutschte.",
+    "key_quotes": [
+      "Reihe E frisst wieder Geld und gibt nichts raus.",
+      "Ich kann nicht jede Nacht von einem Brötchenrest leben."
+    ],
+    "actions_done": [
+      "Automaten an Ebene 0 erfolglos versucht",
+      "Reste aus der Stationsküche gegessen",
+      "Klingel 410 übernommen, während Meltem in der Pause war"
+    ],
+    "artifacts_touched": [
+      "Snackautomat Ebene 0",
+      "Stationsküche",
+      "Patientenrufanlage"
+    ],
+    "persona_thought": "Wenn ich mir nicht endlich selbst was mitbringe, läuft mir das Drei-Uhr-Loch jedes Mal davon — und Meltems Pausen verlängern meine.",
+    "decision": "Ernsthaft anfangen, eine Brotdose zu packen, statt sich auf den Automaten zu verlassen.",
+    "open_loops": [
+      "Brotdose-Idee endlich umsetzen",
+      "Automat Reihe E der Haustechnik melden"
+    ],
+    "impact": {
+      "mood": "ausgelaugt, leicht gereizt",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Nachts nur Snackautomat und kalte Reste",
+      "Energie sackt gegen drei Uhr weg",
+      "Dauerklingeln, wenn Meltem raucht"
+    ],
+    "goal_refs": [
+      "Essen nachts nicht nur als Notlösung",
+      "Den gedrehten Rhythmus in den Griff kriegen"
+    ],
+    "id": "evt_a94fbee5cf084f9f",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "conversation": [],
+    "calendar_event_id": "cal_19f83249ec3a416c",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "date": "2026-05-03",
+    "timestamp": "2026-05-03T13:40",
+    "event_type": "Gemeinsame Mahlzeit / freier Tag",
+    "summary": "An einem freien Sonntag kochten Anna und Jonas zusammen Linseneintopf und legten halb im Scherz, halb ernst eine Vorkoch-Idee für die Nächte fest.",
+    "task": "Endlich mal in Ruhe warm mit Jonas essen und gleich für die Woche vorkochen",
+    "tool": "eigene Küche",
+    "participants": [
+      "Jonas Wittkamp"
+    ],
+    "collaboration_mode": "private_context",
+    "what_happened": "Erster freier Sonntag seit drei Wochen, an dem Annas Schlaffenster und Jonas' Wochenende sich überlappten. Sie standen zusammen in der Küche, Jonas schnitt Möhren, Anna setzte den Linseneintopf an. Beim Essen kam das alte Thema hoch: dass sie sich unter der Woche fast nur in der Wohnungstür sehen, einer geht raus, der andere kommt rein. Jonas schlug vor, sonntags grundsätzlich eine größere Portion zu kochen und Anna die Hälfte in Dosen mit in den Nachtdienst zu geben. Sie füllten direkt drei Schraubgläser ab.",
+    "key_quotes": [
+      "Wir übergeben uns die Wohnung wie eine Schicht.",
+      "Dann koch ich eben für deine Nächte mit."
+    ],
+    "actions_done": [
+      "Linseneintopf gekocht",
+      "drei Portionen für die Woche abgefüllt",
+      "Vorkoch-Sonntag lose verabredet"
+    ],
+    "artifacts_touched": [
+      "eigene Küche",
+      "Schraubgläser"
+    ],
+    "persona_thought": "Mit ihm zusammen klappt das Vorkochen — allein vergesse ich es jeden zweiten Sonntag.",
+    "decision": "Sonntags als gemeinsamen Koch- und Vorkochtag etablieren.",
+    "open_loops": [
+      "Ob es im Schichtstress wirklich durchhält"
+    ],
+    "impact": {
+      "mood": "warm, ein bisschen wehmütig",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Gemeinsame Mahlzeiten nur an freien Tagen",
+      "Essensplanung bleibt am Wachen hängen"
+    ],
+    "goal_refs": [
+      "Vor der Schicht eine echte warme Mahlzeit, am liebsten mit Jonas"
+    ],
+    "id": "evt_563a7f2327da46b6",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "conversation": [],
+    "calendar_event_id": "cal_2c8b9b8878f547aa",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "date": "2026-05-04",
+    "timestamp": "2026-05-04T10:15",
+    "event_type": "Schlafstörung / Rhythmus",
+    "summary": "Nach dem freien Sonntag verschob sich Annas Schlaf, das Diensthandy klingelte um zehn und sie aß den Vormittag über unkontrolliert weiter.",
+    "task": "Tagsüber schlafen, bevor die nächste Reihe Nächte beginnt",
+    "tool": "Diensthandy",
+    "participants": [
+      "Frau Carstens"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Weil sie am Sonntag im Tagrhythmus mitgelaufen war, lag Anna am Montag erst gegen vier Uhr nachts im Bett. Um Punkt zehn klingelte das Diensthandy: Carstens fragte, ob Anna die Dienstagnacht für eine erkrankte Kollegin übernehmen könne. Danach war an Schlaf nicht mehr zu denken. Anna lief in die Küche, aß den Rest Linseneintopf, dann Müsli, dann noch zwei Scheiben Brot — nicht aus Hunger, sondern weil sie aufgedreht und müde zugleich war. Sie sagte die Dienstagnacht zu, ärgerte sich aber, dass ihr freier Rhythmus dadurch wieder kippte.",
+    "key_quotes": [
+      "Aufgedreht und todmüde, das ist die schlimmste Mischung.",
+      "Sie ruft immer genau in mein Schlaffenster."
+    ],
+    "actions_done": [
+      "Dienstagnacht-Vertretung zugesagt",
+      "Reste und Müsli am Vormittag gegessen",
+      "vergeblich versucht, nochmal einzuschlafen"
+    ],
+    "artifacts_touched": [
+      "Diensthandy",
+      "eigene Küche"
+    ],
+    "persona_thought": "Ein freier Sonntag im Tagrhythmus kostet mich zwei Nächte Schlaf — und das Handy respektiert mein Fenster nie.",
+    "decision": null,
+    "open_loops": [
+      "Schlaffenster gegen Diensthandy-Anrufe besser abschirmen"
+    ],
+    "impact": {
+      "mood": "übermüdet, frustriert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Nach Tagrhythmus zu aufgedreht zum Schlafen",
+      "unkontrolliertes Essen am Vormittag",
+      "Diensthandy klingelt mitten im Schlaffenster"
+    ],
+    "goal_refs": [
+      "Den gedrehten Rhythmus in den Griff kriegen"
+    ],
+    "id": "evt_4cf6a8f67b2b4b8e",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "conversation": [],
+    "calendar_event_id": "cal_dbc59d1d94c84b04",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "date": "2026-05-12",
+    "timestamp": "2026-05-12T01:55+02:00",
+    "event_type": "Notfall im Dienst",
+    "summary": "Ein nächtlicher Sturz mit Platzwunde bei Frau Köhler band Anna und den Dienstarzt, danach lief die Doku der ganzen Nacht hinterher.",
+    "task": "Sturz mit Kopfplatzwunde bei Frau Köhler versorgen und Dr. Yilmaz rufen",
+    "tool": "Patientenzimmer",
+    "participants": [
+      "Frau Köhler",
+      "Dr. Yilmaz",
+      "Meltem Aydin"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Frau Köhler, 79, war beim Toilettengang über den eigenen Infusionsständer gestürzt, kleine Platzwunde am Hinterkopf, leicht verwirrt. Anna sicherte sie, kontrollierte Pupillen und Vitalwerte, rief Dr. Yilmaz, der die Wunde klammerte und engmaschige neurologische Kontrollen anordnete. Das Sturzprotokoll und die Verlaufsdoku zogen sich hin, weil parallel zwei Klingeln liefen. Ihre vorgekochte Dose blieb diese Nacht im Kühlschrank der Stationsküche stehen.",
+    "key_quotes": [
+      "Frau Köhler, bleiben Sie liegen, ich bin gleich wieder da.",
+      "Pupillen seitengleich, aber ich kontrolliere alle zwei Stunden."
+    ],
+    "actions_done": [
+      "Frau Köhler gesichert und Vitalzeichen kontrolliert",
+      "Dr. Yilmaz gerufen, Wunde geklammert",
+      "Sturzprotokoll im KIS angelegt",
+      "Neuro-Kontrollen im Zwei-Stunden-Takt in den Kontrollplan gesetzt"
+    ],
+    "artifacts_touched": [
+      "Patientenzimmer",
+      "Stationsrechner (KIS)",
+      "Diensthandy",
+      "Stationsküche"
+    ],
+    "persona_thought": "Lieber den Yilmaz einmal zu viel anrufen als bei einer Kopfwunde was übersehen.",
+    "decision": "Neurologische Kontrollen bei Köhler alle zwei Stunden bis zur Frühübergabe.",
+    "open_loops": [
+      "CT-Abklärung Köhler am Morgen mit Frühdienst klären",
+      "Sturzursache: Infusionsständer-Stellplatz überdenken"
+    ],
+    "impact": {
+      "mood": "fokussiert, angespannt",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "KIS-Dokumentation frisst jede Pause auf",
+      "Dauerklingeln bei Doppelbesetzung",
+      "geplante Mahlzeit fällt bei Notfall aus"
+    ],
+    "goal_refs": [
+      "Kein Patient kommt wegen übersehener Werte zu Schaden",
+      "Nächte ohne Dokumentationsrückstand beenden"
+    ],
+    "id": "evt_bf1bd1bea62b421d",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "conversation": [],
+    "calendar_event_id": "cal_d40541323d104b60",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "date": "2026-05-12",
+    "timestamp": "2026-05-12T06:18+02:00",
+    "event_type": "Übergabe mit Rückstand",
+    "summary": "Trotz Sturznacht schaffte Anna die Übergabe um 6:15 nur mit zwei offenen Doku-Punkten und ärgerte sich über das halbfertige Ende.",
+    "task": "Frühübergabe an Sandra trotz Sturzprotokoll-Rückstand",
+    "tool": "Übergabe-Raum Station 4b",
+    "participants": [
+      "Sandra Okafor",
+      "Meltem Aydin"
+    ],
+    "collaboration_mode": "handoff",
+    "what_happened": "In der Übergabe musste Anna zugeben, dass die Verlaufskurve von Köhler erst bis vier Uhr lückenlos war und der letzte Eintrag fehlte, weil eine andere Patientin parallel erbrochen hatte. Meltem hatte ihre Doku wieder auf Anna geschoben. Sandra nahm es gelassen, aber Anna hasste es, etwas halbfertig zu übergeben. Sie blieb zehn Minuten länger, um den letzten Eintrag noch nachzutragen.",
+    "key_quotes": [
+      "Bis vier ist alles drin, den letzten Eintrag mach ich noch fertig, bevor ich gehe.",
+      "Ich übergeb nichts halb, das mach ich nicht."
+    ],
+    "actions_done": [
+      "Köhler-Verlauf bis 4 Uhr übergeben",
+      "Fehlenden Eintrag nach der Übergabe nachgetragen",
+      "Mit Sandra CT-Abklärung Köhler vereinbart"
+    ],
+    "artifacts_touched": [
+      "Übergabe-Raum Station 4b",
+      "Stationsrechner (KIS)"
+    ],
+    "persona_thought": "Wenn Meltem ihre Doku abschiebt, hänge ich am Ende zehn Minuten länger — das muss ich mal ansprechen.",
+    "decision": null,
+    "open_loops": [
+      "Mit Meltem klären, dass sie ihre eigene Doku nicht auf Anna abschiebt",
+      "CT-Befund Köhler im nächsten Dienst nachfragen"
+    ],
+    "impact": {
+      "mood": "unzufrieden, müde",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Meltem schiebt Doku auf Anna",
+      "Übergabe nicht ganz ohne offene Punkte"
+    ],
+    "goal_refs": [
+      "Übergabe um 6:15 ohne offene Doku-Punkte"
+    ],
+    "id": "evt_eee8c68c06ca43cc",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "conversation": [],
+    "calendar_event_id": "cal_2b25b1395eb1402a",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "date": "2026-05-19",
+    "timestamp": "2026-05-19T20:55",
+    "event_type": "Dienstplanwunsch eingereicht",
+    "summary": "Zu Schichtbeginn legte Anna Carstens ihren schriftlichen Wunsch für zwei freie Juli-Wochenenden am Stück vor.",
+    "task": "Juli-Dienstplanwunsch formell und schriftlich einreichen",
+    "tool": "Personalumkleide",
+    "participants": [
+      "Frau Carstens"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Anna hatte den Wunsch diesmal nicht nur mündlich, sondern auf einem ausgefüllten Wunschzettel dabei: zwei freie Wochenenden am Stück im Juli, weil Jonas' Schwester in dem Monat heiratet und sie danach ein paar Tage zusammen wegfahren wollen. Carstens nahm den Zettel, sagte aber nur, der Plan stehe frühestens Mitte Juni, sie könne nichts versprechen. Anna blieb ruhig, bestand aber darauf, dass der Zettel in die Mappe kommt, damit es schriftlich dokumentiert ist.",
+    "key_quotes": [
+      "Diesmal nicht nur auf Zuruf — das soll schriftlich in der Mappe liegen.",
+      "Mitte Juni ist spät, Frau Carstens, ich muss planen."
+    ],
+    "actions_done": [
+      "Wunschzettel für Juli ausgefüllt übergeben",
+      "auf schriftliche Ablage in der Wunschmappe bestanden"
+    ],
+    "artifacts_touched": [
+      "Wunschzettel",
+      "Dienstplan-Mappe",
+      "Personalumkleide"
+    ],
+    "persona_thought": "Wenn ich es nur sage, verschwindet es bei ihr im Nichts — papierne Spur ist meine einzige Versicherung.",
+    "decision": "Den Wunsch ausschließlich schriftlich und nachvollziehbar einreichen.",
+    "open_loops": [
+      "Juli-Plan kommt erst Mitte Juni",
+      "Zwei zusammenhängende freie Wochenenden noch offen"
+    ],
+    "impact": {
+      "mood": "bestimmt, leicht angespannt",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Carstens verteilt Wünsche nach Gutsherrenart",
+      "Juli-Wunsch hängt seit Wochen"
+    ],
+    "goal_refs": [
+      "Im Juli zwei freie Wochenenden am Stück durchsetzen"
+    ],
+    "id": "evt_ff6086e97c2046f2",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "conversation": [],
+    "calendar_event_id": "cal_88d5a524bd1f4323",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "date": "2026-05-27",
+    "timestamp": "2026-05-27T13:00+02:00",
+    "event_type": "Dienstplan-Spannung",
+    "summary": "Anna hakte bei Frau Carstens zum hängenden Juli-Wunsch nach und bekam nur ein Vertrösten, das den Frust über die Gutsherrenart schürte.",
+    "task": "Stand des Juli-Wunschzettels bei der Stationsleitung erfragen",
+    "tool": "Stationsbüro 4b",
+    "participants": [
+      "Frau Carstens"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Acht Tage nach Einreichen des Wunschzettels (zwei freie Juli-Wochenenden wegen der Hochzeit von Jonas' Schwester) ging Anna vor ihrer Nacht ins Stationsbüro. Carstens sagte nur, sie habe den Plan noch nicht gemacht und es sei eng mit dem Springerpool. Anna blieb ruhig, aber bestimmt und kündigte an, dass sie nächste Woche wiederkommt. Innerlich überlegte sie schon, ob sie den Personalrat einschalten müsste.",
+    "key_quotes": [
+      "Der Wunsch liegt seit dem 19. drin, ich brauche bis Mitte Juni eine Zusage.",
+      "Wenn das so läuft, frag ich beim Personalrat nach, wie verbindlich Wunschzettel sind."
+    ],
+    "actions_done": [
+      "Carstens auf den eingereichten Wunschzettel angesprochen",
+      "Frist Mitte Juni angekündigt",
+      "Wiedervorlage für die Folgewoche notiert"
+    ],
+    "artifacts_touched": [
+      "Stationsbüro 4b",
+      "Wunschzettel",
+      "Diensthandy"
+    ],
+    "persona_thought": "Wenn ich nicht regelmäßig nachhake, geht mein Wunsch in Carstens' Stapel unter — ich bleib dran.",
+    "decision": "Wöchentlich nachhaken und notfalls den Personalrat ins Spiel bringen.",
+    "open_loops": [
+      "Nächste Woche erneut bei Carstens nachfragen",
+      "Verbindlichkeit von Wunschzetteln beim Personalrat prüfen"
+    ],
+    "impact": {
+      "mood": "entschlossen, leicht genervt",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Carstens verteilt Wünsche nach Gutsherrenart",
+      "Juli-Wunsch hängt seit Wochen"
+    ],
+    "goal_refs": [
+      "Im Juli-Dienstplan zwei freie Wochenenden am Stück durchsetzen"
+    ],
+    "id": "evt_73ba26009b854aec",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "conversation": [],
+    "calendar_event_id": "cal_6a65041942cf46b8",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "date": "2026-05-31",
+    "timestamp": "2026-05-31T12:15+02:00",
+    "event_type": "erster Vorkoch-Sonntag",
+    "summary": "Anna und Jonas zogen den ersten richtigen Vorkoch-Sonntag durch und füllten Dosen mit Linsencurry für Annas kommende Nachtreihe ab.",
+    "task": "Erster fester Sonntags-Vorkochtag mit Portionieren für die Nächte",
+    "tool": "Küche",
+    "participants": [
+      "Jonas Wittkamp"
+    ],
+    "collaboration_mode": "private_context",
+    "what_happened": "Nach dem Vormittag im April nahmen sie sich diesen Sonntag wirklich Zeit: großer Topf Linsencurry mit Reis, dazu Ofengemüse. Jonas portionierte, Anna beschriftete die Dosen mit Datum. Sie testete gleich, ob eine Dose nachts in der Stationsküche aufzuwärmen geht. Zum ersten Mal seit Wochen aßen sie zusammen warm am Tisch, bevor ihre Nachtreihe begann. Anna stellte die erste Dose schon am Abend in den Flur, um sie nicht zu vergessen.",
+    "key_quotes": [
+      "Wenn die Dose im Flur steht, vergess ich sie nicht.",
+      "Endlich mal warm zusammen essen, bevor ich in die Nacht muss."
+    ],
+    "actions_done": [
+      "Linsencurry und Ofengemüse in großer Menge gekocht",
+      "Dosen portioniert und mit Datum beschriftet",
+      "Gemeinsam warm gegessen vor der Schicht",
+      "Erste Dose abends in den Flur gestellt"
+    ],
+    "artifacts_touched": [
+      "Küche",
+      "Brotdosen",
+      "Stationsküche"
+    ],
+    "persona_thought": "Das fühlt sich nach Plan an statt nach Notlösung — genau das wollte ich.",
+    "decision": "Vorkoch-Sonntag fest etablieren und Dosen immer am Vorabend in den Flur stellen.",
+    "open_loops": [
+      "Prüfen, ob die Stationsküche nachts zuverlässig eine Mikrowelle frei hat",
+      "Mengen so anpassen, dass eine ganze Nachtreihe abgedeckt ist"
+    ],
+    "impact": {
+      "mood": "zufrieden, hoffnungsvoll",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Gemeinsame Mahlzeiten mit Jonas nur an freien Tagen"
+    ],
+    "goal_refs": [
+      "Vor jeder Schicht eine echte warme Mahlzeit, am liebsten mit Jonas",
+      "Eine geplante Mahlzeit pro Nacht statt Automatenzeug"
+    ],
+    "id": "evt_8483ee7950ad43ac",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "conversation": [],
+    "calendar_event_id": "cal_13eae62ae2004ec4",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "evt_35fdbb249f794d2c",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "timestamp": "2026-06-06T20:05",
+    "event_type": "admin",
+    "summary": "Anna Petersen Einstempeln und Umziehen vor der dritten Nacht using Personalumkleide; outcome: left an open follow-up.",
+    "task": "Einstempeln und Umziehen vor der dritten Nacht",
+    "tool": "Personalumkleide",
+    "participants": [],
+    "collaboration_mode": "working alone",
+    "what_happened": "Anna stempelt um 19:58 ein und steht zwei Minuten später vor ihrem Spind in der Personalumkleide. Der frische Kasack ist da, aber der Reißverschluss am Spind klemmt wieder, sie ruckelt ihn mit dem Schlüsselbund auf. Am schwarzen Brett hängt der Juli-Dienstplan-Entwurf — ihr Wunsch nach den zwei freien Wochenenden ist immer noch nicht eingetragen, nur ein Bleistift-Fragezeichen von Frau Carstens. Sie fotografiert den Aushang fürs Diensthandy-Gedächtnis. Beim Umziehen merkt sie, dass sie die Brotdose, die sie sich gestern noch hingestellt hat, wieder auf der Küchenanrichte hat stehen lassen. Zu Hause war nur Zeit für ein Käsebrot im Stehen, Jonas ist mit Freunden beim Fußball. Sie bindet die Haare nach, steckt das Diensthandy ein und geht hoch auf 4b. Dritte Nacht in Folge, sie kennt das Ziehen hinter den Augen schon vom Treppenhaus.",
+    "conversation": [],
+    "key_quotes": [
+      "Die Brotdose steht zu Hause auf der Anrichte — natürlich. Dann eben wieder Automat."
+    ],
+    "actions_done": [
+      "Eingestempelt und umgezogen",
+      "Juli-Dienstplan-Entwurf am schwarzen Brett fotografiert",
+      "Spindschloss mit dem Schlüsselbund aufgeruckelt",
+      "Diensthandy eingesteckt und auf 4b gegangen"
+    ],
+    "artifacts_touched": [
+      "Stempelkarte",
+      "Juli-Dienstplan-Aushang",
+      "frischer Kasack",
+      "Spind 47"
+    ],
+    "persona_thought": "Wenn Carstens das Fragezeichen bis Montag nicht wegmacht, frage ich direkt nach. Und die Brotdose binde ich mir nächstes Mal an die Tasche.",
+    "decision": null,
+    "open_loops": [
+      "Juli-Dienstplan: zwei freie Wochenenden weiter unbestätigt",
+      "Brotdose wieder vergessen — Montag mitnehmen"
+    ],
+    "impact": {
+      "mood": "leicht genervt",
+      "energy_delta": 0,
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm",
+      "llm_error": null
+    },
+    "pain_points": [
+      "Nach der Schicht zu aufgedreht zum Schlafen, dann unkontrolliertes Essen am Vormittag"
+    ],
+    "goal_refs": [
+      "Den gedrehten Rhythmus so in den Griff kriegen, dass Essen nachts nicht nur Notlösung ist",
+      "Vor jeder Schicht eine echte warme Mahlzeit schaffen, am liebsten mit Jonas"
+    ],
+    "calendar_event_id": "cal_35fdbb249f794d2c",
+    "created_at": "2026-06-10T14:11:44.802945+00:00"
+  },
+  {
+    "id": "evt_72f5719f4678352c",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "timestamp": "2026-06-06T20:50",
+    "event_type": "meeting",
+    "summary": "Anna Petersen Übergabe vom Spätdienst auf 4b using Übergabe-Raum Station 4b; outcome: left an open follow-up.",
+    "task": "Übergabe vom Spätdienst auf 4b",
+    "tool": "Übergabe-Raum Station 4b",
+    "participants": [
+      "Tobias Renk",
+      "Meltem Aydin"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Um 20:45 sitzen Anna und Meltem im Übergabe-Raum, Tobias vom Spätdienst geht die Belegung durch: 26 von 28 Betten voll. Frau Lemke in 408 ist neu, 81, mit Exsikkose und wackeligem Kreislauf, läuft mit Infusion. Herr Brodersen in 412 hatte um 18 Uhr einen BZ von 58, hat dann Apfelsaft und ein Abendbrot bekommen, Kontrolle um 22 Uhr ist angeordnet. Tobias übergibt außerdem, dass die Rohrpost klemmt und Laborproben heute Nacht runtergetragen werden müssen. Meltem notiert die Klingel-Schwerpunkte, Anna übernimmt 401 bis 414 und damit Brodersen. Zwei Punkte bleiben unklar: ob Brodersens Insulinschema schon angepasst wurde und wer die Verlaufskurve von Frau Lemke abgezeichnet hat. Tobias zuckt bei beidem mit den Schultern, er will pünktlich raus. Anna schreibt sich beides auf den Übergabezettel.",
+    "conversation": [
+      {
+        "speaker": "Tobias Renk",
+        "text": "Brodersen, 412 — um sechs BZ 58, hat gegessen, um zehn sollt ihr nochmal messen. Insulinschema… steht glaube ich noch das alte drin."
+      },
+      {
+        "speaker": "Anna Petersen",
+        "text": "Glaube ich reicht mir nicht, Tobias. Hat Dr. Yilmaz das angepasst oder nicht?"
+      },
+      {
+        "speaker": "Tobias Renk",
+        "text": "Keine Ahnung, ehrlich. Steht nichts Neues in der Kurve. Ich muss los, mein Zug."
+      },
+      {
+        "speaker": "Meltem Aydin",
+        "text": "Schreib's auf, Anna, wir messen eh um zehn. Ich nehm die 415 bis 428."
+      }
+    ],
+    "key_quotes": [
+      "Wenn im KIS nichts steht, ist für mich nichts angeordnet — dann rufe ich eben an."
+    ],
+    "actions_done": [
+      "Belegung 26/28 mit Tobias durchgegangen",
+      "Zimmeraufteilung mit Meltem festgelegt (Anna: 401–414)",
+      "Unklares Insulinschema Brodersen auf den Übergabezettel notiert",
+      "Laborproben-Transport wegen defekter Rohrpost eingeplant"
+    ],
+    "artifacts_touched": [
+      "Übergabezettel",
+      "Patientenkurve Brodersen",
+      "Belegungsliste 4b",
+      "Infusionsplan Frau Lemke"
+    ],
+    "persona_thought": "Tobias übergibt wie immer auf Kante. Das Insulinschema kläre ich vor zehn, nicht erst wenn es brennt.",
+    "decision": "Brodersens BZ-Kontrolle auf 21:45 vorziehen statt erst um 22 Uhr.",
+    "open_loops": [
+      "Insulinschema Brodersen ungeklärt",
+      "Abzeichnung der Lemke-Kurve fehlt"
+    ],
+    "impact": {
+      "mood": "konzentriert",
+      "energy_delta": 0,
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm",
+      "llm_error": null
+    },
+    "pain_points": [
+      "Die KIS-Dokumentation frisst jede Pause auf"
+    ],
+    "goal_refs": [
+      "Den gedrehten Rhythmus so in den Griff kriegen, dass Essen nachts nicht nur Notlösung ist",
+      "Vor jeder Schicht eine echte warme Mahlzeit schaffen, am liebsten mit Jonas"
+    ],
+    "calendar_event_id": "cal_72f5719f4678352c",
+    "created_at": "2026-06-10T14:11:44.802945+00:00"
+  },
+  {
+    "id": "evt_e532346b2edd350e",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "timestamp": "2026-06-06T21:35",
+    "event_type": "focus",
+    "summary": "Anna Petersen Medikamentenrunde und Vitalzeichen vor Mitternacht using Medikamentenwagen; outcome: left an open follow-up.",
+    "task": "Medikamentenrunde und Vitalzeichen vor Mitternacht",
+    "tool": "Medikamentenwagen",
+    "participants": [],
+    "collaboration_mode": "working alone",
+    "what_happened": "Anna schiebt den Medikamentenwagen durch 401 bis 414 und arbeitet die 22-Uhr-Medikation ab. Bei Brodersen misst sie wie geplant schon um 21:45: BZ 112, erstmal in Ordnung, sie lässt das alte Insulinschema trotzdem unangetastet und notiert die Rückfrage für den Dienstarzt. Frau Lemke in 408 hat 90 zu 60, die Infusion läuft, Anna stellt die Tropfgeschwindigkeit nach und hängt den zweiten Beutel an. In 405 verweigert Herr Kaczmarek wie jede Nacht seine Thrombosespritze, erst nach dem üblichen Hin und Her über seine Enkelin lässt er sich doch pieksen. Zwischendrin klingelt es viermal aus Meltems Flurhälfte mit, weil die beim Lagern in 422 festhängt. Die Verlaufskurven zeichnet Anna diesmal direkt am Visitenlaptop auf dem Wagen ab, statt alles zu sammeln. Um 23:50 ist die Runde durch, zwei Kurven fehlen noch. Der Magen knurrt, das Käsebrot von 19 Uhr ist lange weg.",
+    "conversation": [
+      {
+        "speaker": "Herr Kaczmarek",
+        "text": "Lassen Sie mich mit der Spritze in Ruhe, ich lieg doch eh nur rum."
+      },
+      {
+        "speaker": "Anna Petersen",
+        "text": "Genau deswegen, Herr Kaczmarek. Ihre Enkelin will Sie laufen sehen, nicht mit Thrombose liegen sehen."
+      }
+    ],
+    "key_quotes": [
+      "Wenn ich die Kurven sofort abzeichne, gehört die Nacht mir — wenn nicht, gehört sie dem KIS."
+    ],
+    "actions_done": [
+      "22-Uhr-Medikation in 401–414 ausgegeben",
+      "BZ-Kontrolle Brodersen vorgezogen: 112",
+      "Zweiten Infusionsbeutel bei Frau Lemke angehängt",
+      "Thrombosespritze bei Herrn Kaczmarek nach Überzeugungsarbeit gesetzt",
+      "Verlaufskurven direkt am Wagen abgezeichnet"
+    ],
+    "artifacts_touched": [
+      "Medikamentenwagen",
+      "BZ-Messgerät",
+      "Infusionsbeutel 500 ml",
+      "Visitenlaptop",
+      "Verlaufskurven 401–414"
+    ],
+    "persona_thought": "112 ist gut, aber mit dem alten Schema traue ich dem Frieden nicht. Vor der Nachtspritze rufe ich Yilmaz an.",
+    "decision": null,
+    "open_loops": [
+      "Rückfrage Insulinschema an Dr. Yilmaz vor der Nachtgabe"
+    ],
+    "impact": {
+      "mood": "im Fluss",
+      "energy_delta": -1,
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm",
+      "llm_error": null
+    },
+    "pain_points": [
+      "Dauerklingeln, wenn 4b nachts nur zu zweit besetzt ist"
+    ],
+    "goal_refs": [
+      "Den gedrehten Rhythmus so in den Griff kriegen, dass Essen nachts nicht nur Notlösung ist",
+      "Vor jeder Schicht eine echte warme Mahlzeit schaffen, am liebsten mit Jonas"
+    ],
+    "calendar_event_id": "cal_e532346b2edd350e",
+    "created_at": "2026-06-10T14:11:44.802945+00:00"
+  },
+  {
+    "id": "evt_8e803ba13fe2fb11",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "timestamp": "2026-06-06T23:45",
+    "event_type": "interruption",
+    "summary": "Anna Petersen Zimmer 412: Brodersens Blutzucker entgleist using Patientenzimmer; outcome: left an open follow-up.",
+    "task": "Zimmer 412: Brodersens Blutzucker entgleist",
+    "tool": "Patientenzimmer",
+    "participants": [
+      "Herr Brodersen",
+      "Dr. Yilmaz",
+      "Meltem Aydin"
+    ],
+    "collaboration_mode": "interruption with another stakeholder",
+    "what_happened": "Um 1:20 klingelt 412 Sturm. Herr Brodersen sitzt schweißnass und fahrig im Bett, nestelt an der Decke und erkennt Anna erst nicht. BZ: 41. Anna gibt sofort Glukose oral, da er noch schlucken kann, und ruft parallel über das Diensthandy Dr. Yilmaz an, der im Haus auf Ebene 2 unterwegs ist. Meltem kommt dazu und zieht schon mal den Zugang auf, falls es kippt. Nach zehn Minuten ist Brodersen bei 67 und ansprechbar, nach zwanzig bei 89. Yilmaz kommt hoch, schaut sich die Kurve an und streicht das alte Insulinschema endlich zusammen — genau die Anpassung, die seit dem Spätdienst offen war. Er ordnet stündliche BZ-Kontrollen bis zum Morgen an und will Brodersen am Vormittag dem Oberarzt vorstellen, eventuell Verlegung auf die Überwachung. Anna bleibt, bis Brodersen wieder ruhig liegt, und hängt die Messreihe an die Kurve. Der Rest ihres Flurs hat in der Zeit zweimal vergeblich geklingelt.",
+    "conversation": [
+      {
+        "speaker": "Anna Petersen",
+        "text": "Herr Brodersen, hier ist Anna, die Nachtschwester. Trinken Sie das bitte, kleiner Schluck — ich bleibe hier."
+      },
+      {
+        "speaker": "Dr. Yilmaz",
+        "text": "41 mit dem alten Schema, das passt ins Bild. Ich kürze das Basalinsulin, stündlich messen bis sechs. Warum stand das Schema überhaupt noch drin?"
+      },
+      {
+        "speaker": "Anna Petersen",
+        "text": "Das frage ich seit der Übergabe. Steht alles auf meinem Zettel — ich hätte vor der Nachtgabe eh angerufen."
+      },
+      {
+        "speaker": "Meltem Aydin",
+        "text": "Zugang liegt, falls er nochmal abrutscht. Ich übernehm solange deine Klingeln."
+      }
+    ],
+    "key_quotes": [
+      "Genau davor hatte ich seit der Übergabe ein ungutes Gefühl — und genau deshalb zieht man Kontrollen vor."
+    ],
+    "actions_done": [
+      "BZ 41 gemessen und orale Glukose gegeben",
+      "Dr. Yilmaz über das Diensthandy alarmiert",
+      "Engmaschige Messreihe gefahren: 41, 67, 89",
+      "Neues, reduziertes Insulinschema entgegengenommen",
+      "Stündliche BZ-Kontrollen bis 6 Uhr eingeplant"
+    ],
+    "artifacts_touched": [
+      "BZ-Messgerät",
+      "Glukose-Gel",
+      "Patientenkurve Brodersen",
+      "Diensthandy",
+      "venöser Zugang"
+    ],
+    "persona_thought": "Drei Stunden früher angepasst und der Mann hätte durchgeschlafen. Solche Nächte machen mich nicht müde, die machen mich wütend.",
+    "decision": "Stündliche BZ-Kontrollen bei Brodersen bis zur Frühübergabe fest in den Nachtablauf eingetaktet.",
+    "open_loops": [
+      "Mögliche Verlegung Brodersens auf die Überwachungsstation am Vormittag offen"
+    ],
+    "impact": {
+      "mood": "angespannt",
+      "energy_delta": -2,
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm",
+      "llm_error": null
+    },
+    "pain_points": [
+      "Dauerklingeln, wenn 4b nachts nur zu zweit besetzt ist"
+    ],
+    "goal_refs": [
+      "Den gedrehten Rhythmus so in den Griff kriegen, dass Essen nachts nicht nur Notlösung ist",
+      "Vor jeder Schicht eine echte warme Mahlzeit schaffen, am liebsten mit Jonas"
+    ],
+    "calendar_event_id": "cal_8e803ba13fe2fb11",
+    "created_at": "2026-06-10T14:11:44.802945+00:00"
+  },
+  {
+    "id": "evt_ef4d5b3c3059eb9f",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "timestamp": "2026-06-07T01:10",
+    "event_type": "admin",
+    "summary": "Anna Petersen Halb drei am Snackautomaten auf Ebene 0 using Snackautomat Ebene 0; outcome: resolved enough to move forward.",
+    "task": "Halb drei am Snackautomaten auf Ebene 0",
+    "tool": "Snackautomat Ebene 0",
+    "participants": [],
+    "collaboration_mode": "working alone",
+    "what_happened": "Um 2:30 ist zum ersten Mal Luft. Anna fährt mit dem Aufzug auf Ebene 0, wo der einzige nachts erreichbare Snackautomat steht. Die Auswahl ist die gleiche wie seit Monaten: Schokoriegel, Erdnüsse, ein einsames Käse-Sandwich mit Haltbarkeitsdatum von heute. Der Scheinleser nimmt ihren Fünfer zweimal nicht, beim dritten Mal klappt es, und das Sandwich fällt schief ins Fach. Sie isst es im Stehen am Fenster zum Innenhof, dazu einen Becher Automatenkaffee, und schreibt Jonas eine kurze Nachricht, dass die Nacht wild ist. In der Stationsküche oben stünde noch Joghurt von Meltem, aber der Weg fühlt sich weiter an als der Hunger groß ist. Sie merkt genau, dass das Sandwich plus Kaffee sie eine Stunde trägt und dann fallen lässt — es ist jede Nacht dasselbe Muster. Nach achtzehn Minuten ruft das Diensthandy: 408 hat geklingelt. Pause vorbei.",
+    "conversation": [],
+    "key_quotes": [
+      "Ich pflege hier Menschen gesund und ernähre mich selbst seit vier Jahren aus einem Automaten."
+    ],
+    "actions_done": [
+      "Käse-Sandwich und Automatenkaffee gezogen",
+      "Jonas per WhatsApp ein Lebenszeichen geschickt",
+      "Im Stehen am Innenhof-Fenster gegessen",
+      "Nach Klingelruf aus 408 die Pause abgebrochen"
+    ],
+    "artifacts_touched": [
+      "Snackautomat",
+      "Käse-Sandwich",
+      "Kaffeebecher",
+      "Diensthandy"
+    ],
+    "persona_thought": "Montag steht die Brotdose im Flur, nicht in der Küche. Das hier ist kein Essen, das ist Tanken mit dem falschen Sprit.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "ernüchtert",
+      "energy_delta": 1,
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm",
+      "llm_error": null
+    },
+    "pain_points": [
+      "Nachts nur Snackautomat und kalte Reste — eine echte Mahlzeit gibt es nicht",
+      "Gegen drei Uhr morgens sackt die Energie weg, egal was vorher gegessen wurde"
+    ],
+    "goal_refs": [
+      "Den gedrehten Rhythmus so in den Griff kriegen, dass Essen nachts nicht nur Notlösung ist",
+      "Vor jeder Schicht eine echte warme Mahlzeit schaffen, am liebsten mit Jonas"
+    ],
+    "calendar_event_id": "cal_ef4d5b3c3059eb9f",
+    "created_at": "2026-06-10T14:11:44.802945+00:00"
+  },
+  {
+    "id": "evt_0cfd3525f1d81b73",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "timestamp": "2026-06-07T01:35",
+    "event_type": "focus",
+    "summary": "Anna Petersen Nachdokumentation der Hypoglykämie im KIS using Stationsrechner (KIS); outcome: left an open follow-up.",
+    "task": "Nachdokumentation der Hypoglykämie im KIS",
+    "tool": "Stationsrechner (KIS)",
+    "participants": [],
+    "collaboration_mode": "working alone",
+    "what_happened": "Ab halb vier sitzt Anna am Stationsrechner und dokumentiert den Zwischenfall aus 412: Messreihe, Glukosegabe, Arztruf, das neue Insulinschema, alles mit Uhrzeiten. Das KIS hängt sich beim Speichern der Kurve einmal auf, sie verliert einen halben Eintrag und tippt ihn neu, leise fluchend. Zwischendrin steht sie dreimal auf: stündliche BZ-Kontrolle bei Brodersen (94, 101, 98 — das neue Schema trägt) und ein Toilettengang mit Frau Lemke, deren Kreislauf stabiler ist als am Abend. Das Drei-Uhr-Loch erwischt sie trotzdem mitten im Tippen, die Augen laufen über den Zeilen zusammen, sie holt sich Wasser statt noch einen Kaffee. Die zwei fehlenden Verlaufskurven von der Abendrunde arbeitet sie auch noch ab, dazu den Transportschein für die Laborproben, die Meltem runtergetragen hat. Um 5:40 ist die Doku komplett — zum ersten Mal diese Woche vor der Übergabe fertig. Die Abzeichnung der Lemke-Kurve vom Spätdienst fehlt allerdings immer noch, das gibt sie weiter.",
+    "conversation": [],
+    "key_quotes": [
+      "Um drei Uhr tippt man jeden Satz zweimal — einmal falsch, einmal fast richtig."
+    ],
+    "actions_done": [
+      "Hypoglykämie-Zwischenfall vollständig im KIS dokumentiert",
+      "Stündliche BZ-Werte 94/101/98 erfasst",
+      "Zwei offene Verlaufskurven nachgezogen",
+      "Transportschein für die Laborproben ausgefüllt",
+      "Nach KIS-Absturz halben Eintrag neu getippt"
+    ],
+    "artifacts_touched": [
+      "Stationsrechner (KIS)",
+      "Pflegebericht Brodersen",
+      "Verlaufskurven",
+      "Transportschein Labor"
+    ],
+    "persona_thought": "Das neue Schema hält. Wenn das KIS noch einmal beim Speichern abstürzt, schreibe ich eine Gefährdungsanzeige — auf Papier.",
+    "decision": null,
+    "open_loops": [
+      "Fehlende Spätdienst-Abzeichnung der Lemke-Kurve an den Frühdienst weitergeben"
+    ],
+    "impact": {
+      "mood": "zäh",
+      "energy_delta": -2,
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm",
+      "llm_error": null
+    },
+    "pain_points": [
+      "Die KIS-Dokumentation frisst jede Pause auf",
+      "Gegen drei Uhr morgens sackt die Energie weg, egal was vorher gegessen wurde"
+    ],
+    "goal_refs": [
+      "Den gedrehten Rhythmus so in den Griff kriegen, dass Essen nachts nicht nur Notlösung ist",
+      "Vor jeder Schicht eine echte warme Mahlzeit schaffen, am liebsten mit Jonas"
+    ],
+    "calendar_event_id": "cal_0cfd3525f1d81b73",
+    "created_at": "2026-06-10T14:11:44.802945+00:00"
+  },
+  {
+    "id": "evt_c82b0198a230b08a",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "timestamp": "2026-06-07T03:10",
+    "event_type": "meeting",
+    "summary": "Anna Petersen Übergabe an den Frühdienst um 6:15 using Übergabe-Raum Station 4b; outcome: left an open follow-up.",
+    "task": "Übergabe an den Frühdienst um 6:15",
+    "tool": "Übergabe-Raum Station 4b",
+    "participants": [
+      "Sandra Okafor",
+      "Meltem Aydin"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Pünktlich um 6:15 sitzt der Frühdienst im Übergabe-Raum, Sandra Okafor führt. Anna geht ihre Flurhälfte durch und hängt sich an 412: die Hypoglykämie mit Messreihe, das reduzierte Insulinschema, die geplante Vorstellung beim Oberarzt und die mögliche Verlegung auf die Überwachung. Sandra notiert, verspricht die Vorstellung gleich bei der Frühvisite anzuschieben. Frau Lemke übergibt Anna als stabilisiert, weist aber auf die fehlende Spätdienst-Abzeichnung hin — Sandra verdreht die Augen, kennt das Thema von Tobias schon. Meltem ergänzt ihre Flurhälfte, zwei Neuaufnahmen sind für den Vormittag angekündigt, das Wochenende bleibt voll. Um 6:50 stempelt Anna aus. Draußen ist es taghell, die Vögel sind unverschämt laut, und sie weiß jetzt schon, dass sie zu Hause erst aufgedreht durch die Küche tigern wird, bevor sie schlafen kann.",
+    "conversation": [
+      {
+        "speaker": "Anna Petersen",
+        "text": "412 ist mein wichtigster Punkt: Hypo um 1:20 mit 41, neues Schema von Yilmaz, stündlich gemessen, jetzt stabil. Oberarzt-Vorstellung heute Vormittag, eventuell Überwachung."
+      },
+      {
+        "speaker": "Sandra Okafor",
+        "text": "Nehm ich mit in die Frühvisite. Und die Lemke-Kurve vom Spätdienst zeichnet mir Tobias heute ab, das verspreche ich dir."
+      },
+      {
+        "speaker": "Meltem Aydin",
+        "text": "Bei mir ruhig bis auf 422, Lagerung wie besprochen. Schlaft was, ihr zwei."
+      }
+    ],
+    "key_quotes": [
+      "Eine Nacht ist erst vorbei, wenn nichts Halbes mehr auf dem Zettel steht."
+    ],
+    "actions_done": [
+      "Strukturierte Übergabe der Zimmer 401–414 an Sandra",
+      "Hypoglykämie-Verlauf und neues Schema übergeben",
+      "Fehlende Lemke-Abzeichnung als offenen Punkt adressiert",
+      "Um 6:50 ausgestempelt"
+    ],
+    "artifacts_touched": [
+      "Übergabezettel",
+      "Patientenkurve Brodersen",
+      "Belegungsliste 4b",
+      "Stempelkarte"
+    ],
+    "persona_thought": "Doku fertig, Übergabe sauber — und trotzdem fahre ich mit der Frage nach Hause, wo Brodersen heute Abend liegt.",
+    "decision": null,
+    "open_loops": [
+      "Brodersens Oberarzt-Vorstellung und mögliche Verlegung — Stand erst Montagnacht klar"
+    ],
+    "impact": {
+      "mood": "müde-zufrieden",
+      "energy_delta": -1,
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm",
+      "llm_error": null
+    },
+    "pain_points": [
+      "Nach der Schicht zu aufgedreht zum Schlafen, dann unkontrolliertes Essen am Vormittag"
+    ],
+    "goal_refs": [
+      "Den gedrehten Rhythmus so in den Griff kriegen, dass Essen nachts nicht nur Notlösung ist",
+      "Vor jeder Schicht eine echte warme Mahlzeit schaffen, am liebsten mit Jonas"
+    ],
+    "calendar_event_id": "cal_c82b0198a230b08a",
+    "created_at": "2026-06-10T14:11:44.802945+00:00"
+  },
+  {
+    "id": "evt_dc5427fdd023d164",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "timestamp": "2026-06-08T20:50",
+    "event_type": "decision",
+    "summary": "Anna Petersen Dienstbeginn: Carstens wegen des Juli-Plans abpassen using Personalumkleide; outcome: left an open follow-up.",
+    "task": "Dienstbeginn: Carstens wegen des Juli-Plans abpassen",
+    "tool": "Personalumkleide",
+    "participants": [
+      "Frau Carstens"
+    ],
+    "collaboration_mode": "working alone",
+    "what_happened": "Anna ist um 19:55 im Haus und fängt Frau Carstens im Flur vor der Personalumkleide ab, bevor die in den Feierabend verschwindet. Sie zeigt auf das Bleistift-Fragezeichen am Juli-Aushang und fragt direkt nach ihren zwei freien Wochenenden. Carstens windet sich erst — der Springerpool, die Urlaubszeit, man wisse ja nie — und Anna bleibt freundlich, aber stehen. Sie erinnert daran, dass sie im Mai zweimal kurzfristig eingesprungen ist und der Wunsch seit drei Wochen schriftlich vorliegt. Carstens verspricht schließlich, das erste Juli-Wochenende fest einzutragen, das zweite entscheidet sich bis Donnerstag mit dem Pool-Plan. Anna lässt sich das Donnerstag-Datum ausdrücklich bestätigen und notiert es ins Diensthandy. Halber Sieg, aber mehr als drei Wochen Schweigen. Beim Umziehen steht die Brotdose sichtbar oben im Spind — diesmal mitgekommen, weil sie seit Sonntag im Flur stand.",
+    "conversation": [
+      {
+        "speaker": "Anna Petersen",
+        "text": "Frau Carstens, das Fragezeichen bei meinen Juli-Wochenenden hängt jetzt drei Wochen. Ich brauche da eine Antwort."
+      },
+      {
+        "speaker": "Frau Carstens",
+        "text": "Anna, Sie wissen doch, wie der Pool im Sommer aussieht. Ich kann Ihnen nichts fest zusagen."
+      },
+      {
+        "speaker": "Anna Petersen",
+        "text": "Ich bin im Mai zweimal eingesprungen. Erstes Wochenende fest, zweites bis wann?"
+      },
+      {
+        "speaker": "Frau Carstens",
+        "text": "Gut — das erste trage ich heute ein. Das zweite kläre ich bis Donnerstag, versprochen."
+      }
+    ],
+    "key_quotes": [
+      "Freundlich bleiben und stehen bleiben — anders kriegt man bei Carstens nichts."
+    ],
+    "actions_done": [
+      "Frau Carstens vor Feierabend abgefangen",
+      "Erstes Juli-Wochenende fest zugesagt bekommen",
+      "Donnerstag als Frist für das zweite Wochenende notiert",
+      "Brotdose sichtbar in den Spind gestellt"
+    ],
+    "artifacts_touched": [
+      "Juli-Dienstplan-Aushang",
+      "Diensthandy",
+      "Brotdose",
+      "Spind 47"
+    ],
+    "persona_thought": "Donnerstag steht im Handy mit Erinnerung. Wenn bis dahin nichts kommt, gehe ich über den Personalrat.",
+    "decision": "Frist Donnerstag akzeptiert; bei Schweigen wird der Personalrat eingeschaltet.",
+    "open_loops": [
+      "Zweites Juli-Wochenende bis Donnerstag offen"
+    ],
+    "impact": {
+      "mood": "kampfeslustig",
+      "energy_delta": 1,
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm",
+      "llm_error": null
+    },
+    "pain_points": [
+      "Nach der Schicht zu aufgedreht zum Schlafen, dann unkontrolliertes Essen am Vormittag"
+    ],
+    "goal_refs": [
+      "Den gedrehten Rhythmus so in den Griff kriegen, dass Essen nachts nicht nur Notlösung ist",
+      "Vor jeder Schicht eine echte warme Mahlzeit schaffen, am liebsten mit Jonas"
+    ],
+    "calendar_event_id": "cal_dc5427fdd023d164",
+    "created_at": "2026-06-10T14:11:47.246407+00:00"
+  },
+  {
+    "id": "evt_91d924c460f0eb62",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "timestamp": "2026-06-08T21:30",
+    "event_type": "meeting",
+    "summary": "Anna Petersen Übergabe: Brodersen ist zurück aus der Überwachung using Übergabe-Raum Station 4b; outcome: left an open follow-up.",
+    "task": "Übergabe: Brodersen ist zurück aus der Überwachung",
+    "tool": "Übergabe-Raum Station 4b",
+    "participants": [
+      "Tobias Renk",
+      "Meltem Aydin"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Tobias führt wieder die 20:45-Übergabe, diesmal vorbereiteter als Samstag. Die wichtigste Nachricht zuerst: Herr Brodersen war Sonntag auf der Überwachungsstation, ist heute Mittag mit dem angepassten Insulinschema zurück auf 412 und seither stabil zwischen 95 und 130 — die offene Frage vom Wochenende ist damit beantwortet. Die Lemke-Kurve hat Tobias inzwischen abgezeichnet, er erwähnt es betont beiläufig, Sandra hat ihm offenbar die Leviten gelesen. Neu auf Annas Flurhälfte: Herr Petrow in 403 mit Pneumonie und Sauerstoff, und Frau Dahlke in 411 zur Abklärung von Synkopen, sturzgefährdet, Klingel in Reichweite angeordnet. Frau Lemke in 408 ist kreislaufstabil, aber nachts unruhig und will partout allein zur Toilette. Meltem übernimmt wieder 415 bis 428. Anna markiert sich Dahlke und Lemke als ihre Wackelkandidatinnen der Nacht.",
+    "conversation": [
+      {
+        "speaker": "Tobias Renk",
+        "text": "Brodersen ist seit Mittag zurück, neues Schema läuft, Werte sauber. Und die Lemke-Kurve ist abgezeichnet — bevor du fragst."
+      },
+      {
+        "speaker": "Anna Petersen",
+        "text": "Schau an, es geht doch. Was ist mit Dahlke in 411 — steht die nachts auf?"
+      },
+      {
+        "speaker": "Tobias Renk",
+        "text": "Sturzgefährdet, ja. Klingel ist angeordnet, aber sie hält sich für fitter als sie ist."
+      },
+      {
+        "speaker": "Meltem Aydin",
+        "text": "Genau wie Lemke. Dann haben wir ja zwei Kandidatinnen für heute Nacht."
+      }
+    ],
+    "key_quotes": [
+      "Brodersen stabil zurück — die Frage, mit der ich Samstag nach Hause gefahren bin, ist beantwortet."
+    ],
+    "actions_done": [
+      "Rückverlegung Brodersens mit stabilen Werten zur Kenntnis genommen",
+      "Zwei Neuaufnahmen (Petrow 403, Dahlke 411) übernommen",
+      "Sturzgefährdung Dahlke und Unruhe Lemke als Nachtschwerpunkte markiert",
+      "Abgezeichnete Lemke-Kurve kontrolliert"
+    ],
+    "artifacts_touched": [
+      "Übergabezettel",
+      "Patientenkurve Brodersen",
+      "Aufnahmebögen Petrow und Dahlke",
+      "Belegungsliste 4b"
+    ],
+    "persona_thought": "Zwei sturzgefährdete Damen auf einem Flur und wir wieder zu zweit — das wird eine Nacht mit offenen Türen.",
+    "decision": null,
+    "open_loops": [
+      "Engmaschige Kontrollgänge bei Dahlke und Lemke einplanen"
+    ],
+    "impact": {
+      "mood": "erleichtert-wachsam",
+      "energy_delta": 0,
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm",
+      "llm_error": null
+    },
+    "pain_points": [
+      "Dauerklingeln, wenn 4b nachts nur zu zweit besetzt ist"
+    ],
+    "goal_refs": [
+      "Den gedrehten Rhythmus so in den Griff kriegen, dass Essen nachts nicht nur Notlösung ist",
+      "Vor jeder Schicht eine echte warme Mahlzeit schaffen, am liebsten mit Jonas"
+    ],
+    "calendar_event_id": "cal_91d924c460f0eb62",
+    "created_at": "2026-06-10T14:11:47.246407+00:00"
+  },
+  {
+    "id": "evt_89bcbf2d6288feea",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "timestamp": "2026-06-08T22:10",
+    "event_type": "focus",
+    "summary": "Anna Petersen Abendrunde mit zwei Neuaufnahmen using Medikamentenwagen; outcome: resolved enough to move forward.",
+    "task": "Abendrunde mit zwei Neuaufnahmen",
+    "tool": "Medikamentenwagen",
+    "participants": [],
+    "collaboration_mode": "working alone",
+    "what_happened": "Die 22-Uhr-Runde dauert länger als Samstag, weil die Neuaufnahmen Zeit fressen. Bei Herrn Petrow in 403 kontrolliert Anna die Sauerstoffsättigung — 91 unter zwei Litern, sie stellt die Nasenbrille nach und lagert ihn höher. Frau Dahlke in 411 hält einen kleinen Vortrag darüber, dass sie seit vierzig Jahren nachts allein aufsteht; Anna stellt trotzdem den Nachttisch um, legt die Klingel auf die Bettdecke und macht das Orientierungslicht an. Brodersen ist gut gelaunt und entschuldigt sich verlegen für Samstagnacht, sein BZ liegt bei 118. Bei Frau Lemke wiederholt Anna die Ansage mit der Klingel, erntet aber nur ein unverbindliches Nicken. Die Kurven zeichnet sie wie vorgenommen direkt am Visitenlaptop ab, das System läuft heute stabil. Um Mitternacht ist die Runde durch, alle vierzehn Zimmer gesehen, nichts liegt nach. Meltems Flurhälfte klingelt heute auffallend wenig mit.",
+    "conversation": [
+      {
+        "speaker": "Frau Dahlke",
+        "text": "Kindchen, ich gehe seit vierzig Jahren nachts allein. Das bisschen Schwindel."
+      },
+      {
+        "speaker": "Anna Petersen",
+        "text": "Und genau wegen dem bisschen Schwindel sind Sie hier, Frau Dahlke. Die Klingel liegt auf der Decke — einmal drücken, ich bin in einer Minute da."
+      }
+    ],
+    "key_quotes": [
+      "Vierzehn Zimmer, null Rückstand — so darf Mitternacht gern öfter aussehen."
+    ],
+    "actions_done": [
+      "22-Uhr-Medikation in 401–414 ausgegeben",
+      "Sauerstoff bei Petrow nachgestellt und höher gelagert",
+      "Sturzprophylaxe bei Dahlke: Klingel, Orientierungslicht, Nachttisch umgestellt",
+      "BZ-Kontrolle Brodersen: 118",
+      "Alle Kurven direkt am Visitenlaptop abgezeichnet"
+    ],
+    "artifacts_touched": [
+      "Medikamentenwagen",
+      "Pulsoxymeter",
+      "Visitenlaptop",
+      "Patientenklingel 411",
+      "BZ-Messgerät"
+    ],
+    "persona_thought": "Dahlke nickt genauso unverbindlich wie Lemke. Ich gehe da heute alle zwei Stunden durch, angekündigt oder nicht.",
+    "decision": "Zweistündliche Kontrollgänge bei Dahlke und Lemke fest eingeplant.",
+    "open_loops": [],
+    "impact": {
+      "mood": "rund",
+      "energy_delta": -1,
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm",
+      "llm_error": null
+    },
+    "pain_points": [
+      "Gegen drei Uhr morgens sackt die Energie weg, egal was vorher gegessen wurde"
+    ],
+    "goal_refs": [
+      "Den gedrehten Rhythmus so in den Griff kriegen, dass Essen nachts nicht nur Notlösung ist",
+      "Vor jeder Schicht eine echte warme Mahlzeit schaffen, am liebsten mit Jonas"
+    ],
+    "calendar_event_id": "cal_89bcbf2d6288feea",
+    "created_at": "2026-06-10T14:11:47.246407+00:00"
+  },
+  {
+    "id": "evt_61efb856878906d8",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "timestamp": "2026-06-09T00:15",
+    "event_type": "interruption",
+    "summary": "Anna Petersen Sturzalarm in Zimmer 408 bei Frau Lemke using Patientenzimmer; outcome: left an open follow-up.",
+    "task": "Sturzalarm in Zimmer 408 bei Frau Lemke",
+    "tool": "Patientenzimmer",
+    "participants": [
+      "Frau Lemke",
+      "Meltem Aydin",
+      "Dr. Hartwig"
+    ],
+    "collaboration_mode": "interruption with another stakeholder",
+    "what_happened": "Um 1:55 hört Anna ein dumpfes Geräusch aus 408, noch bevor jemand klingelt. Frau Lemke liegt neben dem Bett auf der Matte, die Anna am Abend vorsorglich ausgelegt hat — sie wollte allein zur Toilette, genau wie angekündigt. Anna prüft Bewusstsein, Schmerzen, Beweglichkeit: ansprechbar, Schmerz im rechten Handgelenk, Hüfte frei beweglich, kein Kopfanprall nach eigener Aussage. Mit Meltem zusammen hebt sie Frau Lemke mit dem Rutschbrett zurück ins Bett. Dr. Hartwig, der neue Dienstarzt der Nacht, kommt nach zwanzig Minuten, untersucht das Handgelenk und ordnet für den Vormittag ein Röntgen an, dazu engmaschige Pupillen- und Vigilanzkontrollen zur Sicherheit. Anna misst Blutdruck und Puls, beides unauffällig, und dokumentiert die Uhrzeiten auf dem Notizzettel fürs Protokoll. Frau Lemke ist kleinlaut und entschuldigt sich; Anna bleibt sachlich, ärgert sich aber im Stillen, dass die Klingel-Ansage wieder nicht gereicht hat. Der Rest des Flurs bleibt währenddessen ruhig — Glück gehabt.",
+    "conversation": [
+      {
+        "speaker": "Frau Lemke",
+        "text": "Ich wollte Sie doch nicht schon wieder klingeln, Kindchen. Es tut mir leid."
+      },
+      {
+        "speaker": "Anna Petersen",
+        "text": "Frau Lemke, dafür bin ich die ganze Nacht hier. Klingeln ist Ihr Job, laufen ist meiner. Tut das Handgelenk beim Drehen weh?"
+      },
+      {
+        "speaker": "Dr. Hartwig",
+        "text": "Handgelenk röntgen wir am Vormittag, eher Prellung als Fraktur. Vigilanz alle zwei Stunden checken, Sturzprotokoll bitte komplett."
+      }
+    ],
+    "key_quotes": [
+      "Die Matte lag genau richtig — manchmal ist Erfahrung die beste Prophylaxe."
+    ],
+    "actions_done": [
+      "Erstcheck nach Sturz: Bewusstsein, Schmerz, Beweglichkeit",
+      "Frau Lemke mit Meltem per Rutschbrett zurück ins Bett gehoben",
+      "Dr. Hartwig hinzugezogen, Röntgen fürs Handgelenk angeordnet",
+      "Vitalzeichen gemessen und Uhrzeiten fürs Protokoll notiert",
+      "Zweistündliche Vigilanzkontrollen eingetaktet"
+    ],
+    "artifacts_touched": [
+      "Sturzmatte",
+      "Rutschbrett",
+      "Blutdruckmessgerät",
+      "Notizzettel Sturzzeiten",
+      "Patientenkurve Lemke"
+    ],
+    "persona_thought": "Genau die Patientin, genau das Szenario, das ich seit der Übergabe im Kopf hatte. Wenigstens lag die Matte.",
+    "decision": null,
+    "open_loops": [
+      "Röntgenbefund Handgelenk Lemke steht aus"
+    ],
+    "impact": {
+      "mood": "angespannt-kontrolliert",
+      "energy_delta": -2,
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm",
+      "llm_error": null
+    },
+    "pain_points": [
+      "Dauerklingeln, wenn 4b nachts nur zu zweit besetzt ist"
+    ],
+    "goal_refs": [
+      "Den gedrehten Rhythmus so in den Griff kriegen, dass Essen nachts nicht nur Notlösung ist",
+      "Vor jeder Schicht eine echte warme Mahlzeit schaffen, am liebsten mit Jonas"
+    ],
+    "calendar_event_id": "cal_61efb856878906d8",
+    "created_at": "2026-06-10T14:11:47.246407+00:00"
+  },
+  {
+    "id": "evt_aed2693a92b9c32e",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "timestamp": "2026-06-09T01:30",
+    "event_type": "admin",
+    "summary": "Anna Petersen Brotdosen-Pause in der Stationsküche using Stationsküche; outcome: resolved enough to move forward.",
+    "task": "Brotdosen-Pause in der Stationsküche",
+    "tool": "Stationsküche",
+    "participants": [],
+    "collaboration_mode": "working alone",
+    "what_happened": "Um kurz nach drei nimmt Anna sich die Pause, die sie sich vorgenommen hat — diesmal mit der eigenen Brotdose in der Stationsküche statt am Automaten auf Ebene 0. Sonntag mit Jonas vorgekocht: Couscous-Salat mit Kichererbsen und Feta, dazu zwei hartgekochte Eier und ein Apfel. Sie isst im Sitzen, am kleinen Tisch zwischen Spülmaschine und Kaffeemaschine, und stellt den Wecker im Diensthandy auf zwanzig Minuten, damit es eine echte Pause wird. Meltem kommt auf einen Tee dazu, mustert die Dose und fragt nach dem Rezept, halb spöttisch, halb ernst. Das Drei-Uhr-Loch kommt trotzdem, aber flacher als Samstag — kein Zuckerabsturz, kein dritter Kaffee. Anna spült die Dose aus und stellt sie zurück in ihre Tasche, damit sie morgen wieder mitkommt. Ein Klingelruf um 3:25 beendet die Pause planmäßig statt mittendrin. Sie notiert sich im Kopf: Es war keine Frage der Disziplin, sondern nur die, wo die Dose abends steht.",
+    "conversation": [
+      {
+        "speaker": "Meltem Aydin",
+        "text": "Couscous um drei Uhr nachts — du machst mir Komplexe. Mein Abendessen war eine Zigarette und ein Pfefferminztee."
+      },
+      {
+        "speaker": "Anna Petersen",
+        "text": "Hat Jonas gekocht, ich hab nur eingepackt. Aber ich sag dir was: Das Loch um drei ist heute halb so tief."
+      }
+    ],
+    "key_quotes": [
+      "Keine Frage der Disziplin — die Dose muss nur abends im Flur stehen statt in der Küche."
+    ],
+    "actions_done": [
+      "Brotdose mit Couscous-Salat in Ruhe gegessen",
+      "Pausenwecker auf 20 Minuten gestellt",
+      "Mit Meltem Tee getrunken und kurz durchgeatmet",
+      "Dose gespült und direkt zurück in die Tasche gepackt"
+    ],
+    "artifacts_touched": [
+      "Brotdose",
+      "Couscous-Salat",
+      "Diensthandy-Wecker",
+      "Teebecher"
+    ],
+    "persona_thought": "Drei Uhr und ich kann noch geradeaus denken. Wenn das der Unterschied ist, war der Automat vier Jahre lang das Problem.",
+    "decision": "Die Brotdose wird zur festen Routine: sonntags vorkochen, abends in den Flur stellen.",
+    "open_loops": [],
+    "impact": {
+      "mood": "zufrieden",
+      "energy_delta": 2,
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm",
+      "llm_error": null
+    },
+    "pain_points": [
+      "Gegen drei Uhr morgens sackt die Energie weg, egal was vorher gegessen wurde"
+    ],
+    "goal_refs": [
+      "Den gedrehten Rhythmus so in den Griff kriegen, dass Essen nachts nicht nur Notlösung ist",
+      "Vor jeder Schicht eine echte warme Mahlzeit schaffen, am liebsten mit Jonas"
+    ],
+    "calendar_event_id": "cal_aed2693a92b9c32e",
+    "created_at": "2026-06-10T14:11:47.246407+00:00"
+  },
+  {
+    "id": "evt_720a3c1d98e51611",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "timestamp": "2026-06-09T02:15",
+    "event_type": "focus",
+    "summary": "Anna Petersen Sturzprotokoll und Nachtdoku im KIS using Stationsrechner (KIS); outcome: resolved enough to move forward.",
+    "task": "Sturzprotokoll und Nachtdoku im KIS",
+    "tool": "Stationsrechner (KIS)",
+    "participants": [],
+    "collaboration_mode": "working alone",
+    "what_happened": "Ab vier sitzt Anna am Stationsrechner und arbeitet das Sturzprotokoll für Frau Lemke ab: Hergang, Auffindesituation, Erstcheck, Arztanordnung, alles mit den Uhrzeiten vom Notizzettel. Das KIS-Formular verlangt eine neue Sturzrisiko-Einstufung, sie setzt Lemke hoch und hinterlegt die Maßnahmen — Matte, Orientierungslicht, zweistündliche Kontrollen. Zwischendrin zwei Kontrollgänge: Lemke schläft, Pupillen unauffällig, Dahlke schnarcht friedlich, Petrows Sättigung hält bei 93. Die reguläre Nachtdoku ist dank der abgezeichneten Kurven vom Abend schnell erledigt, kein Rückstand wie früher. Sie schreibt zusätzlich eine kurze Info an die Physiotherapie, dass Lemke nach dem Röntgen Gangtraining brauchen wird. Um 5:35 ist alles im System, das KIS stürzt heute kein einziges Mal ab. Anna lehnt sich zurück und merkt, dass die Nacht trotz Sturz weniger an ihr gezehrt hat als die am Samstag.",
+    "conversation": [],
+    "key_quotes": [
+      "Ein Sturzprotokoll schreibt sich um vier Uhr fast von selbst, wenn man um zwei die Uhrzeiten notiert hat."
+    ],
+    "actions_done": [
+      "Sturzprotokoll Lemke vollständig im KIS erfasst",
+      "Sturzrisiko-Einstufung aktualisiert und Maßnahmen hinterlegt",
+      "Zwei Kontrollgänge bei Lemke, Dahlke und Petrow",
+      "Info an die Physiotherapie wegen Gangtraining geschrieben",
+      "Reguläre Nachtdoku abgeschlossen"
+    ],
+    "artifacts_touched": [
+      "Stationsrechner (KIS)",
+      "Sturzprotokoll-Formular",
+      "Notizzettel Sturzzeiten",
+      "Patientenkurve Lemke",
+      "Nachricht an die Physiotherapie"
+    ],
+    "persona_thought": "Samstag hat mich die Doku aufgefressen, heute trage ich sie. Der Unterschied war die Pause — und dass nichts doppelt getippt werden musste.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "konzentriert",
+      "energy_delta": -1,
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm",
+      "llm_error": null
+    },
+    "pain_points": [
+      "Die KIS-Dokumentation frisst jede Pause auf"
+    ],
+    "goal_refs": [
+      "Den gedrehten Rhythmus so in den Griff kriegen, dass Essen nachts nicht nur Notlösung ist",
+      "Vor jeder Schicht eine echte warme Mahlzeit schaffen, am liebsten mit Jonas"
+    ],
+    "calendar_event_id": "cal_720a3c1d98e51611",
+    "created_at": "2026-06-10T14:11:47.246407+00:00"
+  },
+  {
+    "id": "evt_9ae6f6a50343d071",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "timestamp": "2026-06-09T03:55",
+    "event_type": "meeting",
+    "summary": "Anna Petersen Frühübergabe mit Sturzbericht an Sandra using Übergabe-Raum Station 4b; outcome: left an open follow-up.",
+    "task": "Frühübergabe mit Sturzbericht an Sandra",
+    "tool": "Übergabe-Raum Station 4b",
+    "participants": [
+      "Sandra Okafor",
+      "Meltem Aydin"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Um 6:15 übernimmt Sandra Okafor wieder. Anna geht den Sturz in 408 strukturiert durch: Hergang, Erstcheck, Hartwigs Anordnung, Röntgen am Vormittag, Vigilanzkontrollen bisher unauffällig — Sandra soll den Befund nachhalten und die Physio-Info ist schon raus. Brodersen übergibt sie als stabilen Rückkehrer mit Werten um 118, das Thema vom Wochenende ist damit auch für den Frühdienst abgeschlossen. Petrow und Dahlke gehen ohne Besonderheiten über den Tisch, Meltems Flurhälfte war ruhig. Sandra fragt grinsend, ob es stimmt, dass Anna nachts neuerdings Couscous isst — Meltem hat es offenbar schon im Frühdienst-Chat verbreitet. Um 6:50 stempelt Anna aus, draußen nieselt es angenehm dunkel. Im Bus schreibt sie Jonas, dass die Dose ein voller Erfolg war und Donnerstag die Carstens-Frist abläuft. Sie ist müde auf die gute Art — die, mit der man tatsächlich schlafen kann.",
+    "conversation": [
+      {
+        "speaker": "Anna Petersen",
+        "text": "408, Frau Lemke: Sturz um 1:55, Handgelenk wird heute geröntgt, Vigilanz bisher unauffällig. Protokoll ist komplett im KIS, Physio ist informiert."
+      },
+      {
+        "speaker": "Sandra Okafor",
+        "text": "Ich häng mich an den Röntgenbefund. Und Brodersen bleibt bei euch auf 412, ja? Stimmt das mit dem Couscous?"
+      },
+      {
+        "speaker": "Anna Petersen",
+        "text": "Bleibt auf 412, Werte stabil. Und ja — frag Meltem, die will jetzt auch eine Dose."
+      }
+    ],
+    "key_quotes": [
+      "Heute übergebe ich nichts Halbes — und das Loch um drei war auch nur halb so tief."
+    ],
+    "actions_done": [
+      "Sturz Lemke mit komplettem Protokoll an Sandra übergeben",
+      "Röntgenbefund als Nachhalte-Punkt für den Frühdienst markiert",
+      "Brodersen als stabil zurückgemeldet übergeben",
+      "Ausgestempelt und Jonas aus dem Bus geschrieben"
+    ],
+    "artifacts_touched": [
+      "Übergabezettel",
+      "Sturzprotokoll Lemke",
+      "Belegungsliste 4b",
+      "Stempelkarte"
+    ],
+    "persona_thought": "Zwei Nächte, zwei Zwischenfälle, aber diesmal fahre ich ohne offene Frage nach Hause. Donnerstag dann Carstens.",
+    "decision": null,
+    "open_loops": [
+      "Röntgenbefund Lemke beim nächsten Dienst nachfragen",
+      "Donnerstag: Carstens-Frist für das zweite Juli-Wochenende"
+    ],
+    "impact": {
+      "mood": "müde, aufgeräumt",
+      "energy_delta": -1,
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm",
+      "llm_error": null
+    },
+    "pain_points": [
+      "Die KIS-Dokumentation frisst jede Pause auf"
+    ],
+    "goal_refs": [
+      "Den gedrehten Rhythmus so in den Griff kriegen, dass Essen nachts nicht nur Notlösung ist",
+      "Vor jeder Schicht eine echte warme Mahlzeit schaffen, am liebsten mit Jonas"
+    ],
+    "calendar_event_id": "cal_9ae6f6a50343d071",
+    "created_at": "2026-06-10T14:11:47.246407+00:00"
+  },
+  {
+    "date": "2026-06-11",
+    "timestamp": "2026-06-11T20:40",
+    "event_type": "Deadline / Dienstplan-Klärung",
+    "summary": "Am vereinbarten Donnerstag stellte Anna Carstens zur Frist und bekam endlich beide Juli-Wochenenden zugesagt.",
+    "task": "Carstens an die Donnerstag-Frist für das zweite Juli-Wochenende erinnern",
+    "tool": "Stationsbüro 4b",
+    "participants": [
+      "Frau Carstens"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Anna passte Carstens vor der Übergabe im Stationsbüro ab und erinnerte direkt an die selbst gesetzte Frist. Sie hatte den Personalrat schon als nächsten Schritt im Kopf, musste ihn aber nicht erwähnen — Carstens hatte den Plan tatsächlich überarbeitet und sagte beide Wochenenden, das erste und das zweite, am Stück zu. Anna ließ sich das Datum gleich notieren und bestätigen. Eine kleine Genugtuung nach Wochen Hängepartie. Den Eintrag schickte sie Jonas später per WhatsApp, damit er die Hochzeit und die Tage danach fest einplanen kann.",
+    "key_quotes": [
+      "Heute ist Donnerstag, Frau Carstens — wir hatten das so vereinbart.",
+      "Beide Wochenenden, schwarz auf weiß, danke."
+    ],
+    "actions_done": [
+      "Carstens an die Frist erinnert",
+      "Zusage für beide Juli-Wochenenden erhalten",
+      "Daten im Plan bestätigen lassen",
+      "Jonas per WhatsApp informiert"
+    ],
+    "artifacts_touched": [
+      "Dienstplan",
+      "Stationsbüro 4b",
+      "WhatsApp (privat)"
+    ],
+    "persona_thought": "Schriftlich und mit Frist — so kriegt man bei ihr am Ende doch sein Recht.",
+    "decision": "Juli-Plan akzeptiert; Personalrat nicht mehr nötig.",
+    "open_loops": [],
+    "impact": {
+      "mood": "erleichtert, kleiner Triumph",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Carstens verteilt Wünsche nach Gutsherrenart"
+    ],
+    "goal_refs": [
+      "Im Juli zwei freie Wochenenden am Stück durchsetzen",
+      "Zeit mit Jonas"
+    ],
+    "id": "evt_10b87e8805c14117",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "conversation": [],
+    "calendar_event_id": "cal_f42dea2650d44d2d",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "date": "2026-06-11",
+    "timestamp": "2026-06-11T21:30",
+    "event_type": "Übergabe / Patientennachverfolgung",
+    "summary": "In der Übergabe klärte sich endlich der ausstehende Röntgenbefund von Frau Lemke: nur eine Prellung, kein Bruch.",
+    "task": "Röntgenbefund Handgelenk Lemke nachverfolgen und in die Doku übernehmen",
+    "tool": "Übergabe-Raum Station 4b",
+    "participants": [
+      "Tobias Renk",
+      "Meltem Aydin"
+    ],
+    "collaboration_mode": "handoff",
+    "what_happened": "Anna hatte sich den offenen Punkt seit Montag notiert. Der Spätdienst gab die Röntgenkontrolle weiter: keine Fraktur am Handgelenk, nur eine Prellung, Lemke wurde mit Schiene und Schmerzmittel mobilisiert und ist wieder gut ansprechbar. Anna trug den Befund sofort ins KIS nach und strich den Punkt von ihrem Notizzettel. Sie nahm sich vor, bei Lemke nachts trotzdem öfter reinzuschauen, weil die nach dem Sturz nachts unruhig wird.",
+    "key_quotes": [
+      "Kein Bruch — nur eine Prellung, Gott sei Dank.",
+      "Den Punkt schleppe ich seit Montag mit mir rum."
+    ],
+    "actions_done": [
+      "Röntgenbefund in der Übergabe abgefragt",
+      "Befund im KIS nachgetragen",
+      "offenen Punkt vom Notizzettel gestrichen"
+    ],
+    "artifacts_touched": [
+      "Stationsrechner (KIS)",
+      "Übergabe-Raum Station 4b",
+      "Notizzettel"
+    ],
+    "persona_thought": "Endlich zu — ich hasse es, so einen Punkt tagelang offen mitzuschleppen.",
+    "decision": null,
+    "open_loops": [
+      "Lemke nachts engmaschiger beobachten wegen Unruhe"
+    ],
+    "impact": {
+      "mood": "ruhig, abgehakt",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "offene Doku-Punkte über mehrere Dienste mitschleppen"
+    ],
+    "goal_refs": [
+      "Kein Patient kommt wegen übersehener Werte zu Schaden",
+      "Nächte ohne Dokumentationsrückstand beenden"
+    ],
+    "id": "evt_710b000b82df4376",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "conversation": [],
+    "calendar_event_id": "cal_deaf2d4c51644a28",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "date": "2026-06-12",
+    "timestamp": "2026-06-12T01:10",
+    "event_type": "Notfall / Aufnahme",
+    "summary": "Eine nächtliche Notaufnahme aus der ZNA — Herr Tahir mit Brustschmerz — band Anna und den Dienstarzt für eine Stunde.",
+    "task": "Neuaufnahme Herr Tahir aus der ZNA versorgen und überwachen",
+    "tool": "Patientenzimmer",
+    "participants": [
+      "Herr Tahir",
+      "Dr. Yilmaz",
+      "Meltem Aydin"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Kurz nach eins meldete die ZNA eine Aufnahme an: Herr Tahir, 67, mit unklarem Brustschmerz und auffälligem EKG. Anna richtete das Bett in 405, hängte ihn an den Monitor, legte einen zweiten Zugang und nahm Blut für die Troponin-Kontrolle ab. Dr. Yilmaz ordnete eine zweite Troponin-Bestimmung in drei Stunden und ein Monitoring an. Während Anna alles aufbaute, klingelte parallel 410 und 408 — Meltem fing eine Klingel ab, die andere musste warten. Anna blieb knapp und konzentriert, dokumentierte aber jeden Schritt sofort mit, um später keinen Rückstau zu haben.",
+    "key_quotes": [
+      "Monitor läuft, Zugang liegt, Troponin ist unterwegs.",
+      "Eins nach dem anderen, sonst verliere ich den Faden."
+    ],
+    "actions_done": [
+      "Bett 405 für Aufnahme gerichtet",
+      "Tahir an Monitor angeschlossen",
+      "zweiten Zugang gelegt und Blut abgenommen",
+      "Anordnungen von Dr. Yilmaz umgesetzt"
+    ],
+    "artifacts_touched": [
+      "Patientenzimmer 405",
+      "Medikamentenwagen",
+      "Stationsrechner (KIS)",
+      "Patientenrufanlage"
+    ],
+    "persona_thought": "Aufnahme und zwei Klingeln gleichzeitig — zu zweit ist das jedes Mal ein Drahtseilakt.",
+    "decision": "Troponin-Kontrolle in drei Stunden fest in den Kontrollplan aufnehmen.",
+    "open_loops": [
+      "Zweite Troponin-Bestimmung bei Tahir gegen 4 Uhr",
+      "EKG-Befund am Morgen kardiologisch beurteilen lassen"
+    ],
+    "impact": {
+      "mood": "fokussiert, angespannt",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Dauerklingeln bei Zweierbesetzung",
+      "Notfall und Routine kollidieren"
+    ],
+    "goal_refs": [
+      "Kein Patient kommt wegen übersehener Werte zu Schaden"
+    ],
+    "id": "evt_e27d831260294728",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "conversation": [],
+    "calendar_event_id": "cal_7974a2b77b1c4147",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "date": "2026-06-12",
+    "timestamp": "2026-06-12T03:05",
+    "event_type": "Brotdosen-Pause",
+    "summary": "Mitten in der Nacht zwischen zwei Kontrollgängen aß Anna ihren vorgekochten Ofengemüse-Reis und merkte, wie das Drei-Uhr-Loch flacher blieb.",
+    "task": "Geplante warme Pause mit der Brotdose statt Automatenzeug",
+    "tool": "Stationsküche",
+    "participants": [
+      "Meltem Aydin"
+    ],
+    "collaboration_mode": "solo",
+    "what_happened": "Nachdem Tahir stabil am Monitor lag, zog Anna sich für zwanzig Minuten in die Stationsküche zurück, Wecker auf dem Diensthandy gestellt. Diesmal hatte sie Ofengemüse mit Reis dabei, am Sonntag mit Jonas vorgekocht, kurz in der Mikrowelle der Küche warm gemacht. Das warme Essen machte spürbar einen Unterschied — das Loch um drei kam diesmal kaum. Meltem fragte, ob sie mitkochen lassen könne; Anna bot an, sonntags einfach eine Portion mehr zu machen, wenn Meltem die Dose stellt.",
+    "key_quotes": [
+      "Warm essen um drei — das ist ein anderer Mensch danach.",
+      "Stell mir 'ne Dose hin, dann koch ich für dich mit."
+    ],
+    "actions_done": [
+      "vorgekochtes Ofengemüse mit Reis aufgewärmt",
+      "20-Minuten-Pause mit Wecker eingehalten",
+      "Meltem das Mitkochen angeboten"
+    ],
+    "artifacts_touched": [
+      "Stationsküche",
+      "Brotdose",
+      "Diensthandy"
+    ],
+    "persona_thought": "Die Dose funktioniert wirklich — ich darf nur den Sonntag nicht mehr ausfallen lassen.",
+    "decision": "Brotdosen-Routine auf eine Portion für Meltem ausweiten, wenn sie ihren Behälter stellt.",
+    "open_loops": [
+      "Mit Jonas absprechen, sonntags eine größere Menge zu kochen"
+    ],
+    "impact": {
+      "mood": "zufrieden, wach genug",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Energie sackt gegen drei Uhr weg",
+      "KIS-Doku frisst sonst jede Pause"
+    ],
+    "goal_refs": [
+      "Mindestens eine geplante Mahlzeit pro Nacht",
+      "Essen nachts nicht nur als Notlösung"
+    ],
+    "id": "evt_bf43d80c5d0d4d45",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "conversation": [],
+    "calendar_event_id": "cal_e5d88223ede34848",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "date": "2026-06-12",
+    "timestamp": "2026-06-12T06:10",
+    "event_type": "Übergabe abgeschlossen",
+    "summary": "Anna beendete den Dienst um 6:15 ohne offene Doku-Punkte und übergab Tahir mit lückenloser Verlaufskurve.",
+    "task": "Frühübergabe um 6:15 ohne Dokumentationsrückstand",
+    "tool": "Übergabe-Raum Station 4b",
+    "participants": [
+      "Sandra Okafor",
+      "Meltem Aydin"
+    ],
+    "collaboration_mode": "handoff",
+    "what_happened": "Weil Anna jeden Schritt bei Tahir sofort mitdokumentiert hatte, war die Nachtdoku schon vor sechs fertig. Die zweite Troponin-Kontrolle um vier war leicht erhöht, aber stabil, sie hatte Dr. Yilmaz informiert und alles vermerkt. Die Übergabe an Sandra lief knapp und vollständig, kein offener Punkt blieb hängen. Anna war müde, aber zufrieden — eine der seltenen Nächte, in der sie pünktlich und sauber rausging.",
+    "key_quotes": [
+      "Doku ist durch, kein offener Punkt.",
+      "So muss eine Nacht enden."
+    ],
+    "actions_done": [
+      "Nachtdoku vor 6 Uhr abgeschlossen",
+      "Tahir lückenlos übergeben",
+      "Troponin-Verlauf an Sandra weitergegeben"
+    ],
+    "artifacts_touched": [
+      "Stationsrechner (KIS)",
+      "Übergabe-Raum Station 4b"
+    ],
+    "persona_thought": "Sofort-Doku zahlt sich aus — ich geh sauber raus statt mit halben Sachen.",
+    "decision": null,
+    "open_loops": [
+      "Kardiologische EKG-Beurteilung Tahir am Vormittag durch den Frühdienst"
+    ],
+    "impact": {
+      "mood": "müde, aber zufrieden",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [],
+    "goal_refs": [
+      "Übergabe um 6:15 ohne offene Doku-Punkte",
+      "Nächte ohne Dokumentationsrückstand beenden"
+    ],
+    "id": "evt_e129c6fca740470d",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "conversation": [],
+    "calendar_event_id": "cal_5a1b56d0b3c14f2d",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "date": "2026-06-14",
+    "timestamp": "2026-06-14T12:30",
+    "event_type": "Vorkochen / freier Tag",
+    "summary": "Am freien Sonntag kochten Anna und Jonas im Großen vor und füllten Dosen für Annas kommende Nachtreihe und für Meltem ab.",
+    "task": "Sonntags-Vorkochen für die Nachtdienste der Woche",
+    "tool": "eigene Küche",
+    "participants": [
+      "Jonas Wittkamp"
+    ],
+    "collaboration_mode": "private_context",
+    "what_happened": "Erstmals zog die Sonntagsroutine wirklich durch. Anna und Jonas machten eine große Pfanne Ofengemüse mit Kichererbsen und dazu Couscous, dabei lief Musik und sie aßen erst zusammen warm zu Mittag. Danach füllten sie vier Dosen ab — drei für Annas Nächte, eine extra für Meltem, wie versprochen. Jonas frotzelte, dass er jetzt für die ganze Nachtschicht 4b mitkoche. Anna stellte die Dosen abends schon mal griffbereit in den Flur, damit sie sie vor dem Dienst nicht wieder vergisst.",
+    "key_quotes": [
+      "Jetzt koch ich schon für deine Kollegin mit.",
+      "Dose in den Flur, sonst vergess ich sie doch wieder."
+    ],
+    "actions_done": [
+      "Ofengemüse mit Kichererbsen und Couscous gekocht",
+      "gemeinsam warm zu Mittag gegessen",
+      "vier Portionen abgefüllt (drei für Anna, eine für Meltem)",
+      "Dosen abends in den Flur gestellt"
+    ],
+    "artifacts_touched": [
+      "eigene Küche",
+      "Brotdose",
+      "Schraubgläser"
+    ],
+    "persona_thought": "Wenn ich die Dosen abends in den Flur stelle, klappt die ganze Kette — Vorkochen, Mitnehmen, warm essen.",
+    "decision": "Dosen am Vorabend fest in den Flur stellen, um das Mitnehmen nicht zu vergessen.",
+    "open_loops": [],
+    "impact": {
+      "mood": "entspannt, häuslich",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "claude-cli"
+    },
+    "pain_points": [
+      "Essensplanung bleibt sonst am Wachen hängen",
+      "vergisst die Brotdose immer wieder"
+    ],
+    "goal_refs": [
+      "Vor der Schicht eine echte warme Mahlzeit mit Jonas",
+      "Mindestens eine geplante Mahlzeit pro Nacht"
+    ],
+    "id": "evt_12297ad8483b4f14",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "conversation": [],
+    "calendar_event_id": "cal_4f5cb5dbe7cf4b86",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  }
+]

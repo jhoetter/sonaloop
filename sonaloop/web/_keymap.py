@@ -145,10 +145,8 @@ KEYMAP_CSS = r"""
 
 
 def keymap_hint() -> str:
-    """The chrome's discovery affordance ("? for shortcuts"): ONE more row in the sidebar
-    footer's `.sl-nav` cluster (the nav-row idiom, ux-contract §9 V7) with the `?` keycap
-    as its leading visual — a REAL `.sl-kbd` chip (W7 final polish), icon-slot sized so the
-    row stays byte-identical to the nav rows; clicking it opens the same overlay as `?`."""
+    """Legacy footer helper for the shortcuts sheet. The core shell now exposes this
+    from the user menu, but extensions can still reuse the row."""
     return h("button", {"type": "button", "class_": "pi-hover", "data-km-open": True},
              h("kbd", {"class_": "sl-kbd"}, "?"), h("span", {}, t("kbd_hint")))
 

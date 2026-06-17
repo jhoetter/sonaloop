@@ -1,0 +1,304 @@
+[
+  {
+    "id": "cal_2261e1a167564475",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-01-22T06:48:00+01:00",
+    "end": "2026-01-22T07:33+01:00",
+    "title": "histaminarme Pausenbox vor Fruehdienst vorbereiten",
+    "participants": [
+      "Familienkontakt zuhause"
+    ],
+    "location_or_tool": "Kueche zuhause, Pausenbox, Papiernotiz am Kuehlschrank",
+    "intent": "Lucia packte vor einem engen Infusionstag eine abgesicherte Pausenbox, weil der Vortag mit Breze und Bauchdruck geendet hatte.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "cal_b6e6034d83104042",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-01-30T06:52:00+01:00",
+    "end": "2026-01-30T07:37+01:00",
+    "title": "Dienstplan mit Essensfenster abgleichen",
+    "participants": [
+      "Lucia Moreno",
+      "Planende Stelle",
+      "Familienkontakt zuhause"
+    ],
+    "location_or_tool": "Kalender und Papiernotiz am Kühlschrank",
+    "intent": "Lucia bemerkte vor dem Frühdienst, dass ein zusätzlicher Infusionsblock ihre geplante Essenspause genau überdecken würde.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "cal_3fdbc12e49494cf0",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-02-06T11:35:00+01:00",
+    "end": "2026-02-06T12:20+01:00",
+    "title": "Infusionstermine nach Arztverzoegerung neu takten",
+    "participants": [
+      "Direkte Kollegin Samira",
+      "onkologische Aerztin",
+      "Patientin mit Taxol-Termin",
+      "Angehoeriger im Wartebereich"
+    ],
+    "location_or_tool": "Kalender, Diensthandy, Papiernotizen am Tresen",
+    "intent": "Eine kurzfristige Verschiebung im Infusionsplan drueckte Lucias geplantes Essensfenster zusammen und machte Samiras Hilfe noetig.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "cal_e8b60c63d9f1459f",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-02-24T13:08:00+01:00",
+    "end": "2026-02-24T13:53+01:00",
+    "title": "Emotionale Unterbrechung nach Infusionstermin abfedern",
+    "participants": [
+      "Lucia Moreno",
+      "Direkte Kollegin Samira",
+      "Patiententochter",
+      "Onkologe im Dienst"
+    ],
+    "location_or_tool": "Aktenraum der Praxis und Kartoffel-Gurke-Box",
+    "intent": "Nach einem angespannten Gespräch mit einer Patiententochter wich Lucia in den Aktenraum aus und rettete dort eine kurze, histaminarme Pause.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "cal_4f3e638db5e84de7",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-03-18T17:52:00+01:00",
+    "end": "2026-03-18T18:37+01:00",
+    "title": "Dienstplanrueckfrage wegen spaetem Mittwochsdienst formulieren",
+    "participants": [
+      "Planende Stelle",
+      "Direkte Kollegin Samira",
+      "Familienkontakt zuhause"
+    ],
+    "location_or_tool": "WhatsApp, Dienstplan-Ausdruck, Kuechentisch",
+    "intent": "Lucia widersprach einer Dienstplanluecke, weil sie sonst nach Feierabend Sorgearbeit und Einkauf nicht mehr sortiert bekommen haette.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "cal_b96ec3da72944caa",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-03-19T09:18:00+01:00",
+    "end": "2026-03-19T10:03+01:00",
+    "title": "Antwort auf Dienstplanrueckfrage einordnen",
+    "participants": [
+      "Planende Stelle",
+      "Direkte Kollegin Samira"
+    ],
+    "location_or_tool": "Diensthandy, Kalender, Papiernotiz in Kitteltasche",
+    "intent": "Die planende Stelle bot Lucia nur einen einmaligen Tausch an, wodurch die Grundfrage ihrer Belastung offen blieb.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "cal_ec8e71e84f56423f",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-04-08T17:42:00+02:00",
+    "end": "2026-04-08T18:27+02:00",
+    "title": "Rezeptabholung mit Heimweg und Abendessen verbinden",
+    "participants": [
+      "Lucia Moreno",
+      "Familienkontakt zuhause",
+      "Apothekenmitarbeiterin"
+    ],
+    "location_or_tool": "WhatsApp, Apotheke am U-Bahnhof und Küche zuhause",
+    "intent": "Lucia musste nach einem vollen Infusionstag noch zur Apotheke und merkte, dass der Heimweg ihre Abendplanung regelmäßig auffrisst.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "cal_e5c9b2ee48d74de9",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-04-27T13:08:00+02:00",
+    "end": "2026-04-27T13:53+02:00",
+    "title": "Pausenanker trotz emotionaler Unterbrechung schuetzen",
+    "participants": [
+      "Angehoerige einer Patientin",
+      "Direkte Kollegin Samira"
+    ],
+    "location_or_tool": "Pausenbox, Timer am Diensthandy, Aktenraum",
+    "intent": "Lucia testete eine stille Zehn-Minuten-Pause im Aktenraum, nachdem das Wartezimmer durch eine belastete Angehoerige unruhig geworden war.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "cal_bb218a7816014b73",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-05-06T10:36:00+02:00",
+    "end": "2026-05-06T11:21+02:00",
+    "title": "Pausenzeichen im Praxisablauf ausprobieren",
+    "participants": [
+      "Lucia Moreno",
+      "Direkte Kollegin Samira",
+      "Empfangskraft",
+      "Onkologe im Dienst"
+    ],
+    "location_or_tool": "gelber Klebepunkt, Tresenablage und Diensthandy",
+    "intent": "Lucia und Samira testeten erstmals ein sichtbares Zeichen am Tresen, damit kurze Pausen nicht jedes Mal neu verhandelt werden müssen.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "cal_e23b6f878c4d4664",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-05-14T19:26:00+02:00",
+    "end": "2026-05-14T20:11+02:00",
+    "title": "Abendessen und naechste Pausenbox ohne teuren Notkauf sichern",
+    "participants": [
+      "Familienkontakt zuhause"
+    ],
+    "location_or_tool": "Kueche zuhause, Kassenbon, kleine Vorratsliste",
+    "intent": "Lucia entschied sich gegen einen teuren Spontaneinkauf am Bahnhof und baute zuhause eine einfache sichere Abendbasis fuer zwei Dienste vor.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "cal_9d0b9c6294a34c0f",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-05-29T19:18:00+02:00",
+    "end": "2026-05-29T20:03+02:00",
+    "title": "Histaminarme Basis für mehrere Dienste vorbereiten",
+    "participants": [
+      "Lucia Moreno",
+      "Familienkontakt zuhause"
+    ],
+    "location_or_tool": "Küche zuhause, Einkaufszettel und Pausenboxen",
+    "intent": "Lucia bereitete nach einer belastenden Woche keine Idealroutine vor, sondern drei sichere Bausteine für Diensttage mit wenig Reserve.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "cal_ce95380fe9ee4a65",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-06-03T08:42:00+02:00",
+    "end": "2026-06-03T09:27+02:00",
+    "title": "praktisches Pausenzeichen fuer Infusionstage vereinbaren",
+    "participants": [
+      "Direkte Kollegin Samira"
+    ],
+    "location_or_tool": "Papiernotiz, Kalender, Tresenablage",
+    "intent": "Lucia und Samira einigten sich auf ein kleines Pausenzeichen am Tresen, damit kurze Essensfenster nicht jedes Mal neu erklaert werden muessen.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  },
+  {
+    "id": "cal_3462505282311317",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-06-09T07:20",
+    "end": "2026-06-09T07:58",
+    "title": "Morgendlicher Realitätscheck",
+    "participants": [],
+    "location_or_tool": "Diensthandy",
+    "intent": "Lucia Moreno needs to Morgendlicher Realitätscheck.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "cal_0c915c9ec22d3cad",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-06-09T10:15",
+    "end": "2026-06-09T10:53",
+    "title": "Abstimmung mit knapper Reserve",
+    "participants": [
+      "Direkte Kollegin Samira"
+    ],
+    "location_or_tool": "Kalender",
+    "intent": "Lucia Moreno needs to Abstimmung mit knapper Reserve.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "cal_1461a9f012431053",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-06-09T12:40",
+    "end": "2026-06-09T12:59",
+    "title": "Essensfenster gegen Nebenbei-Arbeit schützen",
+    "participants": [],
+    "location_or_tool": "Pausenbox",
+    "intent": "Lucia Moreno needs to Essensfenster gegen Nebenbei-Arbeit schützen.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "cal_6483d8494c19f14d",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-06-09T18:30",
+    "end": "2026-06-09T18:59",
+    "title": "Abendroutine ohne Idealplan",
+    "participants": [],
+    "location_or_tool": "Küche zuhause",
+    "intent": "Lucia Moreno needs to Abendroutine ohne Idealplan.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "cal_5d7792febc6121f3",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-06-10T07:20",
+    "end": "2026-06-10T07:58",
+    "title": "Morgendlicher Realitätscheck",
+    "participants": [],
+    "location_or_tool": "Diensthandy",
+    "intent": "Lucia Moreno needs to Morgendlicher Realitätscheck.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "cal_c094e0e176dc5dbd",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-06-10T10:15",
+    "end": "2026-06-10T10:53",
+    "title": "Abstimmung mit knapper Reserve",
+    "participants": [
+      "Direkte Kollegin Samira"
+    ],
+    "location_or_tool": "Kalender",
+    "intent": "Lucia Moreno needs to Abstimmung mit knapper Reserve.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "cal_7ab83d1946d7c541",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-06-10T12:40",
+    "end": "2026-06-10T12:59",
+    "title": "Essensfenster gegen Nebenbei-Arbeit schützen",
+    "participants": [],
+    "location_or_tool": "Pausenbox",
+    "intent": "Lucia Moreno needs to Essensfenster gegen Nebenbei-Arbeit schützen.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "cal_e5c3d4be3fb61f52",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-06-10T18:30",
+    "end": "2026-06-10T18:59",
+    "title": "Abendroutine ohne Idealplan",
+    "participants": [],
+    "location_or_tool": "Küche zuhause",
+    "intent": "Lucia Moreno needs to Abendroutine ohne Idealplan.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "cal_35b0d8783f3f4d58",
+    "persona_id": "persona_1317d5cacfe44114",
+    "start": "2026-06-12T11:54:00+02:00",
+    "end": "2026-06-12T12:39+02:00",
+    "title": "Belastungsmuster bei Infusionsblöcken benennen",
+    "participants": [
+      "Lucia Moreno",
+      "Planende Stelle",
+      "Direkte Kollegin Samira"
+    ],
+    "location_or_tool": "Diensthandy, Kalenderausdruck und gelber Punkt als Pausenzeichen",
+    "intent": "Lucia gab der planenden Stelle erstmals eine konkrete Rückmeldung zu zwei Infusionsblöcken statt nur einen einzelnen Diensttausch zu erbitten.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T12:14:27+00:00"
+  }
+]

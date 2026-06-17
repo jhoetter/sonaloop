@@ -1,0 +1,1105 @@
+[
+  {
+    "date": "2026-01-22",
+    "timestamp": "2026-01-22T06:46:00+01:00",
+    "event_type": "fruehdienst_umplanung",
+    "summary": "Paula tauschte vor dem Frühdienst zwei Behandlungen in ihrem Kalender, damit der längere Gang zur Gangschule nicht direkt vor ihrer einzigen Essenspause lag.",
+    "task": "Therapieblock mit Wegstrecken abgleichen",
+    "tool": "Diensthandy und Papiernotiz im Spind",
+    "participants": [
+      "Paula Gruber",
+      "Direkte Kollegin Samira",
+      "Planende Stelle"
+    ],
+    "collaboration_mode": "handoff",
+    "what_happened": "Noch im Umkleideraum sah Paula, dass der neue Plan drei 20-Minuten-Takte hintereinander über zwei Gebäudeflügel verteilte. Sie markierte die Patientennummern auf einem kleinen Zettel, schrieb Samira eine knappe Nachricht und bat die Planende Stelle, die Gangschule mit der Atemgruppe zu tauschen. Die Änderung wurde nur teilweise angenommen: Der Weg blieb knapp, aber die Pause lag nicht mehr direkt nach dem Treppenhauslauf.",
+    "key_quotes": [
+      "Wenn ich da renne, ist die Pause schon weg.",
+      "Ich brauche keinen Luxus, nur keine Falle im Plan.",
+      "Samira, kannst du mir die 8:40 kurz halten?"
+    ],
+    "actions_done": [
+      "Kalender vor Dienstbeginn auf Wegstrecken geprüft",
+      "zwei kritische Blöcke auf Papier markiert",
+      "Samira um kurze Abdeckung beim Übergang gebeten",
+      "Planende Stelle um Teilaustausch gebeten"
+    ],
+    "artifacts_touched": [
+      "Diensthandy-Kalender",
+      "Papiernotiz im Spind",
+      "WhatsApp-Nachricht an Samira",
+      "Therapieplan Frühdienst"
+    ],
+    "persona_thought": "Ich merke es erst, wenn der Plan im Körper ankommt, nicht wenn er auf dem Display ordentlich aussieht.",
+    "decision": "Paula entschied, künftig vor Frühdiensten nur die Wegstrecken zu prüfen statt den ganzen Tag neu planen zu wollen.",
+    "open_loops": [
+      "Prüfen, ob die Planende Stelle Wegstrecken bei knappen Pausen überhaupt mitdenkt",
+      "Samira zurückgeben, wenn sie wegen der Abdeckung selbst Druck bekommt"
+    ],
+    "impact": {
+      "mood": "angespannt, aber handlungsfähig",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Zeitfenster lassen sich selten komplett selbst wählen",
+      "Planung muss ohne lange Bildschirmzeit funktionieren"
+    ],
+    "goal_refs": [
+      "Den Tag verlässlich schaffen, ohne danach komplett leer zu sein",
+      "Ein realistisches Essensfenster schützen"
+    ],
+    "id": "evt_300571f0156c4637",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "conversation": [],
+    "calendar_event_id": "cal_fe6b5d4b704247bc",
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "date": "2026-02-06",
+    "timestamp": "2026-02-06T06:42:00+01:00",
+    "event_type": "dienststart_vorbereitung",
+    "summary": "Paula legte vor einem langen Freitag eine sehr kleine Pausenbox-Strategie fest, weil die ersten drei Behandlungen ohne echten Puffer getaktet waren.",
+    "task": "Pausenbox fuer lueckenlosen Vormittag vorbereiten",
+    "tool": "Kueche zuhause und Papiernotiz",
+    "participants": [
+      "Paula Gruber"
+    ],
+    "collaboration_mode": "private_context",
+    "what_happened": "Noch vor dem Losfahren merkte Paula, dass sie beim Blick in den Kalender innerlich schon schneller atmete: zwei Einzelkabinen, danach MTT-Raum, danach eine Rueckfrage der Planenden Stelle. Sie schnitt nicht wie sonst mehrere Dinge vor, sondern packte nur Quark, eine Banane und Salzcracker in die kleine Dose und klebte einen Zettel mit 'erst sitzen, dann antworten' an den Deckel. Das wirkte fast albern, aber es war konkret genug, um nicht wieder mit leerem Magen zwischen Geraeteraum und Telefon zu stehen.",
+    "key_quotes": [
+      "Erst sitzen, dann antworten.",
+      "Mehr schaffe ich morgens nicht, also muss es reichen."
+    ],
+    "actions_done": [
+      "Pausenbox mit drei einfachen Bestandteilen gepackt",
+      "Papiernotiz auf den Deckel geklebt",
+      "Kalender auf zwei moegliche Sitzfenster geprueft"
+    ],
+    "artifacts_touched": [
+      "Pausenbox",
+      "Papiernotiz",
+      "Kalender",
+      "Kueche zuhause"
+    ],
+    "persona_thought": "Wenn ich mir wieder einen perfekten Plan ausdenke, verliere ich ihn vor neun Uhr. Eine Dose ist heute schon ein Plan.",
+    "decision": "Paula entschied, an vollen Freitagen nur eine minimale Pausenbox statt einer kompletten Essensplanung vorzubereiten.",
+    "open_loops": [
+      "Pruefen, ob der Deckel-Zettel im Dienst wirklich auffaellt, bevor sie automatisch weiterarbeitet"
+    ],
+    "impact": {
+      "mood": "angespannt, aber etwas geerdet",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Planung muss ohne lange Bildschirmzeit funktionieren",
+      "Pausen sind abhaengig von anderen Menschen, nicht vom eigenen Hunger"
+    ],
+    "goal_refs": [
+      "Den Tag verlaesslich schaffen, ohne danach komplett leer zu sein",
+      "Ein realistisches Essensfenster schuetzen",
+      "Mit einfachen Routinen weniger Notloesungen brauchen"
+    ],
+    "id": "evt_c24e367fe7e04a4a",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "conversation": [],
+    "calendar_event_id": "cal_212c2d9e5b454b32",
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "date": "2026-02-06",
+    "timestamp": "2026-02-06T12:18:00+01:00",
+    "event_type": "pausenanker_test",
+    "summary": "Der Zettel auf der Pausenbox stoppte Paula kurz genug, um vor einer Rueckfrage der Dienstplanung wirklich zu essen.",
+    "task": "Essensfenster trotz Rueckfrage sichern",
+    "tool": "Pausenbox im Mitarbeiterraum",
+    "participants": [
+      "Paula Gruber",
+      "Planende Stelle",
+      "Direkte Kollegin Samira"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Als die Planende Stelle wegen eines verschobenen Nachmittagsblocks anrief, hatte Paula die Pausenbox schon offen, aber noch keinen Bissen gegessen. Sie sah den Zettel, liess das Diensthandy zwei weitere Male klingeln und nahm erst nach vier Loeffeln Quark ab. Samira kam rein, sah Paulas Blick zum Handy und sagte nur, sie koenne die naechste Patientin drei Minuten im Wartebereich halten. Die Pause war nicht ruhig, aber sie blieb eine Pause statt nur eine Durchgangsstation.",
+    "key_quotes": [
+      "Ich rufe gleich zurueck, nicht jetzt im ersten Bissen.",
+      "Drei Minuten kriege ich abgefangen."
+    ],
+    "actions_done": [
+      "Anruf der Planenden Stelle bewusst verzoegert",
+      "Vier Loeffel gegessen, bevor sie zurueckrief",
+      "Samiras kurze Abfanghilfe angenommen",
+      "Uhrzeit der Unterbrechung auf Papier notiert"
+    ],
+    "artifacts_touched": [
+      "Diensthandy",
+      "Pausenbox",
+      "Papiernotiz",
+      "Mitarbeiterraum"
+    ],
+    "persona_thought": "Es ist traurig, dass vier Loeffel schon ein Erfolg sind. Aber mein Koerper merkt den Unterschied.",
+    "decision": "Paula hielt an der Regel fest, bei Beginn des Essens nicht sofort ans Diensthandy zu gehen, sofern keine akute Patientensituation laeuft.",
+    "open_loops": [
+      "Mit Samira klaeren, ob solche Drei-Minuten-Abfanghilfen gegenseitig realistisch bleiben",
+      "Uhrzeit 12:18 in die Pausenverschiebungsliste uebertragen"
+    ],
+    "impact": {
+      "mood": "ueberrascht erleichtert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Andere Menschen haengen direkt an Entscheidungen und Reaktionszeiten"
+    ],
+    "goal_refs": [
+      "Ein realistisches Essensfenster schuetzen",
+      "Mit einfachen Routinen weniger Notloesungen brauchen"
+    ],
+    "id": "evt_b61353e39cc14eda",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "conversation": [],
+    "calendar_event_id": "cal_741f311526a3479e",
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "date": "2026-02-24",
+    "timestamp": "2026-02-24T16:05:00+01:00",
+    "event_type": "uebergabe_nachbelastung",
+    "summary": "Nach einer anstrengenden Gangschule bat Paula erstmals vor Dienstende um eine gezielte Mini-Uebergabe statt die Dokumentation mitzunehmen.",
+    "task": "Dokumentationsrest ohne Abendverschiebung klaeren",
+    "tool": "Therapieplan und Papiernotizen",
+    "participants": [
+      "Paula Gruber",
+      "Direkte Kollegin Samira",
+      "Patient Herr K."
+    ],
+    "collaboration_mode": "handoff",
+    "what_happened": "Herr K. war nach der Gangschule frustriert, weil die Stufe am Uebungsblock nicht so klappte wie vor der OP. Paula blieb ruhig im Ton, merkte aber nach der Behandlung dieses wattige Long-Covid-Gefuehl im Kopf. Statt die offenen Beobachtungen spaeter zuhause aus dem Gedaechtnis zu rekonstruieren, schrieb sie drei Stichworte auf und bat Samira, beim naechsten Kontakt nur den Stufenwechsel zu beobachten. Samira nickte, bat aber um maximal zwei Saetze, weil ihr eigener Plan voll war. Paula kuerzte die Notiz direkt im Flur.",
+    "key_quotes": [
+      "Ich brauche es kurz genug, sonst nehme ich es mit heim.",
+      "Schreib mir nur, worauf ich achten soll."
+    ],
+    "actions_done": [
+      "Drei Beobachtungen zur Gangschule notiert",
+      "Uebergabe auf zwei Saetze gekuerzt",
+      "Samira um gezielte Beobachtung beim Folgetermin gebeten",
+      "Dokumentationsrest vor Dienstende abgeschlossen"
+    ],
+    "artifacts_touched": [
+      "Therapieplan",
+      "Papiernotizen",
+      "Flur vor Einzelkabine 2",
+      "Patientenakte"
+    ],
+    "persona_thought": "Ich muss nicht jede Unschaerfe allein retten, nur weil ich sie bemerkt habe.",
+    "decision": "Paula entschied, bei Erschoepfung Dokumentationsreste sofort zu verdichten und abzugeben, statt sie privat nachzuarbeiten.",
+    "open_loops": [
+      "Rueckmeldung von Samira zum Stufenwechsel bei Herrn K. abholen",
+      "Pruefen, ob Zwei-Satz-Uebergaben auch bei komplexeren Faellen reichen"
+    ],
+    "impact": {
+      "mood": "muede, aber weniger allein verantwortlich",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit fuer Planung",
+      "merkt erst spaet, wie viel eigene Energie im Dienst an anderen verschwindet"
+    ],
+    "goal_refs": [
+      "Den Tag verlaesslich schaffen, ohne danach komplett leer zu sein",
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben"
+    ],
+    "id": "evt_7c979a43c0de4d36",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "conversation": [],
+    "calendar_event_id": "cal_e47687a5b054456c",
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "date": "2026-03-03",
+    "timestamp": "2026-03-03T12:18:00+01:00",
+    "event_type": "pausenbox_test",
+    "summary": "Paula testete eine kleinere Pausenbox mit salzigem Essen, weil süße Notlösungen sie nach der Long-Covid-Erschöpfung schneller abstürzen ließen.",
+    "task": "Essensfenster im Therapietakt halten",
+    "tool": "Pausenbox in der Teamküche",
+    "participants": [
+      "Paula Gruber",
+      "Direkte Kollegin Samira"
+    ],
+    "collaboration_mode": "interruption",
+    "what_happened": "Paula hatte Linsensalat und ein hartgekochtes Ei eingepackt, weil der Bäcker auf dem Heimweg im Februar zu oft die schnelle Lösung gewesen war. Nach zwei Löffeln kam ein Anruf von der Anmeldung, weil ein Patient den Raum gewechselt hatte. Samira stellte die Box wortlos in den Kühlschrank zurück und legte Paulas Besteck oben drauf, damit es nicht wieder zwischen Dokumentationszetteln verschwand.",
+    "key_quotes": [
+      "Bitte nicht wieder nur Breze und Kaffee.",
+      "Ich stell es dir zurück, sonst vergisst du es.",
+      "Zehn Minuten zählen heute auch."
+    ],
+    "actions_done": [
+      "kleine Pausenbox mit salzigem Essen vorbereitet",
+      "Anruf der Anmeldung angenommen",
+      "Raumwechsel im Kalender korrigiert",
+      "Rest der Box nach der Unterbrechung fertig gegessen"
+    ],
+    "artifacts_touched": [
+      "Pausenbox",
+      "Teamküchen-Kühlschrank",
+      "Diensthandy",
+      "Raumplan der Anmeldung"
+    ],
+    "persona_thought": "Wenn jemand nur eine Kleinigkeit rettet, fühlt sich der Tag nicht gleich so verloren an.",
+    "decision": "Paula behielt die kleinere Box bei, weil sie auch nach Unterbrechungen noch essbar und nicht zu viel war.",
+    "open_loops": [
+      "Zwei salzige Varianten finden, die nicht teuer sind",
+      "Mit Samira klären, ob beide ihre Boxen sichtbar in dasselbe Kühlschrankfach legen"
+    ],
+    "impact": {
+      "mood": "dankbar und erschöpft",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt",
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag"
+    ],
+    "goal_refs": [
+      "Ein realistisches Essensfenster schützen",
+      "Mit einfachen Routinen weniger Notlösungen brauchen"
+    ],
+    "id": "evt_1821af7ba9744cea",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "conversation": [],
+    "calendar_event_id": "cal_029120e4e6ec4625",
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "date": "2026-03-27",
+    "timestamp": "2026-03-27T19:36:00+01:00",
+    "event_type": "familienchat_grenze",
+    "summary": "Paula verschob eine private Organisationsfrage bewusst um eine Stunde, weil sie nach dem Spaetdienst erst essen und herunterfahren musste.",
+    "task": "Private Sorgearbeit nach Spaetdienst begrenzen",
+    "tool": "WhatsApp und Kueche zuhause",
+    "participants": [
+      "Paula Gruber",
+      "Familienkontakt zuhause"
+    ],
+    "collaboration_mode": "private_context",
+    "what_happened": "Im Familienchat ging es um die Abholung eines Rezepts und wer am Wochenende bei einem Besuch mitfahren kann. Paula stand noch mit Jacke in der Kueche, sah die Nachrichten aufpoppen und spuerten sofort den alten Reflex, alles direkt zu sortieren. Sie schrieb nur, dass sie um 20:30 Uhr antwortet, stellte das Handy mit Display nach unten und machte sich Brot, Ei und Gurke. Als sie spaeter antwortete, war sie knapper und weniger gereizt, auch wenn eine Nachricht mit Fragezeichen kam.",
+    "key_quotes": [
+      "Ich antworte um halb neun, nicht vorher.",
+      "Wenn ich hungrig plane, wird alles groesser als es ist."
+    ],
+    "actions_done": [
+      "WhatsApp-Antwort mit konkreter Uhrzeit geschickt",
+      "Handy waehrend des Essens umgedreht",
+      "Einfache Abendmahlzeit zubereitet",
+      "Familienorganisation spaeter in drei Punkten beantwortet"
+    ],
+    "artifacts_touched": [
+      "WhatsApp",
+      "Kueche zuhause",
+      "Pausenbox-Reste",
+      "Familienchat"
+    ],
+    "persona_thought": "Verlaesslich heisst nicht, dass ich sofort verfuegbar bin. Das muss ich mir offenbar jedes Mal neu erlauben.",
+    "decision": "Paula entschied, nach Spaetdiensten eine konkrete Antwortzeit zu nennen, bevor sie private Organisationsfragen klaert.",
+    "open_loops": [
+      "Beobachten, ob der Familienkontakt die feste Antwortzeit akzeptiert",
+      "Am Sonntag klaeren, wer das Rezept tatsaechlich abholt"
+    ],
+    "impact": {
+      "mood": "reizbar, dann ruhiger",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben",
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit fuer Planung"
+    ],
+    "goal_refs": [
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben",
+      "Abends bleiben ein paar Entscheidungen weniger offen"
+    ],
+    "id": "evt_2daff991add84cf2",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "conversation": [],
+    "calendar_event_id": "cal_71fd31f46a6c4279",
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "date": "2026-04-16",
+    "timestamp": "2026-04-16T17:42:00+02:00",
+    "event_type": "familienkontakt_nach_dienst",
+    "summary": "Paula verschob einen Familienanruf bewusst auf nach dem Essen, weil sie nach dem Dienst keine Entscheidungen mehr gleichzeitig tragen wollte.",
+    "task": "Private Sorgearbeit nach Dienstende begrenzen",
+    "tool": "Küche zuhause und WhatsApp-Sprachnachricht",
+    "participants": [
+      "Paula Gruber",
+      "Familienkontakt zuhause"
+    ],
+    "collaboration_mode": "private_context",
+    "what_happened": "Nach einem dicht getakteten Nachmittag mit zwei neurologischen Befunden sah Paula drei Nachrichten aus der Familie wegen eines Arzttermins am nächsten Morgen. Normalerweise hätte sie im Treppenhaus zurückgerufen. Diesmal stellte sie erst Wasser auf, aß Brot mit Frischkäse und nahm dann eine kurze Sprachnachricht auf: Sie könne den Termin nicht organisieren, aber um 19:30 Uhr zehn Minuten mitdenken.",
+    "key_quotes": [
+      "Ich melde mich nach dem Essen, nicht vorher.",
+      "Zehn Minuten ja, die ganze Planung nein.",
+      "Sonst bin ich wieder weg vom Abend."
+    ],
+    "actions_done": [
+      "Familiennachrichten gelesen, ohne sofort anzurufen",
+      "ein einfaches Abendessen vorbereitet",
+      "verbindliche Rückmeldezeit per Sprachnachricht genannt",
+      "Arzttermin-Frage auf eine Papiernotiz geschrieben"
+    ],
+    "artifacts_touched": [
+      "WhatsApp-Sprachnachricht",
+      "Küche zuhause",
+      "Papiernotiz am Kühlschrank",
+      "Dienstkleidung im Flur"
+    ],
+    "persona_thought": "Ich bin nicht unzuverlässig, nur weil ich erst esse, bevor ich antworte.",
+    "decision": "Paula entschied, nach Spätdiensten keine Familienorganisation vor dem ersten Essen anzunehmen.",
+    "open_loops": [
+      "Familienkontakt an die spätere Rückmeldezeit gewöhnen",
+      "Klären, wer den Arzttermin tatsächlich begleitet"
+    ],
+    "impact": {
+      "mood": "schutzbedürftig, aber klar",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben",
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung"
+    ],
+    "goal_refs": [
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben",
+      "Abends bleiben ein paar Entscheidungen weniger offen"
+    ],
+    "id": "evt_37b8de81b1c34fbf",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "conversation": [],
+    "calendar_event_id": "cal_2230fb54c9ed4d89",
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "date": "2026-04-29",
+    "timestamp": "2026-04-29T09:48:00+02:00",
+    "event_type": "dienstplanung_review",
+    "summary": "Paula brachte der Planenden Stelle eine knappe Liste mit Wegezeiten statt eine allgemeine Beschwerde ueber fehlende Pausen.",
+    "task": "Pausenverschiebungen mit konkreten Wegen belegen",
+    "tool": "Zwei-Wochen-Liste der Pausenverschiebungen",
+    "participants": [
+      "Paula Gruber",
+      "Planende Stelle",
+      "Direkte Kollegin Samira"
+    ],
+    "collaboration_mode": "review",
+    "what_happened": "Vor der kurzen Ruecksprache hatte Paula die Uhrzeiten nicht schoen formatiert, sondern nur drei Beispiele markiert: MTT-Raum zu Atemgruppe, Atemgruppe zu Einzelkabine, Einzelkabine zur Doku am geteilten Rechner. Die Planende Stelle fragte zuerst, ob das nicht normale Schwankungen seien. Paula blieb bei den Wegen und sagte, dass die Pause formal existiert, aber praktisch im Raumwechsel verschwindet. Samira ergaenzte ein Beispiel aus ihrer Schicht, ohne die Diskussion breit zu machen. Am Ende wurde keine neue Regel beschlossen, aber fuer die kommende Woche sollte ein Atemgruppenblock zehn Minuten frueher enden.",
+    "key_quotes": [
+      "Die Pause steht da, aber ich laufe sie weg.",
+      "Ich brauche keinen Sonderplan, ich brauche den Weg im Plan."
+    ],
+    "actions_done": [
+      "Drei markierte Beispiele vorgelegt",
+      "Wegezeiten statt Erschoepfungsgefuehl beschrieben",
+      "Samiras Vergleichsschicht kurz einbezogen",
+      "Testweise frueheres Ende eines Atemgruppenblocks vereinbart"
+    ],
+    "artifacts_touched": [
+      "Zwei-Wochen-Liste der Pausenverschiebungen",
+      "Kalender",
+      "Dienstplan-Ausdruck",
+      "Besprechungsecke im Rehazentrum Rosenheim"
+    ],
+    "persona_thought": "Sobald ich sage, wie es sich anfuehlt, wird es weich. Sobald ich die Wege zeige, hoeren sie anders zu.",
+    "decision": "Paula entschied, die Pausenverschiebungsliste weiter als Wege- und Uhrzeitenliste zu fuehren, nicht als Belastungstagebuch.",
+    "open_loops": [
+      "Naechste Woche pruefen, ob der fruehere Atemgruppenabschluss wirklich ein Essensfenster oeffnet",
+      "Weitere zwei Beispiele aus MTT-Tagen sammeln"
+    ],
+    "impact": {
+      "mood": "vorsichtig bestaetigt, aber nicht erleichtert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Planende Stelle optimiert fuer Abdeckung, nicht fuer Pausen oder Wege",
+      "Pausen sind abhaengig von anderen Menschen, nicht vom eigenen Hunger"
+    ],
+    "goal_refs": [
+      "Ein Pausenanker, der auch an schlechten Tagen funktioniert",
+      "Den Tag verlaesslich schaffen, ohne danach komplett leer zu sein"
+    ],
+    "id": "evt_9bd2d389af27428d",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "conversation": [],
+    "calendar_event_id": "cal_99a0578914324f6f",
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "date": "2026-05-07",
+    "timestamp": "2026-05-07T09:05:00+02:00",
+    "event_type": "teamuebergabe_pausenanker",
+    "summary": "Paula brachte in der Teamübergabe einen Pausenanker zur Sprache, ohne ihn als Sonderwunsch wegen ihrer Erschöpfung zu erklären.",
+    "task": "Pausenanker in der Wochenplanung ansprechen",
+    "tool": "Besprechungsraum und Wochenplan-Ausdruck",
+    "participants": [
+      "Paula Gruber",
+      "Direkte Kollegin Samira",
+      "Planende Stelle",
+      "Teamleitung Reha"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "In der kurzen Wochenbesprechung lag der Ausdruck mit den Feiertagsvertretungen auf dem Tisch. Paula zeigte auf die Dienstage, an denen sie regelmäßig zwischen MTT-Raum und Einzelkabinen sprang, und formulierte es als Wegeproblem statt als Gesundheitsbeichte. Die Teamleitung nickte, die Planende Stelle schrieb aber nur 'prüfen' an den Rand. Samira ergänzte, dass die Wege auch für Patientinnen mit Hilfsmitteln knapp seien.",
+    "key_quotes": [
+      "Es geht um die Wege, nicht um Extrawünsche.",
+      "Wenn der Block kippt, kippt die Pause mit.",
+      "Schreib bitte nicht nur prüfen hin."
+    ],
+    "actions_done": [
+      "kritische Dienstagsblöcke im Wochenplan markiert",
+      "Pausenanker als Wege- und Übergabethema formuliert",
+      "Samiras Beispiel aus der Hilfsmittelgruppe aufgenommen",
+      "Randnotiz der Planenden Stelle fotografiert"
+    ],
+    "artifacts_touched": [
+      "Wochenplan-Ausdruck",
+      "Diensthandy-Foto",
+      "Besprechungsraum-Tisch",
+      "Feiertagsvertretungsliste"
+    ],
+    "persona_thought": "Ich will nicht, dass mein Körper erst ein offizielles Problem werden muss, damit der Plan realistischer wird.",
+    "decision": "Paula entschied, das Thema weiter über Wege und Versorgungssicherheit zu rahmen.",
+    "open_loops": [
+      "Nachfragen, was aus der Randnotiz 'prüfen' wird",
+      "Samira um ein zweites konkretes Beispiel für die Planende Stelle bitten"
+    ],
+    "impact": {
+      "mood": "vorsichtig entschlossen",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Planende Stelle optimiert für Abdeckung, nicht für Pausen oder Wege",
+      "Andere Menschen hängen direkt an Entscheidungen und Reaktionszeiten"
+    ],
+    "goal_refs": [
+      "Den Tag verlässlich schaffen, ohne danach komplett leer zu sein",
+      "Ein Pausenanker, der auch an schlechten Tagen funktioniert"
+    ],
+    "id": "evt_06b1f97b0705434a",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "conversation": [],
+    "calendar_event_id": "cal_a00c0d7509694ba5",
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "date": "2026-05-08",
+    "timestamp": "2026-05-08T13:36:00+02:00",
+    "event_type": "nachfassung_planstelle",
+    "summary": "Paula merkte am Folgetag, dass der angesprochene Pausenanker im Plan nicht umgesetzt war, und dokumentierte die konkrete Auswirkung statt erneut allgemein zu bitten.",
+    "task": "Nicht umgesetzte Planänderung nachhalten",
+    "tool": "Diensthandy-Notiz und Therapieplan",
+    "participants": [
+      "Paula Gruber",
+      "Planende Stelle",
+      "Direkte Kollegin Samira"
+    ],
+    "collaboration_mode": "review",
+    "what_happened": "Der neue Therapieplan sah fast genauso aus wie vor der Besprechung. Paula hatte zwischen Atemtherapie und MTT nur fünf Minuten, blieb dann wegen einer Patientin mit Schwindel länger im Raum und aß erst um 13:36 Uhr drei Gabeln kalten Salat. Sie schrieb keine lange Beschwerde, sondern notierte Uhrzeit, Raumwechsel und die verschobene Pause. Samira riet ihr, die Notiz direkt an die Teamleitung mitzunehmen, bevor es wieder als Einzelfall verschwindet.",
+    "key_quotes": [
+      "So sieht 'prüfen' dann also aus.",
+      "Ich schreibe jetzt nur auf, was passiert ist.",
+      "Nimm es mit, sonst bleibt es dein Problem."
+    ],
+    "actions_done": [
+      "verspätete Pause mit Uhrzeit dokumentiert",
+      "Raumwechsel und Patientensituation knapp notiert",
+      "Foto vom unveränderten Therapieplan gemacht",
+      "Samiras Hinweis für die nächste Teamleitung notiert"
+    ],
+    "artifacts_touched": [
+      "Diensthandy-Notiz",
+      "Therapieplan Freitag",
+      "Pausenbox mit Linsensalat",
+      "Einzelkabine 3"
+    ],
+    "persona_thought": "Wenn ich es nicht konkret mache, klingt es wieder wie Jammern. Konkret ist schwerer wegzuschieben.",
+    "decision": "Paula entschied, für zwei Wochen nur tatsächliche Pausenverschiebungen mit Uhrzeit zu sammeln.",
+    "open_loops": [
+      "Zwei-Wochen-Liste der Pausenverschiebungen weiterführen",
+      "Teamleitung mit konkreten Beispielen ansprechen",
+      "Prüfen, ob die kleinere Pausenbox für sehr späte Pausen reicht"
+    ],
+    "impact": {
+      "mood": "frustriert und nüchtern",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger",
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt"
+    ],
+    "goal_refs": [
+      "Ein Pausenanker, der auch an schlechten Tagen funktioniert",
+      "Den Tag verlässlich schaffen, ohne danach komplett leer zu sein"
+    ],
+    "id": "evt_3091f8e916e44cfe",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "conversation": [],
+    "calendar_event_id": "cal_61e30e3b97324ae3",
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "date": "2026-05-21",
+    "timestamp": "2026-05-21T13:07:00+02:00",
+    "event_type": "notloesung_budget",
+    "summary": "Paula kaufte kein teures Baeckerei-Mittagessen, sondern kombinierte Supermarktjoghurt mit Pausenbox-Resten und hielt die Kosten auf ihrer Notiz fest.",
+    "task": "Koerperlich bessere Notloesung mit kleinem Budget finden",
+    "tool": "Supermarkt am Bahnhof Rosenheim",
+    "participants": [
+      "Paula Gruber"
+    ],
+    "collaboration_mode": "solo",
+    "what_happened": "Nach einem vertauschten Raumplan war Paulas vorbereitetes Essen zu klein fuer den Tag, und die Baeckerei am Bahnhof roch genau nach der schnellen Loesung, die sie spaeter oft bereut. Sie ging trotzdem in den Supermarkt, nahm Naturjoghurt, eine kleine Packung Nuesse und Mineralwasser, setzte sich draussen nicht auf die Bank am Rauchereck, sondern auf die niedrige Mauer Richtung Busspur. Auf die Rueckseite ihrer Uhrzeitenliste schrieb sie 3,28 Euro und daneben 'nicht perfekt, aber kein Zuckersturz'.",
+    "key_quotes": [
+      "Nicht perfekt, aber kein Zuckersturz.",
+      "Ich will nicht fuer Erschoepfung jedes Mal acht Euro zahlen."
+    ],
+    "actions_done": [
+      "Baeckerei-Impuls gestoppt",
+      "Guenschtige Supermarkt-Kombination gekauft",
+      "Kosten auf der Papiernotiz festgehalten",
+      "Pausenbox-Reste mit Joghurt ergaenzt"
+    ],
+    "artifacts_touched": [
+      "Pausenbox",
+      "Papiernotiz",
+      "Supermarkt am Bahnhof Rosenheim",
+      "Diensthandy"
+    ],
+    "persona_thought": "Ich brauche eine Notloesung, die mich nicht bestraft, weder im Bauch noch im Konto.",
+    "decision": "Paula entschied, eine kurze Liste mit drei bezahlbaren Notloesungen in die Pausenbox zu legen.",
+    "open_loops": [
+      "Drei konkrete Bahnhof- oder Supermarktoptionen notieren",
+      "Pruefen, welche Option bei Atemgruppen-Tagen gut vertraeglich bleibt"
+    ],
+    "impact": {
+      "mood": "erschoepft, aber selbstwirksam",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag",
+      "Weniger teure oder koerperlich schlechte Notloesungen brauchen"
+    ],
+    "goal_refs": [
+      "Weniger teure oder koerperlich schlechte Notloesungen",
+      "Mit einfachen Routinen weniger Notloesungen brauchen"
+    ],
+    "id": "evt_009d3ab584ce4d91",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "conversation": [],
+    "calendar_event_id": "cal_140a90ff6d5e4487",
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "date": "2026-06-03",
+    "timestamp": "2026-06-03T18:12:00+02:00",
+    "event_type": "budgetcheck_wochenessen",
+    "summary": "Paula rechnete zuhause nach, welche einfachen Abendessen ihre Notkäufe ersetzen können, ohne am Sonntag einen großen Kochplan zu brauchen.",
+    "task": "Günstige Essensbausteine für Diensttage festlegen",
+    "tool": "Küche zuhause, Einkaufszettel und Papiernotiz",
+    "participants": [
+      "Paula Gruber"
+    ],
+    "collaboration_mode": "solo",
+    "what_happened": "Nach dem Frühdienst legte Paula die Kassenzettel der letzten Woche neben den Wasserkocher und erschrak über drei Bäckerstopps und zweimal Fertigsalat vom Supermarkt. Sie schrieb keine vollständige Einkaufsliste, sondern drei Bausteine auf: Eier, tiefgekühltes Gemüse und Brot. Der Plan war bewusst klein, weil sie wusste, dass ein perfektes Meal-Prep am Sonntag nach der Erschöpfung meist nicht passiert.",
+    "key_quotes": [
+      "Nicht noch ein Sonntagsprojekt.",
+      "Drei Bausteine reichen, wenn sie wirklich da sind.",
+      "Teuer wird es immer dann, wenn ich zu spät denke."
+    ],
+    "actions_done": [
+      "Kassenzettel der letzten Woche verglichen",
+      "drei wiederholbare Essensbausteine notiert",
+      "Budgetgrenze für Notkäufe aufgeschrieben",
+      "Einkaufszettel an die Wohnungstür gelegt"
+    ],
+    "artifacts_touched": [
+      "Kassenzettel",
+      "Papiernotiz",
+      "Küche zuhause",
+      "Einkaufszettel an der Wohnungstür"
+    ],
+    "persona_thought": "Ich brauche Essen, das mich nicht noch einmal organisieren will.",
+    "decision": "Paula entschied, nur drei haltbare Essensbausteine als Wochenstandard zu kaufen.",
+    "open_loops": [
+      "Nach einer Woche prüfen, ob die drei Bausteine Notkäufe reduzieren",
+      "Eine Variante finden, die auch nach Spätdienst nicht schwer im Magen liegt"
+    ],
+    "impact": {
+      "mood": "müde, aber erleichtert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung",
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag"
+    ],
+    "goal_refs": [
+      "Mit einfachen Routinen weniger Notlösungen brauchen",
+      "Weniger teure oder körperlich schlechte Notlösungen",
+      "Abends bleiben ein paar Entscheidungen weniger offen"
+    ],
+    "id": "evt_766bc71610934891",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "conversation": [],
+    "calendar_event_id": "cal_0c308990cd0747c3",
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "date": "2026-06-05",
+    "timestamp": "2026-06-05T11:33:00+02:00",
+    "event_type": "erschoepfungssignal_absprache",
+    "summary": "Paula und Samira legten ein kurzes Zeichen fuer Mikro-Uebergaben fest, nachdem Paula in der Atemgruppe wieder zu spaet merkte, dass ihre Konzentration abfiel.",
+    "task": "Mikro-Uebergaben bei Long-Covid-Erschoepfung vereinbaren",
+    "tool": "Diensthandy und Papiernotiz im Geraeteraum",
+    "participants": [
+      "Paula Gruber",
+      "Direkte Kollegin Samira",
+      "Patientengruppe Atemtherapie"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Die Atemgruppe lief fachlich sauber, aber Paula merkte beim Aufraeumen, dass sie die letzte Rueckfrage einer Patientin zweimal lesen musste. Im Geraeteraum sagte sie Samira nicht allgemein, dass sie fertig sei, sondern zeigte auf den Zettel mit den zwei Worten 'kurz uebernehmen'. Samira schlug vor, dass Paula bei solchen Momenten nur den naechsten konkreten Handgriff nennt: Matten weg, Fenster auf, Patientin zur Anmeldung schicken. Sie einigten sich auf ein WhatsApp-Punktzeichen fuer Tage, an denen Sprechen schon zu viel kostet.",
+    "key_quotes": [
+      "Sag mir den naechsten Handgriff, nicht den ganzen Zustand.",
+      "Ein Punkt reicht, wenn Reden gerade zu teuer ist."
+    ],
+    "actions_done": [
+      "Erschoepfungssignal im Geraeteraum ausgesprochen",
+      "Konkretes Zwei-Wort-Zeichen fuer Uebergaben notiert",
+      "WhatsApp-Punktzeichen mit Samira vereinbart",
+      "Drei moegliche Handgriffe fuer Atemgruppen-Ende gesammelt"
+    ],
+    "artifacts_touched": [
+      "Diensthandy",
+      "WhatsApp",
+      "Papiernotiz",
+      "Geraeteraum",
+      "Atemgruppenraum"
+    ],
+    "persona_thought": "Ich will nicht dramatisch wirken. Aber vielleicht ist klarer sogar weniger dramatisch fuer alle.",
+    "decision": "Paula entschied, bei beginnender kognitiver Erschoepfung ein kurzes Zeichen an Samira zu senden, statt weiter normal zu wirken.",
+    "open_loops": [
+      "Nach zwei Wochen mit Samira auswerten, ob das Punktzeichen stoert oder hilft",
+      "Handgriffe fuer Atemgruppen-Ende an die Innenseite der Materialschranktuer kleben"
+    ],
+    "impact": {
+      "mood": "verletzlich, dann pragmatisch",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Long-Covid-Erschoepfung wird oft erst spaet bemerkt",
+      "Andere Menschen haengen direkt an Entscheidungen und Reaktionszeiten"
+    ],
+    "goal_refs": [
+      "Den Tag verlaesslich schaffen, ohne danach komplett leer zu sein",
+      "Ein Pausenanker, der auch an schlechten Tagen funktioniert"
+    ],
+    "id": "evt_058763351c1d49b3",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "conversation": [],
+    "calendar_event_id": "cal_1bef9a59315141e7",
+    "created_at": "2026-06-15T13:32:48+00:00"
+  },
+  {
+    "id": "evt_ce0767b87b4fc2e2",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "timestamp": "2026-06-09T07:20",
+    "event_type": "admin",
+    "summary": "Paula Gruber Morgendlicher Realitätscheck using Diensthandy; outcome: left an open follow-up.",
+    "task": "Morgendlicher Realitätscheck",
+    "tool": "Diensthandy",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Paula Gruber arbeitet an `Morgendlicher Realitätscheck` im Kontext Physiotherapeutin im Rehazentrum. Der Moment zeigt, wie Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger. Die Persona entscheidet sich für einen kleinen nächsten Schritt und markiert, was offen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Wenn es nur im perfekten Tag funktioniert, hilft es mir nicht."
+    ],
+    "actions_done": [
+      "Morgendlicher Realitätscheck"
+    ],
+    "artifacts_touched": [
+      "Diensthandy"
+    ],
+    "persona_thought": "Ich brauche etwas, das zwischen echten Unterbrechungen noch hält.",
+    "decision": null,
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten"
+    ],
+    "impact": {
+      "mood": "angespannt, aber handlungsfähig",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger"
+    ],
+    "goal_refs": [
+      "Den Tag verlässlich schaffen, ohne danach komplett leer zu sein"
+    ],
+    "calendar_event_id": "cal_ce0767b87b4fc2e2",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "evt_60a5e6b6b064b2ea",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "timestamp": "2026-06-09T10:15",
+    "event_type": "meeting",
+    "summary": "Paula Gruber Abstimmung mit knapper Reserve using Kalender; outcome: left an open follow-up.",
+    "task": "Abstimmung mit knapper Reserve",
+    "tool": "Kalender",
+    "participants": [
+      "Direkte Kollegin Samira"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Paula Gruber arbeitet an `Abstimmung mit knapper Reserve` im Kontext Physiotherapeutin im Rehazentrum. Der Moment zeigt, wie Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt. Die Persona entscheidet sich für einen kleinen nächsten Schritt und markiert, was offen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Wenn es nur im perfekten Tag funktioniert, hilft es mir nicht."
+    ],
+    "actions_done": [
+      "Abstimmung mit knapper Reserve"
+    ],
+    "artifacts_touched": [
+      "Kalender"
+    ],
+    "persona_thought": "Ich brauche etwas, das zwischen echten Unterbrechungen noch hält.",
+    "decision": null,
+    "open_loops": [
+      "Abstimmung mit knapper Reserve nachhalten"
+    ],
+    "impact": {
+      "mood": "angespannt, aber handlungsfähig",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt"
+    ],
+    "goal_refs": [
+      "Ein realistisches Essensfenster schützen"
+    ],
+    "calendar_event_id": "cal_60a5e6b6b064b2ea",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "evt_964a7578bc569c8d",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "timestamp": "2026-06-09T12:40",
+    "event_type": "focus",
+    "summary": "Paula Gruber Essensfenster gegen Nebenbei-Arbeit schützen using Pausenbox; outcome: resolved enough to move forward.",
+    "task": "Essensfenster gegen Nebenbei-Arbeit schützen",
+    "tool": "Pausenbox",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Paula Gruber arbeitet an `Essensfenster gegen Nebenbei-Arbeit schützen` im Kontext Physiotherapeutin im Rehazentrum. Der Moment zeigt, wie Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung. Die Persona entscheidet sich für einen kleinen nächsten Schritt und markiert, was offen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Wenn es nur im perfekten Tag funktioniert, hilft es mir nicht."
+    ],
+    "actions_done": [
+      "Essensfenster gegen Nebenbei-Arbeit schützen"
+    ],
+    "artifacts_touched": [
+      "Pausenbox"
+    ],
+    "persona_thought": "Ich brauche etwas, das zwischen echten Unterbrechungen noch hält.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "angespannt, aber handlungsfähig",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung"
+    ],
+    "goal_refs": [
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben"
+    ],
+    "calendar_event_id": "cal_964a7578bc569c8d",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "evt_fb1af3c395067387",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "timestamp": "2026-06-09T18:30",
+    "event_type": "focus",
+    "summary": "Paula Gruber Abendroutine ohne Idealplan using Küche zuhause; outcome: resolved enough to move forward.",
+    "task": "Abendroutine ohne Idealplan",
+    "tool": "Küche zuhause",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Paula Gruber arbeitet an `Abendroutine ohne Idealplan` im Kontext Physiotherapeutin im Rehazentrum. Der Moment zeigt, wie Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag. Die Persona entscheidet sich für einen kleinen nächsten Schritt und markiert, was offen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Wenn es nur im perfekten Tag funktioniert, hilft es mir nicht."
+    ],
+    "actions_done": [
+      "Abendroutine ohne Idealplan"
+    ],
+    "artifacts_touched": [
+      "Küche zuhause"
+    ],
+    "persona_thought": "Ich brauche etwas, das zwischen echten Unterbrechungen noch hält.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "angespannt, aber handlungsfähig",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag"
+    ],
+    "goal_refs": [
+      "Mit einfachen Routinen weniger Notlösungen brauchen"
+    ],
+    "calendar_event_id": "cal_fb1af3c395067387",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "evt_8f5de8fd52a0fd4a",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "timestamp": "2026-06-10T07:20",
+    "event_type": "admin",
+    "summary": "Paula Gruber Morgendlicher Realitätscheck using Diensthandy; outcome: left an open follow-up.",
+    "task": "Morgendlicher Realitätscheck",
+    "tool": "Diensthandy",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Paula Gruber arbeitet an `Morgendlicher Realitätscheck` im Kontext Physiotherapeutin im Rehazentrum. Der Moment zeigt, wie Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger. Die Persona entscheidet sich für einen kleinen nächsten Schritt und markiert, was offen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Wenn es nur im perfekten Tag funktioniert, hilft es mir nicht."
+    ],
+    "actions_done": [
+      "Morgendlicher Realitätscheck"
+    ],
+    "artifacts_touched": [
+      "Diensthandy"
+    ],
+    "persona_thought": "Ich brauche etwas, das zwischen echten Unterbrechungen noch hält.",
+    "decision": null,
+    "open_loops": [
+      "Morgendlicher Realitätscheck nachhalten"
+    ],
+    "impact": {
+      "mood": "müde und etwas klarer sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger"
+    ],
+    "goal_refs": [
+      "Den Tag verlässlich schaffen, ohne danach komplett leer zu sein"
+    ],
+    "calendar_event_id": "cal_8f5de8fd52a0fd4a",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "evt_d4c10dc52fffe3d9",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "timestamp": "2026-06-10T10:15",
+    "event_type": "meeting",
+    "summary": "Paula Gruber Abstimmung mit knapper Reserve using Kalender; outcome: left an open follow-up.",
+    "task": "Abstimmung mit knapper Reserve",
+    "tool": "Kalender",
+    "participants": [
+      "Direkte Kollegin Samira"
+    ],
+    "collaboration_mode": "meeting",
+    "what_happened": "Paula Gruber arbeitet an `Abstimmung mit knapper Reserve` im Kontext Physiotherapeutin im Rehazentrum. Der Moment zeigt, wie Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt. Die Persona entscheidet sich für einen kleinen nächsten Schritt und markiert, was offen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Wenn es nur im perfekten Tag funktioniert, hilft es mir nicht."
+    ],
+    "actions_done": [
+      "Abstimmung mit knapper Reserve"
+    ],
+    "artifacts_touched": [
+      "Kalender"
+    ],
+    "persona_thought": "Ich brauche etwas, das zwischen echten Unterbrechungen noch hält.",
+    "decision": null,
+    "open_loops": [
+      "Abstimmung mit knapper Reserve nachhalten"
+    ],
+    "impact": {
+      "mood": "müde und etwas klarer sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Essen wird oft mit Wegen, Dokumentation oder Telefonaten vermischt"
+    ],
+    "goal_refs": [
+      "Ein realistisches Essensfenster schützen"
+    ],
+    "calendar_event_id": "cal_d4c10dc52fffe3d9",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "evt_a236b86d24b12f5f",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "timestamp": "2026-06-10T12:40",
+    "event_type": "focus",
+    "summary": "Paula Gruber Essensfenster gegen Nebenbei-Arbeit schützen using Pausenbox; outcome: resolved enough to move forward.",
+    "task": "Essensfenster gegen Nebenbei-Arbeit schützen",
+    "tool": "Pausenbox",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Paula Gruber arbeitet an `Essensfenster gegen Nebenbei-Arbeit schützen` im Kontext Physiotherapeutin im Rehazentrum. Der Moment zeigt, wie Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung. Die Persona entscheidet sich für einen kleinen nächsten Schritt und markiert, was offen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Wenn es nur im perfekten Tag funktioniert, hilft es mir nicht."
+    ],
+    "actions_done": [
+      "Essensfenster gegen Nebenbei-Arbeit schützen"
+    ],
+    "artifacts_touched": [
+      "Pausenbox"
+    ],
+    "persona_thought": "Ich brauche etwas, das zwischen echten Unterbrechungen noch hält.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "müde und etwas klarer sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Nach Feierabend fehlen Energie und Aufmerksamkeit für Planung"
+    ],
+    "goal_refs": [
+      "Private Sorgearbeit nicht unsichtbar in die Nacht schieben"
+    ],
+    "calendar_event_id": "cal_a236b86d24b12f5f",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "id": "evt_44280e3566a20aca",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "timestamp": "2026-06-10T18:30",
+    "event_type": "focus",
+    "summary": "Paula Gruber Abendroutine ohne Idealplan using Küche zuhause; outcome: resolved enough to move forward.",
+    "task": "Abendroutine ohne Idealplan",
+    "tool": "Küche zuhause",
+    "participants": [],
+    "collaboration_mode": "solo",
+    "what_happened": "Paula Gruber arbeitet an `Abendroutine ohne Idealplan` im Kontext Physiotherapeutin im Rehazentrum. Der Moment zeigt, wie Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag. Die Persona entscheidet sich für einen kleinen nächsten Schritt und markiert, was offen bleibt.",
+    "conversation": [],
+    "key_quotes": [
+      "Wenn es nur im perfekten Tag funktioniert, hilft es mir nicht."
+    ],
+    "actions_done": [
+      "Abendroutine ohne Idealplan"
+    ],
+    "artifacts_touched": [
+      "Küche zuhause"
+    ],
+    "persona_thought": "Ich brauche etwas, das zwischen echten Unterbrechungen noch hält.",
+    "decision": null,
+    "open_loops": [],
+    "impact": {
+      "mood": "müde und etwas klarer sortiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "host-authored"
+    },
+    "pain_points": [
+      "Kleine Budget- oder Gesundheitsgrenzen kippen schnell den ganzen Tag"
+    ],
+    "goal_refs": [
+      "Mit einfachen Routinen weniger Notlösungen brauchen"
+    ],
+    "calendar_event_id": "cal_44280e3566a20aca",
+    "created_at": "2026-06-10T21:29:57.217849+00:00"
+  },
+  {
+    "date": "2026-06-12",
+    "timestamp": "2026-06-12T11:52:00+02:00",
+    "event_type": "atemgruppe_erschöpfungssignal",
+    "summary": "Paula brach den stillen Versuch ab, ihre Erschöpfung zu überspielen, und bat Samira um eine gezielte Übergabe nach der Atemgruppe.",
+    "task": "Belastungsgrenze während Atemgruppe absichern",
+    "tool": "Therapieraum, Diensthandy und kurzer Übergabezettel",
+    "participants": [
+      "Paula Gruber",
+      "Direkte Kollegin Samira",
+      "Patientengruppe Atemtherapie"
+    ],
+    "collaboration_mode": "field_visit",
+    "what_happened": "In der Atemgruppe merkte Paula nach der zweiten Übungsrunde, dass ihr eigener Puls nicht wie gewohnt runterging. Sie beendete die Einheit fachlich sauber, ließ aber die Materialrückgabe nicht mehr nebenbei laufen. Stattdessen schrieb sie Samira einen Übergabezettel mit den zwei Patienten, die noch Fragen hatten, und setzte sich für vier Minuten in den leeren Geräteraum. Es fühlte sich unangenehm an, aber der restliche Vormittag brach dadurch nicht komplett weg.",
+    "key_quotes": [
+      "Ich bin gerade nicht schnell, aber ich bin noch klar.",
+      "Kannst du die zwei Rückfragen nehmen?",
+      "Vier Minuten sind besser als später gar nichts."
+    ],
+    "actions_done": [
+      "Atemgruppe ohne Zusatzaufgaben abgeschlossen",
+      "zwei offene Patientenfragen auf Übergabezettel notiert",
+      "Samira gezielt um Übernahme der Rückfragen gebeten",
+      "kurze Ruhepause im Geräteraum genommen"
+    ],
+    "artifacts_touched": [
+      "Übergabezettel",
+      "Diensthandy",
+      "Therapieraum Atemgruppe",
+      "Geräteraum"
+    ],
+    "persona_thought": "Ich darf die Grenze früher ziehen, nicht erst wenn sie jemand anderes sieht.",
+    "decision": "Paula entschied, bei deutlichem Erschöpfungssignal Zusatzaufgaben sofort zu übergeben statt sie mitzuschleppen.",
+    "open_loops": [
+      "Mit Samira vereinbaren, wie solche Mikro-Übergaben gegenseitig funktionieren",
+      "Beobachten, ob die Vier-Minuten-Pause nach Atemgruppen wiederholbar ist"
+    ],
+    "impact": {
+      "mood": "verletzlich, aber stabilisiert",
+      "timezone": "Europe/Berlin",
+      "generation_mode": "llm_authored",
+      "authoring_model": "codex-cli"
+    },
+    "pain_points": [
+      "Gesundheit setzt harte Grenzen",
+      "Andere Menschen hängen direkt an Entscheidungen und Reaktionszeiten",
+      "Pausen sind abhängig von anderen Menschen, nicht vom eigenen Hunger"
+    ],
+    "goal_refs": [
+      "Den Tag verlässlich schaffen, ohne danach komplett leer zu sein",
+      "Ein Pausenanker, der auch an schlechten Tagen funktioniert"
+    ],
+    "id": "evt_2be581b914ef4eeb",
+    "persona_id": "persona_078ad78989c2f3e0",
+    "conversation": [],
+    "calendar_event_id": "cal_04dc2853af94446a",
+    "created_at": "2026-06-15T13:32:48+00:00"
+  }
+]

@@ -1,0 +1,897 @@
+{
+  "entities": [
+    {
+      "id": "ent_d31649b61fbef677",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "kind": "person",
+      "name": "Frau Lemke",
+      "status": "Patientin 408, nach Sturz stabil, Röntgen ausstehend",
+      "aliases": [],
+      "first_seen": "2026-06-06",
+      "last_seen": "2026-06-08",
+      "created_at": "2026-06-10T14:11:45.063841+00:00",
+      "updated_at": "2026-06-10T14:11:47.600009+00:00"
+    },
+    {
+      "id": "ent_a5cb5e1a2fd1edea",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "kind": "person",
+      "name": "Frau Carstens",
+      "status": "Stationsleitung, Frist Donnerstag für den Juli-Plan",
+      "aliases": [],
+      "first_seen": "2026-06-08",
+      "last_seen": "2026-05-27",
+      "created_at": "2026-06-10T14:11:47.600009+00:00",
+      "updated_at": "2026-06-10T14:11:47.600009+00:00"
+    },
+    {
+      "id": "ent_e8575919ff0c7c35",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "kind": "person",
+      "name": "Dr. Hartwig",
+      "status": "Dienstarzt der Montagnacht",
+      "aliases": [],
+      "first_seen": "2026-06-08",
+      "last_seen": "2026-06-08",
+      "created_at": "2026-06-10T14:11:47.600009+00:00",
+      "updated_at": "2026-06-10T14:11:47.600009+00:00"
+    },
+    {
+      "id": "ent_73b44c10252456af",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "kind": "topic",
+      "name": "Brotdosen-Routine",
+      "status": "erste Nacht erfolgreich",
+      "aliases": [
+        "Brotdose"
+      ],
+      "first_seen": "2026-06-08",
+      "last_seen": "2026-06-08",
+      "created_at": "2026-06-10T14:11:47.600009+00:00",
+      "updated_at": "2026-06-10T14:11:47.600009+00:00"
+    },
+    {
+      "id": "ent_a7eb7244696deb63",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "kind": "org",
+      "name": "Station 4b Innere",
+      "status": "26 von 28 Betten belegt",
+      "aliases": [
+        "4b"
+      ],
+      "first_seen": "2026-06-06",
+      "last_seen": "2026-06-06",
+      "created_at": "2026-06-10T14:11:45.063841+00:00",
+      "updated_at": "2026-06-10T14:11:45.063841+00:00"
+    },
+    {
+      "id": "ent_761cb344171b1305",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "kind": "person",
+      "name": "Herr Brodersen",
+      "status": "Patient 412, nach Hypoglykämie stabil",
+      "aliases": [
+        "Brodersen"
+      ],
+      "first_seen": "2026-06-06",
+      "last_seen": "2026-06-06",
+      "created_at": "2026-06-10T14:11:45.063841+00:00",
+      "updated_at": "2026-06-10T14:11:45.063841+00:00"
+    },
+    {
+      "id": "ent_c46e1bbb1e63ff25",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "kind": "person",
+      "name": "Dr. Yilmaz",
+      "status": "Dienstarzt der Nacht",
+      "aliases": [],
+      "first_seen": "2026-06-06",
+      "last_seen": "2026-06-06",
+      "created_at": "2026-06-10T14:11:45.063841+00:00",
+      "updated_at": "2026-06-10T14:11:45.063841+00:00"
+    },
+    {
+      "id": "ent_02cd4205fc0a4cf1",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "kind": "person",
+      "name": "Jonas Wittkamp",
+      "status": "private",
+      "aliases": [
+        "Jonas"
+      ],
+      "first_seen": "2026-05-03",
+      "last_seen": "2026-06-14",
+      "created_at": "2026-06-15T08:31:50+00:00",
+      "updated_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "ent_7cf3c48db6b54e11",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "kind": "person",
+      "name": "Meltem Aydin",
+      "status": "active",
+      "aliases": [
+        "Meltem"
+      ],
+      "first_seen": "2026-04-22",
+      "last_seen": "2026-06-14",
+      "created_at": "2026-06-15T08:31:50+00:00",
+      "updated_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "ent_10a61a3ae6d94e7b",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "kind": "project",
+      "name": "Juli-Dienstplan zwei freie Wochenenden",
+      "status": "resolved",
+      "aliases": [
+        "Juli-Plan",
+        "Juli-Wunsch"
+      ],
+      "first_seen": "2026-05-19",
+      "last_seen": "2026-06-11",
+      "created_at": "2026-06-15T08:31:50+00:00",
+      "updated_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "ent_a2429b433f72494d",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "kind": "topic",
+      "name": "Vorkoch-Sonntag",
+      "status": "active",
+      "aliases": [
+        "Sonntags-Vorkochen",
+        "Brotdosen-Routine"
+      ],
+      "first_seen": "2026-05-03",
+      "last_seen": "2026-06-14",
+      "created_at": "2026-06-15T08:31:50+00:00",
+      "updated_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "ent_38f8fd926fba492a",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "kind": "person",
+      "name": "Herr Tahir",
+      "status": "work_context",
+      "aliases": [
+        "Tahir"
+      ],
+      "first_seen": "2026-06-12",
+      "last_seen": "2026-06-12",
+      "created_at": "2026-06-15T08:31:50+00:00",
+      "updated_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "ent_9f0da2b95201488b",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "kind": "place",
+      "name": "Snackautomat Ebene 0",
+      "status": "wackelig",
+      "aliases": [
+        "Automat",
+        "Reihe E"
+      ],
+      "first_seen": "2026-04-22",
+      "last_seen": "2026-04-22",
+      "created_at": "2026-06-15T08:31:50+00:00",
+      "updated_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "ent_47335a9632c841fe",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "kind": "person",
+      "name": "Frau Köhler",
+      "status": "Patientin 79, nach Sturz mit Kopfplatzwunde",
+      "aliases": [
+        "Köhler"
+      ],
+      "first_seen": "2026-05-12",
+      "last_seen": "2026-05-12",
+      "created_at": "2026-06-15T08:31:50+00:00",
+      "updated_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "ent_549f3a36e11c47f4",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "kind": "person",
+      "name": "Sandra Okafor",
+      "status": "work_context",
+      "aliases": [
+        "Sandra"
+      ],
+      "first_seen": "2026-05-12",
+      "last_seen": "2026-05-12",
+      "created_at": "2026-06-15T08:31:50+00:00",
+      "updated_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "ent_e8f6b7a05ff146c4",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "kind": "topic",
+      "name": "Schlaf nach der Nachtschicht",
+      "status": "wackelig",
+      "aliases": [
+        "Schlaffenster",
+        "Runterkommen nach der Nacht"
+      ],
+      "first_seen": "2026-04-15",
+      "last_seen": "2026-04-15",
+      "created_at": "2026-06-15T08:31:50+00:00",
+      "updated_at": "2026-06-15T08:31:50+00:00"
+    }
+  ],
+  "entity_facts": [
+    {
+      "id": "fact_134e7e74aba6453e",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_761cb344171b1305",
+      "fact": "Hypoglykämie (BZ 41) um 1:20; Dr. Yilmaz reduzierte das Basalinsulin, danach stabile Werte um 100",
+      "status": null,
+      "t_valid": "2026-06-06",
+      "t_invalid": null,
+      "importance": 5,
+      "source_event_id": null,
+      "created_at": "2026-06-10T14:11:45.063841+00:00"
+    },
+    {
+      "id": "fact_1852b14fd73945b7",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_a7eb7244696deb63",
+      "fact": "Nachtbesetzung am Wochenende nur zu zweit (Anna und Meltem), Rohrpost defekt",
+      "status": null,
+      "t_valid": "2026-06-06",
+      "t_invalid": null,
+      "importance": 3,
+      "source_event_id": null,
+      "created_at": "2026-06-10T14:11:45.063841+00:00"
+    },
+    {
+      "id": "fact_87fa60a32fddf784",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_c46e1bbb1e63ff25",
+      "fact": "Plant Brodersens Vorstellung beim Oberarzt mit möglicher Verlegung auf die Überwachungsstation",
+      "status": null,
+      "t_valid": "2026-06-06",
+      "t_invalid": null,
+      "importance": 4,
+      "source_event_id": null,
+      "created_at": "2026-06-10T14:11:45.063841+00:00"
+    },
+    {
+      "id": "fact_b4d3b64258354c8b",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_761cb344171b1305",
+      "fact": "Nach Überwachung am Montag stabil zurück auf 412, neues Insulinschema greift (Werte 95–130)",
+      "status": null,
+      "t_valid": "2026-06-08",
+      "t_invalid": null,
+      "importance": 4,
+      "source_event_id": null,
+      "created_at": "2026-06-10T14:11:47.600009+00:00"
+    },
+    {
+      "id": "fact_97df595a0e4898ee",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_d31649b61fbef677",
+      "fact": "Sturz um 1:55 neben dem Bett, Verdacht auf Handgelenksprellung, Röntgen am Vormittag angeordnet",
+      "status": null,
+      "t_valid": "2026-06-08",
+      "t_invalid": null,
+      "importance": 5,
+      "source_event_id": null,
+      "created_at": "2026-06-10T14:11:47.600009+00:00"
+    },
+    {
+      "id": "fact_3a013eee425e7dc8",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_a5cb5e1a2fd1edea",
+      "fact": "Erstes Juli-Wochenende fest zugesagt, Entscheidung über das zweite bis Donnerstag versprochen",
+      "status": null,
+      "t_valid": "2026-06-08",
+      "t_invalid": null,
+      "importance": 3,
+      "source_event_id": null,
+      "created_at": "2026-06-10T14:11:47.600009+00:00"
+    },
+    {
+      "id": "fact_d5a643c2245855a3",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_73b44c10252456af",
+      "fact": "Vorgekochter Couscous-Salat statt Automat: flacheres Drei-Uhr-Loch, Pause mit Wecker auf 20 Minuten",
+      "status": null,
+      "t_valid": "2026-06-08",
+      "t_invalid": null,
+      "importance": 3,
+      "source_event_id": null,
+      "created_at": "2026-06-10T14:11:47.600009+00:00"
+    },
+    {
+      "id": "fact_afc0603f9a8f4790",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_10a61a3ae6d94e7b",
+      "fact": "Wunsch am 19.05. schriftlich auf Wunschzettel eingereicht (Grund: Hochzeit von Jonas' Schwester), am 11.06. beide Juli-Wochenenden am Stück zugesagt",
+      "t_valid": "2026-06-11",
+      "t_invalid": null,
+      "source_event_id": "evt_a94fbee5cf084f9f",
+      "confidence": 0.95,
+      "importance": 4,
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "fact_dd7508d044a843e6",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_d31649b61fbef677",
+      "fact": "Röntgenbefund am 11.06. geklärt: keine Fraktur, nur Handgelenksprellung, mit Schiene mobilisiert; nachts weiterhin unruhig",
+      "t_valid": "2026-06-11",
+      "t_invalid": null,
+      "source_event_id": "evt_a94fbee5cf084f9f",
+      "confidence": 0.9,
+      "importance": 4,
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "fact_0b191afa8cef4e71",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_a2429b433f72494d",
+      "fact": "Funktioniert mit Jonas zusammen; Dosen werden am Vorabend in den Flur gestellt, damit Anna sie nicht vergisst; warmes Essen um 3 Uhr macht das Drei-Uhr-Loch flacher",
+      "t_valid": "2026-06-14",
+      "t_invalid": null,
+      "source_event_id": "evt_a94fbee5cf084f9f",
+      "confidence": 0.85,
+      "importance": 4,
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "fact_830c018180c54323",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_a2429b433f72494d",
+      "fact": "Ab 14.06. wird sonntags eine Extraportion für Meltem mitgekocht, sofern Meltem ihren Behälter stellt",
+      "t_valid": "2026-06-14",
+      "t_invalid": null,
+      "source_event_id": "evt_a94fbee5cf084f9f",
+      "confidence": 0.8,
+      "importance": 2,
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "fact_4adc375ff76e43ae",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_38f8fd926fba492a",
+      "fact": "67, Aufnahme 12.06. ca. 1 Uhr aus ZNA mit unklarem Brustschmerz in 405; zweite Troponin-Kontrolle um 4 Uhr leicht erhöht, aber stabil; EKG kardiologisch zu beurteilen",
+      "t_valid": "2026-06-12",
+      "t_invalid": null,
+      "source_event_id": "evt_a94fbee5cf084f9f",
+      "confidence": 0.9,
+      "importance": 4,
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "fact_056cb24552624a80",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_9f0da2b95201488b",
+      "fact": "Reihe E klemmt wiederholt und schluckt Geld; nachts oft leergekauft, daher als Versorgung unzuverlässig",
+      "t_valid": "2026-04-22",
+      "t_invalid": null,
+      "source_event_id": "evt_a94fbee5cf084f9f",
+      "confidence": 0.85,
+      "importance": 2,
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "fact_09504356605a4b6b",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_02cd4205fc0a4cf1",
+      "fact": "Lebt im Tagrhythmus (Bürojob); Schwester heiratet im Juli; übernimmt mit Anna gemeinsam das Sonntags-Vorkochen",
+      "t_valid": "2026-05-03",
+      "t_invalid": null,
+      "source_event_id": "evt_a94fbee5cf084f9f",
+      "confidence": 0.9,
+      "importance": 3,
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "fact_7ad0be63245946ec",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_7cf3c48db6b54e11",
+      "fact": "Verlängert ihre Raucherpausen, sodass Anna in der Zeit Klingeln allein abfängt; nimmt das Angebot vorgekochter Dosen an",
+      "t_valid": "2026-06-12",
+      "t_invalid": null,
+      "source_event_id": "evt_a94fbee5cf084f9f",
+      "confidence": 0.8,
+      "importance": 2,
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "fact_8d3708958be6434e",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_9f0da2b95201488b",
+      "fact": "Reihe E klemmte am 31.03. erneut und behielt 2 Euro ein; in einer Zwei-Personen-Nacht blieb nur ein Müsliriegel aus Reihe C als Notversorgung",
+      "t_valid": "2026-03-31",
+      "t_invalid": null,
+      "source_event_id": "evt_e59d3a8c682f4e3f",
+      "confidence": 0.85,
+      "importance": 2,
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "fact_e5e4d8426db242a4",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_a2429b433f72494d",
+      "fact": "Erster vollwertiger Vorkoch-Sonntag am 31.05. mit Jonas: Linsencurry, Reis und Ofengemüse, Dosen mit Datum beschriftet und am Vorabend in den Flur gestellt",
+      "t_valid": "2026-05-31",
+      "t_invalid": null,
+      "source_event_id": "evt_e59d3a8c682f4e3f",
+      "confidence": 0.9,
+      "importance": 3,
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "fact_a707dc53f8de4317",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_e8f6b7a05ff146c4",
+      "fact": "Anna kommt nach der Schicht oft nicht runter, liegt bis ~10:30 wach und isst dann ungeplant am Vormittag; daraus entstand am 15.04. der Anstoß zum Vorkoch-Plan",
+      "t_valid": "2026-04-15",
+      "t_invalid": null,
+      "source_event_id": "evt_e59d3a8c682f4e3f",
+      "confidence": 0.85,
+      "importance": 3,
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "fact_321a5860f8784a0c",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_47335a9632c841fe",
+      "fact": "79, stürzte in der Nacht zum 12.05. über den Infusionsständer, Kopfplatzwunde von Dr. Yilmaz geklammert, neurologische Kontrollen alle zwei Stunden angeordnet, CT-Abklärung am Morgen offen",
+      "t_valid": "2026-05-12",
+      "t_invalid": null,
+      "source_event_id": "evt_e59d3a8c682f4e3f",
+      "confidence": 0.9,
+      "importance": 3,
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "fact_7c51958d7ca34e93",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_a5cb5e1a2fd1edea",
+      "fact": "Vertröstete Anna am 27.05. beim Juli-Wunsch mit Verweis auf den dünnen Springerpool; Anna kündigte wöchentliches Nachhaken und notfalls den Personalrat an",
+      "t_valid": "2026-05-27",
+      "t_invalid": null,
+      "source_event_id": "evt_e59d3a8c682f4e3f",
+      "confidence": 0.85,
+      "importance": 3,
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "fact_382c666c6277459f",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_7cf3c48db6b54e11",
+      "fact": "Schob am 12.05. erneut ihre eigene Doku auf Anna, sodass diese nach der Übergabe zehn Minuten länger blieb",
+      "t_valid": "2026-05-12",
+      "t_invalid": null,
+      "source_event_id": "evt_e59d3a8c682f4e3f",
+      "confidence": 0.8,
+      "importance": 2,
+      "created_at": "2026-06-15T08:31:50+00:00"
+    }
+  ],
+  "event_links": [
+    {
+      "event_id": "evt_8e803ba13fe2fb11",
+      "entity_id": "ent_761cb344171b1305",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": null
+    },
+    {
+      "event_id": "evt_8e803ba13fe2fb11",
+      "entity_id": "ent_c46e1bbb1e63ff25",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": null
+    },
+    {
+      "event_id": "evt_72f5719f4678352c",
+      "entity_id": "ent_a7eb7244696deb63",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": null
+    },
+    {
+      "event_id": "evt_72f5719f4678352c",
+      "entity_id": "ent_d31649b61fbef677",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": null
+    },
+    {
+      "event_id": "evt_72f5719f4678352c",
+      "entity_id": "ent_761cb344171b1305",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": null
+    },
+    {
+      "event_id": "evt_dc5427fdd023d164",
+      "entity_id": "ent_a5cb5e1a2fd1edea",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": null
+    },
+    {
+      "event_id": "evt_91d924c460f0eb62",
+      "entity_id": "ent_761cb344171b1305",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": null
+    },
+    {
+      "event_id": "evt_91d924c460f0eb62",
+      "entity_id": "ent_d31649b61fbef677",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": null
+    },
+    {
+      "event_id": "evt_a94fbee5cf084f9f",
+      "entity_id": "ent_02cd4205fc0a4cf1",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "event_id": "evt_563a7f2327da46b6",
+      "entity_id": "ent_02cd4205fc0a4cf1",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "event_id": "evt_4cf6a8f67b2b4b8e",
+      "entity_id": "ent_02cd4205fc0a4cf1",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "event_id": "evt_ff6086e97c2046f2",
+      "entity_id": "ent_02cd4205fc0a4cf1",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "event_id": "evt_10b87e8805c14117",
+      "entity_id": "ent_02cd4205fc0a4cf1",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "event_id": "evt_710b000b82df4376",
+      "entity_id": "ent_02cd4205fc0a4cf1",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "event_id": "evt_e27d831260294728",
+      "entity_id": "ent_02cd4205fc0a4cf1",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "event_id": "evt_bf43d80c5d0d4d45",
+      "entity_id": "ent_02cd4205fc0a4cf1",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "event_id": "evt_e129c6fca740470d",
+      "entity_id": "ent_02cd4205fc0a4cf1",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "event_id": "evt_12297ad8483b4f14",
+      "entity_id": "ent_02cd4205fc0a4cf1",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "event_id": "evt_e59d3a8c682f4e3f",
+      "entity_id": "ent_a5cb5e1a2fd1edea",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "event_id": "evt_2ad608f6fbb94293",
+      "entity_id": "ent_a5cb5e1a2fd1edea",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "event_id": "evt_bf1bd1bea62b421d",
+      "entity_id": "ent_a5cb5e1a2fd1edea",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "event_id": "evt_eee8c68c06ca43cc",
+      "entity_id": "ent_a5cb5e1a2fd1edea",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "event_id": "evt_73ba26009b854aec",
+      "entity_id": "ent_a5cb5e1a2fd1edea",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "event_id": "evt_8483ee7950ad43ac",
+      "entity_id": "ent_a5cb5e1a2fd1edea",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:31:50+00:00"
+    }
+  ],
+  "threads": [
+    {
+      "id": "thread_3a3edc24ee1fca58",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_761cb344171b1305",
+      "text": "Brodersens Oberarzt-Vorstellung und mögliche Verlegung auf die Überwachung — Ausgang offen",
+      "status": "open",
+      "opened_on": "2026-06-06",
+      "closed_on": null,
+      "created_at": "2026-06-10T14:11:45.063841+00:00",
+      "updated_at": "2026-06-10T14:11:45.063841+00:00"
+    },
+    {
+      "id": "thread_2a13e9e797179ae4",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": null,
+      "text": "Brotdose für die Nachtschicht packen statt Automatenessen",
+      "status": "open",
+      "opened_on": "2026-06-06",
+      "closed_on": null,
+      "created_at": "2026-06-10T14:11:45.063841+00:00",
+      "updated_at": "2026-06-10T14:11:45.063841+00:00"
+    },
+    {
+      "id": "thread_5a06ecae8fd807a3",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": null,
+      "text": "Juli-Dienstplan: zwei freie Wochenenden bei Frau Carstens unbestätigt",
+      "status": "open",
+      "opened_on": "2026-06-06",
+      "closed_on": null,
+      "created_at": "2026-06-10T14:11:45.063841+00:00",
+      "updated_at": "2026-06-10T14:11:45.063841+00:00"
+    },
+    {
+      "id": "thread_22cae780570a710a",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_d31649b61fbef677",
+      "text": "Röntgenbefund von Frau Lemkes Handgelenk nachhalten",
+      "status": "open",
+      "opened_on": "2026-06-08",
+      "closed_on": null,
+      "created_at": "2026-06-10T14:11:47.600009+00:00",
+      "updated_at": "2026-06-10T14:11:47.600009+00:00"
+    },
+    {
+      "id": "thread_eb5ee25a6f4bcbc1",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_a5cb5e1a2fd1edea",
+      "text": "Donnerstag: Carstens-Entscheidung über das zweite Juli-Wochenende",
+      "status": "open",
+      "opened_on": "2026-06-08",
+      "closed_on": null,
+      "created_at": "2026-06-10T14:11:47.600009+00:00",
+      "updated_at": "2026-06-10T14:11:47.600009+00:00"
+    },
+    {
+      "id": "thread_f075a8c28c4dec31",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_761cb344171b1305",
+      "text": "Brodersens Verlegung geklärt: stabil zurück auf 4b mit neuem Schema",
+      "status": "resolved",
+      "opened_on": "2026-06-08",
+      "closed_on": "2026-06-08",
+      "created_at": "2026-06-10T14:11:47.600009+00:00",
+      "updated_at": "2026-06-10T14:11:47.600009+00:00"
+    },
+    {
+      "id": "thread_078d2d6a543e45c0",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_73b44c10252456af",
+      "text": "Brotdose statt Automat — erste Nacht hat funktioniert, Routine etabliert",
+      "status": "resolved",
+      "opened_on": "2026-06-08",
+      "closed_on": "2026-06-08",
+      "created_at": "2026-06-10T14:11:47.600009+00:00",
+      "updated_at": "2026-06-10T14:11:47.600009+00:00"
+    },
+    {
+      "id": "thread_072963c4a4cb4c5f",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_38f8fd926fba492a",
+      "text": "EKG von Herrn Tahir kardiologisch beurteilen lassen, Troponin-Verlauf weiter beobachten",
+      "status": "open",
+      "opened_on": "2026-06-12",
+      "closed_on": null,
+      "created_at": "2026-06-15T08:31:50+00:00",
+      "updated_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "thread_4e35f77c6c1345d1",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_d31649b61fbef677",
+      "text": "Lemke nachts engmaschiger beobachten wegen Unruhe nach dem Sturz",
+      "status": "open",
+      "opened_on": "2026-06-11",
+      "closed_on": null,
+      "created_at": "2026-06-15T08:31:50+00:00",
+      "updated_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "thread_090c60849f864f87",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_10a61a3ae6d94e7b",
+      "text": "Beide Juli-Wochenenden zugesagt — Reise mit Jonas nach der Hochzeit planen",
+      "status": "resolved",
+      "opened_on": "2026-05-19",
+      "closed_on": "2026-06-11",
+      "created_at": "2026-06-15T08:31:50+00:00",
+      "updated_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "thread_a87eeee2bafd4019",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_a2429b433f72494d",
+      "text": "Sonntagsroutine im Schichtstress dauerhaft durchhalten, Dosen am Vorabend in den Flur",
+      "status": "open",
+      "opened_on": "2026-05-03",
+      "closed_on": null,
+      "created_at": "2026-06-15T08:31:50+00:00",
+      "updated_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "thread_7e5e88f6e448405b",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_9f0da2b95201488b",
+      "text": "Reihe E des Automaten der Haustechnik melden",
+      "status": "open",
+      "opened_on": "2026-04-22",
+      "closed_on": null,
+      "created_at": "2026-06-15T08:31:50+00:00",
+      "updated_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "thread_dbd65810455a454c",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_9f0da2b95201488b",
+      "text": "Klemmende Reihe E der Hauswirtschaft melden",
+      "status": "open",
+      "opened_on": "2026-03-31",
+      "closed_on": null,
+      "created_at": "2026-06-15T08:31:50+00:00",
+      "updated_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "thread_174e897ec4a04fbd",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_e8f6b7a05ff146c4",
+      "text": "Verdunklung im Schlafzimmer verbessern, damit das Schlaffenster 8–14 Uhr besser hält",
+      "status": "open",
+      "opened_on": "2026-04-15",
+      "closed_on": null,
+      "created_at": "2026-06-15T08:31:50+00:00",
+      "updated_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "thread_f09c1b6daa714035",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_47335a9632c841fe",
+      "text": "CT-Abklärung nach Sturz mit Frühdienst klären",
+      "status": "open",
+      "opened_on": "2026-05-12",
+      "closed_on": null,
+      "created_at": "2026-06-15T08:31:50+00:00",
+      "updated_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "thread_71d2aa99a1df4510",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_7cf3c48db6b54e11",
+      "text": "Mit Meltem ansprechen, dass sie ihre eigene Doku nicht auf Anna abschiebt",
+      "status": "open",
+      "opened_on": "2026-05-12",
+      "closed_on": null,
+      "created_at": "2026-06-15T08:31:50+00:00",
+      "updated_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "thread_f1c7df6032934c1a",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "entity_id": "ent_a2429b433f72494d",
+      "text": "Prüfen, ob die Stationsküche nachts zuverlässig eine freie Mikrowelle hat, um Dosen aufzuwärmen",
+      "status": "open",
+      "opened_on": "2026-05-31",
+      "closed_on": null,
+      "created_at": "2026-06-15T08:31:50+00:00",
+      "updated_at": "2026-06-15T08:31:50+00:00"
+    }
+  ],
+  "plans": [
+    {
+      "id": "plan_1dcd012a4f6593c8",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "scope": "day",
+      "period_start": "2026-06-06",
+      "period_end": "2026-06-06",
+      "created_at": "2026-06-10T14:11:44.797940+00:00",
+      "summary": "Samstagnacht auf 4b, dritte Nacht in Folge, wieder nur zu zweit mit Meltem. Anna geht mit dem Wissen rein, dass Wochenendnächte unruhig sind: keine Stationsärztin im Haus, nur der Dienstarzt für drei Etagen. Bei Herrn Brodersen in 412 waren die Blutzuckerwerte schon gestern wackelig. Gegessen hat sie vor der Schicht nur ein Brot im Stehen, weil Jonas mit Freunden unterwegs ist — die Nacht wird wieder am Automaten enden.",
+      "intentions": [
+        "Brodersens Blutzucker engmaschig kontrollieren und früh den Dienstarzt einbinden",
+        "Die Medikamentenrunde vor Mitternacht komplett durchziehen",
+        "Doku diesmal parallel machen statt alles auf halb fünf zu schieben",
+        "Eine richtige Pause nehmen, nicht nur drei Minuten am Automaten"
+      ],
+      "expected_milestones": [
+        "Übergabe an den Frühdienst um 6:15 ohne offene Punkte",
+        "Brodersen stabil oder geordnet verlegt"
+      ],
+      "mood_trajectory": "konzentriert rein, zähes Tief gegen drei, müde aber aufgeräumt raus",
+      "sample_days": [
+        "2026-06-06"
+      ]
+    },
+    {
+      "id": "plan_848743a4cf6c490f",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "scope": "day",
+      "period_start": "2026-06-08",
+      "period_end": "2026-06-08",
+      "created_at": "2026-06-10T14:11:47.242394+00:00",
+      "summary": "Montagnacht nach einem freien Sonntag, an dem Anna tatsächlich mit Jonas gekocht hat. Diesmal steht die gepackte Brotdose im Flur und kommt mit — der kleine Sieg der Woche. Auf Station will sie als Erstes wissen, was aus Brodersen geworden ist, und Frau Carstens wegen des Juli-Dienstplans abpassen, die montags oft bis kurz nach acht da ist. Die Nacht beginnt wieder zu zweit mit Meltem, zwei Neuaufnahmen vom Wochenende liegen auf ihrer Flurhälfte.",
+      "intentions": [
+        "Stand zu Brodersen klären: verlegt oder zurück auf 4b",
+        "Frau Carstens vor der Übergabe auf den Juli-Wunsch ansprechen",
+        "Die Brotdose in der Stationsküche essen — geplante Pause statt Automat",
+        "Doku wieder parallel am Wagen abzeichnen wie Samstag"
+      ],
+      "expected_milestones": [
+        "Juli-Dienstplan-Frage geklärt oder mit festem Termin versehen",
+        "Übergabe um 6:15 erneut ohne offene Doku-Punkte"
+      ],
+      "mood_trajectory": "erholter Start, kurzer Ärger beim Dienstplan möglich, stabiler durch die Nacht dank echter Pause",
+      "sample_days": [
+        "2026-06-08"
+      ]
+    }
+  ],
+  "digests": [
+    {
+      "id": "digest_2eb685d23c5b4ec1",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "scope": "llm_authored_memory_depth",
+      "period_start": "2026-04-22",
+      "period_end": "2026-06-14",
+      "summary": "Über knapp zwei Monate verfestigte sich für Anna der rote Faden vom Drei-Uhr-Loch am Automaten hin zu einer funktionierenden Vorkoch-Routine: Aus einem frustrierenden Leer-Automaten im April wurde mit Jonas der Sonntags-Vorkochtag, der bis Mitte Juni tatsächlich durchzog und sogar eine Extradose für Meltem umfasst. Parallel brachte sie ihren lange hängenden Juli-Dienstplanwunsch schriftlich durch und bekam am Donnerstag, den 11.06., beide freien Wochenenden zugesagt. Im Dienst schloss sich der Lemke-Sturz mit unauffälligem Röntgen, während eine nächtliche Herzaufnahme (Herr Tahir) neue offene Kontrollschleifen öffnete — bewältigt mit Sofort-Doku und einer der seltenen rückstandsfreien Übergaben um 6:15.",
+      "created_at": "2026-06-15T08:31:50+00:00"
+    },
+    {
+      "id": "digest_2e26d15fa558437d",
+      "persona_id": "persona_a7b9293ffff3e824",
+      "scope": "llm_authored_memory_depth",
+      "period_start": "2026-03-31",
+      "period_end": "2026-05-31",
+      "summary": "Über zwei Monate verdichtet sich Annas Kampf gegen den gedrehten Rhythmus: ein elendes Automaten-Tief Ende März und ein unkontrollierter Ess-Vormittag im April geben den Anstoß, das Sonntags-Vorkochen mit Jonas wirklich aufzusetzen, das am 31.05. zum ersten Mal richtig läuft. Parallel fordert eine Sturznacht mit Frau Köhler ihre ganze Sorgfalt und legt offen, dass Meltem die Doku abschiebt, während der Juli-Wunsch nach zwei freien Wochenenden bei Carstens hängt und Anna zum wöchentlichen Nachhaken zwingt — ein roter Faden, der erst im Juni eingelöst wird.",
+      "created_at": "2026-06-15T08:31:50+00:00"
+    }
+  ]
+}

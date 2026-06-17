@@ -1,0 +1,423 @@
+[
+  {
+    "id": "cal_9a310ae640b84699",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-03-31T03:40+02:00",
+    "end": "2026-03-31T04:25+02:00",
+    "title": "Pausenversorgung am Snackautomat Ebene 0 nach drei Stunden Dauerklingeln",
+    "participants": [
+      "Meltem Aydin"
+    ],
+    "location_or_tool": "Snackautomat Ebene 0",
+    "intent": "Mitten in einer unterbesetzten Nacht klemmte der Snackautomat Reihe E und Anna stand mit knurrendem Magen vor dem leeren Fach.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "cal_91c0b55739d249f7",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-04-15T11:20+02:00",
+    "end": "2026-04-15T12:05+02:00",
+    "title": "Versuch zu schlafen nach der Nacht, stattdessen unkontrolliertes Essen am Vormittag",
+    "participants": [
+      "Jonas Wittkamp"
+    ],
+    "location_or_tool": "WhatsApp (privat)",
+    "intent": "Nach der Schicht zu aufgedreht zum Schlafen aß Anna sich am Vormittag durch den Kühlschrank, gerade als Jonas zur Mittagspause heimkam.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "cal_19f83249ec3a416c",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-04-22T03:25",
+    "end": "2026-04-22T04:10",
+    "title": "Nachtpause irgendwie über die Runden bringen, während die Energie wegsackt",
+    "participants": [
+      "Meltem Aydin"
+    ],
+    "location_or_tool": "Snackautomat Ebene 0",
+    "intent": "Im Drei-Uhr-Loch stand Anna vor einem leergekauften Snackautomaten und musste sich mit kalten Resten aus der Stationsküche durchschlagen.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "cal_2c8b9b8878f547aa",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-05-03T13:40",
+    "end": "2026-05-03T14:25",
+    "title": "Endlich mal in Ruhe warm mit Jonas essen und gleich für die Woche vorkochen",
+    "participants": [
+      "Jonas Wittkamp"
+    ],
+    "location_or_tool": "eigene Küche",
+    "intent": "An einem freien Sonntag kochten Anna und Jonas zusammen Linseneintopf und legten halb im Scherz, halb ernst eine Vorkoch-Idee für die Nächte fest.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "cal_dbc59d1d94c84b04",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-05-04T10:15",
+    "end": "2026-05-04T11:00",
+    "title": "Tagsüber schlafen, bevor die nächste Reihe Nächte beginnt",
+    "participants": [
+      "Frau Carstens"
+    ],
+    "location_or_tool": "Diensthandy",
+    "intent": "Nach dem freien Sonntag verschob sich Annas Schlaf, das Diensthandy klingelte um zehn und sie aß den Vormittag über unkontrolliert weiter.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "cal_d40541323d104b60",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-05-12T01:55+02:00",
+    "end": "2026-05-12T02:40+02:00",
+    "title": "Sturz mit Kopfplatzwunde bei Frau Köhler versorgen und Dr. Yilmaz rufen",
+    "participants": [
+      "Frau Köhler",
+      "Dr. Yilmaz",
+      "Meltem Aydin"
+    ],
+    "location_or_tool": "Patientenzimmer",
+    "intent": "Ein nächtlicher Sturz mit Platzwunde bei Frau Köhler band Anna und den Dienstarzt, danach lief die Doku der ganzen Nacht hinterher.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "cal_2b25b1395eb1402a",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-05-12T06:18+02:00",
+    "end": "2026-05-12T07:03+02:00",
+    "title": "Frühübergabe an Sandra trotz Sturzprotokoll-Rückstand",
+    "participants": [
+      "Sandra Okafor",
+      "Meltem Aydin"
+    ],
+    "location_or_tool": "Übergabe-Raum Station 4b",
+    "intent": "Trotz Sturznacht schaffte Anna die Übergabe um 6:15 nur mit zwei offenen Doku-Punkten und ärgerte sich über das halbfertige Ende.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "cal_88d5a524bd1f4323",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-05-19T20:55",
+    "end": "2026-05-19T21:40",
+    "title": "Juli-Dienstplanwunsch formell und schriftlich einreichen",
+    "participants": [
+      "Frau Carstens"
+    ],
+    "location_or_tool": "Personalumkleide",
+    "intent": "Zu Schichtbeginn legte Anna Carstens ihren schriftlichen Wunsch für zwei freie Juli-Wochenenden am Stück vor.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "cal_6a65041942cf46b8",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-05-27T13:00+02:00",
+    "end": "2026-05-27T13:45+02:00",
+    "title": "Stand des Juli-Wunschzettels bei der Stationsleitung erfragen",
+    "participants": [
+      "Frau Carstens"
+    ],
+    "location_or_tool": "Stationsbüro 4b",
+    "intent": "Anna hakte bei Frau Carstens zum hängenden Juli-Wunsch nach und bekam nur ein Vertrösten, das den Frust über die Gutsherrenart schürte.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "cal_13eae62ae2004ec4",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-05-31T12:15+02:00",
+    "end": "2026-05-31T13:00+02:00",
+    "title": "Erster fester Sonntags-Vorkochtag mit Portionieren für die Nächte",
+    "participants": [
+      "Jonas Wittkamp"
+    ],
+    "location_or_tool": "Küche",
+    "intent": "Anna und Jonas zogen den ersten richtigen Vorkoch-Sonntag durch und füllten Dosen mit Linsencurry für Annas kommende Nachtreihe ab.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "cal_35fdbb249f794d2c",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-06T20:05",
+    "end": "2026-06-06T20:35",
+    "title": "Einstempeln und Umziehen vor der dritten Nacht",
+    "participants": [],
+    "location_or_tool": "Personalumkleide",
+    "intent": "Anna Petersen needs to Einstempeln und Umziehen vor der dritten Nacht.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T14:11:44.802945+00:00"
+  },
+  {
+    "id": "cal_72f5719f4678352c",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-06T20:50",
+    "end": "2026-06-06T21:25",
+    "title": "Übergabe vom Spätdienst auf 4b",
+    "participants": [
+      "Tobias Renk",
+      "Meltem Aydin"
+    ],
+    "location_or_tool": "Übergabe-Raum Station 4b",
+    "intent": "Anna Petersen needs to Übergabe vom Spätdienst auf 4b.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T14:11:44.802945+00:00"
+  },
+  {
+    "id": "cal_e532346b2edd350e",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-06T21:35",
+    "end": "2026-06-06T23:35",
+    "title": "Medikamentenrunde und Vitalzeichen vor Mitternacht",
+    "participants": [],
+    "location_or_tool": "Medikamentenwagen",
+    "intent": "Anna Petersen needs to Medikamentenrunde und Vitalzeichen vor Mitternacht.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T14:11:44.802945+00:00"
+  },
+  {
+    "id": "cal_8e803ba13fe2fb11",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-06T23:45",
+    "end": "2026-06-07T01:00",
+    "title": "Zimmer 412: Brodersens Blutzucker entgleist",
+    "participants": [
+      "Herr Brodersen",
+      "Dr. Yilmaz",
+      "Meltem Aydin"
+    ],
+    "location_or_tool": "Patientenzimmer",
+    "intent": "Anna Petersen needs to Zimmer 412: Brodersens Blutzucker entgleist.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T14:11:44.802945+00:00"
+  },
+  {
+    "id": "cal_ef4d5b3c3059eb9f",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-07T01:10",
+    "end": "2026-06-07T01:30",
+    "title": "Halb drei am Snackautomaten auf Ebene 0",
+    "participants": [],
+    "location_or_tool": "Snackautomat Ebene 0",
+    "intent": "Anna Petersen needs to Halb drei am Snackautomaten auf Ebene 0.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T14:11:44.802945+00:00"
+  },
+  {
+    "id": "cal_0cfd3525f1d81b73",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-07T01:35",
+    "end": "2026-06-07T03:05",
+    "title": "Nachdokumentation der Hypoglykämie im KIS",
+    "participants": [],
+    "location_or_tool": "Stationsrechner (KIS)",
+    "intent": "Anna Petersen needs to Nachdokumentation der Hypoglykämie im KIS.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T14:11:44.802945+00:00"
+  },
+  {
+    "id": "cal_c82b0198a230b08a",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-07T03:10",
+    "end": "2026-06-07T03:40",
+    "title": "Übergabe an den Frühdienst um 6:15",
+    "participants": [
+      "Sandra Okafor",
+      "Meltem Aydin"
+    ],
+    "location_or_tool": "Übergabe-Raum Station 4b",
+    "intent": "Anna Petersen needs to Übergabe an den Frühdienst um 6:15.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T14:11:44.802945+00:00"
+  },
+  {
+    "id": "cal_dc5427fdd023d164",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-08T20:50",
+    "end": "2026-06-08T21:20",
+    "title": "Dienstbeginn: Carstens wegen des Juli-Plans abpassen",
+    "participants": [
+      "Frau Carstens"
+    ],
+    "location_or_tool": "Personalumkleide",
+    "intent": "Anna Petersen needs to Dienstbeginn: Carstens wegen des Juli-Plans abpassen.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T14:11:47.246407+00:00"
+  },
+  {
+    "id": "cal_91d924c460f0eb62",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-08T21:30",
+    "end": "2026-06-08T22:05",
+    "title": "Übergabe: Brodersen ist zurück aus der Überwachung",
+    "participants": [
+      "Tobias Renk",
+      "Meltem Aydin"
+    ],
+    "location_or_tool": "Übergabe-Raum Station 4b",
+    "intent": "Anna Petersen needs to Übergabe: Brodersen ist zurück aus der Überwachung.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T14:11:47.246407+00:00"
+  },
+  {
+    "id": "cal_89bcbf2d6288feea",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-08T22:10",
+    "end": "2026-06-09T00:10",
+    "title": "Abendrunde mit zwei Neuaufnahmen",
+    "participants": [],
+    "location_or_tool": "Medikamentenwagen",
+    "intent": "Anna Petersen needs to Abendrunde mit zwei Neuaufnahmen.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T14:11:47.246407+00:00"
+  },
+  {
+    "id": "cal_61efb856878906d8",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-09T00:15",
+    "end": "2026-06-09T01:15",
+    "title": "Sturzalarm in Zimmer 408 bei Frau Lemke",
+    "participants": [
+      "Frau Lemke",
+      "Meltem Aydin",
+      "Dr. Hartwig"
+    ],
+    "location_or_tool": "Patientenzimmer",
+    "intent": "Anna Petersen needs to Sturzalarm in Zimmer 408 bei Frau Lemke.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T14:11:47.246407+00:00"
+  },
+  {
+    "id": "cal_aed2693a92b9c32e",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-09T01:30",
+    "end": "2026-06-09T02:00",
+    "title": "Brotdosen-Pause in der Stationsküche",
+    "participants": [],
+    "location_or_tool": "Stationsküche",
+    "intent": "Anna Petersen needs to Brotdosen-Pause in der Stationsküche.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T14:11:47.246407+00:00"
+  },
+  {
+    "id": "cal_720a3c1d98e51611",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-09T02:15",
+    "end": "2026-06-09T03:45",
+    "title": "Sturzprotokoll und Nachtdoku im KIS",
+    "participants": [],
+    "location_or_tool": "Stationsrechner (KIS)",
+    "intent": "Anna Petersen needs to Sturzprotokoll und Nachtdoku im KIS.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-10T14:11:47.246407+00:00"
+  },
+  {
+    "id": "cal_9ae6f6a50343d071",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-09T03:55",
+    "end": "2026-06-09T04:25",
+    "title": "Frühübergabe mit Sturzbericht an Sandra",
+    "participants": [
+      "Sandra Okafor",
+      "Meltem Aydin"
+    ],
+    "location_or_tool": "Übergabe-Raum Station 4b",
+    "intent": "Anna Petersen needs to Frühübergabe mit Sturzbericht an Sandra.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-10T14:11:47.246407+00:00"
+  },
+  {
+    "id": "cal_f42dea2650d44d2d",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-11T20:40",
+    "end": "2026-06-11T21:25",
+    "title": "Carstens an die Donnerstag-Frist für das zweite Juli-Wochenende erinnern",
+    "participants": [
+      "Frau Carstens"
+    ],
+    "location_or_tool": "Stationsbüro 4b",
+    "intent": "Am vereinbarten Donnerstag stellte Anna Carstens zur Frist und bekam endlich beide Juli-Wochenenden zugesagt.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "cal_deaf2d4c51644a28",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-11T21:30",
+    "end": "2026-06-11T22:15",
+    "title": "Röntgenbefund Handgelenk Lemke nachverfolgen und in die Doku übernehmen",
+    "participants": [
+      "Tobias Renk",
+      "Meltem Aydin"
+    ],
+    "location_or_tool": "Übergabe-Raum Station 4b",
+    "intent": "In der Übergabe klärte sich endlich der ausstehende Röntgenbefund von Frau Lemke: nur eine Prellung, kein Bruch.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "cal_7974a2b77b1c4147",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-12T01:10",
+    "end": "2026-06-12T01:55",
+    "title": "Neuaufnahme Herr Tahir aus der ZNA versorgen und überwachen",
+    "participants": [
+      "Herr Tahir",
+      "Dr. Yilmaz",
+      "Meltem Aydin"
+    ],
+    "location_or_tool": "Patientenzimmer",
+    "intent": "Eine nächtliche Notaufnahme aus der ZNA — Herr Tahir mit Brustschmerz — band Anna und den Dienstarzt für eine Stunde.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "cal_e5d88223ede34848",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-12T03:05",
+    "end": "2026-06-12T03:50",
+    "title": "Geplante warme Pause mit der Brotdose statt Automatenzeug",
+    "participants": [
+      "Meltem Aydin"
+    ],
+    "location_or_tool": "Stationsküche",
+    "intent": "Mitten in der Nacht zwischen zwei Kontrollgängen aß Anna ihren vorgekochten Ofengemüse-Reis und merkte, wie das Drei-Uhr-Loch flacher blieb.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "cal_5a1b56d0b3c14f2d",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-12T06:10",
+    "end": "2026-06-12T06:55",
+    "title": "Frühübergabe um 6:15 ohne Dokumentationsrückstand",
+    "participants": [
+      "Sandra Okafor",
+      "Meltem Aydin"
+    ],
+    "location_or_tool": "Übergabe-Raum Station 4b",
+    "intent": "Anna beendete den Dienst um 6:15 ohne offene Doku-Punkte und übergab Tahir mit lückenloser Verlaufskurve.",
+    "outcome": "left an open follow-up",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  },
+  {
+    "id": "cal_4f5cb5dbe7cf4b86",
+    "persona_id": "persona_a7b9293ffff3e824",
+    "start": "2026-06-14T12:30",
+    "end": "2026-06-14T13:15",
+    "title": "Sonntags-Vorkochen für die Nachtdienste der Woche",
+    "participants": [
+      "Jonas Wittkamp"
+    ],
+    "location_or_tool": "eigene Küche",
+    "intent": "Am freien Sonntag kochten Anna und Jonas im Großen vor und füllten Dosen für Annas kommende Nachtreihe und für Meltem ab.",
+    "outcome": "resolved enough to move forward",
+    "created_at": "2026-06-15T08:31:50+00:00"
+  }
+]

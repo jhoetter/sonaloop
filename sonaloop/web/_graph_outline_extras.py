@@ -11,7 +11,7 @@ context — the appendix sections retired. Placement (with honest fallbacks):
   - hypothesis / open question → the phase active at created_at (the latest plan-bound node at
                 or before the timestamp; the project's first phase before anything exists).
   - asset     → deliverables (direction out) join the final phase group (the Deliver group,
-                §7.2) sorted last; evidence assets land in an *Evidence* sub-group inside the
+                §7.2) sorted last; incoming assets land in an *Assets* sub-group inside the
                 phase active at created_at (cheap v1 — node-adjacent placement upgrades once
                 plan_graph carries grounding edges).
 
@@ -147,7 +147,7 @@ def extra_outline_items(graph: dict, *, decisions: list, hypotheses: list, surve
         deliverable = a.get("direction") == "out"
         if deliverable:                       # the final Deliver group, after the reports (§7.2)
             pk, order, rnd = last_key, f"~~{ts}", max(node_round.values(), default=0)
-        else:                                 # the phase's Evidence sub-group, after its rows
+        else:                                 # the phase's Assets sub-group, after its rows
             pk, order, rnd = _phase_round_at(ts, nodes, node_round, default_phase)[0], f"~{ts}", None
         # V9: the renderer presents asset items as `.sl-file--row` FILE rows (_graph_outline.row)
         # — identity badge, one download/open affordance, body = the /assets/{id} slide-over.

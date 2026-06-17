@@ -1,0 +1,846 @@
+{
+  "entities": [
+    {
+      "id": "ent_4c63508c2d6a788b",
+      "persona_id": "persona_991687e2c4d1368c",
+      "kind": "topic",
+      "name": "haltbare Alltagsroutine",
+      "status": "aktiv",
+      "aliases": [
+        "Essensfenster",
+        "Pausenanker"
+      ],
+      "first_seen": "2026-06-09",
+      "last_seen": "2026-06-10",
+      "created_at": "2026-06-10T17:40:14.090806+00:00",
+      "updated_at": "2026-06-10T17:40:14.090806+00:00"
+    },
+    {
+      "id": "ent_f4ee6a66f939c1dc",
+      "persona_id": "persona_991687e2c4d1368c",
+      "kind": "person",
+      "name": "Kollegin Alex",
+      "status": "Arbeitsumfeld",
+      "aliases": [],
+      "first_seen": "2026-06-09",
+      "last_seen": "2026-06-10",
+      "created_at": "2026-06-10T17:40:14.090806+00:00",
+      "updated_at": "2026-06-10T17:40:14.090806+00:00"
+    },
+    {
+      "id": "ent_568a7d2fc407466c",
+      "persona_id": "persona_991687e2c4d1368c",
+      "kind": "person",
+      "name": "Familienkontakt",
+      "status": "privates Umfeld",
+      "aliases": [],
+      "first_seen": "2026-06-09",
+      "last_seen": "2026-06-10",
+      "created_at": "2026-06-10T17:40:14.090806+00:00",
+      "updated_at": "2026-06-10T17:40:14.090806+00:00"
+    },
+    {
+      "id": "ent_d0a93133b2d2416b",
+      "persona_id": "persona_991687e2c4d1368c",
+      "kind": "person",
+      "name": "Vorgesetzte Stelle",
+      "status": "Organisation",
+      "aliases": [],
+      "first_seen": "2026-06-09",
+      "last_seen": "2026-06-10",
+      "created_at": "2026-06-10T17:40:14.090806+00:00",
+      "updated_at": "2026-06-10T17:40:14.090806+00:00"
+    },
+    {
+      "id": "ent_e76c7b706e018638",
+      "persona_id": "persona_991687e2c4d1368c",
+      "kind": "project",
+      "name": "Wochenrhythmus unter Druck",
+      "status": "aktiv",
+      "aliases": [],
+      "first_seen": "2026-06-11",
+      "last_seen": "2026-06-20",
+      "created_at": "2026-06-10T17:46:32.262049+00:00",
+      "updated_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "kind": "topic",
+      "name": "Pausenanker",
+      "status": "aktiv",
+      "aliases": [],
+      "first_seen": "2026-06-11",
+      "last_seen": "2026-06-20",
+      "created_at": "2026-06-10T17:46:32.262049+00:00",
+      "updated_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "id": "ent_6a193063dc3a3701",
+      "persona_id": "persona_991687e2c4d1368c",
+      "kind": "topic",
+      "name": "Abendroutine",
+      "status": "wackelig",
+      "aliases": [],
+      "first_seen": "2026-06-11",
+      "last_seen": "2026-06-20",
+      "created_at": "2026-06-10T17:46:32.262049+00:00",
+      "updated_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "id": "ent_f24691a0856942c2",
+      "persona_id": "persona_991687e2c4d1368c",
+      "kind": "person",
+      "name": "Kinderärztin Dr. Petersen",
+      "status": "work_context",
+      "aliases": [
+        "Praxis Petersen"
+      ],
+      "first_seen": "2026-04-21",
+      "last_seen": "2026-04-21",
+      "created_at": "2026-06-15T08:09:19+00:00",
+      "updated_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "id": "ent_af6360f0b1ed412c",
+      "persona_id": "persona_991687e2c4d1368c",
+      "kind": "project",
+      "name": "Quartalsbürokratie und Verordnungen",
+      "status": "active",
+      "aliases": [
+        "Heilmittelverordnungen"
+      ],
+      "first_seen": "2026-04-21",
+      "last_seen": "2026-05-05",
+      "created_at": "2026-06-15T08:09:19+00:00",
+      "updated_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "id": "ent_05dfe76b7dad4ba7",
+      "persona_id": "persona_991687e2c4d1368c",
+      "kind": "person",
+      "name": "Finn (Therapiekind)",
+      "status": "work_context",
+      "aliases": [],
+      "first_seen": "2026-05-05",
+      "last_seen": "2026-05-05",
+      "created_at": "2026-06-15T08:09:19+00:00",
+      "updated_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "id": "ent_9a2f9e151b034057",
+      "persona_id": "persona_991687e2c4d1368c",
+      "kind": "project",
+      "name": "Vorkochen für die Pausenbox",
+      "status": "active",
+      "aliases": [
+        "Sonntags-Vorkochen",
+        "Linsen-Vorrat"
+      ],
+      "first_seen": "2026-05-05",
+      "last_seen": "2026-06-03",
+      "created_at": "2026-06-15T08:09:19+00:00",
+      "updated_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "id": "ent_cc1aafac449e4ca4",
+      "persona_id": "persona_991687e2c4d1368c",
+      "kind": "topic",
+      "name": "Fester Mittwochs-Pausenblock",
+      "status": "active",
+      "aliases": [
+        "Mittwochsblock"
+      ],
+      "first_seen": "2026-06-03",
+      "last_seen": "2026-06-22",
+      "created_at": "2026-06-15T08:09:19+00:00",
+      "updated_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "id": "ent_4ce761eff7174a62",
+      "persona_id": "persona_991687e2c4d1368c",
+      "kind": "place",
+      "name": "Hausbesuch Gaarden",
+      "status": "work_context",
+      "aliases": [
+        "Mutismus-Kind Gaarden"
+      ],
+      "first_seen": "2026-05-06",
+      "last_seen": "2026-05-06",
+      "created_at": "2026-06-15T08:09:19+00:00",
+      "updated_at": "2026-06-15T08:09:19+00:00"
+    }
+  ],
+  "entity_facts": [
+    {
+      "id": "fact_5ce141a856d33d11",
+      "persona_id": "persona_991687e2c4d1368c",
+      "entity_id": "ent_4c63508c2d6a788b",
+      "fact": "Die Persona testet kleine, wiederholbare Alltagsanker statt Idealpläne.",
+      "t_valid": "2026-06-09",
+      "t_invalid": null,
+      "source_event_id": null,
+      "confidence": 0.82,
+      "importance": 4,
+      "created_at": "2026-06-10T17:40:14.090806+00:00"
+    },
+    {
+      "id": "fact_dc5fa156bb6de68d",
+      "persona_id": "persona_991687e2c4d1368c",
+      "entity_id": "ent_f4ee6a66f939c1dc",
+      "fact": "hilft gelegentlich, ist aber selbst belastet",
+      "t_valid": "2026-06-09",
+      "t_invalid": null,
+      "source_event_id": null,
+      "confidence": 0.72,
+      "importance": 3,
+      "created_at": "2026-06-10T17:40:14.090806+00:00"
+    },
+    {
+      "id": "fact_054b01609f75f2bf",
+      "persona_id": "persona_991687e2c4d1368c",
+      "entity_id": "ent_568a7d2fc407466c",
+      "fact": "erwartet Verlässlichkeit trotz Arbeitsdruck",
+      "t_valid": "2026-06-09",
+      "t_invalid": null,
+      "source_event_id": null,
+      "confidence": 0.72,
+      "importance": 3,
+      "created_at": "2026-06-10T17:40:14.090806+00:00"
+    },
+    {
+      "id": "fact_ddc3598dab52bdc7",
+      "persona_id": "persona_991687e2c4d1368c",
+      "entity_id": "ent_d0a93133b2d2416b",
+      "fact": "plant nach Bedarf, nicht nach Pausenlogik",
+      "t_valid": "2026-06-09",
+      "t_invalid": null,
+      "source_event_id": null,
+      "confidence": 0.72,
+      "importance": 3,
+      "created_at": "2026-06-10T17:40:14.090806+00:00"
+    },
+    {
+      "id": "fact_ce47fe814a0b5acd",
+      "persona_id": "persona_991687e2c4d1368c",
+      "entity_id": "ent_e76c7b706e018638",
+      "fact": "Wochenrhythmus unter Druck ist ein wiederkehrender Faktor in den simulierten Tagen.",
+      "t_valid": "2026-06-11",
+      "t_invalid": null,
+      "source_event_id": null,
+      "confidence": 0.78,
+      "importance": 4,
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "id": "fact_66090f951ec65712",
+      "persona_id": "persona_991687e2c4d1368c",
+      "entity_id": "ent_e3647aed783973ad",
+      "fact": "Pausenanker ist ein wiederkehrender Faktor in den simulierten Tagen.",
+      "t_valid": "2026-06-11",
+      "t_invalid": null,
+      "source_event_id": null,
+      "confidence": 0.78,
+      "importance": 4,
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "id": "fact_04522abbc9abaa88",
+      "persona_id": "persona_991687e2c4d1368c",
+      "entity_id": "ent_6a193063dc3a3701",
+      "fact": "Abendroutine ist ein wiederkehrender Faktor in den simulierten Tagen.",
+      "t_valid": "2026-06-11",
+      "t_invalid": null,
+      "source_event_id": null,
+      "confidence": 0.78,
+      "importance": 4,
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "id": "fact_e28f029b0923463d",
+      "persona_id": "persona_991687e2c4d1368c",
+      "entity_id": "ent_af6360f0b1ed412c",
+      "fact": "Falsche Diagnosegruppen-Codes auf Heilmittelverordnungen müssen innerhalb von 14 Tagen korrigiert werden, sonst sind sie nicht abrechenbar.",
+      "t_valid": "2026-04-21",
+      "t_invalid": null,
+      "source_event_id": "evt_ed0b5ae4c547485a",
+      "confidence": 0.85,
+      "importance": 4,
+      "created_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "id": "fact_aaba0d9d540f4873",
+      "persona_id": "persona_991687e2c4d1368c",
+      "entity_id": "ent_9a2f9e151b034057",
+      "fact": "35 Minuten Vorkochen am Wochenende ersetzen mehrere stressige Mittags-Improvisationen; Linsengerichte halten sich gut und werden nicht matschig.",
+      "t_valid": "2026-06-03",
+      "t_invalid": null,
+      "source_event_id": "evt_ed0b5ae4c547485a",
+      "confidence": 0.8,
+      "importance": 5,
+      "created_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "id": "fact_b37748b8aad04464",
+      "persona_id": "persona_991687e2c4d1368c",
+      "entity_id": "ent_cc1aafac449e4ca4",
+      "fact": "Seit dem 3. Juni 2026 ist mittwochs ein 30-Minuten-Pausenblock fest im Dienstplan verankert – der erste explizit geschützte Pausenanker.",
+      "t_valid": "2026-06-03",
+      "t_invalid": null,
+      "source_event_id": "evt_ed0b5ae4c547485a",
+      "confidence": 0.82,
+      "importance": 5,
+      "created_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "id": "fact_7e8e0ccdb9ca413b",
+      "persona_id": "persona_991687e2c4d1368c",
+      "entity_id": "ent_05dfe76b7dad4ba7",
+      "fact": "Bei Finn (4 J., /sch/-Bildung) wirkt spielbasiertes Üben besser als Abfragen; Druck zu Hause blockiert den Fortschritt.",
+      "t_valid": "2026-05-05",
+      "t_invalid": null,
+      "source_event_id": "evt_ed0b5ae4c547485a",
+      "confidence": 0.78,
+      "importance": 3,
+      "created_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "id": "fact_e6b7f511413f4602",
+      "persona_id": "persona_991687e2c4d1368c",
+      "entity_id": "ent_f4ee6a66f939c1dc",
+      "fact": "Alex fällt gelegentlich krankheitsbedingt aus und es gibt keine klare Vertretungsregelung, sodass Amelie kurzfristig Termine übernimmt.",
+      "t_valid": "2026-06-22",
+      "t_invalid": null,
+      "source_event_id": "evt_ed0b5ae4c547485a",
+      "confidence": 0.75,
+      "importance": 4,
+      "created_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "id": "fact_636e656b0f5044cb",
+      "persona_id": "persona_991687e2c4d1368c",
+      "entity_id": "ent_568a7d2fc407466c",
+      "fact": "Amelie hat begonnen, ihre begrenzte Wochenend-Verfügbarkeit ehrlich zu kommunizieren, was beim Familienkontakt leise Vorwürfe auslöst.",
+      "t_valid": "2026-05-19",
+      "t_invalid": null,
+      "source_event_id": "evt_ed0b5ae4c547485a",
+      "confidence": 0.74,
+      "importance": 3,
+      "created_at": "2026-06-15T08:09:19+00:00"
+    }
+  ],
+  "event_links": [
+    {
+      "event_id": "evt_386ffba8db5bffd8",
+      "entity_id": "ent_4c63508c2d6a788b",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:40:14.090806+00:00"
+    },
+    {
+      "event_id": "evt_2f285e24e9dafb35",
+      "entity_id": "ent_4c63508c2d6a788b",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:40:14.090806+00:00"
+    },
+    {
+      "event_id": "evt_fb46914bdf7c8a61",
+      "entity_id": "ent_4c63508c2d6a788b",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:40:14.090806+00:00"
+    },
+    {
+      "event_id": "evt_b9b885c2ff1bc5ff",
+      "entity_id": "ent_4c63508c2d6a788b",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:40:14.090806+00:00"
+    },
+    {
+      "event_id": "evt_ad600f45c36a0c5d",
+      "entity_id": "ent_4c63508c2d6a788b",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:40:14.090806+00:00"
+    },
+    {
+      "event_id": "evt_20de24c5318d95ce",
+      "entity_id": "ent_4c63508c2d6a788b",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:40:14.090806+00:00"
+    },
+    {
+      "event_id": "evt_44f8cdc67f832b17",
+      "entity_id": "ent_4c63508c2d6a788b",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:40:14.090806+00:00"
+    },
+    {
+      "event_id": "evt_50d6274c160cdd98",
+      "entity_id": "ent_4c63508c2d6a788b",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:40:14.090806+00:00"
+    },
+    {
+      "event_id": "evt_e2e6844187f91be2",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_2260a2199d044ddc",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_c0104458b5b6a44d",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_bd391cca5b05f5bd",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_b1583c2a923e5112",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_4334ea457b5e5b10",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_b82e507b9f2f6a65",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_9b10b298af652c21",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_43f2e6c068708d43",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_adc7b662dd88dbf7",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_fad29470309d7137",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_9cebad233cc53cc7",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_a619011057cdfcb7",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_749797eb53ab3c50",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_e3ea74902f973d0a",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_993650d6c5d71d7e",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_5d17b1246e61987e",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_f302f143595b6474",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_c3ba0dd749100b0e",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_59972c8bb0eec7d1",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_1dbdeed3b7403dde",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_7d9160a3e1c0f4c2",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_30583e0fdeb99c9d",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_bd2c9602a3d49684",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_ce1c8c78ae50e9a1",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_8780a7a8e18dc8a4",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_3a4c22ed76768946",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_3bbf4e0ccdfe47b8",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_d3089f381c9544ce",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_dbdbe371089cd802",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_7b1410a60c8e2c1f",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_6542e7580d5205a0",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_4412ad590430f53e",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_e47a2eb954f95b1c",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_c2a93aa5406d85ef",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_89d4a4086294e24d",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_fbe36a55a232e4dc",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_4a14264f39808890",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_0a6844c02a2d4cf1",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_7280b3080182d3b2",
+      "entity_id": "ent_e3647aed783973ad",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "routine_context",
+      "created_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "event_id": "evt_ed0b5ae4c547485a",
+      "entity_id": "ent_f24691a0856942c2",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "event_id": "evt_08f8dee968344552",
+      "entity_id": "ent_f24691a0856942c2",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "event_id": "evt_7ebbaf73e74346b8",
+      "entity_id": "ent_f24691a0856942c2",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "event_id": "evt_1141b0a0eaed44b8",
+      "entity_id": "ent_f24691a0856942c2",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "event_id": "evt_16460fe96a5f4db0",
+      "entity_id": "ent_f24691a0856942c2",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "event_id": "evt_ceda1286558240be",
+      "entity_id": "ent_f24691a0856942c2",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "event_id": "evt_91954402faee44cc",
+      "entity_id": "ent_f24691a0856942c2",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "event_id": "evt_af4261c8226b4ee8",
+      "entity_id": "ent_f24691a0856942c2",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "event_id": "evt_3dd74be66fef4860",
+      "entity_id": "ent_f24691a0856942c2",
+      "persona_id": "persona_991687e2c4d1368c",
+      "role": "llm_authored_memory_context",
+      "created_at": "2026-06-15T08:09:19+00:00"
+    }
+  ],
+  "threads": [
+    {
+      "id": "thread_d32bed1fe5c4d29a",
+      "persona_id": "persona_991687e2c4d1368c",
+      "text": "Ein verlässliches Entlastungs- und Essensfenster in einem fremdbestimmten Tagesrhythmus etablieren",
+      "status": "open",
+      "opened_on": "2026-06-09",
+      "closed_on": null,
+      "created_at": "2026-06-10T17:40:14.090806+00:00",
+      "updated_at": "2026-06-10T17:40:14.090806+00:00"
+    },
+    {
+      "id": "thread_a69cb28b08d56f5d",
+      "persona_id": "persona_991687e2c4d1368c",
+      "text": "Pausenanker in stressigen Tagen halten",
+      "status": "open",
+      "opened_on": "2026-06-11",
+      "closed_on": null,
+      "created_at": "2026-06-10T17:46:32.262049+00:00",
+      "updated_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "id": "thread_9331a198aa19aa65",
+      "persona_id": "persona_991687e2c4d1368c",
+      "text": "Abendroutine nach ungeplanten Störungen stabilisieren",
+      "status": "open",
+      "opened_on": "2026-06-11",
+      "closed_on": null,
+      "created_at": "2026-06-10T17:46:32.262049+00:00",
+      "updated_at": "2026-06-10T17:46:32.262049+00:00"
+    },
+    {
+      "id": "thread_81681556aee442ae",
+      "persona_id": "persona_991687e2c4d1368c",
+      "entity_id": "ent_af6360f0b1ed412c",
+      "text": "Korrigierte Heilmittelverordnungen von Dr. Petersen bestätigen lassen und Frist im Auge behalten.",
+      "status": "open",
+      "opened_on": "2026-04-21",
+      "closed_on": null,
+      "created_at": "2026-06-15T08:09:19+00:00",
+      "updated_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "id": "thread_6b55b68380184ad6",
+      "persona_id": "persona_991687e2c4d1368c",
+      "entity_id": "ent_9a2f9e151b034057",
+      "text": "Vorkochen vom losen Vorsatz zur festen Wochenroutine machen.",
+      "status": "open",
+      "opened_on": "2026-05-05",
+      "closed_on": null,
+      "created_at": "2026-06-15T08:09:19+00:00",
+      "updated_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "id": "thread_d4b98e7b21a6472c",
+      "persona_id": "persona_991687e2c4d1368c",
+      "entity_id": "ent_cc1aafac449e4ca4",
+      "text": "Prüfen, ob der Mittwochsblock auch in vollen Wochen und bei Personalausfall respektiert wird.",
+      "status": "open",
+      "opened_on": "2026-06-03",
+      "closed_on": null,
+      "created_at": "2026-06-15T08:09:19+00:00",
+      "updated_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "id": "thread_392e3a3d00114798",
+      "persona_id": "persona_991687e2c4d1368c",
+      "entity_id": "ent_f4ee6a66f939c1dc",
+      "text": "Mit Alex eine klare Vertretungsregelung bei Krankheit besprechen.",
+      "status": "open",
+      "opened_on": "2026-06-22",
+      "closed_on": null,
+      "created_at": "2026-06-15T08:09:19+00:00",
+      "updated_at": "2026-06-15T08:09:19+00:00"
+    },
+    {
+      "id": "thread_f9acd42bbf774601",
+      "persona_id": "persona_991687e2c4d1368c",
+      "entity_id": "ent_05dfe76b7dad4ba7",
+      "text": "In vier Wochen die spielbasierten Heimübungen mit Finns Eltern evaluieren.",
+      "status": "open",
+      "opened_on": "2026-05-05",
+      "closed_on": null,
+      "created_at": "2026-06-15T08:09:19+00:00",
+      "updated_at": "2026-06-15T08:09:19+00:00"
+    }
+  ],
+  "plans": [],
+  "digests": [
+    {
+      "id": "digest_f1407ef21d8bdb64",
+      "persona_id": "persona_991687e2c4d1368c",
+      "period_start": "2026-06-11",
+      "period_end": "2026-06-18",
+      "summary": "Die Woche zeigt ein stabiles Muster: fremdbestimmte Termine zerreißen Essensfenster, aber kleine sichtbare Pausenanker funktionieren besser als ambitionierte Wochenpläne.",
+      "themes": [
+        "Pausenanker",
+        "Abendroutine",
+        "fremdbestimmter Tagesrhythmus"
+      ],
+      "created_at": "2026-06-10T17:46:32.262049+00:00",
+      "scope": "week"
+    },
+    {
+      "id": "digest_ab41d3a6bd884fac",
+      "persona_id": "persona_991687e2c4d1368c",
+      "scope": "llm_authored_memory_depth",
+      "period_start": "2026-04-21",
+      "period_end": "2026-06-22",
+      "summary": "Über zwei Monate verschiebt sich Amelies Kampf um ein verlässliches Essensfenster vom reinen Improvisieren zu echten Strukturen: Erst frisst die Quartalsbürokratie und ein verspäteter Termin ihre Pausen, dann kippt nach einem schwierigen Elterngespräch mit Finns Familie die Abendroutine in Toast-um-neun-Nachholstress. Der Vorsatz zum Vorkochen reift langsam, kollidiert unterwegs mit einer Familienfeier-Erwartung, und greift schließlich Anfang Juni mit vorgekochten Linsen-Portionen. Der Durchbruch ist ein fest im Dienstplan verankerter Mittwochs-Pausenblock, der zusammen mit der gefüllten Pausenbox einen chaotischen Personalausfalltag am 22. Juni trägt – Amelie ist abends erschöpft, aber zum ersten Mal nicht ausgehungert und beginnt, ihre Grenzen klar zu kommunizieren.",
+      "created_at": "2026-06-15T08:09:19+00:00"
+    }
+  ]
+}

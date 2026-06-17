@@ -223,7 +223,7 @@ def test_export_synthesis_deliverable_without_project_skips_attach(store, tmp_pa
 
 
 def test_assets_render_as_outline_rows_with_direction_pills(store, project, tmp_path, monkeypatch):
-    """UX P2 (spec/ux-contract.md §3.4 / §7.2): assets are outline rows — evidence in its phase
+    """UX P2 (spec/ux-contract.md §3.4 / §7.2): assets are outline rows — incoming files in their phase
     flow, the deliverable at the END (the Deliver group); direction pills on both. Since UX U8
     the row deep-links to the asset's DETAIL page (slide-over armed, §8.1); the file itself
     stays one click away as the row's trailing download/open chip."""
@@ -239,6 +239,7 @@ def test_assets_render_as_outline_rows_with_direction_pills(store, project, tmp_
     html = client.get(f'/projects/{project["id"]}?lang=en').text
     assert html.count('data-rkind="asset"') == 2
     assert "Deliverable" in html and "Evidence" in html       # direction pills on the rows
+    assert ">Assets (1)<" in html
     # the evidence row sits in the flow; the deliverable closes the outline (Deliver group)
     assert html.index("Field note") < html.index("Component finder (PPTX)")
     deliverable = next(a for a in services.list_assets(project["id"], store=store)
@@ -248,8 +249,8 @@ def test_assets_render_as_outline_rows_with_direction_pills(store, project, tmp_
     assert f'data-drawer="/assets/{deliverable["id"]}"' in html
     # ...while the file itself stays one click away (the trailing chip: download / open)
     assert f'href="{deliverable["url"]}"' in html and f'href="{ev["url"]}"' in html
-    # and the project header carries the FILES lens chip ("N files" → ?view=files)
-    assert f'/projects/{project["id"]}?view=files' in html
+    # and there is no separate project files lens chip anymore.
+    assert f'/projects/{project["id"]}?view=files' not in html
 
 
 def test_attach_prototype_shot_uses_capture(store, project, monkeypatch, tmp_path):
@@ -355,7 +356,7 @@ def test_asset_binary_lives_in_the_served_data_tree(store, project):
 def test_export_synthesis_deliverable_returns_download_url(store, project, monkeypatch):
     """The hand-off contract for remote (MCP) hosts: the result's `url` is the absolute,
     auth-gated DOWNLOAD link (the supersede-managed asset URL once attached) and
-    `project_url` points at the files lens — a server filesystem path alone is not a
+    `project_url` points at the owning project — a server filesystem path alone is not a
     hand-off ('Datei liegt auf dem Sonaloop-Server' was the whole bug)."""
     from pathlib import Path
 
@@ -366,7 +367,7 @@ def test_export_synthesis_deliverable_returns_download_url(store, project, monke
     res = services.export_synthesis_deliverable(syn["id"], "pptx", store=store)
     rec = services.get_asset(project["id"], res["asset_id"], store=store)
     assert res["url"] == "https://app.sonaloop.test" + rec["url"]
-    assert res["project_url"] == f'https://app.sonaloop.test/projects/{project["id"]}?view=files'
+    assert res["project_url"] == f'https://app.sonaloop.test/projects/{project["id"]}'
     assert (Path(config.DATA_DIR) / "assets" / Path(rec["asset_path"]).name).read_bytes() == b"PK deck"
 
 

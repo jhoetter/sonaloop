@@ -381,7 +381,7 @@ def slideover(url: str, trigger: Any, *, title: str = "") -> Safe:
 def group_header(label: Any, count: int | None = None) -> Safe:
     """A quiet group separator between list rows (the linear-list `.group` contract — G3,
     co-located in web/_routes_lists.py): a muted heading + optional count. Used wherever rows
-    interleave with date/section groups (the project files lens's day separators, U8)."""
+    interleave with date/section groups."""
     return h("div", {"class_": "group"}, label,
              h("span", {"class_": "cnt"}, str(count)) if count is not None else None)
 

@@ -15,6 +15,9 @@ def _isolated(tmp_path, monkeypatch):
     monkeypatch.setenv("PERSONA_COUNCIL_DISABLE_EMBEDDINGS", "1")
     monkeypatch.setenv("PERSONA_COUNCIL_CONTENT_LANGUAGE", "en")
     monkeypatch.setenv("PERSONA_COUNCIL_UI_LANGUAGE", "en")
+    # Example personas load from the vendored catalog snapshot, never the network
+    # (the "No network" contract) — skip the live catalog_pull refresh.
+    monkeypatch.setenv("SONALOOP_EXAMPLES_REFRESH_FROM_CATALOG", "0")
     # SOUL/MEMORY/avatars render under ROOT/data/... — point ROOT at the tmp dir.
     # Submodules read config.ROOT dynamically (single source), so patching it here
     # reaches every service without any package-level fan-out.
