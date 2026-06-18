@@ -154,6 +154,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("form_id")
     p = sub.add_parser("forms-suggest", help="Show forms and payload shapes for one primitive.")
     p.add_argument("primitive")
+    sub.add_parser("result-schema-list", help="List result schemas and registry validation errors.")
+    p = sub.add_parser("result-schema-get", help="Inspect one result schema.")
+    p.add_argument("schema_id")
+    sub.add_parser("result-contract-list", help="List Job and methodology result contracts.")
+    p = sub.add_parser("result-contract-job", help="Inspect one Job result contract.")
+    p.add_argument("job_id")
+    p = sub.add_parser("result-contract-methodology", help="Inspect one methodology result contract.")
+    p.add_argument("methodology_key")
 
     _cli_hooks.add_hook_parsers(sub)
     _cli_substrate.add_substrate_parsers(sub)
@@ -530,6 +538,16 @@ def main(argv: list[str] | None = None) -> int:
             _print(services.get_form(args.primitive, args.form_id))
         elif args.command == "forms-suggest":
             _print(services.suggest_forms(args.primitive))
+        elif args.command == "result-schema-list":
+            _print(services.list_result_schemas())
+        elif args.command == "result-schema-get":
+            _print(services.get_result_schema(args.schema_id))
+        elif args.command == "result-contract-list":
+            _print(services.list_result_contracts())
+        elif args.command == "result-contract-job":
+            _print(services.result_contract_for_job(args.job_id))
+        elif args.command == "result-contract-methodology":
+            _print(services.result_contract_for_methodology(args.methodology_key))
         elif args.command in _cli_hooks.COMMANDS:
             _print(_cli_hooks.run_hook_command(args))
         elif args.command in _cli_substrate.COMMANDS:

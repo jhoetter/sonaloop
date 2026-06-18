@@ -7,7 +7,7 @@ from urllib.parse import quote
 
 from ._ctx import *  # noqa: F401,F403
 
-from ... import job_taxonomy, methodology as _methodology
+from ... import job_taxonomy, methodology as _methodology, result_schemas as _result_schemas
 from .._html import register_css
 
 
@@ -62,6 +62,18 @@ register_css(
     ".sl-meth-jobprops{display:grid;gap:12px}"
     ".sl-meth-jobprop b{display:block;font-weight:600;line-height:1.3;margin-bottom:2px}"
     ".sl-meth-jobprop span{color:var(--muted);line-height:1.45;font-size:var(--t-sm)}"
+    ".sl-meth-schema-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:12px}"
+    ".sl-meth-schema{border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel);padding:12px}"
+    ".sl-meth-schema h3{margin:2px 0 6px;font-size:var(--t-md)}"
+    ".sl-meth-schema p{margin:0;color:var(--muted);line-height:1.45}"
+    ".sl-meth-schema-code{font-family:var(--mono);font-size:var(--t-xs);color:var(--muted)}"
+    ".sl-meth-schema-block{margin-top:10px;padding-top:10px;border-top:1px solid var(--line-2)}"
+    ".sl-meth-schema-block b{display:block;margin-bottom:6px;color:var(--muted);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.08em}"
+    ".sl-meth-fields{display:grid;gap:6px}"
+    ".sl-meth-field{display:grid;grid-template-columns:minmax(96px,.35fr) 1fr;gap:8px;font-size:var(--t-sm)}"
+    ".sl-meth-field code{font-family:var(--mono);font-size:var(--t-xs)}"
+    ".sl-meth-field span{color:var(--muted)}"
+    ".sl-meth-schema-list{margin:0;padding-left:18px;color:var(--muted);line-height:1.45}"
     "@media(max-width:980px){.sl-meth-hero{grid-template-columns:1fr}.sl-meth-band{grid-template-columns:1fr}}"
 )
 
@@ -253,10 +265,66 @@ def _meth_card(spec: dict, jobs: list[dict], used: int) -> str:
                h("span", {"class_": "sl-meth-card-meta"}, fragment(*badges))))
 
 
-def _methodologies_page(q: str = "", job_type: str = "", complexity: str = "") -> str:
-    from urllib.parse import quote
-    from collections import Counter
+def _schema_card(schema: dict, role: str = "") -> str:
+    fields = schema.get("fields") or []
+    field_rows = [
+        h("div", {"class_": "sl-meth-field"},
+          h("code", {}, f.get("id", "")),
+          h("span", {}, f'{f.get("type", "")} · {t("required_h") if f.get("required") else t("optional_h")}'))
+        for f in fields
+    ]
+    metrics = [str(x) for x in schema.get("derived_metrics") or []]
+    done = [str(x) for x in schema.get("done_when") or []]
+    return h("div", {"class_": "sl-meth-schema"},
+             h("div", {"class_": "sl-meth-schema-code"}, schema.get("id", "")),
+             h("h3", {}, schema.get("name", schema.get("id", ""))),
+             h("p", {}, schema.get("summary", "")),
+             raw(_label(role, "var(--violet)")) if role else None,
+             h("div", {"class_": "sl-meth-schema-block"},
+               h("b", {}, "Expected fields"),
+               h("div", {"class_": "sl-meth-fields"}, fragment(*field_rows))),
+             h("div", {"class_": "sl-meth-schema-block"},
+               h("b", {}, "Derived metrics"),
+               h("ul", {"class_": "sl-meth-schema-list"},
+                 fragment(*(h("li", {}, m) for m in metrics))) if metrics else h("p", {}, "—")),
+             h("div", {"class_": "sl-meth-schema-block"},
+               h("b", {}, "Done criteria"),
+               h("ul", {"class_": "sl-meth-schema-list"},
+                 fragment(*(h("li", {}, d) for d in done))) if done else h("p", {}, "—")))
+
+
+def _schema_docs_for_methodology(key: str) -> str:
+    try:
+        refs = _result_schemas.contract_for_methodology(key).get("result_schemas") or []
+    except KeyError:
+        refs = []
+    if not refs:
+        return ""
+    cards = []
+    for ref in refs:
+        schema = _result_schemas.get_schema(ref["id"])
+        cards.append(_schema_card(schema, ref.get("role", "")))
+    return h("section", {},
+             h("h2", {"class_": "sl-doc-sub-h", "id": "result-schemas"}, "Result schemas"),
+             h("div", {"class_": "sl-meth-schema-grid"}, fragment(*cards)))
+
+
+def _schema_index(result_schema: str | None = None) -> str:
+    schemas = _result_schemas.schemas()
+    if result_schema:
+        schemas = [s for s in schemas if s.get("id") == result_schema]
+    if not schemas:
+        return ""
+    cards = [_schema_card(schema) for schema in schemas]
+    return h("section", {},
+             h("h2", {"class_": "sl-doc-sub-h", "id": "result-schemas"}, "Result schemas"),
+             h("div", {"class_": "sl-meth-schema-grid"}, fragment(*cards)))
+
+
+def _methodologies_page(q: str = "", job_type: str = "", complexity: str = "",
+                        result_schema: str | None = None) -> str:
     from .._filterbar import filter_bar, parse_multi, empty_filter_state
+
     store = Store()
     # Order light -> deep, then by name — so the index reads as a spectrum from a quick
     # reaction read down to a deep study.
@@ -309,7 +377,7 @@ def _methodologies_page(q: str = "", job_type: str = "", complexity: str = "") -
              h("div", {"class_": "sl-meth-lede"},
                h("h1", {"class_": "h1"}, t("methodologies_h"), h("span", {"class_": "h1cnt"}, str(len(specs)))),
                h("p", {"class_": "lead"}, t("methodologies_lead"))))
-    body = h("div", {"class_": "page"}, hero, bar, index)
+    body = h("div", {"class_": "page"}, hero, bar, index, raw(_schema_index(result_schema)))
     return _layout(t("methodologies_h"), body, store, crumbs=[(t("projects"), "/projects"), (t("methodologies_h"), None)], active="methodologies")
 
 
@@ -334,7 +402,8 @@ def _methodology_detail(slug: str) -> str:
     body = h("div", {},
              h("div", {"class_": "sl-prose"}, raw(_md(when))) if when else None,
              h("h2", {"class_": "sl-doc-sub-h", "id": "steps"}, t("stages_h")),
-             h("div", {"class_": "sl-meth-steps"}, fragment(*step_rows)))
+             h("div", {"class_": "sl-meth-steps"}, fragment(*step_rows)),
+             raw(_schema_docs_for_methodology(spec.get("key", ""))))
     # Aside (artifact-detail parity, ux-contract §9): "Good for" as a quiet property, then a
     # full-rail-width "Matching jobs" block that WRITES OUT each job's question (a tooltip hid
     # them before), then — when any exist — the projects that run this methodology. No "Engine".
@@ -365,8 +434,10 @@ def _methodology_detail(slug: str) -> str:
 
 def register_methodologies(app) -> None:
     @app.get("/methodologies", response_class=HTMLResponse)
-    def methodologies(q: str = "", job_type: str = "", complexity: str = "") -> str:
-        return _methodologies_page(q=q, job_type=job_type, complexity=complexity)
+    def methodologies(q: str = "", job_type: str = "", complexity: str = "",
+                      result_schema: str | None = None) -> str:
+        return _methodologies_page(q=q, job_type=job_type, complexity=complexity,
+                                  result_schema=result_schema)
 
     @app.get("/methodologies/{slug}", response_class=HTMLResponse)
     def methodology_detail(slug: str) -> str:

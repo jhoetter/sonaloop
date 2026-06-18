@@ -178,5 +178,5 @@ document.addEventListener('click',function(e){
 
 
 # Chrome wiring through the public seam: the per-request modal at body end. The trigger
-# itself is rendered by the sidebar user menu, so Feedback has one visible home.
+# itself is rendered by the sidebar footer, so Feedback has one visible home.
 register_slot("body_end", _modal_markup)

@@ -172,7 +172,10 @@ STRINGS: dict[str, dict[str, str]] = {
         # detail-page kind eyebrows (ux-contract §8.2 — one header anatomy for every kind;
         # "Klick-Prototyp", not the bare word: the presentation-from-data grep gate, same
         # rationale as fidelity_prototype above)
-        "council_kind": "Council", "prototype_kind": "Klick-Prototyp",
+        "council_kind": "Council", "prototype_kind": "Klick-Prototyp", "job_outcome_kind": "Job Outcome",
+        "result_schema_h": "Result Schema", "result_kind_h": "Output-Typ",
+        "evidence_refs_h": "Evidenz", "schema_json_preview": "JSON ansehen",
+        "schema_missing": "nicht erfasst", "required_h": "erforderlich", "optional_h": "optional",
         "proto_liked_h": "Gefällt", "predicted_behaviors_h": "Erwartetes Verhalten",
         # singular count labels (projects-list row meta — "1 Prototypes" read as a defect):
         "councils_one": "1 Council", "syntheses_one": "1 Report", "prototypes_h_one": "1 Prototyp", "notes_one": "1 Notiz",
@@ -613,7 +616,10 @@ STRINGS: dict[str, dict[str, str]] = {
         "sessions_lead": "Replayable sessions — usability walks and prototype reactions, the per-persona timeline, step by step.",
         "session_not_found": "Session not found.",
         # detail-page kind eyebrows (ux-contract §8.2 — one header anatomy for every kind)
-        "council_kind": "Council", "prototype_kind": "Prototype",
+        "council_kind": "Council", "prototype_kind": "Prototype", "job_outcome_kind": "Job outcome",
+        "result_schema_h": "Result schema", "result_kind_h": "Output kind",
+        "evidence_refs_h": "Evidence", "schema_json_preview": "View JSON",
+        "schema_missing": "not recorded", "required_h": "required", "optional_h": "optional",
         "proto_liked_h": "Liked", "predicted_behaviors_h": "Predicted behavior",
         # singular count labels (projects-list row meta — "1 Prototypes" read as a defect)
         "councils_one": "1 Council", "syntheses_one": "1 Report", "prototypes_h_one": "1 Prototype", "notes_one": "1 Note",

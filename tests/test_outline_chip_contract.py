@@ -117,6 +117,14 @@ def _every_kind_project(store) -> str:
     services.record_synthesis_outline(pid, {"build_order_narrative": "n",
                                             "sections": [{"heading": "A"}, {"heading": "B"}]},
                                       store=store)
+    services.record_job_outcome(
+        pid, "study_handoff.v1",
+        {"answer": "Ship the handoff.",
+         "sections": [{"heading": "Answer", "summary": "A concise study handoff exists."}],
+         "evidence_trail": [{"kind": "council", "id": "cA"},
+                            {"kind": "synthesis", "id": "sA"}]},
+        evidence_refs=[{"kind": "council", "id": "cA"}, {"kind": "synthesis", "id": "sA"}],
+        store=store)
     # a URL artifact (council-pool A/B capture) — an outline row on the DEFAULT view.
     services.add_artifact(pid, "https://example.test/landing", kind="url", title="Landing A",
                           capture=False, store=store)
@@ -146,7 +154,7 @@ def test_project_outline_rows_are_tag_free_but_keep_every_kind(store):
     _assert_tag_free_outline(html)
     assert {
         "council", "synthesis", "note", "prototype", "session", "report", "url_artifact",
-        "decision", "survey", "hypothesis", "open_question", "asset",
+        "decision", "survey", "hypothesis", "open_question", "asset", "job_outcome",
     } <= _all_rkinds(html)
     assert 'class="ol-ico"' in html
     row_html = "\n".join(_row_chunks(html))

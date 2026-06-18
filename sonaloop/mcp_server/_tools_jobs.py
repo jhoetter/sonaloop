@@ -53,3 +53,54 @@ def register_jobs(mcp):
         t = time.perf_counter()
         return _env("start_job_study", services.start_job_study(job_id, title, goal, framework,
                                                                persona_ids, icon=icon), t)
+
+    @mcp.tool()
+    def list_result_schemas() -> dict[str, Any]:
+        """List domain-neutral result schemas plus registry validation errors."""
+        t = time.perf_counter()
+        return _env("list_result_schemas", services.list_result_schemas(), t)
+
+    @mcp.tool()
+    def get_result_schema(schema_id: str) -> dict[str, Any]:
+        """One domain-neutral result schema by id, e.g. stimulus_reaction.v1."""
+        t = time.perf_counter()
+        return _env("get_result_schema", services.get_result_schema(schema_id), t)
+
+    @mcp.tool()
+    def list_result_contracts() -> dict[str, Any]:
+        """List the output contracts declared for Jobs and methodologies."""
+        t = time.perf_counter()
+        return _env("list_result_contracts", services.list_result_contracts(), t)
+
+    @mcp.tool()
+    def result_contract_for_job(job_id: str) -> dict[str, Any]:
+        """The expected result schemas for one Job."""
+        t = time.perf_counter()
+        return _env("result_contract_for_job", services.result_contract_for_job(job_id), t)
+
+    @mcp.tool()
+    def result_contract_for_methodology(methodology_key: str) -> dict[str, Any]:
+        """The expected result schemas a methodology usually produces."""
+        t = time.perf_counter()
+        return _env("result_contract_for_methodology", services.result_contract_for_methodology(methodology_key), t)
+
+    @mcp.tool()
+    def set_project_result_schemas(project_id: str, refs: list[Any], source: str = "") -> dict[str, Any]:
+        """Set the project-owned result schema contract that must be satisfied before the job is done."""
+        t = time.perf_counter()
+        return _env("set_project_result_schemas", services.set_project_result_schemas(project_id, refs, source), t)
+
+    @mcp.tool()
+    def record_job_outcome(project_id: str, schema_id: str, result: dict[str, Any],
+                           evidence_refs: list[dict[str, Any]] | None = None,
+                           key: str | None = None, source_task_id: str = "") -> dict[str, Any]:
+        """Persist one project-owned schema outcome as a job completion milestone."""
+        t = time.perf_counter()
+        return _env("record_job_outcome", services.record_job_outcome(
+            project_id, schema_id, result, evidence_refs, key, source_task_id), t)
+
+    @mcp.tool()
+    def project_result_contract_state(project_id: str) -> dict[str, Any]:
+        """Show which expected result schemas are recorded or still missing for a project."""
+        t = time.perf_counter()
+        return _env("project_result_contract_state", services.project_result_contract_state(project_id), t)

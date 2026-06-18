@@ -1,0 +1,48 @@
+{
+  "title": "Patientenfeedback Decision-Brief",
+  "summary": "Kompakter Prototyp fuer Feedback-Prioritaeten, Entscheidungsvorschlag und naechsten Test.",
+  "start": "brief",
+  "screens": [
+    {
+      "id": "brief",
+      "title": "Feedback-Prioritäten",
+      "elements": [
+        {
+          "kind": "text",
+          "id": "intro",
+          "label": "Feedback-Prioritäten aus 18 Rueckmeldungen: Wartezeit, unklare Nachsorge, Telefon-Erreichbarkeit."
+        },
+        {
+          "kind": "text",
+          "id": "decision",
+          "label": "Entscheidungsvorschlag: Nachsorge-Hinweise direkt beim Check-out bestaetigen."
+        },
+        {
+          "kind": "button",
+          "id": "go",
+          "label": "Naechsten Test planen",
+          "goto": "test",
+          "action": "test"
+        }
+      ]
+    },
+    {
+      "id": "test",
+      "title": "Nächster Test",
+      "elements": [
+        {
+          "kind": "text",
+          "id": "owner",
+          "label": "Test: zwei Tage Check-out-Skript, verantwortlich: Praxismanagerin, Erfolg: weniger Rueckfragen am Folgetag."
+        },
+        {
+          "kind": "button",
+          "id": "back",
+          "label": "Zurueck zum Brief",
+          "goto": "brief",
+          "action": "brief"
+        }
+      ]
+    }
+  ]
+}

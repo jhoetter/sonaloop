@@ -139,6 +139,15 @@ The `head_to_head` Format persists all of this on the recorded session
 stays **backward-compatible**: recordings made before the metadata existed still load, and
 `segmented_verdict` derives per-segment margins from their stored tallies.
 
+### Content reaction (`content_reaction`)
+
+> *Does this content land clearly enough to ship?*
+
+**Framework: `dschool_micro`** — the content is already concrete, so the run stays light:
+show the fixed stimulus to the target audience, capture comprehension and confusion, then
+converge on ship/revise/review. In result-schema terms this Job typically produces
+`stimulus_reaction.v1` plus an optional `threshold_gate.v1`.
+
 ### Pricing (`pricing`) — willingness-to-pay ladder
 
 > *What should I charge, and where does price sensitivity break?*
@@ -258,7 +267,7 @@ Downstream tickets reference this artifact directly:
 ## Naming + stable ids
 
 - **Job ids** are lower_snake_case and stable (`positioning`, `pricing`, `jtbd_demand`,
-  `ideation_hmw`, `continuous_discovery`, `churn_reasons`, `ab_test`). Never renumber or
+  `ideation_hmw`, `continuous_discovery`, `churn_reasons`, `ab_test`, `content_reaction`). Never renumber or
   rename — add new Jobs instead.
 - **Framework ids** equal the methodology `key` (`double_diamond`, …).
 - **Format ids** are lower_snake_case (`council`, `prototype_test`, `head_to_head`, `red_team`).

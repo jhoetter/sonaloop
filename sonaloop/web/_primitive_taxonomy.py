@@ -396,7 +396,7 @@ def subtype_value(kind: str, rec: dict[str, Any]) -> str:
                         "scale": "scale_survey", "text": "text_survey",
                         "ranking": "ranking_survey"}.get(survey_kind, "")
         return ""
-    if kind == "synthesis":
+    if kind in ("synthesis",):
         return "report" if rec.get("scope") == "project" else str(rec.get("form") or "synthesis")
     if kind == "note":
         data = rec.get("data") or {}

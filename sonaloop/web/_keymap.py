@@ -145,8 +145,7 @@ KEYMAP_CSS = r"""
 
 
 def keymap_hint() -> str:
-    """Legacy footer helper for the shortcuts sheet. The core shell now exposes this
-    from the user menu, but extensions can still reuse the row."""
+    """Permanent shortcuts trigger in the sidebar footer."""
     return h("button", {"type": "button", "class_": "pi-hover", "data-km-open": True},
              h("kbd", {"class_": "sl-kbd"}, "?"), h("span", {}, t("kbd_hint")))
 

@@ -233,6 +233,45 @@ def _assert_acyclic(steps: list[dict[str, Any]]) -> None:
 
 # --------------------------------------------------------------------------- registry
 
+_VIRTUAL_SPECS: dict[str, dict[str, Any]] = {
+    "reaction_test": {
+        "key": "reaction_test",
+        "name": "Reaction Test",
+        "description": "A lightweight reaction test for one fixed stimulus: collect audience reactions, then decide whether it clears a defined gate or needs revision.",
+        "when_to_use": "Use when a concrete stimulus already exists and the decision is ship, revise, or review rather than broad discovery.",
+        "presentation": {
+            "icon": "target",
+            "summary": "Fast reaction scoring and a gate for one fixed stimulus.",
+            "jobs": "Content, messaging, launch-copy and announcement checks.",
+        },
+        "steps": [
+            {
+                "id": "react", "name": "React", "tags": ["explore", "reaction", "stimulus"],
+                "intent": "Show the fixed stimulus to the selected cohort and collect scored reactions, comprehension issues and confusion points.",
+                "strategy": "tension", "diverge_by": "persona_subset",
+                "produces": {"role": "stimulus-reaction"},
+                "presentation": {
+                    "forms": ["council/open_discussion", "council/objection_review"],
+                    "formats": ["Council: Reaction", "Council: Objection review"],
+                    "library": ["Councils", "Result schemas"],
+                },
+            },
+            {
+                "id": "gate", "name": "Gate", "tags": ["decide", "test", "gate"],
+                "intent": "Synthesize the reaction score, confusion points and concrete revisions; decide whether the stimulus passes the threshold.",
+                "strategy": "goal", "consumes": ["react"],
+                "requires": {"min_inputs": 2, "gate_tag": "reaction_complete"},
+                "produces": {"role": "decision-gate"},
+                "presentation": {
+                    "forms": ["council/open_discussion"],
+                    "formats": ["Council: Gate review"],
+                    "library": ["Result schemas", "Decisions"],
+                },
+            },
+        ],
+    },
+}
+
 def _load_builtin_specs() -> dict[str, dict[str, Any]]:
     out: dict[str, dict[str, Any]] = {}
     d = methodologies_dir()
@@ -249,6 +288,9 @@ def registry(store: Store | None = None) -> dict[str, dict[str, Any]]:
     """Built-in specs (package files) overlaid with user-defined ones (DB), all normalized."""
     store = store or Store()
     specs = _load_builtin_specs()
+    for key, spec in _VIRTUAL_SPECS.items():
+        validate_methodology_spec(spec)
+        specs[key] = _normalize_spec(spec)
     for spec in store.list_methodologies():
         specs[spec["key"]] = _normalize_spec(spec)
     return specs

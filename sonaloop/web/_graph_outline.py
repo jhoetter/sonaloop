@@ -24,7 +24,7 @@ from ._palette_registry import fold as _fold
 _KIND_ICONS = dict(council="councils", synthesis="syntheses", report="syntheses",
                    note="panel", prototype="prototype", url_artifact="link",
                    decision="flag", survey="plan", hypothesis="target",
-                   open_question="help", session="play")
+                   open_question="help", session="play", job_outcome="target")
 
 
 def _q_match(q: str, blob: str) -> bool:
@@ -172,6 +172,14 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
             f'/syntheses/{mr["id"]}', last_key, max(nrounds - 1, 0), f'~{mr.get("created_at", "")}',
             mr.get("created_at", ""), plabel=t("synthesis_kind") if planless else None,
             rkind="report", node=mr)
+    for out in sorted(graph.get("job_outcomes", []), key=lambda m: m.get("created_at", "")):
+        schema_id = out.get("schema_id", "")
+        title = out.get("title", "") or schema_id
+        add(out["id"], primitive_color("hypothesis"), title,
+            t("job_outcome_kind"), f'/projects/{graph["project"]["id"]}/outcomes/{out["id"]}',
+            last_key, max(nrounds - 1, 0), f'~~{out.get("created_at", "")}',
+            out.get("created_at", ""), plabel=t("job_outcome_kind") if planless else None,
+            rkind="job_outcome", node=out)
 
     # Council references (captured URLs / prototype links / A/B variants) — first-class rows on
     # the DEFAULT view (tracker: project-presence-contract). The row opens the canonical
@@ -270,6 +278,9 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
          for it in items for k in _rel_keys(it)],
         edge_source, graph.get("plan"))
     for it in items:
+        if it.get("rkind") == "job_outcome":
+            it["trace_health"] = ""
+            continue
         keys = sorted(_rel_keys(it), key=lambda k: (":" not in k, k))
         it["trace_health"] = next((trace_health[k] for k in keys
                                    if k in trace_health), "")

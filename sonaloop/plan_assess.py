@@ -57,6 +57,11 @@ def project_run_state(project_id: str, store: Store | None = None,
         runs = []
     last_activity = max([plan.get("updated_at", "")] + [r.get("updated_at", "") for r in runs])
     if _p.is_complete(plan):
+        from . import result_outcomes as _result_outcomes
+        contract = _result_outcomes.project_result_contract_state(store, project_id)
+        if not contract.get("satisfied", True):
+            return {"state": "stalled", "last_activity": last_activity, "next_ready": ["__job_outcomes__"],
+                    "note": "plan complete but expected job outcome schemas are still missing"}
         return {"state": "finished", "last_activity": last_activity}
     ready = [t["id"] for t in _p.ready_tasks(plan)]
     open_runs = [r for r in runs if r.get("status") == "active"]
@@ -246,9 +251,14 @@ def assess_project(project_id: str, store: Store | None = None) -> dict[str, Any
     except Exception:
         memory_depth = {}
     ready = _p.ready_tasks(plan)
-    complete = _p.is_complete(plan)
+    tasks_complete = _p.is_complete(plan)
+    from . import result_outcomes as _result_outcomes
+    result_contract = _result_outcomes.project_result_contract_state(store, project_id)
+    complete = tasks_complete and result_contract.get("satisfied", True)
     rs = run_state(project_id, plan, store)
-    if complete and finish_gaps:
+    if tasks_complete and not result_contract.get("satisfied", True):
+        rec = "finish"
+    elif complete and finish_gaps:
         rec = "finish"            # gates met but not a finished, organized, concluded project
     elif complete:
         rec = "complete"
@@ -266,6 +276,7 @@ def assess_project(project_id: str, store: Store | None = None) -> dict[str, Any
     from .services import web_url
     return {
         "project_id": project_id, "goal": plan.get("goal", ""), "complete": complete,
+        "tasks_complete": tasks_complete,
         # the link to hand the user alongside the status (was absent — an agent reporting
         # project health had no URL to show)
         "url": web_url(f"/projects/{project_id}"),
@@ -279,6 +290,7 @@ def assess_project(project_id: str, store: Store | None = None) -> dict[str, Any
                        "hint": sat_hint},
         "novelty": novelty,
         "finish": finish,
+        "result_contract": result_contract,
         "memory_depth": memory_depth,
         "gaps": gaps,
         "ready": [t["id"] for t in ready],

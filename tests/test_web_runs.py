@@ -85,17 +85,19 @@ def test_topbar_widget_hidden_at_zero_runs(store):
     assert ">1 run stalled</span>" in html.split('id="runsw-count"')[1][:60]
 
 
-def test_project_header_run_chip_with_popover(store):
-    """UX P3 (ux-contract §3.5 / decision §7.4): runs left the nav — a project with a
-    plan carries the run-state chip in its header; the popover holds the state, last
-    activity, the copyable resume hint (stalled) and the /runs journal link."""
+def test_project_head_run_chip_with_popover(store):
+    """Runs left the nav. The global runs widget owns the topbar; a project with a
+    plan carries its run-state chip in the project head, with state, last activity,
+    the copyable resume hint (stalled) and the /runs journal link."""
     sid = _planned(store, "Stalled Proj")                      # open work, nobody driving
     html = _client().get(f"/projects/{sid}?lang=en").text
     assert 'class="sl-toolbtn runchip runchip--stalled"' in html          # the rendered chip, not the chrome CSS/JS
     assert f'{web.STRINGS["en"]["run_chip"]} · {web.STRINGS["en"]["runs_stalled_h"]}' in html
     topbar_actions = html.split('<span class="sl-tb-actions">', 1)[1].split('</span></header>', 1)[0]
-    assert 'id="runchip"' in topbar_actions
+    assert 'id="runchip"' not in topbar_actions
     assert 'class="sl-toolbtn tour-plan-chip"' in topbar_actions
+    project_head = html.split('class="proj-head"', 1)[1].split('class="outlinecard', 1)[0]
+    assert 'id="runchip"' in project_head
     pop = html.split('id="runchip-fly"')[1][:2500]
     # the popover LEADS with the concept (§9 V8): what a run is, before this run's state
     assert web.STRINGS["en"]["runs_lead"] in pop

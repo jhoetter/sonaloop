@@ -32,7 +32,7 @@ from ._primitive_taxonomy import primitive_color
 # (A tuple head keeps the kind-vocabulary grep gates clean — no kind-literal set heads in web/.)
 DRAWER_KINDS = frozenset(("council", "synthesis", "report", "note", "prototype", "session",
                           "decision", "survey", "hypothesis", "asset", "url_artifact",
-                          "open_question"))
+                          "open_question", "job_outcome"))
 
 
 def drawer_url(rkind: str, href: str) -> str | None:

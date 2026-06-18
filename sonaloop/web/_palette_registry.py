@@ -307,7 +307,7 @@ def palette_nav() -> list[dict[str, Any]]:
                                      for _k, route, icon, label, *_rest in LIBRARY_TABS]
             items.append(entry)
     items += [
-        {"title": t("activity_h"), "url": "/activity", "icon": "clock"},
+        {"title": t("activity_h"), "url": "/activity", "icon": "bell"},
         {"title": t("settings"), "url": "#settings", "icon": "settings"},
         {"title": t("documentation"), "url": "/documentation", "icon": "overview"},
         {"title": t("kbd_cheatsheet_h"), "url": "#shortcuts", "icon": "command"},

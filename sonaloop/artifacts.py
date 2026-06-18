@@ -660,6 +660,8 @@ def synthesis_recommendations(s: dict) -> list[tuple]:
     for f in synthesis_findings(s):
         if f.get("kind") == "recommendation":
             sc = f.get("score") or {}
+            if not isinstance(sc, dict):
+                sc = {}
             out.append((f.get("text", ""), sc.get("effort"), sc.get("value")))
     return out
 

@@ -1,0 +1,343 @@
+{
+  "schema": "sonaloop.result_schema.registry",
+  "version": 1,
+  "note": "Domain-neutral output contracts for research jobs. Jobs configure these schemas; methodologies declare which schemas they usually produce. A schema is a done-shape, not a domain name.",
+  "schemas": [
+    {
+      "id": "stimulus_reaction.v1",
+      "name": "Stimulus Reaction",
+      "summary": "A cohort reacts to a concrete stimulus; the result captures sentiment, comprehension, confusion and recurring themes.",
+      "result_kind": "score_plus_themes",
+      "fields": [
+        {"id": "stimulus_ref", "type": "ref", "required": true, "description": "The concrete item shown to the cohort."},
+        {"id": "cohort_summary", "type": "object", "required": true, "description": "Who reacted and which audience axes were covered."},
+        {"id": "sentiment_score", "type": "number", "range": [0, 1], "required": true, "description": "Normalized positive reaction score."},
+        {"id": "comprehension_score", "type": "number", "range": [0, 1], "required": false, "description": "How clearly the stimulus was understood."},
+        {"id": "confusion_points", "type": "array", "items": "finding", "required": true, "description": "Where interpretation broke down."},
+        {"id": "revision_recommendations", "type": "array", "items": "finding", "required": false, "description": "Concrete changes suggested by evidence."}
+      ],
+      "derived_metrics": ["sentiment_score", "comprehension_score", "top_confusion_theme"],
+      "done_when": [
+        "A stimulus is fixed before reactions are collected.",
+        "Every included reaction is linked to cohort evidence.",
+        "The sentiment score and confusion points are synthesized with citations."
+      ]
+    },
+    {
+      "id": "ordered_ladder_sensitivity.v1",
+      "name": "Ordered Ladder Sensitivity",
+      "summary": "A cohort reacts across ordered levels; the result finds acceptable ranges, cliffs and segment splits.",
+      "result_kind": "range_plus_cliff",
+      "fields": [
+        {"id": "levels", "type": "array", "items": "ordered_level", "required": true, "description": "The fixed ascending ladder tested before exposure."},
+        {"id": "responses", "type": "array", "items": "level_reaction", "required": true, "description": "Per-cohort-member reaction to each level."},
+        {"id": "acceptable_range", "type": "object", "required": true, "description": "The range where enough reactions remain acceptable."},
+        {"id": "cliff_point", "type": "object", "required": false, "description": "The level where acceptance drops most sharply."},
+        {"id": "segment_ranges", "type": "array", "items": "segment_range", "required": false, "description": "Ranges and cliffs by segment."}
+      ],
+      "derived_metrics": ["acceptable_range", "cliff_point", "acceptance_by_level"],
+      "done_when": [
+        "The ladder is fixed before reactions are collected.",
+        "Each participant reacts to every level with one accepted band.",
+        "Overall and segment-level ranges are derived from the response matrix."
+      ]
+    },
+    {
+      "id": "option_comparison.v1",
+      "name": "Option Comparison",
+      "summary": "A cohort compares alternatives side by side; the result states winner, margin, abstentions and segment splits.",
+      "result_kind": "segmented_preference",
+      "fields": [
+        {"id": "options", "type": "array", "items": "option", "required": true, "description": "The fixed options compared."},
+        {"id": "preferences", "type": "array", "items": "preference", "required": true, "description": "Forced or explicit per-participant choices with reasons."},
+        {"id": "overall_winner", "type": "string", "required": true, "description": "Winning option label, or abstain/no-clear-winner."},
+        {"id": "margin", "type": "number", "range": [0, 1], "required": true, "description": "How decisive the preference was."},
+        {"id": "segment_splits", "type": "array", "items": "segment_preference", "required": false, "description": "Which segments preferred which option."}
+      ],
+      "derived_metrics": ["overall_winner", "margin", "abstentions", "segment_splits"],
+      "done_when": [
+        "Options are frozen before exposure.",
+        "Each participant sees the same option set.",
+        "The aggregate verdict preserves segment splits instead of hiding them in one blended score."
+      ]
+    },
+    {
+      "id": "threshold_gate.v1",
+      "name": "Threshold Gate",
+      "summary": "A named metric is compared against a threshold to produce a pass, fail or needs-review decision.",
+      "result_kind": "decision_gate",
+      "fields": [
+        {"id": "metric", "type": "string", "required": true, "description": "Metric id from another result schema."},
+        {"id": "observed_value", "type": "number", "required": true, "description": "Observed value at decision time."},
+        {"id": "operator", "type": "enum", "values": [">", ">=", "<", "<=", "=="], "required": true, "description": "Comparison operator."},
+        {"id": "threshold", "type": "number", "required": true, "description": "Decision threshold."},
+        {"id": "verdict", "type": "enum", "values": ["pass", "fail", "needs_review"], "required": true, "description": "Gate result."},
+        {"id": "evidence_refs", "type": "array", "items": "ref", "required": true, "description": "Evidence used to compute the metric."}
+      ],
+      "derived_metrics": ["verdict", "distance_to_threshold"],
+      "done_when": [
+        "The metric and threshold are named before the gate is evaluated.",
+        "The observed value is linked to the evidence that produced it.",
+        "The verdict is derived from the comparison, not asserted in prose."
+      ]
+    },
+    {
+      "id": "funnel_friction.v1",
+      "name": "Funnel Friction",
+      "summary": "A cohort moves through ordered steps; the result identifies drop-off, blockers and severity.",
+      "result_kind": "step_friction_map",
+      "fields": [
+        {"id": "steps", "type": "array", "items": "flow_step", "required": true, "description": "Ordered path or task steps."},
+        {"id": "sessions", "type": "array", "items": "session_ref", "required": true, "description": "Observed walkthrough or prototype sessions."},
+        {"id": "dropoff_step", "type": "string", "required": false, "description": "Step where abandonment or failure concentrates."},
+        {"id": "frictions", "type": "array", "items": "friction", "required": true, "description": "Observed blockers with severity and evidence."},
+        {"id": "repair_recommendations", "type": "array", "items": "finding", "required": false, "description": "Concrete flow changes."}
+      ],
+      "derived_metrics": ["dropoff_step", "friction_severity_distribution"],
+      "done_when": [
+        "A concrete path is defined before sessions are interpreted.",
+        "Friction is tied to observed behavior, not only opinions.",
+        "The result names both the failing step and the likely cause."
+      ]
+    },
+    {
+      "id": "change_forces.v1",
+      "name": "Change Forces",
+      "summary": "The result explains what pushes toward change, pulls toward an option, creates anxiety and preserves habit.",
+      "result_kind": "force_map",
+      "fields": [
+        {"id": "timeline_evidence", "type": "array", "items": "ref", "required": true, "description": "Stories or observations behind the change moment."},
+        {"id": "push", "type": "array", "items": "finding", "required": true, "description": "Forces making the current state unacceptable."},
+        {"id": "pull", "type": "array", "items": "finding", "required": true, "description": "Forces attracting the participant to the new option."},
+        {"id": "anxiety", "type": "array", "items": "finding", "required": true, "description": "Risks and fears blocking change."},
+        {"id": "habit", "type": "array", "items": "finding", "required": true, "description": "Status-quo forces and switching costs."},
+        {"id": "change_likelihood", "type": "number", "range": [0, 1], "required": false, "description": "Likelihood that the forces overcome inertia."}
+      ],
+      "derived_metrics": ["change_likelihood", "dominant_blocker"],
+      "done_when": [
+        "Every force group has evidence.",
+        "The result distinguishes drivers of change from blockers of change.",
+        "The output names what would have to change to alter the likelihood."
+      ]
+    },
+    {
+      "id": "opportunity_map.v1",
+      "name": "Opportunity Map",
+      "summary": "Signals are clustered under an outcome; the result selects target opportunities and explains why.",
+      "result_kind": "clustered_opportunities",
+      "fields": [
+        {"id": "target_outcome", "type": "string", "required": true, "description": "Outcome the map is organized around."},
+        {"id": "clusters", "type": "array", "items": "cluster", "required": true, "description": "Grouped needs, pains, desires or constraints."},
+        {"id": "evidence_refs", "type": "array", "items": "ref", "required": true, "description": "Source evidence for each cluster."},
+        {"id": "target_opportunities", "type": "array", "items": "opportunity", "required": true, "description": "Selected opportunities to pursue or test next."},
+        {"id": "open_questions", "type": "array", "items": "question", "required": false, "description": "Unresolved questions left by the map."}
+      ],
+      "derived_metrics": ["cluster_count", "target_opportunity_count", "coverage_gaps"],
+      "done_when": [
+        "Clusters are backed by member evidence.",
+        "At least one target opportunity is selected with rationale.",
+        "Open questions are retained instead of flattened into false certainty."
+      ]
+    },
+    {
+      "id": "concept_validation.v1",
+      "name": "Concept Validation",
+      "summary": "A concept or prototype is tested; the result states fit, risks, target segments and next action.",
+      "result_kind": "validated_concept",
+      "fields": [
+        {"id": "concept_ref", "type": "ref", "required": true, "description": "The concept, prototype or option tested."},
+        {"id": "tested_segments", "type": "array", "items": "segment", "required": true, "description": "Segments represented in the validation."},
+        {"id": "fit_score", "type": "number", "range": [0, 1], "required": false, "description": "Evidence-weighted fit signal."},
+        {"id": "validated_solves", "type": "array", "items": "finding", "required": true, "description": "Problems the concept appears to solve."},
+        {"id": "risks", "type": "array", "items": "finding", "required": true, "description": "Adoption, usability, trust or feasibility risks."},
+        {"id": "next_action", "type": "enum", "values": ["build", "iterate", "test_more", "drop"], "required": true, "description": "Evidence-backed recommendation."}
+      ],
+      "derived_metrics": ["fit_score", "risk_severity", "next_action"],
+      "done_when": [
+        "The concept is concrete enough for participants to react to or use.",
+        "The result separates validated solves from unresolved risks.",
+        "The next action cites evidence and alternatives considered."
+      ]
+    },
+    {
+      "id": "study_handoff.v1",
+      "name": "Study Handoff",
+      "summary": "A presentation-grade report or deck packages the answer, evidence trail, decisions and remaining risks.",
+      "result_kind": "deliverable_report",
+      "fields": [
+        {"id": "answer", "type": "string", "required": true, "description": "The direct answer to the job question."},
+        {"id": "sections", "type": "array", "items": "report_section", "required": true, "description": "Structured report sections."},
+        {"id": "evidence_trail", "type": "array", "items": "ref", "required": true, "description": "Citations back to source evidence."},
+        {"id": "decisions", "type": "array", "items": "decision_ref", "required": false, "description": "Decisions or recommendations supported by the study."},
+        {"id": "open_risks", "type": "array", "items": "finding", "required": false, "description": "Known risks and what would resolve them."},
+        {"id": "exports", "type": "array", "items": "asset_ref", "required": false, "description": "Exported PDF, PPTX, HTML or markdown assets."}
+      ],
+      "derived_metrics": ["section_count", "evidence_count", "unresolved_risk_count"],
+      "done_when": [
+        "The report directly answers the original job question.",
+        "Every major claim cites graph evidence.",
+        "The deliverable is exportable or already exported for handoff."
+      ]
+    }
+  ],
+  "job_contracts": [
+    {
+      "job_id": "positioning",
+      "result_schemas": [
+        {"id": "stimulus_reaction.v1", "role": "primary"},
+        {"id": "option_comparison.v1", "role": "supporting"},
+        {"id": "study_handoff.v1", "role": "handoff"}
+      ],
+      "done_summary": "The value message lands with the intended audience, is compared against alternatives, and is handed off with cited positioning recommendations."
+    },
+    {
+      "job_id": "pricing",
+      "result_schemas": [
+        {"id": "ordered_ladder_sensitivity.v1", "role": "primary"},
+        {"id": "option_comparison.v1", "role": "supporting"},
+        {"id": "threshold_gate.v1", "role": "gate"}
+      ],
+      "done_summary": "The ordered levels expose an acceptable range and cliff; package or tier alternatives can be compared separately."
+    },
+    {
+      "job_id": "jtbd_demand",
+      "result_schemas": [
+        {"id": "change_forces.v1", "role": "primary"},
+        {"id": "concept_validation.v1", "role": "supporting"},
+        {"id": "study_handoff.v1", "role": "handoff"}
+      ],
+      "done_summary": "The study names the forces behind demand and validates whether a concrete concept can win the change."
+    },
+    {
+      "job_id": "ideation_hmw",
+      "result_schemas": [
+        {"id": "opportunity_map.v1", "role": "primary"},
+        {"id": "concept_validation.v1", "role": "primary"},
+        {"id": "study_handoff.v1", "role": "handoff"}
+      ],
+      "done_summary": "The HMW space is mapped into opportunities, concepts are tested, and the chosen direction is handed off."
+    },
+    {
+      "job_id": "continuous_discovery",
+      "result_schemas": [
+        {"id": "opportunity_map.v1", "role": "primary"},
+        {"id": "concept_validation.v1", "role": "supporting"},
+        {"id": "study_handoff.v1", "role": "periodic_handoff"}
+      ],
+      "done_summary": "Each cadence updates the opportunity map, tests assumptions or concepts, and leaves a handoff for the next loop."
+    },
+    {
+      "job_id": "churn_reasons",
+      "result_schemas": [
+        {"id": "change_forces.v1", "role": "primary"},
+        {"id": "opportunity_map.v1", "role": "supporting"},
+        {"id": "study_handoff.v1", "role": "handoff"}
+      ],
+      "done_summary": "The study explains forces pushing users away, blockers to retention, and addressable opportunities."
+    },
+    {
+      "job_id": "ab_test",
+      "result_schemas": [
+        {"id": "option_comparison.v1", "role": "primary"},
+        {"id": "threshold_gate.v1", "role": "gate"}
+      ],
+      "automation_gate": {"schema": "threshold_gate.v1", "metric": "margin", "operator": ">=", "threshold": 0.1},
+      "done_summary": "Frozen options are compared, the segmented winner is known, and an optional margin threshold can drive automation."
+    },
+    {
+      "job_id": "content_reaction",
+      "result_schemas": [
+        {"id": "stimulus_reaction.v1", "role": "primary"},
+        {"id": "threshold_gate.v1", "role": "gate"},
+        {"id": "study_handoff.v1", "role": "light_handoff"}
+      ],
+      "automation_gate": {"schema": "threshold_gate.v1", "metric": "sentiment_score", "operator": ">=", "threshold": 0.5},
+      "done_summary": "The stimulus receives scored reaction/comprehension feedback; a threshold can decide whether to ship or review."
+    }
+  ],
+  "methodology_contracts": [
+    {
+      "methodology_key": "reaction_test",
+      "result_schemas": [
+        {"id": "stimulus_reaction.v1", "role": "primary"},
+        {"id": "threshold_gate.v1", "role": "gate"}
+      ],
+      "done_summary": "Fast reaction score and concrete revisions for one fixed stimulus."
+    },
+    {
+      "methodology_key": "double_diamond",
+      "result_schemas": [
+        {"id": "opportunity_map.v1", "role": "discover_define"},
+        {"id": "concept_validation.v1", "role": "develop_deliver"},
+        {"id": "study_handoff.v1", "role": "handoff"}
+      ],
+      "done_summary": "Problem framing, tested concept, and buildable handoff."
+    },
+    {
+      "methodology_key": "double_diamond_deep",
+      "result_schemas": [
+        {"id": "opportunity_map.v1", "role": "problem_space"},
+        {"id": "option_comparison.v1", "role": "down_select"},
+        {"id": "concept_validation.v1", "role": "solution_space"},
+        {"id": "study_handoff.v1", "role": "deck_or_report"}
+      ],
+      "done_summary": "Deep opportunity map, down-selection, validated refined concept, and presentation-grade handoff."
+    },
+    {
+      "methodology_key": "dschool_micro",
+      "result_schemas": [
+        {"id": "opportunity_map.v1", "role": "empathy_define"},
+        {"id": "concept_validation.v1", "role": "prototype_test"},
+        {"id": "study_handoff.v1", "role": "handoff"}
+      ],
+      "done_summary": "Empathy-first problem definition and quick prototype validation."
+    },
+    {
+      "methodology_key": "lean_jtbd",
+      "result_schemas": [
+        {"id": "change_forces.v1", "role": "job_context"},
+        {"id": "concept_validation.v1", "role": "mvp_validation"},
+        {"id": "ordered_ladder_sensitivity.v1", "role": "optional_ladder"},
+        {"id": "option_comparison.v1", "role": "optional_comparison"}
+      ],
+      "done_summary": "Job context, chosen problem, and validated minimal answer; optional ladders/comparisons for pricing or variants."
+    },
+    {
+      "methodology_key": "jtbd_switch",
+      "result_schemas": [
+        {"id": "change_forces.v1", "role": "switching_story"},
+        {"id": "opportunity_map.v1", "role": "opportunity"},
+        {"id": "study_handoff.v1", "role": "handoff"}
+      ],
+      "done_summary": "Switching forces are mapped from evidence, the addressable opportunity is selected, and the findings are handed off."
+    },
+    {
+      "methodology_key": "customer_discovery",
+      "result_schemas": [
+        {"id": "opportunity_map.v1", "role": "problem_discovery"},
+        {"id": "change_forces.v1", "role": "demand_context"},
+        {"id": "study_handoff.v1", "role": "handoff"}
+      ],
+      "done_summary": "Customer evidence is clustered into opportunities, demand context is explained, and remaining assumptions are handed off."
+    },
+    {
+      "methodology_key": "continuous_discovery",
+      "result_schemas": [
+        {"id": "opportunity_map.v1", "role": "continuous_map"},
+        {"id": "concept_validation.v1", "role": "assumption_test"},
+        {"id": "study_handoff.v1", "role": "cadence_handoff"}
+      ],
+      "done_summary": "The cadence keeps the opportunity map current, records tested assumptions or concepts, and leaves a handoff for the next loop."
+    },
+    {
+      "methodology_key": "design_sprint",
+      "result_schemas": [
+        {"id": "option_comparison.v1", "role": "decision"},
+        {"id": "concept_validation.v1", "role": "prototype_test"},
+        {"id": "funnel_friction.v1", "role": "test_observation"},
+        {"id": "study_handoff.v1", "role": "sprint_handoff"}
+      ],
+      "done_summary": "A direction is selected, prototyped, tested through observed use, and handed off with evidence-backed next steps."
+    }
+  ]
+}

@@ -16,7 +16,7 @@ def test_assets_present_and_app_builds():
 def test_sidebar_is_exactly_four_workspace_items():
     """The workspace sidebar (seeded in _nav_seed.py via the same public registry an
     extension uses): Jobs · Methodologies · Formats · Personas. Utilities live in
-    the user menu."""
+    the footer."""
     import re
     from starlette.testclient import TestClient
     from sonaloop.web._i18n import STRINGS
@@ -27,18 +27,21 @@ def test_sidebar_is_exactly_four_workspace_items():
         "/projects", "/methodologies", "/library", "/personas",
     ]
     assert STRINGS["en"]["library_h"] in nav
-    # the retired/utility items answer elsewhere: user menu/palette for utilities,
+    # the retired/utility items answer elsewhere: footer/palette for utilities,
     # Runs only via the run chip/palette.
     for gone in ("/runs", "/documentation", "/councils", "/syntheses", "/surveys",
                  "/hypotheses", "/decisions", "/sessions", "/notes", "/prototypes",
                  "/activity"):
         assert f'href="{gone}"' not in nav, f"{gone} should have left the nav"
-    assert 'class="sl-nav sl-sb-foot"' not in sidebar
-    # Utility actions are grouped in one menu instead of duplicating footer rows.
+    assert 'class="sl-nav sl-sb-foot"' in sidebar
+    foot = sidebar.split('class="sl-nav sl-sb-foot"')[1].split("sl-usermenu")[0]
+    assert 'href="/activity"' in foot and STRINGS["en"]["activity_h"] in foot
+    assert 'href="/documentation"' in foot and STRINGS["en"]["documentation"] in foot
+    assert "data-fb-open" in foot and "data-tour-start" in foot and "data-km-open" in foot
+    # The settings menu stays focused on account/theme/language.
     pop = sidebar.split('class="sl-um-pop"')[1].split("sl-um-trigger")[0]
-    assert 'href="/activity"' in pop and STRINGS["en"]["activity_h"] in pop
-    assert 'href="/documentation"' in pop and STRINGS["en"]["documentation"] in pop
-    assert "data-fb-open" in pop and "data-tour-start" in pop and "data-km-open" in pop
+    assert 'href="/activity"' not in pop and 'href="/documentation"' not in pop
+    assert "data-fb-open" not in pop and "data-tour-start" not in pop and "data-km-open" not in pop
 
 
 def test_methodology_covers_are_static_assets_not_inline_payloads():

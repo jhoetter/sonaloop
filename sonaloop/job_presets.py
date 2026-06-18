@@ -20,6 +20,7 @@ from __future__ import annotations
 from typing import Any
 
 from . import job_taxonomy as _T
+from . import result_schemas as _R
 
 
 # ----------------------------------------------------------------------------------- presets
@@ -47,6 +48,10 @@ def job_presets(store: Any | None = None) -> list[dict[str, Any]]:
     fmts = {f["id"]: f for f in _T.formats()}
     presets: list[dict[str, Any]] = []
     for job in _T.jobs():
+        try:
+            result_contract = _R.contract_for_job(job["id"])
+        except KeyError:
+            result_contract = {"job_id": job["id"], "result_schemas": []}
         presets.append({
             "schema": "job_preset",
             "id": job["id"],
@@ -66,6 +71,7 @@ def job_presets(store: Any | None = None) -> list[dict[str, Any]]:
             # exposure, randomized order, forced preference, segmented verdict) rides into the
             # preset verbatim so the host sees the protocol where it plans the run.
             **({"protocol": dict(job["protocol"])} if job.get("protocol") else {}),
+            "result_contract": result_contract,
             "note": PRESET_NOTE,
         })
     return presets

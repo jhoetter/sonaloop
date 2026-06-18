@@ -98,6 +98,15 @@ def _attach_reports(g: dict, project_id: str, store: Store) -> dict:
                      "n_sections": len(r.get("sections") or [])}
                     for r in store.list_reports(project_id)
                     if r["id"] not in existing_synthesis_ids]
+    project = store.get_research_project(project_id) or {}
+    g["job_outcomes"] = [{
+        "id": str(o.get("id", "")),
+        "schema_id": o.get("schema_id", ""),
+        "title": o.get("name") or o.get("schema_id", ""),
+        "created_at": o.get("created_at", ""),
+        "result_kind": o.get("result_kind", ""),
+    } for o in sorted((project.get("job_outcomes") or []), key=lambda x: x.get("created_at", ""))
+        if o.get("id")]
     return g
 
 

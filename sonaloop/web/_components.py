@@ -19,7 +19,8 @@ from ._palette import PALETTE_CSS, PALETTE_JS, palette_markup
 from ._slide import slide_mode
 from ._live import LIVE_CSS, LIVE_JS, live_markup
 from ._runs_widget import RUNS_WIDGET_CSS, RUNS_WIDGET_JS, runs_widget_markup
-from ._keymap import KEYMAP_CSS, KEYMAP_JS, keymap_markup
+from ._keymap import KEYMAP_CSS, KEYMAP_JS, keymap_markup, keymap_hint
+from ._tour import tour_footer_entry
 from ._ext import (  # noqa: F401  (extension seams; public surface re-exported by web/__init__)
     register_nav_section, register_nav_item, resolve_label, nav_model,
     render_slot, theme_override_css, brand_name, brand_logo, title_brand,
@@ -352,18 +353,23 @@ def _user_menu_control(label: str, icon: str, control: str) -> str:
 
 
 def docs_footer_entry(active: str) -> str:
-    """Legacy footer entry helper. The core shell now renders Documentation from the
-    user menu so the sidebar footer stays focused."""
+    """Permanent Documentation entry in the sidebar footer."""
     return h("a", {"href": "/documentation",
                    "class_": "pi-hover is-active" if active == "docs" else "pi-hover"},
              raw(_icon("overview", animate=True)), h("span", {}, t("documentation")))
 
 
 def activity_footer_entry(active: str) -> str:
-    """Legacy footer entry helper. The core shell now renders Activity from the user menu."""
+    """Permanent Activity entry in the sidebar footer."""
     return h("a", {"href": "/activity",
                    "class_": "pi-hover is-active" if active == "activity" else "pi-hover"},
-             raw(_icon("clock", animate=True)), h("span", {}, t("activity_h")))
+             raw(_icon("bell", animate=True)), h("span", {}, t("activity_h")))
+
+
+def feedback_footer_entry() -> str:
+    """Permanent Feedback trigger in the sidebar footer."""
+    return h("button", {"type": "button", "class_": "pi-hover", "data-fb-open": True},
+             raw(_icon("chat", animate=True)), h("span", {}, t("feedback_h")))
 
 
 def _user_menu() -> str:
@@ -392,12 +398,6 @@ def _user_menu() -> str:
         account_sec = h("div", {"class_": "sl-um-account"},
                         h("span", {"class_": "sl-um-ava sl-um-ava--initials"}, _initials(who)),
                         h("div", {"class_": "sl-um-account-main"}, *account_bits))
-    link_sec = h("div", {"class_": "sl-um-group"},
-                 _user_menu_row(t("activity_h"), "activity", href="/activity"),
-                 _user_menu_row(t("documentation"), "overview", href="/documentation"),
-                 _user_menu_row(t("feedback_h"), "chat", attrs={"data-fb-open": True}),
-                 _user_menu_row(t("tour_take"), "compass", attrs={"data-tour-start": True}),
-                 _user_menu_row(t("kbd_cheatsheet_h"), "command", attrs={"data-km-open": True}))
     controls_sec = h("div", {"class_": "sl-um-group"},
                      _user_menu_control(t("theme"), "sun",
                                         h("div", {"class_": "sl-um-switch"}, theme_opts)),
@@ -422,7 +422,6 @@ def _user_menu() -> str:
     return h("div", {"class_": "sl-usermenu"},
              h("div", {"class_": "sl-um-pop", "hidden": True},
                account_sec,
-               link_sec,
                controls_sec,
                logout_sec),
              h("button", {"type": "button", "class_": "sl-um-trigger pi-hover",
@@ -430,11 +429,15 @@ def _user_menu() -> str:
                *trigger_parts))
 
 
-def _sidebar_footer(store: Store) -> str:
+def _sidebar_footer(store: Store, active: str) -> str:
     footer = render_slot("sidebar_footer", store)
-    if not footer:
-        return ""
-    return f'<nav class="sl-nav sl-sb-foot">{footer}</nav>'
+    return h("nav", {"class_": "sl-nav sl-sb-foot"},
+             raw(activity_footer_entry(active)),
+             raw(docs_footer_entry(active)),
+             raw(feedback_footer_entry()),
+             raw(footer),
+             raw(tour_footer_entry()),
+             raw(keymap_hint()))
 
 
 def _star(kind: str, ident: str, label: str, href: str) -> str:
@@ -527,7 +530,7 @@ def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
     <div class="sl-brand"><a class="sl-logo" href="/">{_lockup}</a></div>
     <div class="sl-sb-search"><button type="button" class="sl-cmdk-trigger" data-cmdk-open aria-label="{t("search")}">{_icon("search")}<span>{t("search")}</span><kbd class="sl-kbd">⌘K</kbd></button></div>
     <div class="sl-sb-scroll">{_nav(active, store)}{render_slot("sidebar_extra", store)}</div>
-    {_sidebar_footer(store)}
+    {_sidebar_footer(store, active)}
     {_user_menu()}
   </aside>
   <div class="sl-resize" id="rz" role="separator" aria-orientation="vertical" aria-label="{t("sidebar")}"></div>

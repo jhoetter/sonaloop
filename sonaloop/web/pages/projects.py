@@ -3,8 +3,10 @@ from __future__ import annotations
 
 from fastapi.responses import RedirectResponse
 
+from ... import result_outcomes
 from ._ctx import *  # noqa: F401,F403  (shared render toolkit)
 from .._graph_outline_sessions import outline_session_groups
+from .._job_outcomes import render_schema_outcomes
 from .._project_graph_view import augment_project_graph
 from .._project_icons import project_icon_edit_script, project_icon_html
 # Presence contract (tracker: sonaloop/project-presence-contract) + UX P2 (spec/ux-contract.md
@@ -106,9 +108,8 @@ def register_projects(app) -> None:
                          search={"value": q, "placeholder": t("search_project_ph")})
         # data-keynav arms the keymap's j/k row walk on the outline (ux-contract C7).
         main_view = h("div", {"class_": card_cls, "data-keynav": True}, raw(outline))
-        # The run-state chip (ux-contract §3.5 / decision §7.4): `▶ Run · state` with a
-        # popover (last activity · next-ready/resume hint · /runs journal link). Runs left
-        # the nav; this header chip is where a project's driver status now surfaces.
+        # The project run-state chip (`▶ Run · state`) belongs to the project head, not
+        # the topbar: the topbar already has the global runs widget.
         from .._runs_widget import project_run_chip
         run_chip = project_run_chip(proj["id"], store)
         # The FilterBar closes the head so it sits INSIDE the 900px measure (V1 — it used to
@@ -119,14 +120,15 @@ def register_projects(app) -> None:
                      raw(project_icon_html(proj, edit_project_id=proj["id"],
                                            edit_label=t("f_project_icon"))),
                      proj["title"]),
-                   h("p", {"class_": "lead"}, proj.get("goal", "")), bar),
+                   h("p", {"class_": "lead"}, proj.get("goal", "")),
+                   h("div", {"class_": "pills"}, raw(run_chip)),
+                   bar),
                  main_view) + raw(project_icon_edit_script())
         # Write affordances (web CRUD, V10 §9): the ONE visible "…" overflow — Edit opens the
         # metadata dialog over the page, Delete the typed-confirm modal. No create buttons
         # (notes/sections/projects are created by the MCP/CLI host).
         from .edit import project_actions
-        actions = fragment(raw(run_chip),
-                           top_btn,
+        actions = fragment(top_btn,
                            raw(project_actions(proj)),
                            raw(_star("project", proj["id"], proj["title"], f'/projects/{proj["id"]}')))
         from .._palette import visit_marker   # the palette's recents beacon (UX V6)
@@ -137,6 +139,41 @@ def register_projects(app) -> None:
     #      but their canonical Ref routes /hypotheses/{id} and /decisions/{id} now serve REAL
     #      detail pages (UX U7, §8.2) — registered with their kind modules (pages/hypotheses,
     #      pages/decisions); the old redirects retired. ----
+
+    @app.get("/projects/{project_id}/outcomes/{outcome_id}", response_class=HTMLResponse)
+    def project_job_outcome(project_id: str, outcome_id: str) -> str:
+        store = Store()
+        try:
+            proj = services.get_research_project(project_id, store=store)
+        except KeyError:
+            return _layout(t("not_found"), _empty_state(t("not_found"), t("runtime_maybe_cleared"), icon="projects"),
+                           store, active="projects")
+        outcome = result_outcomes.get_project_schema_outcome(store, project_id, outcome_id)
+        if not outcome:
+            return _layout(t("not_found"), _empty_state(t("job_outcome_kind"), t("runtime_maybe_cleared"), icon="target"),
+                           store, active="projects",
+                           crumbs=[(t("projects"), "/projects"), (proj["title"], f'/projects/{project_id}'),
+                                   (t("job_outcome_kind"), None)])
+        body = h("div", {"class_": "syn-main"}, raw(render_schema_outcomes([outcome], store, project_id)))
+        evidence_refs = outcome.get("evidence_refs") or []
+        result_kind = str(outcome.get("result_kind") or "").replace("_", " ").strip()
+        result_kind = result_kind[:1].upper() + result_kind[1:] if result_kind else ""
+        prop_rows = [
+            ("target", t("result_schema_h"), outcome.get("name") or outcome.get("schema_id", "")),
+            ("tag", t("result_kind_h"), result_kind),
+            ("link", t("evidence_refs_h"), str(len(evidence_refs))),
+            ("clock", t("created"), ui.fmt_day(outcome.get("created_at", ""))),
+        ]
+        title = outcome.get("name") or outcome.get("schema_id", "")
+        return detail_page(
+            store, title=title, active="projects",
+            crumbs=[(t("projects"), "/projects"), (proj["title"], f'/projects/{project_id}'),
+                    (t("job_outcome_kind"), None)],
+            body=body, icon="target", kind=t("job_outcome_kind"),
+            sub=(outcome.get("schema") or {}).get("summary", ""),
+            prop_rows=prop_rows,
+            rel_proj_id=project_id,
+            star=("job_outcome", outcome["id"], title, f'/projects/{project_id}/outcomes/{outcome["id"]}'))
 
     # ---- A report is a project-scope synthesis; its canonical URL is /syntheses/{id} (+ .pdf).
     #      /projects/{id}/meta is a convenience → the project's latest report. ----

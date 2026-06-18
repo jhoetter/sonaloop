@@ -1,0 +1,76 @@
+{
+  "title": "Pausenschutz-Prototyp (Team-Vertretung)",
+  "summary": "Ein leichter Pausenschutz: ein sichtbares Pausenfenster mit benannter Vertretung, dazu eine kurze Checkliste, was vor der Pause noch zählt.",
+  "start": "sms",
+  "screens": [
+    {
+      "id": "sms",
+      "title": "Pausenfenster-Hinweis",
+      "elements": [
+        {
+          "id": "trust",
+          "kind": "text",
+          "label": "Pausenschutz: dein Fenster heute 12:30–12:45."
+        },
+        {
+          "id": "call",
+          "kind": "text",
+          "label": "Vertretung übernimmt: erscheint hier sichtbar fürs Team."
+        },
+        {
+          "id": "start",
+          "kind": "button",
+          "label": "Pause vorbereiten",
+          "goto": "checklist",
+          "action": "checklist"
+        }
+      ]
+    },
+    {
+      "id": "checklist",
+      "title": "Drei Dinge vor der Pause",
+      "elements": [
+        {
+          "id": "forms",
+          "kind": "text",
+          "label": "Offene Doku kurz parken"
+        },
+        {
+          "id": "insurance",
+          "kind": "text",
+          "label": "Vertretung bestätigen"
+        },
+        {
+          "id": "bring",
+          "kind": "text",
+          "label": "Was warten kann, markieren."
+        },
+        {
+          "id": "next",
+          "kind": "button",
+          "label": "Fertig",
+          "goto": "ready",
+          "action": "ready"
+        }
+      ]
+    },
+    {
+      "id": "ready",
+      "title": "Deine Pause ist geschützt",
+      "elements": [
+        {
+          "id": "done",
+          "kind": "text",
+          "label": "Dein Pausenfenster ist gesichert. Das Team sieht die Vertretung; bei Notfällen bleibt alles erreichbar."
+        },
+        {
+          "id": "back",
+          "kind": "button",
+          "label": "Zurück",
+          "goto": "checklist",
+          "action": "checklist"
+        }
+      ]
+    }
+  ]
+}

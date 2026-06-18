@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pausenschutz-Prototyp (Team-Vertretung)</title>
+<style>
+  :root{--ink:#1c1e21;--muted:#6b7177;--line:#e7e7e3;--panel:#fff;--bg:#f7f7f5;--accent:#2f6f9f;}
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+  header{padding:16px 22px;background:var(--panel);border-bottom:1px solid var(--line)}
+  h1{font-size:18px;margin:0}
+  .sub{color:var(--muted);font-size:13px;margin-top:2px}
+  nav{display:flex;gap:6px;flex-wrap:wrap;padding:10px 22px;background:var(--panel);border-bottom:1px solid var(--line)}
+  nav button{font:inherit;border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:5px 11px;cursor:pointer;color:var(--ink)}
+  nav button.active{background:var(--accent);color:#fff;border-color:transparent}
+  main{max-width:760px;margin:0 auto;padding:22px}
+  .screen{display:none}
+  .screen.active{display:block}
+  .screen h2{font-size:16px;margin:0 0 12px}
+  .el{margin:0 0 14px}
+  .el label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+  .el input,.el select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:7px;width:100%;max-width:360px}
+  .el button{font:inherit;border:1px solid var(--line);background:var(--accent);color:#fff;border-radius:8px;padding:9px 15px;cursor:pointer}
+  .el button.secondary{background:var(--panel);color:var(--ink)}
+  .el a{color:var(--accent)}
+  .el p{margin:0;max-width:60ch}
+  #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .15s;pointer-events:none}
+  #toast.show{opacity:.95}
+</style>
+</head>
+<body>
+<header><h1 id="apptitle">Pausenschutz-Prototyp (Team-Vertretung)</h1><div class="sub" id="appsummary">Ein leichter Pausenschutz: ein sichtbares Pausenfenster mit benannter Vertretung, dazu eine kurze Checkliste, was vor der Pause noch zählt.</div></header>
+<nav id="nav"></nav>
+<main id="screens"></main>
+<div id="toast"></div>
+<script id="concept" type="application/json">{"title": "Pausenschutz-Prototyp (Team-Vertretung)", "summary": "Ein leichter Pausenschutz: ein sichtbares Pausenfenster mit benannter Vertretung, dazu eine kurze Checkliste, was vor der Pause noch zählt.", "start": "sms", "screens": [{"id": "sms", "title": "Pausenfenster-Hinweis", "elements": [{"id": "trust", "kind": "text", "label": "Pausenschutz: dein Fenster heute 12:30–12:45."}, {"id": "call", "kind": "text", "label": "Vertretung übernimmt: erscheint hier sichtbar fürs Team."}, {"id": "start", "kind": "button", "label": "Pause vorbereiten", "goto": "checklist", "action": "checklist"}]}, {"id": "checklist", "title": "Drei Dinge vor der Pause", "elements": [{"id": "forms", "kind": "text", "label": "Offene Doku kurz parken"}, {"id": "insurance", "kind": "text", "label": "Vertretung bestätigen"}, {"id": "bring", "kind": "text", "label": "Was warten kann, markieren."}, {"id": "next", "kind": "button", "label": "Fertig", "goto": "ready", "action": "ready"}]}, {"id": "ready", "title": "Deine Pause ist geschützt", "elements": [{"id": "done", "kind": "text", "label": "Dein Pausenfenster ist gesichert. Das Team sieht die Vertretung; bei Notfällen bleibt alles erreichbar."}, {"id": "back", "kind": "button", "label": "Zurück", "goto": "checklist", "action": "checklist"}]}]}</script>
+<script>
+(function(){
+  var C = JSON.parse(document.getElementById('concept').textContent);
+  document.getElementById('apptitle').textContent = C.title || 'Prototype';
+  document.getElementById('appsummary').textContent = C.summary || '';
+  var nav = document.getElementById('nav'), root = document.getElementById('screens');
+  var state = {};
+  function toast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(function(){t.classList.remove('show');}, 1400); }
+  function show(id){
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.toggle('active', s.dataset.id===id); });
+    document.querySelectorAll('#nav button').forEach(function(b){ b.classList.toggle('active', b.dataset.id===id); });
+  }
+  (C.screens||[]).forEach(function(scr){
+    var nb = document.createElement('button'); nb.textContent = scr.title || scr.id; nb.dataset.id = scr.id;
+    nb.addEventListener('click', function(){ show(scr.id); }); nav.appendChild(nb);
+    var sec = document.createElement('section'); sec.className='screen'; sec.dataset.id = scr.id;
+    var h = document.createElement('h2'); h.textContent = scr.title || scr.id; sec.appendChild(h);
+    (scr.elements||[]).forEach(function(el){
+      var wrap = document.createElement('div'); wrap.className='el';
+      if(el.kind==='text'){ var p=document.createElement('p'); p.textContent=el.label||''; wrap.appendChild(p); }
+      else if(el.kind==='input'){ var l=document.createElement('label'); l.textContent=el.label||el.id; var inp=document.createElement('input'); inp.id=el.id; inp.setAttribute('aria-label', el.label||el.id); inp.addEventListener('input', function(){ state[el.id]=inp.value; }); wrap.appendChild(l); wrap.appendChild(inp); }
+      else if(el.kind==='select'){ var l2=document.createElement('label'); l2.textContent=el.label||el.id; var sel=document.createElement('select'); sel.id=el.id; sel.setAttribute('aria-label', el.label||el.id); (el.options||[]).forEach(function(o){ var op=document.createElement('option'); op.value=o; op.textContent=o; sel.appendChild(op); }); sel.addEventListener('change', function(){ state[el.id]=sel.value; }); wrap.appendChild(l2); wrap.appendChild(sel); }
+      else if(el.kind==='link'){ var a=document.createElement('a'); a.href='#'; a.textContent=el.label||el.id; if(el.goto){ a.addEventListener('click', function(e){ e.preventDefault(); show(el.goto); }); } wrap.appendChild(a); }
+      else { var btn=document.createElement('button'); btn.textContent=el.label||el.id; if(el.goto){ btn.dataset.goto=el.goto; btn.addEventListener('click', function(){ show(el.goto); }); } else { btn.addEventListener('click', function(){ toast((el.label||'Done')+' ✓'); }); } wrap.appendChild(btn); }
+      sec.appendChild(wrap);
+    });
+    root.appendChild(sec);
+  });
+  show(C.start || ((C.screens||[])[0]||{}).id);
+})();
+</script>
+</body>
+</html>
