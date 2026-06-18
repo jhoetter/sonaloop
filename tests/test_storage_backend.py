@@ -11,8 +11,8 @@ import pytest
 
 from sonaloop.storage import Store
 from sonaloop.storage._backend import (
-    PostgresBackend, SqliteBackend, StorageBackend, _PgConnection, _pg_params,
-    make_backend, schema_statements_postgres,
+    PostgresBackend, SqliteBackend, StorageBackend, _PgConnection, _pg_json_extract,
+    _pg_params, make_backend, schema_statements_postgres,
 )
 
 
@@ -55,6 +55,23 @@ def test_param_translation_is_safe():
     assert _pg_params("SELECT * FROM t WHERE id=? AND x=?") == "SELECT * FROM t WHERE id=%s AND x=%s"
     # a literal % (none in the Store today) is escaped so psycopg won't read it as a placeholder
     assert _pg_params("WHERE x LIKE '%a%' AND id=?") == "WHERE x LIKE '%%a%%' AND id=%s"
+
+
+def test_json_extract_translation_to_postgres():
+    # SQLite json_extract(...) → PG (...::jsonb #>> '{...}'); the one dialect function the
+    # mixins use (delete_research_project's council_sessions/syntheses deletes). Without this
+    # Postgres errors: function json_extract(text, unknown) does not exist.
+    assert (_pg_json_extract("DELETE FROM council_sessions WHERE json_extract(data, '$.project_id')=?")
+            == "DELETE FROM council_sessions WHERE (data::jsonb #>> '{project_id}')=?")
+    # nested path → array key list
+    assert _pg_json_extract("json_extract(data, '$.a.b')") == "(data::jsonb #>> '{a,b}')"
+    # untouched when there is no json_extract
+    assert _pg_json_extract("SELECT 1 WHERE id=?") == "SELECT 1 WHERE id=?"
+    # end to end through the translator (no upsert, non-tenant) also flips the placeholder
+    conn = _PgConnection.__new__(_PgConnection)
+    conn._tenant = False
+    out = conn._translate("DELETE FROM syntheses WHERE json_extract(data, '$.project_id')=?")
+    assert out == "DELETE FROM syntheses WHERE (data::jsonb #>> '{project_id}')=%s"
 
 
 def test_insert_or_replace_translation_via_pk_lookup():

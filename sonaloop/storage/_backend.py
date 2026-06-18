@@ -81,6 +81,20 @@ def _pg_params(sql: str) -> str:
     return sql.replace("%", "%%").replace("?", "%s")
 
 
+# SQLite `json_extract(col, '$.a.b')` → Postgres `(col::jsonb #>> '{a,b}')`. The mixins are
+# written in SQLite SQL; this is the one dialect function they reach for (JSON tables store
+# their scope inside a TEXT `data` column). `#>>` returns the value as text — like
+# json_extract for scalar paths — so `WHERE json_extract(data,'$.project_id')=?` keeps working.
+_JSON_EXTRACT_RE = re.compile(r"""json_extract\(\s*([\w."]+)\s*,\s*'\$\.([\w.]+)'\s*\)""")
+
+
+def _pg_json_extract(sql: str) -> str:
+    if "json_extract(" not in sql:
+        return sql
+    return _JSON_EXTRACT_RE.sub(
+        lambda m: f"({m.group(1)}::jsonb #>> '{{{m.group(2).replace('.', ',')}}}')", sql)
+
+
 def port_sqlite_schema_to_postgres(schema_sql: str) -> list[str]:
     """Port ANY SQLite schema string to Postgres DDL statements: drop the WAL pragma,
     AUTOINCREMENT → IDENTITY, BLOB → BYTEA, strip `--` comments (some contain a ';' that
@@ -126,6 +140,7 @@ class _PgConnection:
         return self._pk[table]
 
     def _translate(self, sql: str) -> str:
+        sql = _pg_json_extract(sql)  # SQLite json_extract(...) → PG (...::jsonb #>> '{...}')
         m = _UPSERT_RE.match(sql)
         if m:
             kind, table, collist = m.group(1).upper(), m.group(2), m.group(3)
