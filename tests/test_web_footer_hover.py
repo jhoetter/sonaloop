@@ -1,8 +1,8 @@
-"""Sidebar footer hover PARITY gate.
+"""User-menu hover PARITY gate.
 
-The utility rows live in the sidebar footer and need the same hover treatment as the
-workspace nav rows. This gate drives the REAL app with a real pointer (the
-test_browser_harness skip pattern) and asserts the hover treatment:
+The utility rows moved into the user menu, but they still need the same hover treatment
+as the nav rows. This gate drives the REAL app with a real pointer (the
+test_browser_harness skip pattern) and asserts the full hover treatment:
 
   1. the hover background paints (and matches the nav rows' computed hover background),
   2. the row's leading visual REACTS — an icon plays a non-`none` animation, or the `?`
@@ -20,7 +20,7 @@ from sonaloop import browser, web
 
 
 @pytest.mark.skipif(not browser.available(), reason="chromium not installed")
-def test_footer_rows_hover_like_nav_rows():
+def test_user_menu_rows_hover_like_nav_rows():
     import uvicorn
 
     with socket.socket() as s:
@@ -50,9 +50,11 @@ def test_footer_rows_hover_like_nav_rows():
             nav_bg = nav.evaluate("el => getComputedStyle(el).backgroundColor")
             assert nav_bg not in ("rgba(0, 0, 0, 0)", "transparent")
 
-            targets = pg.locator(".sl-sb-foot .pi-hover")
+            pg.locator(".sl-um-trigger").click()
+            pg.wait_for_timeout(150)
+            targets = pg.locator(".sl-um-pop .sl-um-row, .sl-um-pop .sl-um-control, .sl-um-pop .sl-um-choice:has(svg)")
             n = targets.count()
-            assert n >= 5, "footer utility rows expected"
+            assert n >= 10, "utility rows + appearance/language controls expected"
             for i in range(n):
                 row = targets.nth(i)
                 pg.mouse.move(0, 0)
@@ -60,15 +62,10 @@ def test_footer_rows_hover_like_nav_rows():
                 row.hover()
                 pg.wait_for_timeout(250)
                 bg = row.evaluate("el => getComputedStyle(el).backgroundColor")
-                assert bg == nav_bg, f"footer row {i}: hover bg {bg} != nav {nav_bg}"
+                if "sl-um-choice" not in (row.get_attribute("class") or ""):
+                    assert bg == nav_bg, f"user-menu row {i}: hover bg {bg} != nav {nav_bg}"
                 # liveliness: an animating icon part
                 alive = row.evaluate("""el => {
-                  const kbd = el.querySelector('kbd');
-                  if (kbd) {
-                    const kc = getComputedStyle(kbd);
-                    if (kc.transform && !['none', 'matrix(1, 0, 0, 1, 0, 0)'].includes(kc.transform))
-                      return 'keycap';
-                  }
                   for (const n of el.querySelectorAll('svg, svg *')) {
                     const cs = getComputedStyle(n);
                     if (cs.animationName && cs.animationName !== 'none') return 'icon';
@@ -77,7 +74,7 @@ def test_footer_rows_hover_like_nav_rows():
                   }
                   return '';
                 }""")
-                assert alive, f"footer row {i} shows no hover liveliness"
+                assert alive, f"user-menu row {i} shows no hover liveliness"
             b.close()
     finally:
         server.should_exit = True

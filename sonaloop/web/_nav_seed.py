@@ -7,10 +7,10 @@ Imported for its side effects by _components (the render side lives in _nav ther
 
 Four workspace items, period (spec/ux-contract.md §3.5): Jobs and Formats are the
 primary containers, Methodologies explain the process a project runs through, and Personas
-are the participants. Activity is the live feed and lives in the sidebar footer.
+are the participants. Activity is the live feed and lives in the user-menu utility cluster.
 Runs retired from the nav (the project-header run chip + /runs journal carry it);
-Documentation lives in the sidebar footer — reference, not workspace. Labels are lambdas
-so they resolve per request (i18n)."""
+Documentation lives in the user-menu cluster (web/_components._user_menu) — reference,
+not workspace. Labels are lambdas so they resolve per request (i18n)."""
 from __future__ import annotations
 
 from ._i18n import t

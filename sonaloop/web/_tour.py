@@ -14,8 +14,8 @@ After the first navigation the tour stays on the project outline and opens real 
 drawers for each artifact, so Next/Back is local and fast instead of full-page routing.
 
 Triggers — the tour NEVER auto-starts: any element with [data-tour-start] starts it.
-The permanent quiet offer is the sidebar footer row; it replaced the one-time floating
-offer toast. The empty-DB first-steps card also shows a prominent "Take the tour" link.
+The permanent quiet offer is the user-menu row; it replaced the one-time floating offer
+toast. The empty-DB first-steps card also shows a prominent "Take the tour" link.
 """
 from __future__ import annotations
 
@@ -71,7 +71,7 @@ def tour_link(extra_class: str = "") -> str:
 
 
 def tour_footer_entry() -> str:
-    """Permanent tour trigger in the sidebar footer."""
+    """Legacy footer entry helper. The core shell now renders the tour from the user menu."""
     return h("button", {"type": "button", "class_": "pi-hover", "data-tour-start": True},
              raw(_icon("compass", animate=True)), h("span", {}, t("tour_take")))
 
