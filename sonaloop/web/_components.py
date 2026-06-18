@@ -86,6 +86,10 @@ _FAVICON_SVG = (
     "<circle class='f' cx='4.81' cy='16.15' r='1.85'/></svg>"
 )
 _FAVICON_HREF = "data:image/svg+xml," + _urlquote(_FAVICON_SVG, safe="")
+_CLOSE_SVG = (
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" '
+    'stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+)
 
 
 from ._avatar import _avatar, _avatar_src  # noqa: F401,E402  (split out for the LOC bar; re-exported)
@@ -524,15 +528,16 @@ def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
 {HEAD_JS}<style>{CSS}{PALETTE_CSS}{LIVE_CSS}{RUNS_WIDGET_CSS}{KEYMAP_CSS}{collect_css()}</style>{theme_override_css()}{render_slot("head_extra", store)}</head>
 <body><div class="sl-app-shell" id="app">
   <aside class="sl-sidebar">
-    <div class="sl-brand"><a class="sl-logo" href="/">{_lockup}</a></div>
+    <div class="sl-brand"><a class="sl-logo" href="/">{_lockup}</a><button class="sl-sidebar-close sl-iconbtn sl-iconbtn--ghost" type="button" data-sidebar-close aria-label="{t("cmdk_close")}" title="{t("cmdk_close")}">{_CLOSE_SVG}</button></div>
     <div class="sl-sb-search"><button type="button" class="sl-cmdk-trigger" data-cmdk-open aria-label="{t("search")}">{_icon("search")}<span>{t("search")}</span><kbd class="sl-kbd">⌘K</kbd></button></div>
     <div class="sl-sb-scroll">{_nav(active, store)}{render_slot("sidebar_extra", store)}</div>
     {_sidebar_footer(store)}
     {_user_menu()}
   </aside>
+  <button class="sl-sidebar-backdrop" type="button" data-sidebar-close aria-label="{t("cmdk_close")}"></button>
   <div class="sl-resize" id="rz" role="separator" aria-orientation="vertical" aria-label="{t("sidebar")}"></div>
   <div class="sl-main" id="main">
-    <header class="sl-topbar"><button class="sl-iconbtn sl-iconbtn--ghost" id="sbt" data-sidebar-toggle title="{t("sidebar")} ([)" aria-label="{t("sidebar")}">{_icon("panel")}</button>
+    <header class="sl-topbar"><button class="sl-iconbtn sl-iconbtn--ghost" id="sbt" data-sidebar-toggle title="{t("sidebar")} ([)" aria-label="{t("sidebar")}" aria-expanded="true">{_icon("panel")}</button>
       {_crumbs_html(crumbs)}<span class="sl-spacer"></span>{runs_widget_markup(store)}<span class="sl-tb-actions">{actions}</span></header>
     <section>{body}</section>
   </div>
