@@ -151,6 +151,40 @@ def test_pull_remote_fallback_round_trip_idempotent_with_provenance(monkeypatch,
     assert len(dest.list_personas()) == 1                               # upsert, no duplicate
 
 
+def test_pull_lands_avatar_under_data_dir_not_root(monkeypatch, tmp_path):
+    """Regression (installed/cloud deployment): import_snapshot wrote the pulled avatar under
+    config.ROOT, but the web serves it (and avatar.py writes it) under config.DATA_DIR. In a
+    source checkout ROOT/data == DATA_DIR so it coincided; installed (prod) ROOT is site-packages
+    and DATA_DIR is the per-user runtime, so catalog-pulled personas landed a portrait where
+    nothing serves it — the persona rendered as initials only."""
+    from sonaloop import config
+
+    _no_data_pkg(monkeypatch)
+    src = services.record_persona("Avatar source", make_profile("Ada Lentz"), store=Store())
+    slug = src["slug"]
+    src = dict(src)
+    src["avatar"] = {"path": f"data/avatars/{slug}.png", "prompt": "p", "model": "gpt-image-2"}
+    files = {
+        "manifest.json": json.dumps({"generated_at": "2026-06-10T00:00:00+00:00",
+            "schema_version": 4, "personas": [{"slug": slug, "display_name": src["display_name"],
+            "role": src["role"]["title"], "has_avatar": True, "updated_at": src["updated_at"]}]}).encode(),
+        f"personas/{slug}/profile.json": json.dumps(src).encode(),
+        f"personas/{slug}/avatar.png": b"\x89PNG\r\n\x1a\nFAKEAVATAR",
+    }
+    _serve(files, monkeypatch)
+
+    # simulate an installed deployment: DATA_DIR is a writable runtime distinct from ROOT/data
+    data_dir = tmp_path / "runtime"
+    monkeypatch.setattr(config, "DATA_DIR", data_dir)
+
+    cat.catalog_pull(persona_slugs=[slug], store=Store(tmp_path / "dest.db"))
+
+    served = data_dir / "avatars" / f"{slug}.png"
+    assert served.is_file(), "avatar binary must land under DATA_DIR, where web/_avatar.py serves it"
+    assert served.read_bytes().startswith(b"\x89PNG")
+    assert not (config.ROOT / "data" / "avatars" / f"{slug}.png").exists()  # never the package dir
+
+
 def test_pulled_catalog_memory_without_blockers_is_readable(tmp_path):
     """Older catalog memory snapshots may not carry every current DailySummary
     field; read paths should degrade instead of breaking persona detail pages."""

@@ -69,6 +69,16 @@ from ..llm_simulation import (
 from ._common import *  # noqa: F401,F403  (shared helpers + constants)
 
 
+def _avatar_disk_path(stored_path: str) -> Path:
+    """Resolve a persona's stored avatar path ("data/avatars/<slug>.png") to its on-disk
+    location under the writable runtime — DATA_DIR, exactly as avatar.py writes it and
+    web/_avatar.py serves it. NOT config.ROOT: in an installed deployment (cloud/prod) ROOT is
+    site-packages and must never be written to/read from, so a ROOT-based avatar lands where
+    nothing serves it (the imported-persona "no portrait" bug). In a source checkout DATA_DIR ==
+    ROOT/data, so this is byte-for-byte the old path."""
+    rel = stored_path[len("data/"):] if stored_path.startswith("data/") else stored_path
+    return config.DATA_DIR / rel
+
 
 def export_snapshot(out_dir: str | None = None, store: Store | None = None) -> dict[str, Any]:
     import shutil
@@ -107,7 +117,7 @@ def export_snapshot(out_dir: str | None = None, store: Store | None = None) -> d
         _w(pdir / "eval.json", {"reports": store.list_eval_reports(pid), "anomalies": store.list_anomalies(pid)})
         avatar = p.get("avatar")
         if avatar and avatar.get("path"):
-            src = config.ROOT / avatar["path"]
+            src = _avatar_disk_path(avatar["path"])
             if src.exists():
                 shutil.copyfile(src, pdir / "avatar.png")
                 counts["avatars"] += 1
@@ -200,7 +210,7 @@ def import_snapshot(in_dir: str | None = None, store: Store | None = None, embed
                 rel_path = f"data/avatars/{slug}.png"
                 avatar["path"] = rel_path
                 persona["avatar"] = avatar
-            dest = config.ROOT / rel_path
+            dest = _avatar_disk_path(rel_path)
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(avatar_file, dest)
             counts["avatars"] += 1
