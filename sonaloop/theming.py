@@ -625,6 +625,10 @@ def _asset_id_or_builtin(value: Any, path: str) -> None:
 
 
 def _asset_path_or_data(value: str, path: str) -> str:
+    if value.startswith("workspace-asset:"):
+        if not re.match(r"^workspace-asset:[A-Za-z0-9_.:-]+@[A-Fa-f0-9]{8,64}$", value):
+            raise ValueError(f"{path} contains an invalid workspace asset ref")
+        return value
     if value.startswith("data:"):
         if not _DATA_IMAGE_RE.match(value):
             raise ValueError(f"{path} data URI must be base64 image/*")

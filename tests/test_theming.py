@@ -150,6 +150,21 @@ def test_local_asset_refs_stay_inside_data_dir(tmp_path, monkeypatch):
         validate_customer_design_system_v2(ds)
 
 
+def test_workspace_asset_refs_are_validated_as_internal_refs():
+    ds = _design_system()
+    ds["brand"]["logo_variants"]["lockup"] = {
+        "kind": "image",
+        "asset_ref": "workspace-asset:dsa_demo_1@0123456789abcdef",
+    }
+    assert validate_customer_design_system_v2(ds)["brand"]["logo_variants"]["lockup"]["asset_ref"].startswith(
+        "workspace-asset:"
+    )
+
+    ds["brand"]["logo_variants"]["lockup"]["asset_ref"] = "workspace-asset:dsa_demo_1"
+    with pytest.raises(ValueError, match="invalid workspace asset ref"):
+        validate_customer_design_system_v2(ds)
+
+
 def test_compiler_produces_css_brand_charts_deck_and_stable_hash():
     compiled = compile_customer_design_system(_design_system())
     assert compiled["compiled_hash"] == compile_customer_design_system(_design_system())["compiled_hash"]
