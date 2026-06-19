@@ -103,9 +103,15 @@ def registry_errors(registry: dict[str, Any] | None = None, store: Any | None = 
                 errors.append(f"{where}: missing {field}")
         if not row.get("fields"):
             errors.append(f"{where}: fields must be non-empty")
+        example = row.get("example") or {}
+        if not isinstance(example, dict) or not example:
+            errors.append(f"{where}: example must be a non-empty object")
         for field in row.get("fields") or []:
             if not str(field.get("id") or "").strip() or not str(field.get("type") or "").strip():
                 errors.append(f"{where}: every field needs id + type")
+            fid = str(field.get("id") or "")
+            if fid and "example" not in field and fid not in example:
+                errors.append(f"{where}: field {fid!r} needs an example value")
         if not row.get("done_when"):
             errors.append(f"{where}: done_when must be non-empty")
 

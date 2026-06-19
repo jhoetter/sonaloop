@@ -1,6 +1,7 @@
 """Methodology browser: the process layer a project can run through."""
 from __future__ import annotations
 
+import json
 from functools import lru_cache
 from pathlib import Path
 from urllib.parse import quote
@@ -57,32 +58,46 @@ register_css(
     ".sl-meth-jobprop span{color:var(--muted);line-height:1.45;font-size:var(--t-sm)}"
     ".sl-meth-schema-rail{display:grid;gap:8px}"
     ".sl-meth-schema-intro{margin:0 0 10px;color:var(--muted);font-size:var(--t-sm);line-height:1.45}"
-    ".sl-meth-schema-dlgbtn{display:block;width:100%;text-align:left;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel);color:var(--ink);padding:10px;cursor:pointer}"
+    ".sl-meth-schema-dlgbtn{display:block;width:100%;text-align:left;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel);color:var(--ink);padding:12px;cursor:pointer}"
     ".sl-meth-schema-dlgbtn:hover{border-color:color-mix(in srgb,var(--accent) 38%,var(--line));background:var(--panel-2)}"
     ".sl-meth-schema-title{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}"
     ".sl-meth-schema-title b{font-size:var(--t-sm);line-height:1.25}"
-    ".sl-meth-schema-title code{font-family:var(--mono);font-size:var(--t-xs);color:var(--muted);white-space:nowrap}"
+    ".sl-meth-schema-title code{display:block;margin-top:2px;font-family:var(--mono);font-size:var(--t-xs);color:var(--muted);white-space:normal;overflow-wrap:anywhere}"
     ".sl-meth-schema-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}"
     ".sl-meth-schema-desc{display:block;margin-top:8px;color:var(--muted);font-size:var(--t-sm);line-height:1.45}"
-    ".sl-meth-schema-dialog{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);color:var(--ink);padding:18px;width:min(680px,92vw);max-height:90vh;overflow:auto}"
+    ".sl-meth-schema-dialog{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);color:var(--ink);padding:20px;width:min(820px,92vw);max-height:90vh;overflow:auto}"
     ".sl-meth-schema-dialog::backdrop{background:rgba(0,0,0,.45)}"
-    ".sl-meth-schema-dialog h3{margin:0 0 6px;font-size:var(--t-lg)}"
+    ".sl-meth-schema-dialog h3{margin:0 0 4px;font-size:var(--t-lg)}"
     ".sl-meth-schema-dialog p{margin:0;color:var(--muted);line-height:1.45}"
     ".sl-meth-schema-dialog-actions{display:flex;justify-content:flex-end;margin-top:14px}"
-    ".sl-meth-schema-mini{display:grid;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-2)}"
+    ".sl-meth-schema-mini{display:grid;gap:0;margin-top:14px}"
     ".sl-meth-schema-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:12px}"
     ".sl-meth-schema{border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel);padding:12px}"
     ".sl-meth-schema h3{margin:2px 0 6px;font-size:var(--t-md)}"
     ".sl-meth-schema p{margin:0;color:var(--muted);line-height:1.45}"
     ".sl-meth-schema-code{font-family:var(--mono);font-size:var(--t-xs);color:var(--muted)}"
-    ".sl-meth-schema-block{margin-top:10px;padding-top:10px;border-top:1px solid var(--line-2)}"
+    ".sl-meth-schema-block{padding:14px 0;border-top:1px solid var(--line-2)}"
+    ".sl-meth-schema-block:first-child{border-top:0;padding-top:0}"
     ".sl-meth-schema-block b{display:block;margin-bottom:6px;color:var(--muted);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.08em}"
     ".sl-meth-fields{display:grid;gap:6px}"
     ".sl-meth-field{display:grid;grid-template-columns:minmax(96px,.35fr) 1fr;gap:8px;font-size:var(--t-sm)}"
     ".sl-meth-field code{font-family:var(--mono);font-size:var(--t-xs)}"
     ".sl-meth-field span{color:var(--muted)}"
+    ".sl-meth-field-row{display:grid;grid-template-columns:minmax(190px,1.05fr) minmax(120px,.42fr) minmax(180px,.8fr);gap:12px;align-items:start;padding:9px 0;border-top:1px solid var(--line-2)}"
+    ".sl-meth-field-row:first-child{border-top:0}"
+    ".sl-meth-field-main code{display:block;font-family:var(--mono);font-size:var(--t-xs);margin-bottom:3px}"
+    ".sl-meth-field-main span{display:block;color:var(--muted);font-size:var(--t-sm);line-height:1.35}"
+    ".sl-meth-field-type{color:var(--muted);font-size:var(--t-sm);line-height:1.35}"
+    ".sl-meth-field-example{font-family:var(--mono);font-size:var(--t-xs);line-height:1.45;background:var(--panel-2);border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:3px 7px;white-space:pre-wrap;overflow-wrap:anywhere}"
+    ".sl-meth-metrics{display:flex;gap:6px;flex-wrap:wrap}"
+    ".sl-meth-metrics code{font-family:var(--mono);font-size:var(--t-xs);background:var(--panel-2);border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:2px 7px;color:var(--muted)}"
+    ".sl-meth-checklist{display:grid;gap:8px;margin:0;padding:0;list-style:none}"
+    ".sl-meth-checkitem{display:grid;grid-template-columns:18px minmax(0,1fr);gap:10px;align-items:start;color:var(--muted);line-height:1.45}"
+    ".sl-meth-checkmark{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-top:2px;border:1px solid var(--line);border-radius:4px;background:var(--panel-2);color:var(--accent)}"
+    ".sl-meth-checkmark svg{width:12px;height:12px;stroke-width:2.2}"
     ".sl-meth-schema-list{margin:0;padding-left:18px;color:var(--muted);line-height:1.45}"
     "@media(max-width:980px){.sl-meth-hero{grid-template-columns:1fr}.sl-meth-band{grid-template-columns:1fr}}"
+    "@media(max-width:700px){.sl-meth-field-row{grid-template-columns:1fr}.sl-meth-schema-dialog{padding:16px}}"
 )
 
 _ASSET_DIR = Path(__file__).resolve().parents[1] / "assets" / "methodologies"
@@ -316,6 +331,16 @@ def _schema_dialog_id(schema_id: str) -> str:
     return f"meth-schema-{safe}"
 
 
+def _schema_example(schema: dict, field: dict) -> str:
+    examples = schema.get("example") or {}
+    value = field.get("example", examples.get(field.get("id", "")))
+    if value is None or value == "":
+        return "—"
+    if isinstance(value, (dict, list)):
+        return json.dumps(value, ensure_ascii=False, separators=(",", ": "))
+    return str(value)
+
+
 _SCHEMA_DIALOG_JS = """<script>(function(){if(window.__slMethSchemaDialog)return;window.__slMethSchemaDialog=1;
 document.addEventListener('click',function(e){
   var btn=e.target&&e.target.closest&&e.target.closest('[data-meth-schema-dialog]');
@@ -335,9 +360,13 @@ document.addEventListener('click',function(e){
 def _schema_dialog_parts(schema: dict, role: str = "") -> tuple[str, str]:
     fields = schema.get("fields") or []
     field_rows = [
-        h("div", {"class_": "sl-meth-field"},
-          h("code", {}, f.get("id", "")),
-          h("span", {}, f'{f.get("type", "")} · {t("required_h") if f.get("required") else t("optional_h")}'))
+        h("div", {"class_": "sl-meth-field-row"},
+          h("span", {"class_": "sl-meth-field-main"},
+            h("code", {}, f.get("id", "")),
+            h("span", {}, f.get("description", ""))),
+          h("span", {"class_": "sl-meth-field-type"},
+            f'{f.get("type", "")} · {t("required_h") if f.get("required") else t("optional_h")}'),
+          h("code", {"class_": "sl-meth-field-example"}, _schema_example(schema, f)))
         for f in fields
     ]
     metrics = [str(x) for x in schema.get("derived_metrics") or []]
@@ -352,8 +381,9 @@ def _schema_dialog_parts(schema: dict, role: str = "") -> tuple[str, str]:
     trigger = h("button", {"class_": "sl-meth-schema-dlgbtn", "type": "button",
                            "data_meth_schema_dialog": did},
                 h("span", {"class_": "sl-meth-schema-title"},
-                  h("b", {}, schema.get("name", schema.get("id", ""))),
-                  h("code", {}, schema.get("id", ""))),
+                  h("span", {},
+                    h("b", {}, schema.get("name", schema.get("id", ""))),
+                    h("code", {}, schema.get("id", "")))),
                 h("span", {"class_": "sl-meth-schema-meta"}, fragment(*meta)),
                 h("span", {"class_": "sl-meth-schema-desc"}, schema.get("summary", "")))
     dialog = h("dialog", {"class_": "sl-meth-schema-dialog", "id": did},
@@ -367,12 +397,16 @@ def _schema_dialog_parts(schema: dict, role: str = "") -> tuple[str, str]:
                    h("div", {"class_": "sl-meth-fields"}, fragment(*field_rows))),
                  h("div", {"class_": "sl-meth-schema-block"},
                    h("b", {}, t("derived_metrics_h")),
-                   h("ul", {"class_": "sl-meth-schema-list"},
-                     fragment(*(h("li", {}, m) for m in metrics))) if metrics else h("p", {}, "—")),
+                   h("div", {"class_": "sl-meth-metrics"},
+                     fragment(*(h("code", {}, m) for m in metrics))) if metrics else h("p", {}, "—")),
                  h("div", {"class_": "sl-meth-schema-block"},
                    h("b", {}, t("done_criteria_h")),
-                   h("ul", {"class_": "sl-meth-schema-list"},
-                     fragment(*(h("li", {}, d) for d in done))) if done else h("p", {}, "—"))),
+                   h("ul", {"class_": "sl-meth-checklist"},
+                     fragment(*(h("li", {"class_": "sl-meth-checkitem"},
+                                  h("span", {"class_": "sl-meth-checkmark", "aria_hidden": "true"},
+                                    raw(_icon("check"))),
+                                  h("span", {}, d))
+                                for d in done))) if done else h("p", {}, "—"))),
                h("form", {"method": "dialog", "class_": "sl-meth-schema-dialog-actions"},
                  h("button", {"class_": "sl-btn", "value": "close"}, t("cancel"))))
     return trigger, dialog

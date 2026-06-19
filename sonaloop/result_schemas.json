@@ -16,6 +16,14 @@
         {"id": "confusion_points", "type": "array", "items": "finding", "required": true, "description": "Where interpretation broke down."},
         {"id": "revision_recommendations", "type": "array", "items": "finding", "required": false, "description": "Concrete changes suggested by evidence."}
       ],
+      "example": {
+        "stimulus_ref": "https://example.com/message-v1",
+        "cohort_summary": {"participants": 4, "segments": ["buyers", "operators"]},
+        "sentiment_score": 0.56,
+        "comprehension_score": 0.73,
+        "confusion_points": ["The proof point is unclear before the claim."],
+        "revision_recommendations": ["Move concrete evidence above the comparison table."]
+      },
       "derived_metrics": ["sentiment_score", "comprehension_score", "top_confusion_theme"],
       "done_when": [
         "A stimulus is fixed before reactions are collected.",
@@ -35,6 +43,13 @@
         {"id": "cliff_point", "type": "object", "required": false, "description": "The level where acceptance drops most sharply."},
         {"id": "segment_ranges", "type": "array", "items": "segment_range", "required": false, "description": "Ranges and cliffs by segment."}
       ],
+      "example": {
+        "levels": [{"label": "low", "value": 10}, {"label": "mid", "value": 20}, {"label": "high", "value": 40}],
+        "responses": [{"participant": "p1", "accepted_until": "mid"}],
+        "acceptable_range": {"min": 10, "max": 20},
+        "cliff_point": {"level": "high", "acceptance_delta": -0.42},
+        "segment_ranges": [{"segment": "small teams", "range": {"min": 10, "max": 20}}]
+      },
       "derived_metrics": ["acceptable_range", "cliff_point", "acceptance_by_level"],
       "done_when": [
         "The ladder is fixed before reactions are collected.",
@@ -54,6 +69,13 @@
         {"id": "margin", "type": "number", "range": [0, 1], "required": true, "description": "How decisive the preference was."},
         {"id": "segment_splits", "type": "array", "items": "segment_preference", "required": false, "description": "Which segments preferred which option."}
       ],
+      "example": {
+        "options": [{"label": "A", "title": "Short page"}, {"label": "B", "title": "Detailed page"}],
+        "preferences": [{"participant": "p1", "choice": "B", "reason": "More proof."}],
+        "overall_winner": "B",
+        "margin": 0.25,
+        "segment_splits": [{"segment": "operators", "winner": "B"}]
+      },
       "derived_metrics": ["overall_winner", "margin", "abstentions", "segment_splits"],
       "done_when": [
         "Options are frozen before exposure.",
@@ -74,6 +96,14 @@
         {"id": "verdict", "type": "enum", "values": ["pass", "fail", "needs_review"], "required": true, "description": "Gate result."},
         {"id": "evidence_refs", "type": "array", "items": "ref", "required": true, "description": "Evidence used to compute the metric."}
       ],
+      "example": {
+        "metric": "sentiment_score",
+        "observed_value": 0.56,
+        "operator": ">=",
+        "threshold": 0.5,
+        "verdict": "pass",
+        "evidence_refs": [{"kind": "council", "id": "council_123"}]
+      },
       "derived_metrics": ["verdict", "distance_to_threshold"],
       "done_when": [
         "The metric and threshold are named before the gate is evaluated.",
@@ -93,6 +123,13 @@
         {"id": "frictions", "type": "array", "items": "friction", "required": true, "description": "Observed blockers with severity and evidence."},
         {"id": "repair_recommendations", "type": "array", "items": "finding", "required": false, "description": "Concrete flow changes."}
       ],
+      "example": {
+        "steps": [{"id": "step_1", "label": "Open page"}, {"id": "step_2", "label": "Choose plan"}],
+        "sessions": [{"kind": "session", "id": "session_123"}],
+        "dropoff_step": "step_2",
+        "frictions": [{"step": "step_2", "severity": "high", "finding": "Choice labels are ambiguous."}],
+        "repair_recommendations": ["Rename plan choices around the user's task."]
+      },
       "derived_metrics": ["dropoff_step", "friction_severity_distribution"],
       "done_when": [
         "A concrete path is defined before sessions are interpreted.",
@@ -113,6 +150,14 @@
         {"id": "habit", "type": "array", "items": "finding", "required": true, "description": "Status-quo forces and switching costs."},
         {"id": "change_likelihood", "type": "number", "range": [0, 1], "required": false, "description": "Likelihood that the forces overcome inertia."}
       ],
+      "example": {
+        "timeline_evidence": [{"kind": "interview", "id": "interview_123"}],
+        "push": ["Current workaround loses handoffs."],
+        "pull": ["The new option makes ownership visible."],
+        "anxiety": ["Migration effort may disrupt the week."],
+        "habit": ["The spreadsheet is familiar and shared."],
+        "change_likelihood": 0.62
+      },
       "derived_metrics": ["change_likelihood", "dominant_blocker"],
       "done_when": [
         "Every force group has evidence.",
@@ -132,6 +177,13 @@
         {"id": "target_opportunities", "type": "array", "items": "opportunity", "required": true, "description": "Selected opportunities to pursue or test next."},
         {"id": "open_questions", "type": "array", "items": "question", "required": false, "description": "Unresolved questions left by the map."}
       ],
+      "example": {
+        "target_outcome": "Reduce handoff delay",
+        "clusters": [{"name": "Missed ownership", "count": 5}],
+        "evidence_refs": [{"kind": "council", "id": "council_123"}],
+        "target_opportunities": [{"title": "Make next owner explicit", "rationale": "High frequency and low ambiguity."}],
+        "open_questions": ["Does the workflow hold under live team data?"]
+      },
       "derived_metrics": ["cluster_count", "target_opportunity_count", "coverage_gaps"],
       "done_when": [
         "Clusters are backed by member evidence.",
@@ -152,6 +204,14 @@
         {"id": "risks", "type": "array", "items": "finding", "required": true, "description": "Adoption, usability, trust or feasibility risks."},
         {"id": "next_action", "type": "enum", "values": ["build", "iterate", "test_more", "drop"], "required": true, "description": "Evidence-backed recommendation."}
       ],
+      "example": {
+        "concept_ref": "prototype_decision_brief_v1",
+        "tested_segments": ["team leads", "operators"],
+        "fit_score": 0.68,
+        "validated_solves": ["Clarifies what changed and who owns it."],
+        "risks": ["Teams may not trust synthetic prioritization without source evidence."],
+        "next_action": "iterate"
+      },
       "derived_metrics": ["fit_score", "risk_severity", "next_action"],
       "done_when": [
         "The concept is concrete enough for participants to react to or use.",
@@ -172,6 +232,14 @@
         {"id": "open_risks", "type": "array", "items": "finding", "required": false, "description": "Known risks and what would resolve them."},
         {"id": "exports", "type": "array", "items": "asset_ref", "required": false, "description": "Exported PDF, PPTX, HTML or markdown assets."}
       ],
+      "example": {
+        "answer": "A compact decision brief is the strongest next form.",
+        "sections": [{"heading": "What we learned", "summary": "Feedback must be sorted by workflow step."}],
+        "evidence_trail": [{"kind": "council", "id": "council_123"}, {"kind": "session", "id": "session_456"}],
+        "decisions": [{"kind": "decision", "id": "decision_123"}],
+        "open_risks": ["Live team data must validate weekly usefulness."],
+        "exports": [{"kind": "asset", "format": "pptx", "url": "/data/assets/report.pptx"}]
+      },
       "derived_metrics": ["section_count", "evidence_count", "unresolved_risk_count"],
       "done_when": [
         "The report directly answers the original job question.",
