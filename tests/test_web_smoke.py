@@ -91,6 +91,25 @@ def test_user_menu_does_not_render_local_identity_placeholder():
         menu = _user_menu()
         assert "Jane Doe" in menu and "jane@example.com" in menu
         assert "Pro" in menu and 'href="/logout"' in menu
+        assert "<img" not in menu and "JD" in menu
+    finally:
+        reset_identity(token)
+
+    token = set_identity({"name": "Jane Doe", "email": "jane@example.com",
+                          "picture": "https://lh3.googleusercontent.com/a/avatar"})
+    try:
+        menu = _user_menu()
+        assert menu.count("<img") == 2
+        assert 'src="https://lh3.googleusercontent.com/a/avatar"' in menu
+        assert 'referrerpolicy="no-referrer"' in menu
+        assert "sl-um-ava--initials" not in menu
+    finally:
+        reset_identity(token)
+
+    token = set_identity({"name": "Jane Doe", "picture": "javascript:alert(1)"})
+    try:
+        menu = _user_menu()
+        assert "<img" not in menu and "JD" in menu
     finally:
         reset_identity(token)
 

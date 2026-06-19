@@ -287,9 +287,11 @@ _USER_MENU_ID_CSS = register_css(r"""
 .sl-um-row span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sl-um-row--danger{color:var(--ink)}
 .sl-um-account{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:center;padding:8px}
-.sl-um-ava--initials{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;
-  border-radius:var(--radius-full);background:var(--accent);color:var(--accent-ink);font-size:11px;
-  font-weight:650;letter-spacing:.02em;flex:none}
+.sl-um-ava{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;
+  border-radius:var(--radius-full);flex:none;overflow:hidden}
+.sl-um-ava img{width:100%;height:100%;object-fit:cover;display:block}
+.sl-um-ava--initials{background:var(--accent);color:var(--accent-ink);font-size:11px;
+  font-weight:650;letter-spacing:.02em}
 .sl-um-account-main{min-width:0;display:flex;flex-direction:column;gap:1px}
 .sl-um-account-main strong{font-size:var(--t-md);font-weight:600;color:var(--ink);line-height:1.25;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -338,6 +340,28 @@ def _known_identity() -> dict | None:
 def _initials(text: str) -> str:
     parts = re.findall(r"[A-Za-z0-9À-ÖØ-öø-ÿ]+", text or "")
     return ("".join(p[0] for p in parts[:2]) or "?").upper()
+
+
+def _identity_avatar_url(ident: dict | None) -> str | None:
+    if not ident:
+        return None
+    for key in ("picture", "avatar_url", "avatar", "image", "photo_url", "photo"):
+        raw_url = ident.get(key)
+        if isinstance(raw_url, dict):
+            raw_url = raw_url.get("url") or raw_url.get("src")
+        url = str(raw_url or "").strip()
+        if url.startswith(("https://", "/data/", "/assets/", "/web-assets/")):
+            return url
+    return None
+
+
+def _identity_avatar(ident: dict | None, label: str) -> str:
+    src = _identity_avatar_url(ident)
+    if src:
+        return h("span", {"class_": "sl-um-ava"},
+                 h("img", {"src": src, "alt": "", "loading": "lazy",
+                            "decoding": "async", "referrerpolicy": "no-referrer"}))
+    return h("span", {"class_": "sl-um-ava sl-um-ava--initials"}, _initials(label))
 
 
 def _user_menu_row(label: str, icon: str, *, href: str | None = None,
@@ -394,7 +418,7 @@ def _user_menu() -> str:
         if ident.get("plan") or ident.get("tier"):
             account_bits.append(h("span", {}, ident.get("plan") or ident.get("tier")))
         account_sec = h("div", {"class_": "sl-um-account"},
-                        h("span", {"class_": "sl-um-ava sl-um-ava--initials"}, _initials(who)),
+                        _identity_avatar(ident, who),
                         h("div", {"class_": "sl-um-account-main"}, *account_bits))
     link_sec = h("div", {"class_": "sl-um-group"},
                  _user_menu_row(t("activity_h"), "activity", href="/activity"),
@@ -414,7 +438,7 @@ def _user_menu() -> str:
     if ident:
         who = ident.get("name") or ident.get("email") or "?"
         plan = ident.get("plan") or ident.get("tier")
-        trigger_parts = (h("span", {"class_": "sl-um-ava sl-um-ava--initials"}, _initials(who)),
+        trigger_parts = (_identity_avatar(ident, who),
                          h("span", {"class_": "sl-um-trigger-text"},
                            h("span", {"class_": "sl-um-name"}, who),
                            h("span", {"class_": "sl-um-trigger-sub"}, plan) if plan else None),

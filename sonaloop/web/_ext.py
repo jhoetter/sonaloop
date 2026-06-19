@@ -153,9 +153,10 @@ _IDENTITY: contextvars.ContextVar[dict[str, Any] | None] = contextvars.ContextVa
 
 
 def set_identity(principal: dict[str, Any] | None) -> contextvars.Token:
-    """Set the authenticated identity for this request — {sub, email, name} plus an
-    optional `logout_href` (rendered as the sign-out action when present). Returns a
-    token; pass it to reset_identity() in a finally block."""
+    """Set the authenticated identity for this request — {sub, email, name} plus
+    optional `logout_href` (rendered as the sign-out action when present) and an
+    avatar URL (`picture`, `avatar_url`, `image`, `photo_url`, ...). Returns a token;
+    pass it to reset_identity() in a finally block."""
     return _IDENTITY.set(dict(principal) if principal else None)
 
 
