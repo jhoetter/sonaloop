@@ -274,6 +274,12 @@ def theme_override_vars(theme: dict[str, Any], *, scheme: str = "light") -> dict
     for role, value in ds["colors"][scheme].items():
         for var in _COLOR_TO_CSS.get(role, ()):
             out[var] = value
+    for idx, color in enumerate(ds["charts"]["series"][:7], 1):
+        out[f"--c{idx}"] = color
+        out[f"--sl-chart-series-{idx}"] = color
+    for role, color in ds["charts"]["status"].items():
+        out[f"--sl-chart-status-{role}"] = color
+    out["--sl-chart-grid"] = ds["charts"]["grid"]
     for role, spec in ds["typography"]["fonts"].items():
         if role in _FONT_TO_CSS:
             stack = _font_stack_css(spec["stack"])

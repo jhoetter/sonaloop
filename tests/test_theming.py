@@ -163,6 +163,8 @@ def test_compiler_produces_css_brand_charts_deck_and_stable_hash():
     assert compiled["deck"]["series"][0] == "#007a5a"
     assert compiled["css_vars"]["light"]["--accent"] == "#007a5a"
     assert compiled["css_vars"]["light"]["--sl-accent"] == "#007a5a"
+    assert compiled["css_vars"]["light"]["--c1"] == "#007a5a"
+    assert compiled["css_vars"]["light"]["--sl-chart-status-warning"] == "#c37b22"
     assert compiled["css_vars"]["light"]["--sl-sans"] == '"Acme Sans",Sona,system-ui,sans-serif'
     assert compiled["css_vars"]["light"]["--radius"] == "10px"
     assert 'id="theme-overrides"' in compiled["css"]
@@ -192,6 +194,7 @@ def test_runtime_context_is_cache_keyed_and_request_local():
 
     assert ctx_a["cache_key"] != ctx_b["cache_key"]
     assert ctx_a["css_vars"]["--sl-accent"] == "#007a5a"
+    assert ctx_a["css_vars"]["--c1"] == "#007a5a"
     assert ctx_b["css_vars"]["--sl-accent"] == "#4c67d8"
     assert ctx_a["brand"]["name"] == "Acme Research"
     assert ctx_b["brand"]["name"] == "Other Research"
