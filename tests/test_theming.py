@@ -1,17 +1,22 @@
-"""Customer theme contract (ticket customer-theme-contract): the slim design-system schema
-both products consume — allowlisted color tokens, --sl-sans/--sl-mono font stacks, brand
-name/logo. Covers: the EXACT allowlist (pinned), strict validation (unknown keys named,
-off-shape values rejected — the CSS-injection guard, loudly), brand-logo rules (data: URI
-or DATA_DIR-contained path, deny-by-default like the share-bundle inliner), the contextvar
-seam round-trip, the brand-logo lockup render, and export propagation (PDF + HTML bundle
-accept `theme_overrides` and inject the override block AFTER the base CSS)."""
+"""Workspace design-system v2 contract."""
 from __future__ import annotations
 
 import pytest
 
 from sonaloop import services
 from sonaloop.theming import (
-    COLOR_VARS, FONT_VARS, customer_theme_css, theme_override_vars, validate_customer_theme,
+    COLOR_ROLES,
+    FONT_ROLES,
+    SPEC_VERSION,
+    brand_context,
+    chart_palette,
+    compile_customer_design_system,
+    customer_design_system_css,
+    customer_theme_css,
+    deck_theme,
+    theme_override_vars,
+    validate_customer_design_system_v2,
+    validate_customer_theme,
 )
 
 
@@ -21,108 +26,153 @@ def _data_dir(tmp_path, monkeypatch):
     return tmp_path
 
 
-_THEME = {
-    "colors": {"--accent": "#0a7", "--bg": "#fffdf8", "--sidebar": "#f2efe8"},
-    "fonts": {"--sl-sans": "Acme Sans, Sona, Geist, system-ui, sans-serif"},
-    "brand": {"name": "Acme Research", "logo": "data:image/png;base64,iVBORw0KGgo="},
-}
+def _design_system() -> dict:
+    return {
+        "spec_version": SPEC_VERSION,
+        "meta": {"name": "Acme workspace"},
+        "brand": {
+            "name": "Acme Research",
+            "short_name": "Acme",
+            "logo_variants": {
+                "icon": {"kind": "image", "src": "data:image/png;base64,iVBORw0KGgo="},
+                "lockup": {"kind": "image", "src": "data:image/png;base64,iVBORw0KGgo="},
+            },
+            "logo_preferred": "lockup",
+            "deck_logo_preferred": "icon",
+            "report_logo_preferred": "lockup",
+        },
+        "colors": {
+            "light": {
+                "paper": "#fffdf8",
+                "panel": "#ffffff",
+                "sidebar": "#f2efe8",
+                "accent": "#007a5a",
+                "accent_weak": "#e0f3ec",
+                "ink": "#101010",
+            },
+            "dark": {
+                "paper": "#101113",
+                "panel": "#16171a",
+                "sidebar": "#0d0e10",
+                "accent": "#62d6b0",
+                "accent_weak": "#12382f",
+                "ink": "#f3f4f4",
+            },
+        },
+        "typography": {
+            "fonts": {
+                "sans": {
+                    "family": "Acme Sans",
+                    "stack": ["Acme Sans", "Sona", "system-ui", "sans-serif"],
+                },
+                "mono": {
+                    "family": "Acme Mono",
+                    "stack": ["Acme Mono", "Sona Mono", "ui-monospace", "monospace"],
+                },
+            },
+            "type_scale": {"t_body": "14px", "t_xl": "26px"},
+        },
+        "layout": {
+            "radius": {"radius": "10px", "radius_lg": "14px"},
+            "spacing": {"s_4": "18px"},
+            "density": {"row": "42px"},
+        },
+        "charts": {
+            "series": ["#007a5a", "#4c67d8", "#c37b22", "#cf4d5f"],
+            "status": {"positive": "#007a5a", "warning": "#c37b22", "negative": "#cf4d5f",
+                       "skeptical": "#a85d3d", "neutral": "#707070"},
+            "grid": "#e5e5e5",
+        },
+        "deck": {
+            "logo_preferred": "icon",
+            "canvas_preferred": "canvas",
+            "chart_series": ["#007a5a", "#4c67d8", "#c37b22", "#cf4d5f"],
+        },
+    }
 
 
-# ------------------------------------------------------------------- the contract: accept
-
-def test_allowlist_is_the_exact_inspector_themeable_set():
-    # The contract IS the allowlist — a change here is a breaking schema change for
-    # cloud/research persisted themes, so it must be deliberate.
-    assert COLOR_VARS == ("--accent", "--accent-ink", "--accent-weak", "--ink", "--ink-2",
-                          "--muted", "--faint", "--bg", "--panel", "--sidebar", "--line",
-                          "--green", "--amber", "--red")
-    assert FONT_VARS == ("--sl-sans", "--sl-mono")
+def test_v2_roles_are_pinned():
+    assert SPEC_VERSION == "workspace_design_system.v2"
+    assert "accent" in COLOR_ROLES
+    assert "paper" in COLOR_ROLES
+    assert "skeptical" in COLOR_ROLES
+    assert FONT_ROLES == ("sans", "serif", "mono", "display", "pixel")
 
 
-def test_validate_accepts_the_full_slim_schema_and_returns_the_canonical_dict():
-    theme = validate_customer_theme(_THEME)
-    assert theme == _THEME                                   # canonical == normalized input
-    assert validate_customer_theme({}) == {}                 # everything is optional
-    # every allowlisted var is individually accepted (values stripped)
-    theme = validate_customer_theme({"colors": {v: "  #123456 " for v in COLOR_VARS},
-                                     "fonts": {v: "Acme, Sona, sans-serif" for v in FONT_VARS}})
-    assert theme["colors"] == {v: "#123456" for v in COLOR_VARS}
-    assert set(theme["fonts"]) == set(FONT_VARS)
+def test_validate_merges_partial_payload_over_defaults():
+    ds = validate_customer_design_system_v2(_design_system())
+    assert ds["spec_version"] == SPEC_VERSION
+    assert ds["brand"]["name"] == "Acme Research"
+    assert ds["colors"]["light"]["accent"] == "#007a5a"
+    assert ds["colors"]["light"]["muted"] == "#635e56"
+    assert ds["typography"]["fonts"]["sans"]["family"] == "Acme Sans"
+    assert ds["typography"]["fonts"]["serif"]["family"] == "Sona"
+    assert ds["layout"]["radius"]["radius"] == "10px"
+    assert ds["layout"]["spacing"]["s_1"] == "4px"
+    assert ds["deck"]["boundary"] == "tokenized_master_deck"
+    assert validate_customer_theme(_design_system()) == ds
 
 
-def test_theme_override_vars_flatten_into_the_contextvar_seam():
-    from sonaloop.web import _ext
-    flat = theme_override_vars(validate_customer_theme(_THEME))
-    assert flat == {"--accent": "#0a7", "--bg": "#fffdf8", "--sidebar": "#f2efe8",
-                    "--sl-sans": "Acme Sans, Sona, Geist, system-ui, sans-serif"}
-    token = _ext.set_theme_overrides(flat)
-    try:
-        css = _ext.theme_override_css()                      # nothing validated gets dropped
-        assert css.startswith('<style id="theme-overrides">:root{')
-        for k, v in flat.items():
-            assert f"{k}:{v}" in css
-    finally:
-        _ext.reset_theme_overrides(token)
+def test_v2_rejects_unknown_keys_and_unsafe_values(tmp_path, monkeypatch):
+    _data_dir(tmp_path, monkeypatch)
+    with pytest.raises(ValueError, match="unknown design-system key"):
+        validate_customer_design_system_v2({"components": {}})
+    with pytest.raises(ValueError, match=SPEC_VERSION):
+        validate_customer_design_system_v2({"spec_version": "workspace_design_system.v1"})
+    bad = _design_system()
+    bad["colors"]["light"]["accent"] = "red!important"
+    with pytest.raises(ValueError, match="colors.light.accent"):
+        validate_customer_design_system_v2(bad)
+    bad = _design_system()
+    bad["typography"]["fonts"]["sans"]["stack"] = ["Acme;body{display:none}"]
+    with pytest.raises(ValueError, match="unsafe CSS token"):
+        validate_customer_design_system_v2(bad)
+    bad = _design_system()
+    bad["brand"]["logo_variants"]["lockup"] = {"kind": "image", "src": "https://cdn/logo.png"}
+    with pytest.raises(ValueError, match="local asset"):
+        validate_customer_design_system_v2(bad)
 
 
-# ------------------------------------------------------------------- the contract: reject
-
-def test_unknown_keys_are_rejected_with_the_allowlist_named():
-    with pytest.raises(ValueError, match=r"\['colors', 'fonts', 'brand'\]"):
-        validate_customer_theme({"components": {}})
-    with pytest.raises(ValueError, match="must be an object"):
-        validate_customer_theme(["--accent"])
-    # structural tokens are NOT customer-themeable — spacing/radius/type-scale/--paper
-    for var in ("--paper", "--s-4", "--radius", "--t-body", "--sl-radius-lg"):
-        with pytest.raises(ValueError, match="--accent"):    # the allowlist is named
-            validate_customer_theme({"colors": {var: "#fff"}})
-    with pytest.raises(ValueError, match="--sl-sans"):
-        validate_customer_theme({"fonts": {"--sl-pixel": "Comic Sans"}})
-
-
-def test_off_shape_values_are_rejected_not_silently_dropped():
-    for evil in ("#fff;}body{display:none}", "url(javascript:alert(1))", "", "red!important"):
-        with pytest.raises(ValueError, match="off-shape"):
-            validate_customer_theme({"colors": {"--accent": evil}})
-    with pytest.raises(ValueError, match="off-shape"):       # family names are UNQUOTED
-        validate_customer_theme({"fonts": {"--sl-sans": '"Acme Sans", sans-serif'}})
-
-
-def test_brand_rules(tmp_path, monkeypatch):
+def test_local_asset_refs_stay_inside_data_dir(tmp_path, monkeypatch):
     data = _data_dir(tmp_path, monkeypatch)
-    with pytest.raises(ValueError, match=r"\['name', 'logo'\]"):
-        validate_customer_theme({"brand": {"tagline": "x"}})
-    with pytest.raises(ValueError, match="non-empty"):
-        validate_customer_theme({"brand": {"name": "  "}})
-    # logo: data: must be a base64 image/*; no external URLs; paths must stay in DATA_DIR
-    with pytest.raises(ValueError, match="image"):
-        validate_customer_theme({"brand": {"logo": "data:text/html;base64,PGI+"}})
-    for url in ("https://evil.example/logo.png", "//cdn.example/logo.png", "javascript:alert(1)"):
-        with pytest.raises(ValueError, match="external URLs"):
-            validate_customer_theme({"brand": {"logo": url}})
-    with pytest.raises(ValueError, match="escapes the data dir"):
-        validate_customer_theme({"brand": {"logo": "../outside/logo.png"}})
     (data / "brand").mkdir()
     (data / "brand" / "logo.png").write_bytes(b"")
-    theme = validate_customer_theme({"brand": {"logo": "brand/logo.png"}})
-    assert theme["brand"]["logo"] == str(data / "brand" / "logo.png")    # resolved + contained
+    ds = _design_system()
+    ds["brand"]["logo_variants"]["lockup"] = {"kind": "image", "src": "brand/logo.png"}
+    assert validate_customer_design_system_v2(ds)["brand"]["logo_variants"]["lockup"]["src"] == "brand/logo.png"
+    ds["brand"]["logo_variants"]["lockup"] = {"kind": "image", "src": "../outside.png"}
+    with pytest.raises(ValueError, match="escapes the data dir"):
+        validate_customer_design_system_v2(ds)
 
 
-# ------------------------------------------------------- brand: the wordmark seam renders it
+def test_compiler_produces_css_brand_charts_deck_and_stable_hash():
+    compiled = compile_customer_design_system(_design_system())
+    assert compiled["compiled_hash"] == compile_customer_design_system(_design_system())["compiled_hash"]
+    assert compiled["brand"] == {
+        "name": "Acme Research",
+        "short_name": "Acme",
+        "logo": "data:image/png;base64,iVBORw0KGgo=",
+        "logo_role": "lockup",
+    }
+    assert compiled["charts"]["series"][0] == "#007a5a"
+    assert compiled["deck"]["series"][0] == "#007a5a"
+    assert compiled["css_vars"]["light"]["--accent"] == "#007a5a"
+    assert compiled["css_vars"]["light"]["--sl-accent"] == "#007a5a"
+    assert compiled["css_vars"]["light"]["--sl-sans"] == '"Acme Sans",Sona,system-ui,sans-serif'
+    assert compiled["css_vars"]["light"]["--radius"] == "10px"
+    assert 'id="theme-overrides"' in compiled["css"]
+    assert ':root[data-theme="dark"]' in compiled["css"]
 
-def test_brand_logo_replaces_the_wordmark_in_the_lockup(store, monkeypatch):
-    from sonaloop.web import _ext
-    from sonaloop.web._components import _layout
-    monkeypatch.setattr(_ext, "_BRAND", _ext._BRAND)         # restore the process globals
-    monkeypatch.setattr(_ext, "_BRAND_LOGO", None)
-    uri = validate_customer_theme(_THEME)["brand"]["logo"]
-    _ext.set_brand("Acme Research", logo=uri)
-    html = _layout("T", "<p>x</p>", store)
-    assert f'<img class="sl-logo__img" src="{uri}" alt="Acme Research">' in html
-    assert "sl-logo__word" not in html.split("</head>", 1)[1]            # wordmark replaced
 
+def test_individual_surface_helpers_match_compiler():
+    ds = validate_customer_design_system_v2(_design_system())
+    assert theme_override_vars(ds)["--bg"] == "#fffdf8"
+    assert theme_override_vars(ds, scheme="dark")["--accent"] == "#62d6b0"
+    assert brand_context(ds)["short_name"] == "Acme"
+    assert chart_palette(ds)["status"]["warning"] == "#c37b22"
+    assert deck_theme(ds)["font_role"] == "sans"
+    assert customer_design_system_css(ds) == customer_theme_css(ds)
 
-# --------------------------------------------------------------- exports carry the theme
 
 def _synthesis(store):
     return services.record_synthesis(
@@ -130,34 +180,22 @@ def _synthesis(store):
         goal="Does it land?", store=store)
 
 
-def test_html_bundle_injects_the_override_block_after_the_base_css(store, tmp_path, monkeypatch):
+def test_html_bundle_accepts_v2_design_system(store, tmp_path, monkeypatch):
     _data_dir(tmp_path, monkeypatch)
     syn = _synthesis(store)
-    out = services.export_synthesis_html(syn["id"], store=store, theme_overrides=_THEME)
+    out = services.export_synthesis_html(syn["id"], store=store, theme_overrides=_design_system())
     html = (tmp_path / "export" / "share" / out["token"] / "index.html").read_text(encoding="utf-8")
-    block = '<style id="theme-overrides">:root{--accent:#0a7;--bg:#fffdf8;--sidebar:#f2efe8;' \
-            "--sl-sans:Acme Sans, Sona, Geist, system-ui, sans-serif}</style>"
-    assert block in html
-    assert html.index(block) > html.index(":root{--bg:")     # AFTER the base tokens: cascade wins
-    assert html.index(block) > html.index("</style>")
-    assert html.index(block) < html.index("</head>")
-    # no theme => bit-identical contract: no override block at all
-    out2 = services.export_synthesis_html(syn["id"], store=store)
-    html2 = (tmp_path / "export" / "share" / out2["token"] / "index.html").read_text(encoding="utf-8")
-    assert "theme-overrides" not in html2
+    assert '<style id="theme-overrides">' in html
+    assert "--accent:#007a5a" in html
+    assert "--sl-sans:\"Acme Sans\",Sona,system-ui,sans-serif" in html
+    assert html.index('<style id="theme-overrides">') > html.index(":root{--bg:")
 
 
-def test_exports_validate_theme_overrides_before_any_work(store, tmp_path, monkeypatch):
+def test_exports_validate_v2_before_any_work(store, tmp_path, monkeypatch):
     _data_dir(tmp_path, monkeypatch)
     syn = _synthesis(store)
-    bad = {"colors": {"--paper": "#fff"}}
-    with pytest.raises(ValueError, match="themeable"):
+    bad = {"spec_version": SPEC_VERSION, "colors": {"light": {"accent": "red!important"}}}
+    with pytest.raises(ValueError, match="colors.light.accent"):
         services.export_synthesis_html(syn["id"], store=store, theme_overrides=bad)
-    # the PDF path validates BEFORE the browser gate — a bad theme fails the same way
-    # whether or not chromium is installed
-    with pytest.raises(ValueError, match="themeable"):
+    with pytest.raises(ValueError, match="colors.light.accent"):
         services.export_synthesis_pdf(syn["id"], store=store, theme_overrides=bad)
-
-
-def test_customer_theme_css_is_empty_for_a_brand_only_theme():
-    assert customer_theme_css(validate_customer_theme({"brand": {"name": "Acme"}})) == ""

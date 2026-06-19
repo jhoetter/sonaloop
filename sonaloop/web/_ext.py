@@ -11,18 +11,12 @@ packages plug in WITHOUT the core ever importing them, via four seams:
                no privileged path, so an extension's items sit beside the core's.
   3. Slots   — register_slot(name, fn); _layout() renders named insertion points
                ("head_extra", "sidebar_extra", "body_end"). fn(store) -> HTML string.
-  4. Theme   — set_theme_overrides(mapping): a per-request contextvar (mirrors the
-               i18n _UI_LANG pattern). _layout() injects a SANITIZED :root override so a
-               tenant/project can carry its own design-system colors. Pure SSR — the
-               override is plain CSS custom properties; nothing leaks into JS or data-*.
-               WHAT may be themed is the customer-theme contract in sonaloop/theming.py
-               (validate_customer_theme): allowlisted color tokens (theming.COLOR_VARS),
-               --sl-sans/--sl-mono font stacks, and brand name/logo — components,
-               spacing, radius and the type scale stay Sonaloop's. Validate there, then
-               feed theming.theme_override_vars() to this seam; brand flows through
-               set_brand(). The synthesis exports (PDF / HTML bundle) take the same
-               validated dict via `theme_overrides=`, so a deliverable carries the
-               customer's brand without riding this contextvar.
+  4. Theme   — set_theme_overrides(mapping): a per-request contextvar for compiled CSS
+               variables (mirrors the i18n _UI_LANG pattern). The canonical contract is
+               sonaloop/theming.py's workspace_design_system.v2 validator/compiler:
+               customer data is structured design-system data, then compiled into safe
+               CSS variables, brand context, chart palettes and deck inputs. Pure SSR —
+               no arbitrary CSS/JS or component replacement rides this seam.
 
 Labels are `str | Callable[[], str]`: pass a literal, or a lambda that resolves the
 label per request when it must (i18n) — e.g. one that returns t(<your-key>). Slot/route callables are trusted
