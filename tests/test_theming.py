@@ -196,6 +196,28 @@ def test_individual_surface_helpers_match_compiler():
     assert customer_design_system_css(ds) == customer_theme_css(ds)
 
 
+def test_deck_theme_compiles_pptx_palette_type_and_assets():
+    ds = _design_system()
+    ds["brand"]["logo_variants"]["icon"] = {
+        "kind": "image",
+        "asset_ref": "workspace-asset:dsa_logo_1@0123456789abcdef",
+    }
+    ds["typography"]["type_scale"]["t_2xl"] = "36px"
+    ds["typography"]["fonts"]["sans"]["asset_ids"] = ["font_sans"]
+    out = deck_theme(ds)
+
+    assert out["palette"]["accent"] == "007A5A"
+    assert out["palette"]["series"][:3] == ["007A5A", "4C67D8", "C37B22"]
+    assert out["palette"]["green"] == "007A5A"
+    assert out["type"]["display"]["size"] == 34
+    assert out["font"]["family"] == "Acme Sans"
+    assert out["assets"]["logo"]["role"] == "icon"
+    assert out["assets"]["logo"]["ref"] == "workspace-asset:dsa_logo_1@0123456789abcdef"
+    assert out["assets"]["imagery"]["deck_cover"]["ref"] == "builtin:canvas.deck"
+    assert out["geometry"]["frame"]["width"] == pytest.approx(13.333)
+    assert out["warnings"][0]["code"] == "pptx_font_not_embedded"
+
+
 def test_runtime_context_is_cache_keyed_and_request_local():
     acme = _design_system()
     other = _design_system()

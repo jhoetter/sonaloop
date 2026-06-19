@@ -335,14 +335,121 @@ def chart_palette(theme: dict[str, Any]) -> dict[str, Any]:
 
 def deck_theme(theme: dict[str, Any]) -> dict[str, Any]:
     ds = validate_customer_design_system_v2(theme)
+    colors = ds["colors"]["light"]
+    chart_status = ds["charts"]["status"]
+    from . import _deck
+
+    type_roles = deepcopy(_deck.TYPE)
+    scale = ds["typography"]["type_scale"]
+    role_sizes = {
+        "eyebrow": _pt_from_length(scale["t_sm"], type_roles["eyebrow"]["size"]),
+        "display": _pt_from_length(scale["t_2xl"], type_roles["display"]["size"], multiplier=1.25),
+        "title": _pt_from_length(scale["t_xl"], type_roles["title"]["size"]),
+        "subtitle": _pt_from_length(scale["t_md"], type_roles["subtitle"]["size"]),
+        "lead": _pt_from_length(scale["t_lg"], type_roles["lead"]["size"]),
+        "statement": _pt_from_length(scale["t_xl"], type_roles["statement"]["size"], multiplier=1.08),
+        "body": _pt_from_length(scale["t_body"], type_roles["body"]["size"]),
+        "quote": _pt_from_length(scale["t_xl"], type_roles["quote"]["size"]),
+        "attribution": _pt_from_length(scale["t_sm"], type_roles["attribution"]["size"]),
+        "caption": _pt_from_length(scale["t_xs"], type_roles["caption"]["size"]),
+        "num": _pt_from_length(scale["t_md"], type_roles["num"]["size"]),
+        "bignum": _pt_from_length(scale["t_2xl"], type_roles["bignum"]["size"], multiplier=3.4),
+        "kpi": _pt_from_length(scale["t_2xl"], type_roles["kpi"]["size"]),
+        "kpiLabel": _pt_from_length(scale["t_xs"], type_roles["kpiLabel"]["size"]),
+    }
+    for role, size in role_sizes.items():
+        if role in type_roles:
+            type_roles[role]["size"] = size
+
+    font_role = ds["deck"]["font_role"]
+    font = deepcopy(ds["typography"]["fonts"][font_role])
+    warnings: list[dict[str, Any]] = []
+    if font["family"] != DEFAULT_DESIGN_SYSTEM["typography"]["fonts"][font_role]["family"]:
+        warnings.append({
+            "code": "pptx_font_not_embedded",
+            "role": font_role,
+            "family": font["family"],
+            "asset_ids": list(font.get("asset_ids") or []),
+            "message": "PowerPoint recipients may need this font installed; deck text remains editable.",
+        })
+
     return {
         "boundary": ds["deck"]["boundary"],
         "logo_preferred": ds["deck"]["logo_preferred"],
         "canvas_preferred": ds["deck"]["canvas_preferred"],
-        "font_role": ds["deck"]["font_role"],
+        "font_role": font_role,
+        "font": font,
         "series": list(ds["deck"]["chart_series"]),
+        "palette": {
+            "bg": _pptx_hex(colors["paper"]),
+            "panel": _pptx_hex(colors["panel"]),
+            "surface2": _pptx_hex(colors["panel_2"]),
+            "line": _pptx_hex(colors["line"]),
+            "ink": _pptx_hex(colors["ink"]),
+            "muted": _pptx_hex(colors["muted"]),
+            "faint": _pptx_hex(colors["faint"]),
+            "accent": _pptx_hex(colors["accent"]),
+            "accentInk": _pptx_hex(colors["accent_ink"]),
+            "accentWeak": _pptx_hex(colors["accent_weak"]),
+            "green": _pptx_hex(chart_status.get("positive") or colors["green"]),
+            "amber": _pptx_hex(chart_status.get("warning") or colors["amber"]),
+            "red": _pptx_hex(chart_status.get("negative") or colors["red"]),
+            "violet": _pptx_hex(colors["violet"]),
+            "blue": _pptx_hex(colors["blue"]),
+            "skep": _pptx_hex(chart_status.get("skeptical") or colors["skeptical"]),
+            "series": [_pptx_hex(c) for c in ds["deck"]["chart_series"]],
+        },
+        "type": type_roles,
+        "geometry": {
+            "frame": deepcopy(_deck.FRAME),
+            "radius": deepcopy(ds["layout"]["radius"]),
+            "spacing": deepcopy(ds["layout"]["spacing"]),
+        },
+        "assets": _deck_asset_manifest(ds),
         "colors": deepcopy(ds["colors"]["light"]),
         "brand": brand_context(ds),
+        "chart_palette": chart_palette(ds),
+        "warnings": warnings,
+    }
+
+
+def _pptx_hex(value: str) -> str:
+    raw = str(value).strip().lstrip("#")
+    if len(raw) == 3:
+        raw = "".join(ch * 2 for ch in raw)
+    return raw.upper()
+
+
+def _pt_from_length(value: str, fallback: int | float, *, multiplier: float = 1.0) -> int:
+    raw = str(value).strip()
+    m = re.match(r"^([0-9]+(?:\.[0-9]+)?)px$", raw)
+    if not m:
+        return int(round(float(fallback)))
+    return max(1, int(round(float(m.group(1)) * 0.75 * multiplier)))
+
+
+def _deck_asset_manifest(ds: dict[str, Any]) -> dict[str, Any]:
+    brand = ds["brand"]
+    logo_role = ds["deck"].get("logo_preferred") or brand.get("deck_logo_preferred") or brand.get("logo_preferred")
+    logo_spec = deepcopy((brand.get("logo_variants") or {}).get(logo_role) or {})
+    imagery: dict[str, Any] = {}
+    sets = ds["imagery"]["sets"]
+    for role in ("deck_cover", "section", "closing", "canvas"):
+        set_key = ds["imagery"]["roles"].get(role)
+        spec = deepcopy(sets.get(set_key) or {})
+        imagery[role] = {
+            "role": role,
+            "set": set_key,
+            "ref": spec.get("deck_asset") or spec.get("light_asset") or spec.get("dark_asset") or "",
+            "label": spec.get("label") or set_key,
+        }
+    return {
+        "logo": {
+            "role": logo_role,
+            "ref": logo_spec.get("asset_ref") or logo_spec.get("src") or logo_spec.get("ref") or "",
+            "kind": logo_spec.get("kind") or "",
+        },
+        "imagery": imagery,
     }
 
 
