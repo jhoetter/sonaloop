@@ -17,6 +17,9 @@ packages plug in WITHOUT the core ever importing them, via four seams:
                customer data is structured design-system data, then compiled into safe
                CSS variables, brand context, chart palettes and deck inputs. Pure SSR —
                no arbitrary CSS/JS or component replacement rides this seam.
+  5. Brand   — set_runtime_brand(name, logo): a per-request contextvar for tenant
+               branding. Product apps still call set_brand() once at boot; tenants
+               resolve their workspace logo/name inside request middleware.
 
 Labels are `str | Callable[[], str]`: pass a literal, or a lambda that resolves the
 label per request when it must (i18n) — e.g. one that returns t(<your-key>). Slot/route callables are trusted
@@ -202,6 +205,8 @@ def theme_override_css() -> str:
 
 _BRAND = "Sonaloop"
 _BRAND_LOGO: str | None = None
+_RUNTIME_BRAND: contextvars.ContextVar[dict[str, str] | None] = contextvars.ContextVar(
+    "runtime_brand", default=None)
 
 
 def set_brand(name: str, logo: str | None = None) -> None:
@@ -216,11 +221,35 @@ def set_brand(name: str, logo: str | None = None) -> None:
         _BRAND_LOGO = logo.strip()
 
 
+def set_runtime_brand(name: str | None = None, logo: str | None = None) -> contextvars.Token:
+    """Set the request-scoped brand lockup. Returns a token; pass it to
+    reset_runtime_brand() in a finally block.
+
+    This intentionally does not mutate set_brand()'s process-global product identity:
+    tenant/workspace branding is a runtime concern and must not leak across concurrent
+    requests.
+    """
+    payload: dict[str, str] = {}
+    if name and name.strip():
+        payload["name"] = name.strip()
+    if logo and logo.strip():
+        payload["logo"] = logo.strip()
+    return _RUNTIME_BRAND.set(payload or None)
+
+
+def reset_runtime_brand(token: contextvars.Token) -> None:
+    _RUNTIME_BRAND.reset(token)
+
+
 def brand_name() -> str:
-    return _BRAND
+    runtime = _RUNTIME_BRAND.get() or {}
+    return runtime.get("name") or _BRAND
 
 
 def brand_logo() -> str | None:
+    runtime = _RUNTIME_BRAND.get() or {}
+    if runtime.get("logo"):
+        return runtime["logo"]
     return _BRAND_LOGO
 
 
@@ -231,7 +260,7 @@ def title_brand() -> str:
     "Cloud | sonaloop", "Sonaloop Research" -> "Research | sonaloop". (The marketing
     website keeps bare "Sonaloop" branding, as the customer-facing face.) The visual
     sidebar wordmark still uses brand_name()."""
-    bn = _BRAND.strip()
+    bn = brand_name().strip()
     if bn.lower() == "sonaloop":
         return "App | sonaloop"
     if bn.lower().startswith("sonaloop "):
