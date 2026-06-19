@@ -12,11 +12,13 @@ surface consumes it.
 """
 from __future__ import annotations
 
+import contextvars
 from copy import deepcopy
 import hashlib
 import json
 import re
 from pathlib import Path
+from functools import lru_cache
 from typing import Any
 
 SPEC_VERSION = "workspace_design_system.v2"
@@ -336,6 +338,106 @@ def deck_theme(theme: dict[str, Any]) -> dict[str, Any]:
         "colors": deepcopy(ds["colors"]["light"]),
         "brand": brand_context(ds),
     }
+
+
+def font_face_manifest(theme: dict[str, Any], asset_urls: dict[str, str] | None = None) -> list[dict[str, Any]]:
+    """Font-face inputs for workspace renderers.
+
+    Core validates the font roles and records which uploaded font assets belong to
+    each role. Cloud owns the actual workspace asset URLs, so callers may pass an
+    `asset_urls` map when they want CSS emitted in this process.
+    """
+    ds = validate_customer_design_system_v2(theme)
+    urls = dict(asset_urls or {})
+    faces: list[dict[str, Any]] = []
+    for role, spec in ds["typography"]["fonts"].items():
+        for asset_id in spec.get("asset_ids") or []:
+            asset_id = str(asset_id)
+            rec = {"role": role, "family": spec["family"], "asset_id": asset_id,
+                   "url": urls.get(asset_id, "")}
+            faces.append(rec)
+    return faces
+
+
+def font_face_css(theme: dict[str, Any], asset_urls: dict[str, str] | None = None) -> str:
+    faces = []
+    for rec in font_face_manifest(theme, asset_urls):
+        if not rec.get("url"):
+            continue
+        fmt = "woff2" if str(rec["url"]).lower().endswith(".woff2") else "woff"
+        family = str(rec["family"]).replace("\\", "\\\\").replace('"', '\\"')
+        url = str(rec["url"]).replace("\\", "\\\\").replace('"', '\\"')
+        faces.append(
+            f'@font-face{{font-family:"{family}";src:url("{url}") format("{fmt}");'
+            "font-weight:400;font-style:normal;font-display:swap}}"
+        )
+    return "<style id=\"workspace-font-faces\">" + "".join(faces) + "</style>" if faces else ""
+
+
+def _runtime_cache_key(workspace_id: str, version_id: str, compiled_hash: str,
+                       scheme: str, surface: str) -> str:
+    return "|".join((workspace_id or "default", version_id or "default",
+                     compiled_hash, scheme, surface))
+
+
+@lru_cache(maxsize=256)
+def _runtime_context_cached(canonical_json: str, workspace_id: str, version_id: str,
+                            compiled_hash: str, scheme: str, surface: str) -> dict[str, Any]:
+    ds = json.loads(canonical_json)
+    compiled = compile_customer_design_system(ds)
+    return {
+        "workspace_id": workspace_id,
+        "version_id": version_id,
+        "surface": surface,
+        "scheme": scheme,
+        "cache_key": _runtime_cache_key(workspace_id, version_id, compiled_hash, scheme, surface),
+        "spec_version": compiled["spec_version"],
+        "compiled_hash": compiled_hash,
+        "design_system": compiled["design_system"],
+        "css_vars": compiled["css_vars"][scheme],
+        "css_vars_by_scheme": compiled["css_vars"],
+        "css": compiled["css"],
+        "brand": compiled["brand"],
+        "charts": compiled["charts"],
+        "deck": compiled["deck"],
+        "imagery": deepcopy(compiled["design_system"]["imagery"]),
+    }
+
+
+def runtime_design_system_context(theme: dict[str, Any] | None = None, *,
+                                  workspace_id: str = "",
+                                  version_id: str = "",
+                                  scheme: str = "light",
+                                  surface: str = "app",
+                                  font_asset_urls: dict[str, str] | None = None) -> dict[str, Any]:
+    """Compiled design-system context consumed by request, report and export renderers."""
+    if scheme not in ("light", "dark"):
+        raise ValueError("scheme must be 'light' or 'dark'")
+    ds = validate_customer_design_system_v2(theme or DEFAULT_DESIGN_SYSTEM)
+    canonical_json = json.dumps(ds, sort_keys=True, separators=(",", ":"))
+    compiled_hash = hashlib.sha256(canonical_json.encode("utf-8")).hexdigest()
+    ctx = deepcopy(_runtime_context_cached(
+        canonical_json, workspace_id or "", version_id or "", compiled_hash, scheme, surface or "app"))
+    ctx["font_faces"] = font_face_manifest(ds, font_asset_urls)
+    ctx["font_face_css"] = font_face_css(ds, font_asset_urls)
+    return ctx
+
+
+_ACTIVE_RUNTIME_DESIGN_SYSTEM: contextvars.ContextVar[dict[str, Any] | None] = contextvars.ContextVar(
+    "active_runtime_design_system", default=None)
+
+
+def set_runtime_design_system_context(context: dict[str, Any] | None) -> contextvars.Token:
+    return _ACTIVE_RUNTIME_DESIGN_SYSTEM.set(deepcopy(context) if context else None)
+
+
+def reset_runtime_design_system_context(token: contextvars.Token) -> None:
+    _ACTIVE_RUNTIME_DESIGN_SYSTEM.reset(token)
+
+
+def active_runtime_design_system_context() -> dict[str, Any] | None:
+    ctx = _ACTIVE_RUNTIME_DESIGN_SYSTEM.get()
+    return deepcopy(ctx) if ctx else None
 
 
 def _deep_merge(dst: dict[str, Any], src: dict[str, Any]) -> None:

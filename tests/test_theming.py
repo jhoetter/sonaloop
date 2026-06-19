@@ -14,6 +14,11 @@ from sonaloop.theming import (
     customer_design_system_css,
     customer_theme_css,
     deck_theme,
+    active_runtime_design_system_context,
+    font_face_css,
+    reset_runtime_design_system_context,
+    runtime_design_system_context,
+    set_runtime_design_system_context,
     theme_override_vars,
     validate_customer_design_system_v2,
     validate_customer_theme,
@@ -172,6 +177,60 @@ def test_individual_surface_helpers_match_compiler():
     assert chart_palette(ds)["status"]["warning"] == "#c37b22"
     assert deck_theme(ds)["font_role"] == "sans"
     assert customer_design_system_css(ds) == customer_theme_css(ds)
+
+
+def test_runtime_context_is_cache_keyed_and_request_local():
+    acme = _design_system()
+    other = _design_system()
+    other["brand"]["name"] = "Other Research"
+    other["colors"]["light"]["accent"] = "#4c67d8"
+
+    ctx_a = runtime_design_system_context(acme, workspace_id="ws_acme",
+                                          version_id="dsv_1", surface="app")
+    ctx_b = runtime_design_system_context(other, workspace_id="ws_other",
+                                          version_id="dsv_2", surface="report")
+
+    assert ctx_a["cache_key"] != ctx_b["cache_key"]
+    assert ctx_a["css_vars"]["--sl-accent"] == "#007a5a"
+    assert ctx_b["css_vars"]["--sl-accent"] == "#4c67d8"
+    assert ctx_a["brand"]["name"] == "Acme Research"
+    assert ctx_b["brand"]["name"] == "Other Research"
+    assert ctx_a["charts"]["series"][0] == "#007a5a"
+    assert ctx_a["imagery"]["roles"]["report_cover"] == "canvas"
+
+    token_a = set_runtime_design_system_context(ctx_a)
+    assert active_runtime_design_system_context()["workspace_id"] == "ws_acme"
+    token_b = set_runtime_design_system_context(ctx_b)
+    assert active_runtime_design_system_context()["workspace_id"] == "ws_other"
+    reset_runtime_design_system_context(token_b)
+    assert active_runtime_design_system_context()["workspace_id"] == "ws_acme"
+    reset_runtime_design_system_context(token_a)
+    assert active_runtime_design_system_context() is None
+
+
+def test_runtime_context_cache_key_changes_on_new_version_hash():
+    ds = _design_system()
+    first = runtime_design_system_context(ds, workspace_id="ws_acme", version_id="dsv_1")
+    ds["colors"]["light"]["accent"] = "#4c67d8"
+    second = runtime_design_system_context(ds, workspace_id="ws_acme", version_id="dsv_2")
+
+    assert first["cache_key"] != second["cache_key"]
+    assert first["compiled_hash"] != second["compiled_hash"]
+
+
+def test_runtime_context_exposes_font_face_css_when_asset_urls_are_known():
+    ds = _design_system()
+    ds["typography"]["fonts"]["sans"]["asset_ids"] = ["font_sans"]
+    ctx = runtime_design_system_context(
+        ds, workspace_id="ws_acme", version_id="dsv_1",
+        font_asset_urls={"font_sans": "/data/workspace-design-assets/acme/sans.woff2"},
+    )
+
+    assert ctx["font_faces"][0]["asset_id"] == "font_sans"
+    assert 'font-family:"Acme Sans"' in ctx["font_face_css"]
+    assert font_face_css(ds, {"font_sans": "/data/font.woff2"}).startswith(
+        '<style id="workspace-font-faces">'
+    )
 
 
 def _synthesis(store):
