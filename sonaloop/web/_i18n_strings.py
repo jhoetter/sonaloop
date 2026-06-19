@@ -174,6 +174,9 @@ STRINGS: dict[str, dict[str, str]] = {
         # rationale as fidelity_prototype above)
         "council_kind": "Council", "prototype_kind": "Klick-Prototyp", "job_outcome_kind": "Job Outcome",
         "result_schema_h": "Result Schema", "result_kind_h": "Output-Typ",
+        "target_schemas_h": "Target Schemas", "target_schemas_lead": "Outputs, die diese Methodik erzeugen muss, bevor der Job fertig ist.",
+        "expected_fields_h": "Erwartete Felder", "derived_metrics_h": "Abgeleitete Metriken",
+        "done_criteria_h": "Done-Kriterien",
         "evidence_refs_h": "Evidenz", "schema_json_preview": "JSON ansehen",
         "schema_missing": "nicht erfasst", "required_h": "erforderlich", "optional_h": "optional",
         "proto_liked_h": "Gefällt", "predicted_behaviors_h": "Erwartetes Verhalten",
@@ -380,7 +383,7 @@ STRINGS: dict[str, dict[str, str]] = {
         # plan drawer / framework strip (i18n leak audit — ticket i18n-full-coverage)
         "plan_h": "Plan",
         "methodology_h": "Methodik",
-        "no_plan_yet": "Dieser Job hat noch keinen Plan (Freiform/Legacy).",
+        "no_plan_yet": "Dieser Job hat noch keinen Plan (Freiform/ohne Plan).",
         "plan_complete": "Plan komplett",
         "plan_progress": "{done} von {n} erledigt",
         "plan_freeform": "freiform",
@@ -618,6 +621,9 @@ STRINGS: dict[str, dict[str, str]] = {
         # detail-page kind eyebrows (ux-contract §8.2 — one header anatomy for every kind)
         "council_kind": "Council", "prototype_kind": "Prototype", "job_outcome_kind": "Job outcome",
         "result_schema_h": "Result schema", "result_kind_h": "Output kind",
+        "target_schemas_h": "Target schemas", "target_schemas_lead": "Outputs this methodology must produce before the job is done.",
+        "expected_fields_h": "Expected fields", "derived_metrics_h": "Derived metrics",
+        "done_criteria_h": "Done criteria",
         "evidence_refs_h": "Evidence", "schema_json_preview": "View JSON",
         "schema_missing": "not recorded", "required_h": "required", "optional_h": "optional",
         "proto_liked_h": "Liked", "predicted_behaviors_h": "Predicted behavior",
@@ -822,7 +828,7 @@ STRINGS: dict[str, dict[str, str]] = {
         # plan drawer / framework strip (i18n leak audit — ticket i18n-full-coverage)
         "plan_h": "Plan",
         "methodology_h": "Methodology",
-        "no_plan_yet": "This job has no plan yet (freeform/legacy).",
+        "no_plan_yet": "This job has no plan yet (freeform/no plan).",
         "plan_complete": "Plan complete",
         "plan_progress": "{done} of {n} done",
         "plan_freeform": "freeform",

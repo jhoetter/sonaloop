@@ -12,7 +12,7 @@ runtime engine is `plan.py` (analyze→act→verify). The phase_log lifecycle en
 here was retired; the helpers the plan engine reuses (`_is_decide`, `_artifact_tags`,
 `_project_artifacts_with`, `_sessions_of`) stay.
 
-Back-compat: legacy `phases` specs auto-translate to `steps`.
+Back-compat: compatibility `phases` specs auto-translate to `steps`.
 """
 from __future__ import annotations
 
@@ -123,7 +123,7 @@ def _registered_forms_for_presentation(presentation: dict[str, Any]) -> list[dic
 
 
 def _phases_to_steps(phases: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Translate a legacy phase list (mode diverge/converge, alternating) to a step DAG.
+    """Translate a compatibility phase list (mode diverge/converge, alternating) to a step DAG.
 
     A linear chain: each step consumes the previous one. Converge phases gain the structural
     breadth + gate requirement; prototype/prototype_session requirements become tag references
@@ -162,7 +162,7 @@ def _phases_to_steps(phases: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _normalize_spec(spec: dict[str, Any]) -> dict[str, Any]:
-    """Return a copy of the spec with a canonical `steps` list (translating legacy `phases`)."""
+    """Return a copy of the spec with a canonical `steps` list (translating compatibility `phases`)."""
     out = dict(spec)
     if out.get("steps"):
         out["steps"] = [_norm_step(s) for s in out["steps"]]
@@ -174,7 +174,7 @@ def _normalize_spec(spec: dict[str, Any]) -> dict[str, Any]:
 
 
 def validate_methodology_spec(spec: dict[str, Any]) -> dict[str, Any]:
-    """Validate a methodology spec (steps OR legacy phases). Tag-agnostic: only graph mechanics
+    """Validate a methodology spec (steps OR compatibility phases). Tag-agnostic: only graph mechanics
     and references are checked — never tag membership."""
     if not isinstance(spec, dict):
         raise MethodologyError("BAD_SPEC", "methodology spec must be an object")
@@ -182,7 +182,7 @@ def validate_methodology_spec(spec: dict[str, Any]) -> dict[str, Any]:
         if not spec.get(k):
             raise MethodologyError("BAD_SPEC", f"methodology spec missing '{k}'")
     if not (spec.get("steps") or spec.get("phases")):
-        raise MethodologyError("BAD_SPEC", "methodology needs `steps` (or legacy `phases`)")
+        raise MethodologyError("BAD_SPEC", "methodology needs `steps` (or compatibility `phases`)")
     steps = _normalize_spec(spec)["steps"]
     if len(steps) < 2:
         raise MethodologyError("BAD_SPEC", "methodology needs >= 2 steps")
@@ -240,7 +240,9 @@ _VIRTUAL_SPECS: dict[str, dict[str, Any]] = {
         "description": "A lightweight reaction test for one fixed stimulus: collect audience reactions, then decide whether it clears a defined gate or needs revision.",
         "when_to_use": "Use when a concrete stimulus already exists and the decision is ship, revise, or review rather than broad discovery.",
         "presentation": {
-            "icon": "target",
+            "icon": "sentiment",
+            "image": "reaction-test.jpg",
+            "complexity": "light",
             "summary": "Fast reaction scoring and a gate for one fixed stimulus.",
             "jobs": "Content, messaging, launch-copy and announcement checks.",
         },

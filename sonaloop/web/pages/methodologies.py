@@ -20,6 +20,7 @@ register_css(
     ".sl-meth-card{display:block;text-decoration:none;color:inherit;padding:0;overflow:hidden}"
     ".sl-meth-card:hover{border-color:color-mix(in srgb,var(--accent) 42%,var(--line))}"
     ".sl-meth-card-cover{display:block;height:132px;overflow:hidden;background:var(--panel-2);border-bottom:1px solid var(--line)}"
+    ".sl-meth-card-cover picture,.sl-meth-banner picture{display:block;width:100%;height:100%}"
     ".sl-meth-card-cover img{width:100%;height:100%;object-fit:cover;display:block}"
     ".sl-meth-card-ico{position:relative;z-index:1;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;margin:14px 0 0 14px;border-radius:12px;background:var(--panel);border:1px solid var(--line);color:var(--accent)}"
     ".sl-meth-card-ico svg{width:24px;height:24px}"
@@ -34,14 +35,6 @@ register_css(
     ".sl-meth-doc-head{margin:0 0 4px}"
     ".sl-meth-banner{height:180px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:var(--panel-2)}"
     ".sl-meth-banner img{width:100%;height:100%;object-fit:cover;display:block}"
-    # Theme-aware cover: light variant by default; the dark twin only under system-dark
-    # (no explicit data-theme) or an explicit dark theme. Mirrors the token theme rules.
-    ".sl-meth-banner .b-dark,.sl-meth-card-cover .b-dark{display:none}"
-    "@media(prefers-color-scheme:dark){"
-    ":root:not([data-theme]) .sl-meth-banner .b-light,:root:not([data-theme]) .sl-meth-card-cover .b-light{display:none}"
-    ":root:not([data-theme]) .sl-meth-banner .b-dark,:root:not([data-theme]) .sl-meth-card-cover .b-dark{display:block}}"
-    ":root[data-theme=dark] .sl-meth-banner .b-light,:root[data-theme=dark] .sl-meth-card-cover .b-light{display:none}"
-    ":root[data-theme=dark] .sl-meth-banner .b-dark,:root[data-theme=dark] .sl-meth-card-cover .b-dark{display:block}"
     ".sl-meth-ico{display:inline-flex;align-items:center;justify-content:center;width:60px;height:60px;border-radius:16px;background:var(--panel);border:1px solid var(--line);color:var(--accent)}"
     ".sl-meth-ico svg{width:32px;height:32px}"
     ".sl-meth-ico--float{position:relative;z-index:1;margin:-30px 0 0 20px;box-shadow:0 4px 16px color-mix(in srgb,var(--ink) 12%,transparent)}"
@@ -62,6 +55,21 @@ register_css(
     ".sl-meth-jobprops{display:grid;gap:12px}"
     ".sl-meth-jobprop b{display:block;font-weight:600;line-height:1.3;margin-bottom:2px}"
     ".sl-meth-jobprop span{color:var(--muted);line-height:1.45;font-size:var(--t-sm)}"
+    ".sl-meth-schema-rail{display:grid;gap:8px}"
+    ".sl-meth-schema-intro{margin:0 0 10px;color:var(--muted);font-size:var(--t-sm);line-height:1.45}"
+    ".sl-meth-schema-dlgbtn{display:block;width:100%;text-align:left;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel);color:var(--ink);padding:10px;cursor:pointer}"
+    ".sl-meth-schema-dlgbtn:hover{border-color:color-mix(in srgb,var(--accent) 38%,var(--line));background:var(--panel-2)}"
+    ".sl-meth-schema-title{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}"
+    ".sl-meth-schema-title b{font-size:var(--t-sm);line-height:1.25}"
+    ".sl-meth-schema-title code{font-family:var(--mono);font-size:var(--t-xs);color:var(--muted);white-space:nowrap}"
+    ".sl-meth-schema-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}"
+    ".sl-meth-schema-desc{display:block;margin-top:8px;color:var(--muted);font-size:var(--t-sm);line-height:1.45}"
+    ".sl-meth-schema-dialog{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);color:var(--ink);padding:18px;width:min(680px,92vw);max-height:90vh;overflow:auto}"
+    ".sl-meth-schema-dialog::backdrop{background:rgba(0,0,0,.45)}"
+    ".sl-meth-schema-dialog h3{margin:0 0 6px;font-size:var(--t-lg)}"
+    ".sl-meth-schema-dialog p{margin:0;color:var(--muted);line-height:1.45}"
+    ".sl-meth-schema-dialog-actions{display:flex;justify-content:flex-end;margin-top:14px}"
+    ".sl-meth-schema-mini{display:grid;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-2)}"
     ".sl-meth-schema-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:12px}"
     ".sl-meth-schema{border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel);padding:12px}"
     ".sl-meth-schema h3{margin:2px 0 6px;font-size:var(--t-md)}"
@@ -113,7 +121,13 @@ _COMPLEXITY_COLOR = {"light": "var(--green)", "medium": "var(--amber)", "deep": 
 
 
 def _complexity_label(c: str) -> str:
-    return t(f"complexity_{c}") if c in _COMPLEXITY_ORDER else ""
+    if c == "light":
+        return t("complexity_light")
+    if c == "medium":
+        return t("complexity_medium")
+    if c == "deep":
+        return t("complexity_deep")
+    return ""
 
 
 def _image(spec: dict) -> str:
@@ -130,16 +144,16 @@ def _image_dark(spec: dict) -> str:
 
 
 def _cover_inner(spec: dict):
-    """The cover's <img>(s): always the light variant, plus the dark twin when present. CSS
-    (`.b-light`/`.b-dark` + the theme rules) shows the right one per active theme. None when the
-    methodology has no cover image."""
+    """The cover media: one <picture>, so the browser chooses either the light or system-dark
+    variant instead of loading both images for every methodology card."""
     light = _image(spec)
     if not light:
         return None
     dark = _image_dark(spec)
     attrs = {"loading": "lazy", "decoding": "async", "alt": ""}
-    return fragment(h("img", {"class_": "b-light", "src": light, **attrs}),
-                    h("img", {"class_": "b-dark", "src": dark, **attrs}) if dark else None)
+    return h("picture", {},
+             h("source", {"media": "(prefers-color-scheme: dark)", "srcset": dark}) if dark else None,
+             h("img", {"src": light, **attrs}))
 
 
 def _doc_head(spec: dict, meta: dict, title: str) -> str:
@@ -281,16 +295,105 @@ def _schema_card(schema: dict, role: str = "") -> str:
              h("p", {}, schema.get("summary", "")),
              raw(_label(role, "var(--violet)")) if role else None,
              h("div", {"class_": "sl-meth-schema-block"},
-               h("b", {}, "Expected fields"),
+               h("b", {}, t("expected_fields_h")),
                h("div", {"class_": "sl-meth-fields"}, fragment(*field_rows))),
              h("div", {"class_": "sl-meth-schema-block"},
-               h("b", {}, "Derived metrics"),
+               h("b", {}, t("derived_metrics_h")),
                h("ul", {"class_": "sl-meth-schema-list"},
                  fragment(*(h("li", {}, m) for m in metrics))) if metrics else h("p", {}, "—")),
              h("div", {"class_": "sl-meth-schema-block"},
-               h("b", {}, "Done criteria"),
+               h("b", {}, t("done_criteria_h")),
                h("ul", {"class_": "sl-meth-schema-list"},
                  fragment(*(h("li", {}, d) for d in done))) if done else h("p", {}, "—")))
+
+
+def _humanize_token(value: str) -> str:
+    return " ".join(part for part in str(value or "").replace("-", "_").split("_") if part).capitalize()
+
+
+def _schema_dialog_id(schema_id: str) -> str:
+    safe = "".join(ch if ch.isalnum() else "-" for ch in str(schema_id or "schema")).strip("-")
+    return f"meth-schema-{safe}"
+
+
+_SCHEMA_DIALOG_JS = """<script>(function(){if(window.__slMethSchemaDialog)return;window.__slMethSchemaDialog=1;
+document.addEventListener('click',function(e){
+  var btn=e.target&&e.target.closest&&e.target.closest('[data-meth-schema-dialog]');
+  if(btn){
+    e.preventDefault();
+    var dlg=document.getElementById(btn.getAttribute('data-meth-schema-dialog'));
+    if(!dlg)return;
+    if(dlg.showModal){if(!dlg.open)dlg.showModal();}else{dlg.setAttribute('open','');}
+    return;
+  }
+  var d=e.target&&e.target.closest&&e.target.closest('dialog.sl-meth-schema-dialog');
+  if(d&&e.target===d&&d.open)d.close();
+});
+})();</script>"""
+
+
+def _schema_dialog_parts(schema: dict, role: str = "") -> tuple[str, str]:
+    fields = schema.get("fields") or []
+    field_rows = [
+        h("div", {"class_": "sl-meth-field"},
+          h("code", {}, f.get("id", "")),
+          h("span", {}, f'{f.get("type", "")} · {t("required_h") if f.get("required") else t("optional_h")}'))
+        for f in fields
+    ]
+    metrics = [str(x) for x in schema.get("derived_metrics") or []]
+    done = [str(x) for x in schema.get("done_when") or []]
+    required_count = sum(1 for f in fields if f.get("required"))
+    meta = [
+        raw(_label(_humanize_token(role), "var(--violet)")) if role else "",
+        raw(_label(_humanize_token(schema.get("result_kind", "")), "var(--blue)")) if schema.get("result_kind") else "",
+        raw(_label(f"{required_count} {t('required_h')}", "var(--muted)")) if required_count else "",
+    ]
+    did = _schema_dialog_id(schema.get("id", ""))
+    trigger = h("button", {"class_": "sl-meth-schema-dlgbtn", "type": "button",
+                           "data_meth_schema_dialog": did},
+                h("span", {"class_": "sl-meth-schema-title"},
+                  h("b", {}, schema.get("name", schema.get("id", ""))),
+                  h("code", {}, schema.get("id", ""))),
+                h("span", {"class_": "sl-meth-schema-meta"}, fragment(*meta)),
+                h("span", {"class_": "sl-meth-schema-desc"}, schema.get("summary", "")))
+    dialog = h("dialog", {"class_": "sl-meth-schema-dialog", "id": did},
+               h("h3", {}, schema.get("name", schema.get("id", ""))),
+               h("div", {"class_": "sl-meth-schema-code"}, schema.get("id", "")),
+               h("p", {}, schema.get("summary", "")),
+               h("span", {"class_": "sl-meth-schema-meta"}, fragment(*meta)),
+               h("div", {"class_": "sl-meth-schema-mini"},
+                 h("div", {"class_": "sl-meth-schema-block"},
+                   h("b", {}, t("expected_fields_h")),
+                   h("div", {"class_": "sl-meth-fields"}, fragment(*field_rows))),
+                 h("div", {"class_": "sl-meth-schema-block"},
+                   h("b", {}, t("derived_metrics_h")),
+                   h("ul", {"class_": "sl-meth-schema-list"},
+                     fragment(*(h("li", {}, m) for m in metrics))) if metrics else h("p", {}, "—")),
+                 h("div", {"class_": "sl-meth-schema-block"},
+                   h("b", {}, t("done_criteria_h")),
+                   h("ul", {"class_": "sl-meth-schema-list"},
+                     fragment(*(h("li", {}, d) for d in done))) if done else h("p", {}, "—"))),
+               h("form", {"method": "dialog", "class_": "sl-meth-schema-dialog-actions"},
+                 h("button", {"class_": "sl-btn", "value": "close"}, t("cancel"))))
+    return trigger, dialog
+
+
+def _schema_aside_for_methodology(key: str) -> str:
+    try:
+        refs = _result_schemas.contract_for_methodology(key).get("result_schemas") or []
+    except KeyError:
+        refs = []
+    if not refs:
+        return ""
+    parts = [_schema_dialog_parts(_result_schemas.get_schema(ref["id"]), ref.get("role", ""))
+             for ref in refs]
+    triggers = [trigger for trigger, _dialog in parts]
+    dialogs = [_dialog for _trigger, _dialog in parts]
+    return fragment(h("h4", {"id": "sec-target-schemas"}, t("target_schemas_h")),
+                    h("p", {"class_": "sl-meth-schema-intro"}, t("target_schemas_lead")),
+                    h("div", {"class_": "sl-meth-schema-rail"}, fragment(*triggers)),
+                    fragment(*dialogs),
+                    raw(_SCHEMA_DIALOG_JS))
 
 
 def _schema_docs_for_methodology(key: str) -> str:
@@ -377,8 +480,10 @@ def _methodologies_page(q: str = "", job_type: str = "", complexity: str = "",
              h("div", {"class_": "sl-meth-lede"},
                h("h1", {"class_": "h1"}, t("methodologies_h"), h("span", {"class_": "h1cnt"}, str(len(specs)))),
                h("p", {"class_": "lead"}, t("methodologies_lead"))))
-    body = h("div", {"class_": "page"}, hero, bar, index, raw(_schema_index(result_schema)))
-    return _layout(t("methodologies_h"), body, store, crumbs=[(t("projects"), "/projects"), (t("methodologies_h"), None)], active="methodologies")
+    schema_section = raw(_schema_index(result_schema)) if result_schema else ""
+    body = h("div", {"class_": "page"}, hero, bar, index, schema_section)
+    return _layout(t("methodologies_h"), body, store,
+                   crumbs=[(t("methodologies_h"), None)], active="methodologies")
 
 
 def _methodology_detail(slug: str) -> str:
@@ -402,8 +507,7 @@ def _methodology_detail(slug: str) -> str:
     body = h("div", {},
              h("div", {"class_": "sl-prose"}, raw(_md(when))) if when else None,
              h("h2", {"class_": "sl-doc-sub-h", "id": "steps"}, t("stages_h")),
-             h("div", {"class_": "sl-meth-steps"}, fragment(*step_rows)),
-             raw(_schema_docs_for_methodology(spec.get("key", ""))))
+             h("div", {"class_": "sl-meth-steps"}, fragment(*step_rows)))
     # Aside (artifact-detail parity, ux-contract §9): "Good for" as a quiet property, then a
     # full-rail-width "Matching jobs" block that WRITES OUT each job's question (a tooltip hid
     # them before), then — when any exist — the projects that run this methodology. No "Engine".
@@ -419,17 +523,17 @@ def _methodology_detail(slug: str) -> str:
     # fires when the h4 is a direct child of .rail (a wrapper would make every h4 first-child).
     jobs_aside = fragment(h("h4", {"id": "sec-jobs"}, t("matching_jobs_h")),
                           h("div", {"class_": "sl-meth-jobprops"}, fragment(*job_blocks))) if job_blocks else ""
+    schema_aside = _schema_aside_for_methodology(spec.get("key", ""))
     projs = _projects_using(spec.get("key", ""), store)
     proj_aside = fragment(h("h4", {"id": "sec-meth-projects"}, t("meth_projects_h")),
-                          *(h("a", {"class_": "relrow", "href": f"/projects/{p['id']}"},
+                          *(h("a", {"class_": "relrow", "href": f"/jobs/{p['id']}"},
                               h("span", {"class_": "ol-dot", "style": "background:#5e6ad2"}),
                               h("span", {"class_": "relt"}, p.get("title", "")))
                             for p in projs)) if projs else ""
     return detail_page(store, title=title, active="methodologies",
-                       crumbs=[(t("projects"), "/projects"),
-                               (t("methodologies_h"), "/methodologies"), (title, None)],
+                       crumbs=[(t("methodologies_h"), "/methodologies"), (title, None)],
                        hero=raw(_doc_head(spec, meta, title)), body=body,
-                       prop_rows=prop_rows, aside_extra=fragment(jobs_aside, proj_aside))
+                       prop_rows=prop_rows, aside_extra=fragment(jobs_aside, schema_aside, proj_aside))
 
 
 def register_methodologies(app) -> None:
