@@ -9,6 +9,7 @@ from urllib.parse import quote
 from ._ctx import *  # noqa: F401,F403
 
 from ... import job_taxonomy, methodology as _methodology, result_schemas as _result_schemas
+from ...theming import active_runtime_design_system_context
 from .._html import register_css
 
 
@@ -21,7 +22,11 @@ register_css(
     ".sl-meth-card{display:block;text-decoration:none;color:inherit;padding:0;overflow:hidden}"
     ".sl-meth-card:hover{border-color:color-mix(in srgb,var(--accent) 42%,var(--line))}"
     ".sl-meth-card-cover{display:block;height:132px;overflow:hidden;background:var(--panel-2);border-bottom:1px solid var(--line)}"
-    ".sl-meth-card-cover picture,.sl-meth-banner picture{display:block;width:100%;height:100%}"
+    ".sl-meth-img{display:block;width:100%;height:100%}"
+    ".sl-meth-img--dark{display:none}"
+    "[data-theme='dark'] .sl-meth-img--light{display:none}"
+    "[data-theme='dark'] .sl-meth-img--dark{display:block}"
+    "@media(prefers-color-scheme:dark){:root:not([data-theme]) .sl-meth-img--light{display:none}:root:not([data-theme]) .sl-meth-img--dark{display:block}}"
     ".sl-meth-card-cover img{width:100%;height:100%;object-fit:cover;display:block}"
     ".sl-meth-card-ico{position:relative;z-index:1;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;margin:14px 0 0 14px;border-radius:12px;background:var(--panel);border:1px solid var(--line);color:var(--accent)}"
     ".sl-meth-card-ico svg{width:24px;height:24px}"
@@ -158,17 +163,45 @@ def _image_dark(spec: dict) -> str:
     return _asset_src(f"{p.stem}-dark{p.suffix}")
 
 
+def _runtime_methodology_cover_base() -> str:
+    ctx = active_runtime_design_system_context()
+    ds = (ctx or {}).get("design_system") or {}
+    meta = ds.get("meta") or {}
+    base = str(meta.get("methodology_cover_asset_base") or "").strip()
+    if not base.startswith("/cloud-assets/design-presets/methodologies/"):
+        return ""
+    return base if base.endswith("/") else f"{base}/"
+
+
+def _cover_sources(spec: dict) -> tuple[str, str]:
+    name = Path(str(_meta(spec).get("image") or "")).name
+    if not name:
+        return "", ""
+    base = _runtime_methodology_cover_base()
+    if base:
+        p = Path(name)
+        return (
+            f"{base}{quote(name)}",
+            f"{base}{quote(f'{p.stem}-dark{p.suffix}')}",
+        )
+    return _asset_src(name), _image_dark(spec)
+
+
 def _cover_inner(spec: dict):
-    """The cover media: one <picture>, so the browser chooses either the light or system-dark
-    variant instead of loading both images for every methodology card."""
-    light = _image(spec)
+    """The cover media, including explicit sidebar light/dark theme choices."""
+    light, dark = _cover_sources(spec)
     if not light:
         return None
-    dark = _image_dark(spec)
     attrs = {"loading": "lazy", "decoding": "async", "alt": ""}
-    return h("picture", {},
-             h("source", {"media": "(prefers-color-scheme: dark)", "srcset": dark}) if dark else None,
-             h("img", {"src": light, **attrs}))
+    light_img = h("span", {"class_": "sl-meth-img sl-meth-img--light"},
+                  h("img", {"src": light, **attrs}))
+    if not dark:
+        return light_img
+    return fragment(
+        light_img,
+        h("span", {"class_": "sl-meth-img sl-meth-img--dark"},
+          h("img", {"src": dark, **attrs})),
+    )
 
 
 def _doc_head(spec: dict, meta: dict, title: str) -> str:
