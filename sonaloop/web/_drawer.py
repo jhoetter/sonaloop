@@ -51,8 +51,8 @@ SPA_JS = """
     main.replaceWith(imp); main=imp;
     if(doc.title) document.title=doc.title;
     syncActive(doc);
-    runScripts(main);
     if(push) history.pushState({spa:1}, '', url);
+    runScripts(main);
     window.__slBg=url;                                     // the page now behind any overlay
     if(window.SLDrawer) window.SLDrawer.hide();            // navigating away closes the slide-over
     window.scrollTo(0,0);

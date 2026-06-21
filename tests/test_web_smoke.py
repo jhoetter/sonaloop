@@ -13,6 +13,13 @@ def test_assets_present_and_app_builds():
     assert "/projects" in paths
 
 
+def test_spa_navigation_sets_url_before_running_page_scripts():
+    """Hash-tab pages must see the destination hash during SPA swaps."""
+    from sonaloop.web._drawer import SPA_JS
+
+    assert SPA_JS.index("history.pushState({spa:1}, '', url);") < SPA_JS.index("runScripts(main);")
+
+
 def test_sidebar_is_exactly_four_workspace_items():
     """The workspace sidebar (seeded in _nav_seed.py via the same public registry an
     extension uses): Jobs · Methodologies · Formats · Personas. Utilities live in
