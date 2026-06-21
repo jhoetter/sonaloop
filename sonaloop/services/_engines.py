@@ -370,6 +370,10 @@ def get_prototype_artifact(prototype_id, store: Store | None = None):
     return _proto.get_prototype(prototype_id, store=store)
 
 
+def refresh_prototype_design_system(prototype_id, store: Store | None = None):
+    return _proto.refresh_prototype_design_system(prototype_id, store=store)
+
+
 
 def run_prototype(prototype_id, store: Store | None = None):
     return _proto.run_prototype(prototype_id, store=store)

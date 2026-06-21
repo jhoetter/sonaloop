@@ -50,8 +50,8 @@ from ._routes_lists import register_lists  # noqa: F401
 def create_app():
     load_env()
     try:
-        from fastapi import FastAPI, Query  # noqa: F401
-        from fastapi.responses import HTMLResponse, JSONResponse  # noqa: F401
+        from fastapi import FastAPI, HTTPException, Query  # noqa: F401
+        from fastapi.responses import FileResponse, HTMLResponse, JSONResponse  # noqa: F401
         from fastapi.staticfiles import StaticFiles
     except ImportError as exc:
         raise RuntimeError("Install web dependencies first: uv sync") from exc
@@ -69,6 +69,41 @@ def create_app():
     from ..config import prototypes_dir as _proto_dir
     _pd = _proto_dir()
     _pd.mkdir(parents=True, exist_ok=True)
+
+    @app.get("/proto-files/{slug}", response_class=FileResponse, include_in_schema=False)
+    def _prototype_entry_file(slug: str):
+        return _prototype_static_file(slug, "index.html")
+
+    @app.get("/proto-files/{slug}/{asset_path:path}", response_class=FileResponse, include_in_schema=False)
+    def _prototype_static_file(slug: str, asset_path: str):
+        from .. import services
+        from ..storage import Store
+        root = _pd.resolve()
+        target = (root / slug / (asset_path or "index.html")).resolve()
+        try:
+            target.relative_to(root)
+        except ValueError:
+            raise HTTPException(404, "prototype file not found") from None
+        store = Store()
+        try:
+            p = services.get_prototype_artifact(slug, store=store)
+        except Exception:
+            p = None
+        if p and (asset_path or "index.html") == p.get("entry", "index.html"):
+            try:
+                services.refresh_prototype_design_system(p["id"], store=store)
+            except Exception:
+                pass
+        if target.is_dir():
+            target = (target / "index.html").resolve()
+            try:
+                target.relative_to(root)
+            except ValueError:
+                raise HTTPException(404, "prototype file not found") from None
+        if not target.exists() or not target.is_file():
+            raise HTTPException(404, "prototype file not found")
+        return FileResponse(str(target))
+
     app.mount("/proto-files", StaticFiles(directory=str(_pd), html=True), name="proto-files")
 
     from urllib.parse import urlencode

@@ -1,6 +1,7 @@
 """M2 — prototype generation + local runner."""
 from __future__ import annotations
 
+import copy
 import time
 import urllib.request
 
@@ -112,6 +113,75 @@ def test_scaffold_uses_active_workspace_design_system_context(store, tmp_path, m
     assert "--ff:\"Acme Sans\",Sona,system-ui,sans-serif" in html
     assert 'class="sl-prototype-brand"' in html
     assert 'src="data:image/png;base64,iVBORw0KGgo="' in html
+
+
+def test_refresh_prototype_design_system_updates_existing_entry(store, tmp_path, monkeypatch):
+    monkeypatch.setattr(prototypes, "prototypes_dir", lambda: tmp_path)
+    ctx1 = runtime_design_system_context(
+        _design_system(), workspace_id="ws_acme", version_id="dsv_1", surface="prototype")
+    token = set_runtime_design_system_context(ctx1)
+    try:
+        prototypes.scaffold_prototype("ueberg-refresh", "Übergabe-Check", _CONCEPT, store=store)
+    finally:
+        reset_runtime_design_system_context(token)
+
+    updated_design = copy.deepcopy(_design_system())
+    updated_design["meta"]["preset"] = "mosaic"
+    updated_design["colors"]["light"]["accent"] = "#ff7a00"
+    updated_design["colors"]["light"]["accent_weak"] = "#ffe7bf"
+    updated_design["layout"]["radius"]["radius"] = "2px"
+    updated_design["layout"]["radius"]["radius_lg"] = "2px"
+    ctx2 = runtime_design_system_context(
+        updated_design, workspace_id="ws_acme", version_id="dsv_2", surface="prototype")
+    token = set_runtime_design_system_context(ctx2)
+    try:
+        out = prototypes.refresh_prototype_design_system("ueberg-refresh", store=store)
+    finally:
+        reset_runtime_design_system_context(token)
+
+    assert out["refreshed"] is True
+    html = (tmp_path / "ueberg-refresh" / "index.html").read_text(encoding="utf-8")
+    assert "--proto-accent:#ff7a00" in html
+    assert "--proto-accent:#007a5a" not in html
+    assert "--proto-radius:2px" in html
+    assert 'data-design-preset="mosaic"' in html
+    assert 'data-design-version="dsv_2"' in html
+    assert html.count('id="sonaloop-design-system"') == 1
+    assert html.count('id="sonaloop-prototype-design-system"') == 1
+
+
+def test_proto_files_route_refreshes_existing_entry(store, tmp_path, monkeypatch):
+    from sonaloop import config
+    monkeypatch.setattr(config, "prototypes_dir", lambda: tmp_path)
+    monkeypatch.setattr(prototypes, "prototypes_dir", lambda: tmp_path)
+    ctx1 = runtime_design_system_context(
+        _design_system(), workspace_id="ws_acme", version_id="dsv_1", surface="prototype")
+    token = set_runtime_design_system_context(ctx1)
+    try:
+        prototypes.scaffold_prototype("ueberg-route", "Übergabe-Check", _CONCEPT, store=store)
+    finally:
+        reset_runtime_design_system_context(token)
+
+    updated_design = copy.deepcopy(_design_system())
+    updated_design["colors"]["light"]["accent"] = "#ff7a00"
+    updated_design["layout"]["radius"]["radius"] = "2px"
+    ctx2 = runtime_design_system_context(
+        updated_design, workspace_id="ws_acme", version_id="dsv_2", surface="prototype")
+
+    from fastapi.testclient import TestClient
+    from sonaloop.web import create_app
+    client = TestClient(create_app())
+
+    token = set_runtime_design_system_context(ctx2)
+    try:
+        resp = client.get("/proto-files/ueberg-route/index.html")
+    finally:
+        reset_runtime_design_system_context(token)
+
+    assert resp.status_code == 200
+    assert "--proto-accent:#ff7a00" in resp.text
+    assert "--proto-accent:#007a5a" not in resp.text
+    assert 'data-design-version="dsv_2"' in resp.text
 
 
 def test_scaffold_canvas_accepts_freeform_frames(store, tmp_path, monkeypatch):

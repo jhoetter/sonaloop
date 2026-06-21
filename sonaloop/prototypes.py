@@ -31,6 +31,26 @@ _PROCS: dict[str, dict[str, Any]] = {}
 
 _CSS_VAR_RE = re.compile(r"^--[a-z0-9-]+$")
 _SCRIPT_CLOSE_RE = re.compile(r"</", re.IGNORECASE)
+_INJECTED_FONT_RE = re.compile(
+    r'<style\s+id=["\']workspace-font-faces["\'][^>]*>.*?</style>',
+    re.IGNORECASE | re.DOTALL,
+)
+_INJECTED_DESIGN_SCRIPT_RE = re.compile(
+    r'<script\s+id=["\']sonaloop-design-system["\'][^>]*>.*?</script>',
+    re.IGNORECASE | re.DOTALL,
+)
+_INJECTED_DESIGN_STYLE_RE = re.compile(
+    r'<style\s+id=["\']sonaloop-prototype-design-system["\'][^>]*>.*?</style>',
+    re.IGNORECASE | re.DOTALL,
+)
+_INJECTED_BODY_ATTR_RE = re.compile(
+    r'\sdata-design-(?:system|preset|density|radius|surface|version)="[^"]*"',
+    re.IGNORECASE,
+)
+_INJECTED_BRAND_RE = re.compile(
+    r'<div\s+class=["\']sl-prototype-brand["\'][^>]*>.*?</div>',
+    re.IGNORECASE | re.DOTALL,
+)
 
 _PROTOTYPE_VAR_ALIASES = {
     "--bg": "--sl-bg",
@@ -488,7 +508,21 @@ def _prototype_brand_markup(ctx: dict[str, Any], concept: dict[str, Any]) -> str
     return ""
 
 
+def _strip_design_system(html: str) -> str:
+    html = _INJECTED_FONT_RE.sub("", html)
+    html = _INJECTED_DESIGN_SCRIPT_RE.sub("", html)
+    html = _INJECTED_DESIGN_STYLE_RE.sub("", html)
+    html = _INJECTED_BRAND_RE.sub("", html)
+
+    def clean_body(match: re.Match[str]) -> str:
+        attrs = _INJECTED_BODY_ATTR_RE.sub("", match.group(1))
+        return "<body" + attrs + ">"
+
+    return re.sub(r"<body\b([^>]*)>", clean_body, html, count=1, flags=re.IGNORECASE)
+
+
 def _inject_design_system(html: str, concept: dict[str, Any], ctx: dict[str, Any]) -> str:
+    html = _strip_design_system(html)
     head = _prototype_design_system_head(ctx)
     if "</head>" in html:
         html = html.replace("</head>", head + "</head>", 1)
@@ -552,6 +586,46 @@ def scaffold_artifact(slug: str, name: str, concept: dict[str, Any], type: str =
     return register_artifact(slug, name, stored_path, entry="index.html", run="static", version="v0.1",
                              project_id=project_id, type=type, tags=tags,
                              notes=f"generated from {resolved} ({count} {unit})", store=store)
+
+
+def _prototype_app_dir(p: dict[str, Any]) -> Path:
+    return (ROOT / p["path"]).resolve()
+
+
+def _prototype_concept(app_dir: Path) -> dict[str, Any]:
+    try:
+        raw = json.loads((app_dir / "concept.json").read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    return raw if isinstance(raw, dict) else {}
+
+
+def refresh_prototype_design_system(prototype_id: str, store: Store | None = None) -> dict[str, Any]:
+    """Re-materialize a static prototype's entry HTML with the current runtime design system.
+
+    Prototypes are stored as real local apps. The generated HTML still needs to reflect a
+    workspace preset changed after scaffold time, so both the inspector preview and the
+    Playwright runner call this before serving the entry file.
+    """
+    store = store or Store()
+    p = get_prototype(prototype_id, store=store)
+    if p.get("run") != "static":
+        return {"prototype": p, "refreshed": False, "reason": "non_static"}
+    app_dir = _prototype_app_dir(p)
+    entry = (app_dir / p.get("entry", "index.html")).resolve()
+    try:
+        entry.relative_to(app_dir)
+    except ValueError:
+        raise PrototypeError("BAD_ENTRY", f"prototype entry escapes app dir: {p.get('entry')}")
+    if entry.suffix.lower() not in ("", ".html", ".htm"):
+        return {"prototype": p, "refreshed": False, "reason": "non_html_entry"}
+    if not entry.exists():
+        raise PrototypeError("MISSING_FILES", f"prototype entry not found: {entry}")
+    html = entry.read_text(encoding="utf-8")
+    updated = _inject_design_system(html, _prototype_concept(app_dir), _prototype_design_context())
+    if updated != html:
+        entry.write_text(updated, encoding="utf-8")
+    return {"prototype": p, "refreshed": updated != html, "path": str(entry)}
 
 
 def register_artifact(slug: str, name: str, path: str, entry: str = "index.html", run: str = "static",
@@ -636,10 +710,11 @@ def _free_port() -> int:
 def run_prototype(prototype_id: str, store: Store | None = None) -> dict[str, Any]:
     store = store or Store()
     p = get_prototype(prototype_id, store=store)
+    refresh_prototype_design_system(p["id"], store=store)
     if p["id"] in _PROCS:
         return {"prototype_id": p["id"], "url": _PROCS[p["id"]]["url"], "pid": _PROCS[p["id"]]["proc"].pid,
                 "already_running": True}
-    app_dir = (ROOT / p["path"]).resolve()
+    app_dir = _prototype_app_dir(p)
     if not app_dir.exists():
         raise PrototypeError("MISSING_FILES", f"prototype dir not found: {p['path']}")
     port = _free_port()
