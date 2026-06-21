@@ -249,11 +249,13 @@ SCHEMAS = {
     "prototype": {
         "holds": (["Name + Version + `tags` (Fidelity, z. B. lofi/midfi/hifi)",
                    "`path` / `entry` / `run` — wie der lauffähige Build gestartet wird",
+                   "Design-System-Kontext — Tokens, Fonts und optionale Logos kommen aus dem aktiven Workspace oder dem Sonaloop-Default",
                    "Optionaler Link zum Projekt + zur Notiz, aus der er gebaut wurde",
                    "Eine **Session** ist eine Persona, die ihn benutzt — als `statements`, geerdet in "
                    "beobachteten Prototyp-States"],
                   ["Name + version + `tags` (fidelity, e.g. lofi/midfi/hifi)",
                    "`path` / `entry` / `run` — how the runnable build is launched",
+                   "Design-system context — tokens, fonts and optional logos come from the active workspace or the Sonaloop default",
                    "Optional link to the project + the note it was built from",
                    "A **session** is a persona using it — as `statements`, grounded in observed prototype "
                    "states"]),
@@ -338,7 +340,8 @@ INSPECTOR_SECTIONS = [
       "Decisions). **Formate** verfeinern ein Primitive, ohne neue Dinge zu erfinden: "
       "Red-Team und Head-to-head sind Council-Formate, Website/externer Prototyp/A-B "
       "sind Referenz-Formate, und Prototyp-Formen sind Apps, Flows, Dashboards, Cards, "
-      "Comparisons, Models oder Journeys. Die Namensregel: **Referenzen** sind Quellenlinks oder "
+      "Comparisons, Models, Journeys oder freie Canvases fuer Raeume, Karten, Boards und "
+      "Simulationen. Die Namensregel: **Referenzen** sind Quellenlinks oder "
       "Snapshots im Raum; ein externer Prototyp bleibt eine Referenz, wenn Sonaloop nur darauf "
       "zeigt. **Prototypen** sind testbare Projektobjekte, die Sonaloop ausführen, rendern "
       "und mit Sessions verbinden kann. **A/B-Varianten** sind Stimuli; das eigentliche "
@@ -370,7 +373,8 @@ INSPECTOR_SECTIONS = [
       "and **Conclude** (reports, decisions). **Formats** refine a primitive without "
       "creating new things: red-team and head-to-head are council formats, website/external "
       "prototype/A-B are reference formats, and prototype forms include apps, flows, dashboards, "
-      "cards, comparisons, models and journeys. Naming rule: **References** are source links or "
+      "cards, comparisons, models, journeys and freeform canvases for rooms, maps, boards and "
+      "simulations. Naming rule: **References** are source links or "
       "snapshots placed in the room; an external prototype stays a reference when Sonaloop only "
       "points at it. **Prototypes** are testable project objects Sonaloop can run, render or pair "
       "with sessions. **A/B variants** are stimuli; the actual test result lives in a council or "

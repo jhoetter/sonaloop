@@ -21,11 +21,18 @@ def register_prototypes(mcp):
                            fidelity: str | None = None) -> dict[str, Any]:
         """Generate a real, minimal, runnable web app from a host-authored concept and register it.
         The app is genuinely clickable (real DOM) for Playwright. The renderer template is resolved
-        from DATA (suggestions/artifact_types.json): pass a `fidelity` tag (lofi/midfi/hifi → a
-        sketchy/clean/polished form) or scaffold a non-form artifact TYPE (flow, dashboard, cards,
-        comparison). `template` forces a specific template; concept-level `fidelity` themes any
-        template. Concept = {title, summary, start, screens:[{id,title,elements,...rich blocks}]};
-        rich blocks read by the non-form templates: screen.metrics / screen.cards / screen.columns."""
+        from DATA (suggestions/artifact_types.json): legacy kind="web" creates a normal prototype;
+        pass a DATA artifact type as `kind` (canvas, flow, dashboard, cards, comparison, model,
+        journey, ...) to avoid forcing every prototype into forms/clickflows. `kind="canvas"` uses
+        frames/surface + positioned layers for spatial maps, service-control rooms, boards,
+        simulations and other freeform experiences. `template` forces a specific template;
+        concept-level `fidelity` themes any template. The scaffolded HTML is tokenized with the active design system (Cloud workspace
+        design system when present, otherwise the Sonaloop default): colors, font stacks, radius,
+        chart/status colors and optional logo/brand header all come from that contract. Use
+        concept.show_brand=true only when a visible logo/wordmark belongs in the tested surface.
+        Classic concept = {title, summary, start, screens:[{id,title,elements,...rich blocks}]}.
+        Canvas concept = {title, summary, start, frames:[{id,title,layout,layers:[...],actions:[...]}]}
+        or {surface:{...}}."""
         t = time.perf_counter()
         return _env("scaffold_prototype",
                     services.scaffold_prototype(slug, name, concept, kind, template, project_id, fidelity), t)

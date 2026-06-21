@@ -38,7 +38,11 @@ Use three layers:
 - **Surveys** (`record_survey`, outline kind `survey`): structured question
   instruments for real responses.
 - **Prototypes** (`register_prototype` / `scaffold_prototype`, outline kind
-  `prototype`): interactive surfaces personas can actually use.
+  `prototype`): interactive surfaces personas can actually use. Scaffolded
+  prototypes are not limited to forms or clickflows: the artifact registry can
+  render flows, dashboards, cards, comparisons, models, journeys and freeform
+  canvases (`kind="canvas"` / `--type canvas`) for spatial maps, control rooms,
+  boards and simulation-like experiences.
 - **Sessions** (`record_usability_session`, outline kind `session`): replayable
   usage traces against a screen walkthrough, `prototype` or `live_url`.
   `define_flow` stores a reusable screen-walkthrough test script under

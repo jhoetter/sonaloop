@@ -1,6 +1,6 @@
 {
   "kind": "artifact_types",
-  "note": "SUGGESTED artifact-type tags + their renderer/template/presentation — the DATA source of truth (spec/methodology-presentation-from-data.md §4). Matched by tag-EQUALITY in the engine; rendered by the UI via the `presentation` blocks here (no value is hardcoded in web.py/prototypes.py). Invent your own type by adding an item — no code change. Renderer templates live under sonaloop/prototype_templates/<template>/index.html and read the concept JSON (screens/elements + optional rich blocks: metrics/cards/columns/lead) plus an optional concept-level `fidelity` (lofi|midfi|hifi) used purely for theming.",
+  "note": "SUGGESTED artifact-type tags + their renderer/template/presentation — the DATA source of truth (spec/methodology-presentation-from-data.md §4). Matched by tag-EQUALITY in the engine; rendered by the UI via the `presentation` blocks here (no value is hardcoded in web.py/prototypes.py). Invent your own type by adding an item — no code change. Renderer templates live under sonaloop/prototype_templates/<template>/index.html and read the concept JSON (screens/elements + optional rich blocks: metrics/cards/columns/lead) plus an optional concept-level `fidelity` (lofi|midfi|hifi). The scaffolded HTML is always tokenized from the active design system: in Cloud that is the workspace design system; locally it is the Sonaloop default. If a prototype needs a visible logo or wordmark, set concept.show_brand=true so it uses the design-system brand asset/text instead of an ad hoc logo.",
   "items": [
     {
       "tag": "prototype",
@@ -18,6 +18,14 @@
       "renderer": "spa",
       "default_template": "spa-flow",
       "presentation": {"label": "Guided flow", "short": "Flow", "icon": "projects", "color": "#5b6cff", "glyph": "➤"},
+      "discriminators": []
+    },
+    {
+      "tag": "canvas",
+      "renderer": "spa",
+      "default_template": "spa-freeform",
+      "presentation": {"label": "Freeform canvas", "short": "Canvas", "icon": "projects", "color": "#0f9d8f", "glyph": "▧"},
+      "_note": "A FREEFORM experience surface, not a form or clickflow. Use for spatial maps, service-control rooms, dispatch boards, game-like simulations, concierge desks, branching environments, tangible product mockups, or any prototype whose main test is visual/operational understanding. Concept may use {frames:[{id,title,layout,layers:[{kind,x,y,w,h,...}],actions:[...]}]} or {surface:{...}} instead of screens/elements. Supported layer kinds include panel, hotspot, button, person, entity, metric, meter, timeline, board, map, image, status and control.",
       "discriminators": []
     },
     {

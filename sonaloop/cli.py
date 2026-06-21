@@ -410,6 +410,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("prototype-scaffold")
     p.add_argument("slug"); p.add_argument("name"); p.add_argument("file"); p.add_argument("--project")
     p.add_argument("--template", default=None); p.add_argument("--fidelity")
+    p.add_argument("--type", dest="artifact_type", default="prototype")
     p = sub.add_parser("prototype-register")
     p.add_argument("slug"); p.add_argument("name"); p.add_argument("path"); p.add_argument("--entry", default="index.html")
     p.add_argument("--run", default="static"); p.add_argument("--run-cmd", dest="run_cmd"); p.add_argument("--version", default="v0.1")
@@ -796,8 +797,15 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "plan-next":
             _print(services.next_action(args.project_id))
         elif args.command == "prototype-scaffold":
-            _print(services.scaffold_prototype(args.slug, args.name, json.loads(Path(args.file).read_text(encoding="utf-8")),
-                                               template=args.template, project_id=args.project, fidelity=args.fidelity))
+            concept = json.loads(Path(args.file).read_text(encoding="utf-8"))
+            if args.artifact_type and args.artifact_type != "prototype":
+                tags = [args.fidelity] if args.fidelity else []
+                _print(services.scaffold_artifact(args.slug, args.name, concept, type=args.artifact_type,
+                                                  tags=tags, template=args.template, project_id=args.project))
+            else:
+                _print(services.scaffold_prototype(args.slug, args.name, concept,
+                                                   template=args.template, project_id=args.project,
+                                                   fidelity=args.fidelity))
         elif args.command == "prototype-register":
             _print(services.register_prototype(args.slug, args.name, args.path, args.entry, args.run, args.run_cmd, args.version, args.project, args.notes))
         elif args.command == "prototype-list":

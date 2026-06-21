@@ -36,7 +36,7 @@ FAN_GLYPH, WAIST_GLYPH = "◇", "◆"  # ◇ hollow (fan) / ◆ filled (waist)
 # to "square" (a neutral marker) rather than leaking raw Unicode.
 GLYPH_ICON: dict[str, str] = {
     "◇": "diamond", "◆": "diamondFilled",
-    "▢": "square", "▣": "squareSplit", "▤": "squareRows",
+    "▢": "square", "▣": "squareSplit", "▤": "squareRows", "▧": "squareSplit",
     "▥": "squareCols", "▦": "squareGrid", "▭": "rectangle",
     "⇄": "exchange", "∿": "wave", "❯∿": "wave",
     "⌕": "search", "✎": "pencil", "➤": "caretRight",
@@ -50,7 +50,7 @@ def glyph_icon(glyph: str | None) -> str:
         return ""
     return GLYPH_ICON.get(glyph, "square")
 
-# The conventional artifact type for legacy records that predate the `type` field. A single
+# The conventional artifact type for compatibility records that predate the `type` field. A single
 # back-compat default (not a value-keyed table); the real type list lives in artifact_types.json.
 DEFAULT_ARTIFACT_TYPE = "prototype"
 

@@ -7,6 +7,7 @@ persona-agent can drive it via Playwright), plus a registry and a local-only run
 from __future__ import annotations
 
 import json
+import re
 import socket
 import subprocess
 import sys
@@ -28,12 +29,81 @@ class PrototypeError(Exception):
 # Running-prototype process table (in-memory; the durable record is the DB row).
 _PROCS: dict[str, dict[str, Any]] = {}
 
+_CSS_VAR_RE = re.compile(r"^--[a-z0-9-]+$")
+_SCRIPT_CLOSE_RE = re.compile(r"</", re.IGNORECASE)
+
+_PROTOTYPE_VAR_ALIASES = {
+    "--bg": "--sl-bg",
+    "--paper": "--sl-bg",
+    "--panel": "--sl-surface",
+    "--ink": "--sl-ink",
+    "--muted": "--sl-muted",
+    "--line": "--sl-line",
+    "--accent": "--sl-accent",
+    "--accent-ink": "--sl-accent-ink",
+    "--r": "--sl-radius",
+    "--sh": "--shadow-sm",
+    "--ff": "--sl-sans",
+    "--ok": "--sl-chart-status-positive",
+    "--good": "--sl-chart-status-positive",
+    "--warn": "--sl-chart-status-warning",
+    "--bad": "--sl-chart-status-negative",
+}
+
 
 # --------------------------------------------------------------------------- scaffolding
 
-def _validate_concept(concept: dict[str, Any]) -> dict[str, Any]:
+def _freeform_frames(concept: dict[str, Any]) -> list[dict[str, Any]]:
+    frames = concept.get("frames") or concept.get("scenes")
+    if isinstance(frames, list) and frames:
+        return [f for f in frames if isinstance(f, dict)]
+    if isinstance(concept.get("surface"), dict):
+        surface = dict(concept["surface"])
+        surface.setdefault("id", "surface")
+        surface.setdefault("title", concept.get("title") or "Prototype")
+        return [surface]
+    screens = concept.get("screens")
+    if isinstance(screens, list) and screens:
+        return [s for s in screens if isinstance(s, dict)]
+    return []
+
+
+def _validate_freeform_concept(concept: dict[str, Any]) -> dict[str, Any]:
+    frames = _freeform_frames(concept)
+    if not frames:
+        raise PrototypeError("BAD_CONCEPT", "freeform concept needs frames/scenes, surface, or screens")
+    idset = {str(f.get("id", "")).strip() for f in frames if str(f.get("id", "")).strip()}
+    if len(idset) != len(frames):
+        raise PrototypeError("BAD_CONCEPT", "each freeform frame needs a unique id")
+
+    def _walk(obj: Any, where: str) -> None:
+        if isinstance(obj, dict):
+            tgt = str(obj.get("goto") or "").strip()
+            if tgt and tgt not in idset:
+                raise PrototypeError("BAD_CONCEPT", f"{where} navigates to '{tgt}', which is not a frame id "
+                                                    f"(dead interaction); valid frames: {sorted(idset)}")
+            for key, value in obj.items():
+                if key in {"formula", "when", "html", "css", "js"}:
+                    continue
+                _walk(value, where)
+        elif isinstance(obj, list):
+            for value in obj:
+                _walk(value, where)
+
+    for frame in frames:
+        _walk(frame, f"frame '{frame.get('id', '')}'")
+    if concept.get("start") and concept["start"] not in idset:
+        raise PrototypeError("BAD_CONCEPT", "start must be a frame id")
+    return concept
+
+
+def _validate_concept(concept: dict[str, Any], template: str | None = None) -> dict[str, Any]:
     if not isinstance(concept, dict) or not str(concept.get("title", "")).strip():
         raise PrototypeError("BAD_CONCEPT", "concept needs a non-empty title")
+    freeform = template == "spa-freeform" or any(isinstance(concept.get(k), list) for k in ("frames", "scenes")) \
+        or isinstance(concept.get("surface"), dict)
+    if freeform:
+        return _validate_freeform_concept(concept)
     screens = concept.get("screens")
     if not isinstance(screens, list) or not screens:
         raise PrototypeError("BAD_CONCEPT", "concept needs >= 1 screen")
@@ -88,15 +158,120 @@ _ELEMENT_KINDS = {"button", "input", "select", "text", "link", "range", "number"
                   "chart", "verdict", "timeline"}
 
 
+def _prototype_design_context() -> dict[str, Any]:
+    from .theming import active_runtime_design_system_context, runtime_design_system_context
+    return active_runtime_design_system_context() or runtime_design_system_context(surface="prototype")
+
+
+def _css_decls(mapping: dict[str, Any]) -> str:
+    return ";".join(
+        f"{key}:{value}"
+        for key, value in mapping.items()
+        if _CSS_VAR_RE.match(str(key))
+    )
+
+
+def _aliased_vars(vars_: dict[str, Any]) -> dict[str, Any]:
+    out = dict(vars_)
+    for alias, source in _PROTOTYPE_VAR_ALIASES.items():
+        if source in vars_:
+            out[alias] = vars_[source]
+    return out
+
+
+def _json_script_payload(payload: dict[str, Any]) -> str:
+    raw = json.dumps(payload, ensure_ascii=False, sort_keys=True)
+    return _SCRIPT_CLOSE_RE.sub("<\\/", raw)
+
+
+def _brand_spec(ctx: dict[str, Any]) -> dict[str, str]:
+    ds = ctx.get("design_system") or {}
+    brand = ds.get("brand") if isinstance(ds, dict) else {}
+    if not isinstance(brand, dict):
+        return {}
+    preferred = brand.get("logo_preferred") or "lockup"
+    variants = brand.get("logo_variants") if isinstance(brand.get("logo_variants"), dict) else {}
+    variant = variants.get(preferred) or variants.get("lockup") or variants.get("icon") or {}
+    if not isinstance(variant, dict):
+        variant = {}
+    name = str(brand.get("short_name") or brand.get("name") or "").strip()
+    text = str(variant.get("text") or name).strip()
+    src = str(variant.get("src") or variant.get("asset_ref") or variant.get("ref") or "").strip()
+    if src.startswith(("workspace-asset:", "builtin:")):
+        src = ""
+    return {"name": name, "text": text, "src": src, "role": str(preferred)}
+
+
+def _prototype_design_system_head(ctx: dict[str, Any]) -> str:
+    by_scheme = ctx.get("css_vars_by_scheme") or {}
+    light = _aliased_vars(by_scheme.get("light") or ctx.get("css_vars") or {})
+    dark = _aliased_vars(by_scheme.get("dark") or light)
+    brand = _brand_spec(ctx)
+    payload = {
+        "workspace_id": ctx.get("workspace_id") or "",
+        "version_id": ctx.get("version_id") or "",
+        "surface": ctx.get("surface") or "prototype",
+        "spec_version": ctx.get("spec_version") or "",
+        "compiled_hash": ctx.get("compiled_hash") or "",
+        "brand": brand,
+        "css_vars": {"light": light, "dark": dark},
+        "design_system": ctx.get("design_system") or {},
+    }
+    light_decls = _css_decls(light)
+    dark_decls = _css_decls(dark)
+    font_css = str(ctx.get("font_face_css") or "")
+    return (
+        font_css
+        + '<script id="sonaloop-design-system" type="application/json">'
+        + _json_script_payload(payload)
+        + "</script>"
+        + '<style id="sonaloop-prototype-design-system">'
+        + f":root{{{light_decls}}}"
+        + f":root[data-theme=\"light\"]{{{light_decls}}}"
+        + f":root[data-theme=\"dark\"]{{{dark_decls}}}"
+        + f"@media (prefers-color-scheme: dark){{:root:not([data-theme]){{{dark_decls}}}}}"
+        + "body,body[data-fidelity],button,input,select,textarea{font-family:var(--sl-sans)}"
+        + "code,kbd,pre,samp{font-family:var(--sl-mono)}"
+        + ".sl-prototype-brand{display:flex;align-items:center;gap:8px;margin:0 0 8px;"
+        + "color:var(--muted);font:600 var(--t-sm)/1.2 var(--sl-sans)}"
+        + ".sl-prototype-brand img{max-height:24px;max-width:160px;object-fit:contain}"
+        + "</style>"
+    )
+
+
+def _prototype_brand_markup(ctx: dict[str, Any], concept: dict[str, Any]) -> str:
+    if not bool(concept.get("show_brand") or concept.get("brand_header")):
+        return ""
+    brand = _brand_spec(ctx)
+    src, text = brand.get("src", ""), brand.get("text", "")
+    if src.startswith("data:image/"):
+        img = f'<img alt="" src="{_esc(src)}">'
+        return f'<div class="sl-prototype-brand" data-logo-role="{_esc(brand.get("role", ""))}">{img}</div>'
+    if text:
+        return f'<div class="sl-prototype-brand">{_esc(text)}</div>'
+    return ""
+
+
+def _inject_design_system(html: str, concept: dict[str, Any], ctx: dict[str, Any]) -> str:
+    head = _prototype_design_system_head(ctx)
+    if "</head>" in html:
+        html = html.replace("</head>", head + "</head>", 1)
+    brand = _prototype_brand_markup(ctx, concept)
+    if brand and "<header>" in html:
+        html = html.replace("<header>", "<header>" + brand, 1)
+    return html
+
+
 def _render_spa(name: str, concept: dict[str, Any], template: str) -> str:
     tdir = prototype_templates_dir() / template
     if not (tdir / "index.html").exists():
         raise PrototypeError("UNKNOWN_TEMPLATE", f"renderer template '{template}' not found")
     tpl = (tdir / "index.html").read_text(encoding="utf-8")
-    return (tpl
+    html = (tpl
             .replace("__TITLE__", _esc(concept.get("title") or name))
             .replace("__SUMMARY__", _esc(concept.get("summary", "")))
             .replace("__CONCEPT_JSON__", json.dumps(concept, ensure_ascii=False)))
+    return _inject_design_system(html, concept, _prototype_design_context())
 
 
 def _esc(s: str) -> str:
@@ -117,7 +292,7 @@ def scaffold_artifact(slug: str, name: str, concept: dict[str, Any], type: str =
         raise PrototypeError("UNKNOWN_TEMPLATE",
                              f"no renderer template for artifact type '{type}' (tags={tags}); "
                              f"declare one in suggestions/artifact_types.json")
-    concept = _validate_concept(concept)
+    concept = _validate_concept(concept, template=resolved)
     out_dir = prototypes_dir() / slug
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "index.html").write_text(_render_spa(name, concept, resolved), encoding="utf-8")
@@ -126,9 +301,14 @@ def scaffold_artifact(slug: str, name: str, concept: dict[str, Any], type: str =
         stored_path = str(out_dir.relative_to(ROOT))
     except ValueError:
         stored_path = str(out_dir)
+    unit = "screens"
+    count = len(concept.get("screens") or [])
+    if not count:
+        count = len(_freeform_frames(concept))
+        unit = "frames"
     return register_artifact(slug, name, stored_path, entry="index.html", run="static", version="v0.1",
                              project_id=project_id, type=type, tags=tags,
-                             notes=f"generated from {resolved} ({len(concept['screens'])} screens)", store=store)
+                             notes=f"generated from {resolved} ({count} {unit})", store=store)
 
 
 def register_artifact(slug: str, name: str, path: str, entry: str = "index.html", run: str = "static",
@@ -141,7 +321,7 @@ def register_artifact(slug: str, name: str, path: str, entry: str = "index.html"
     tags = list(tags or [])
     existing = store.get_prototype(slug)
     pid = (existing or {}).get("id") or stable_id("prototype", slug, now)
-    # legacy `fidelity` = the first discriminator tag (kept so old readers/_artifact_tags still work)
+    # compatibility `fidelity` = the first discriminator tag (kept so old readers/_artifact_tags still work)
     fidelity = next((t for t in tags if t), "") or (existing or {}).get("fidelity", "")
     rec = Prototype(id=pid, slug=slug, project_id=project_id, name=name, version=version,
                     kind="web", path=path, entry=entry, run=run, run_cmd=run_cmd, notes=notes,
@@ -152,11 +332,15 @@ def register_artifact(slug: str, name: str, path: str, entry: str = "index.html"
 
 
 # back-compat wrappers: a "prototype" is just an artifact whose type tag is "prototype";
-# the legacy `fidelity` argument becomes a discriminator tag.
+# the compatibility `fidelity` argument becomes a discriminator tag.
 def scaffold_prototype(slug: str, name: str, concept: dict[str, Any], kind: str = "web",
                        template: str | None = None, project_id: str | None = None,
                        fidelity: str | None = None, store: Store | None = None) -> dict[str, Any]:
-    return scaffold_artifact(slug, name, concept, type="prototype",
+    # Back-compat: historical callers pass kind="web". Newer agentic harnesses may pass a
+    # DATA artifact type here (e.g. "canvas") to avoid forcing every prototype through the
+    # classic screens/elements flow.
+    artifact_type = "prototype" if kind in ("", "web", "prototype") else kind
+    return scaffold_artifact(slug, name, concept, type=artifact_type,
                              tags=[fidelity] if fidelity else [], template=template,
                              project_id=project_id, store=store)
 

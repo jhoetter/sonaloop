@@ -199,7 +199,10 @@ groundedness/anti-steering is flagged and halts for review.
 ### 6.1 Concept model (host-authored input) → generated runnable app
 `scaffold_prototype(slug, name, concept, kind="web", template="spa-min", project_id?)`. The
 **concept** is host-authored JSON; the **app is generated deterministically** from it (so it is
-runnable with no hand-editing — that is "very easily"):
+runnable with no hand-editing — that is "very easily"). The legacy `kind="web"` path remains the
+classic prototype. Passing a DATA artifact type as `kind` (or CLI `--type`) chooses a richer
+archetype from `suggestions/artifact_types.json`, for example `canvas`, `model`, `journey`,
+`dashboard`, `cards` or `comparison`.
 ```
 Concept (template "spa-min"):
   title    string
@@ -214,6 +217,32 @@ clickable, single-file SPA**: a nav of screens, each with the declared elements 
 (`<button>`, `<input>`, `<select>`…); `goto` wires navigation; inputs hold state. Result: a genuine
 app a persona can drive via Playwright (real refs, real state changes) — not a mockup. Output is
 written to `prototypes/<slug>/index.html`, registered, versioned.
+
+Freeform concepts do not need `screens[]`. The `canvas` artifact type uses `spa-freeform` and
+accepts frames or a single surface:
+```
+Canvas concept:
+  title    string
+  summary  string
+  start    frameId
+  frames   [ { id, title, layout?: "canvas"|"map"|"board"|"room",
+               layers: [ { kind: "panel"|"hotspot"|"map"|"timeline"|"board"|
+                           "metric"|"meter"|"person"|"entity"|"image"|"control",
+                           id, x?, y?, w?, h?, goto? } ],
+               actions?: [ { label, goto?, primary? } ] } ]
+```
+This is the intended path for service-control rooms, dispatch maps, tangible-product mockups,
+game-like simulations and other prototypes whose main learning is visual or operational rather
+than a linear form flow.
+
+Generated prototypes are design-system surfaces. `prototypes.py` injects the compiled
+`workspace_design_system.v2` runtime context into the static HTML: local/core runs use the
+Sonaloop default tokens; Cloud-hosted or Remote-MCP runs bind the active workspace design system
+before scaffolding. Templates therefore consume tokenized color, radius, shadow, typography and
+chart/status variables instead of hardcoded brand choices. If the concept explicitly requests a
+visible brand mark (`show_brand` / `brand_header`), the logo or wordmark is rendered from the
+design system; Cloud resolves `workspace-asset:` logo refs to data URIs so the generated file stays
+self-contained.
 
 Other entry points: `register_prototype(...)` for hand-authored apps (any `run` mode); richer
 templates (`fastapi-min`) deferred.
