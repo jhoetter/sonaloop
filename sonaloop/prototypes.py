@@ -36,11 +36,13 @@ _PROTOTYPE_VAR_ALIASES = {
     "--bg": "--sl-bg",
     "--paper": "--sl-bg",
     "--panel": "--sl-surface",
+    "--panel-2": "--sl-surface-2",
     "--ink": "--sl-ink",
     "--muted": "--sl-muted",
     "--line": "--sl-line",
     "--accent": "--sl-accent",
     "--accent-ink": "--sl-accent-ink",
+    "--accent-weak": "--sl-accent-weak",
     "--r": "--sl-radius",
     "--sh": "--shadow-sm",
     "--ff": "--sl-sans",
@@ -48,6 +50,88 @@ _PROTOTYPE_VAR_ALIASES = {
     "--good": "--sl-chart-status-positive",
     "--warn": "--sl-chart-status-warning",
     "--bad": "--sl-chart-status-negative",
+}
+
+_PROTO_SEMANTIC_FALLBACKS = {
+    "--proto-bg": ("--sl-bg", "--bg", "#f7f7f5"),
+    "--proto-surface": ("--sl-surface", "--panel", "#ffffff"),
+    "--proto-surface-2": ("--sl-surface-2", "--panel-2", "--paper-2", "#f1efe8"),
+    "--proto-sidebar": ("--sl-sidebar", "--sidebar", "--sl-surface", "#f6f4ef"),
+    "--proto-overlay": ("--sl-overlay", "--overlay", "--sl-surface", "#ffffff"),
+    "--proto-ink": ("--sl-ink", "--ink", "#1a1815"),
+    "--proto-ink-2": ("--ink-2", "--sl-muted", "--muted", "#635e56"),
+    "--proto-muted": ("--sl-muted", "--muted", "#635e56"),
+    "--proto-faint": ("--sl-faint", "--faint", "--sl-muted", "#8c857a"),
+    "--proto-line": ("--sl-line", "--line", "#e9e5db"),
+    "--proto-line-2": ("--sl-line-2", "--line-2", "--sl-line", "#f0ede5"),
+    "--proto-accent": ("--sl-accent", "--accent", "#5e6ad2"),
+    "--proto-accent-ink": ("--sl-accent-ink", "--accent-ink", "#ffffff"),
+    "--proto-accent-weak": ("--sl-accent-weak", "--accent-weak", "--sl-surface-2", "#ecebf8"),
+    "--proto-hover": ("--sl-hover", "--hover", "--sl-surface-2", "#f4f1ea"),
+    "--proto-selected": ("--sl-sel", "--sel", "--sl-accent-weak", "#ecebf8"),
+    "--proto-positive": ("--sl-chart-status-positive", "--sl-green", "--green", "#3d9b6b"),
+    "--proto-warning": ("--sl-chart-status-warning", "--sl-amber", "--amber", "#b87a25"),
+    "--proto-negative": ("--sl-chart-status-negative", "--sl-red", "--red", "#cf4d5f"),
+    "--proto-neutral": ("--sl-chart-status-neutral", "--sl-muted", "--muted", "#635e56"),
+    "--proto-chart-1": ("--sl-chart-series-1", "--c1", "--sl-accent", "#5e6ad2"),
+    "--proto-chart-2": ("--sl-chart-series-2", "--c2", "--sl-violet", "#7a5ed1"),
+    "--proto-chart-3": ("--sl-chart-series-3", "--c3", "--sl-blue", "#3d7fc4"),
+    "--proto-chart-4": ("--sl-chart-series-4", "--c4", "--sl-green", "#3d9b6b"),
+    "--proto-chart-5": ("--sl-chart-series-5", "--c5", "--sl-amber", "#b87a25"),
+    "--proto-font": ("--sl-sans", "--sans", "Sona,Geist,Inter,system-ui,sans-serif"),
+    "--proto-font-display": ("--sl-display", "--sl-sans", "--sans", "Sona,Geist,Inter,system-ui,sans-serif"),
+    "--proto-font-mono": ("--sl-mono", "--mono", "Sona Mono,ui-monospace,monospace"),
+    "--proto-type-xs": ("--t-xs", "11px"),
+    "--proto-type-sm": ("--t-sm", "12px"),
+    "--proto-type-body": ("--t-body", "13px"),
+    "--proto-type-md": ("--t-md", "15px"),
+    "--proto-type-lg": ("--t-lg", "18px"),
+    "--proto-type-xl": ("--t-xl", "24px"),
+    "--proto-type-2xl": ("--t-2xl", "32px"),
+    "--proto-radius-sm": ("--sl-radius-sm", "--radius-sm", "6px"),
+    "--proto-radius": ("--sl-radius", "--radius", "8px"),
+    "--proto-radius-lg": ("--sl-radius-lg", "--radius-lg", "--sl-radius", "12px"),
+    "--proto-radius-full": ("--sl-radius-full", "--radius-full", "9999px"),
+    "--proto-space-1": ("--sl-s-1", "--s-1", "4px"),
+    "--proto-space-2": ("--sl-s-2", "--s-2", "8px"),
+    "--proto-space-3": ("--sl-s-3", "--s-3", "12px"),
+    "--proto-space-4": ("--sl-s-4", "--s-4", "16px"),
+    "--proto-space-5": ("--sl-s-5", "--s-5", "20px"),
+    "--proto-space-6": ("--sl-s-6", "--s-6", "24px"),
+    "--proto-space-8": ("--sl-s-8", "--s-8", "32px"),
+    "--proto-gap-tight": ("--sl-gap-tight", "--gap-tight", "4px"),
+    "--proto-gap-item": ("--sl-gap-item", "--gap-item", "8px"),
+    "--proto-gap-group": ("--sl-gap-group", "--gap-group", "12px"),
+    "--proto-gap-section": ("--sl-gap-section", "--gap-section", "24px"),
+    "--proto-row": ("--sl-row", "--row", "40px"),
+    "--proto-row-dense": ("--sl-row-dense", "--row-dense", "32px"),
+    "--proto-control-h": ("--sl-row-h", "--row-h", "--sl-row", "48px"),
+    "--proto-control-sm": ("--sl-ctl-sm", "--ctl-sm", "28px"),
+    "--proto-measure": ("--sl-measure-prose", "--measure-prose", "70ch"),
+    "--proto-ease": ("--sl-ease", "--ease", "cubic-bezier(.4,0,.2,1)"),
+    "--proto-shadow-sm": ("--shadow-sm", "0 1px 2px rgba(26,24,21,.05)"),
+    "--proto-shadow-lg": ("--shadow-lg", "0 8px 28px rgba(26,24,21,.12),0 1px 2px rgba(26,24,21,.07)"),
+}
+
+_PROTO_COMPONENT_DEFAULTS = {
+    "--proto-header-bg": "color-mix(in srgb,var(--proto-surface) 92%,transparent)",
+    "--proto-card-bg": "var(--proto-surface)",
+    "--proto-field-bg": "var(--proto-bg)",
+    "--proto-chip-bg": "var(--proto-accent-weak)",
+    "--proto-focus": "0 0 0 3px color-mix(in srgb,var(--proto-accent) 22%,transparent)",
+    "--proto-active-soft": "color-mix(in srgb,var(--proto-accent) 14%,var(--proto-surface))",
+    "--proto-status-good-bg": "color-mix(in srgb,var(--proto-positive) 12%,var(--proto-surface))",
+    "--proto-status-warn-bg": "color-mix(in srgb,var(--proto-warning) 12%,var(--proto-surface))",
+    "--proto-status-bad-bg": "color-mix(in srgb,var(--proto-negative) 12%,var(--proto-surface))",
+    "--proto-card-pad": "var(--proto-space-5)",
+    "--proto-panel-pad": "var(--proto-space-4)",
+    "--proto-page-pad": "var(--proto-space-6)",
+    "--proto-section-gap": "var(--proto-gap-section)",
+    "--proto-control-x": "var(--proto-space-3)",
+    "--proto-control-y": "var(--proto-space-2)",
+    "--proto-card-radius": "var(--proto-radius-lg)",
+    "--proto-control-radius": "var(--proto-radius)",
+    "--proto-chip-radius": "var(--proto-radius-full)",
 }
 
 
@@ -171,11 +255,35 @@ def _css_decls(mapping: dict[str, Any]) -> str:
     )
 
 
+def _first_var(vars_: dict[str, Any], keys: tuple[str, ...]) -> str:
+    fallback = ""
+    for key in keys:
+        raw = str(key)
+        if raw.startswith("--"):
+            value = str(vars_.get(raw, "")).strip()
+            if value:
+                return value
+        elif not fallback:
+            fallback = raw
+    return fallback
+
+
 def _aliased_vars(vars_: dict[str, Any]) -> dict[str, Any]:
     out = dict(vars_)
+    for alias, keys in _PROTO_SEMANTIC_FALLBACKS.items():
+        out[alias] = _first_var(out, keys)
+    for alias, value in _PROTO_COMPONENT_DEFAULTS.items():
+        out.setdefault(alias, value)
     for alias, source in _PROTOTYPE_VAR_ALIASES.items():
-        if source in vars_:
-            out[alias] = vars_[source]
+        if source in out:
+            out[alias] = out[source]
+    out.setdefault("--r", out["--proto-radius"])
+    out.setdefault("--sh", out["--proto-shadow-sm"])
+    out.setdefault("--ff", out["--proto-font"])
+    out.setdefault("--good", out["--proto-positive"])
+    out.setdefault("--ok", out["--proto-positive"])
+    out.setdefault("--warn", out["--proto-warning"])
+    out.setdefault("--bad", out["--proto-negative"])
     return out
 
 
@@ -200,6 +308,135 @@ def _brand_spec(ctx: dict[str, Any]) -> dict[str, str]:
     if src.startswith(("workspace-asset:", "builtin:")):
         src = ""
     return {"name": name, "text": text, "src": src, "role": str(preferred)}
+
+
+def _px(value: Any) -> float | None:
+    m = re.match(r"^([0-9]+(?:\.[0-9]+)?)px$", str(value or "").strip())
+    return float(m.group(1)) if m else None
+
+
+def _design_mode(ctx: dict[str, Any], group: str) -> str:
+    ds = ctx.get("design_system") or {}
+    layout = ds.get("layout") if isinstance(ds, dict) else {}
+    if not isinstance(layout, dict):
+        return "default"
+    if group == "density":
+        row = _px(((layout.get("density") or {}).get("row_h"))
+                  or ((layout.get("density") or {}).get("row")))
+        if row is None:
+            return "default"
+        if row <= 38:
+            return "compact"
+        if row >= 50:
+            return "spacious"
+        return "comfortable"
+    if group == "radius":
+        radius = _px(((layout.get("radius") or {}).get("radius")))
+        if radius is None:
+            return "default"
+        if radius <= 4:
+            return "sharp"
+        if radius >= 18:
+            return "round"
+        return "soft"
+    return "default"
+
+
+def _slug_attr(value: Any) -> str:
+    raw = str(value or "").strip().lower()
+    return re.sub(r"[^a-z0-9_-]+", "-", raw).strip("-")[:80]
+
+
+def _prototype_body_attrs(ctx: dict[str, Any]) -> str:
+    ds = ctx.get("design_system") or {}
+    meta = ds.get("meta") if isinstance(ds, dict) else {}
+    if not isinstance(meta, dict):
+        meta = {}
+    preset = meta.get("preset") or meta.get("preset_name") or meta.get("source") or ""
+    attrs = {
+        "data-design-system": "workspace" if ctx.get("workspace_id") else "sonaloop",
+        "data-design-preset": _slug_attr(preset),
+        "data-design-density": _design_mode(ctx, "density"),
+        "data-design-radius": _design_mode(ctx, "radius"),
+        "data-design-surface": str(ctx.get("surface") or "prototype"),
+    }
+    if ctx.get("version_id"):
+        attrs["data-design-version"] = str(ctx["version_id"])
+    return " ".join(
+        f'{key}="{_esc_attr(value)}"'
+        for key, value in attrs.items()
+        if str(value).strip()
+    )
+
+
+def _prototype_runtime_css() -> str:
+    return (
+        "body{background:var(--proto-bg);color:var(--proto-ink);"
+        "font:var(--proto-type-body)/1.5 var(--proto-font);letter-spacing:0}"
+        "body[data-fidelity]{--bg:var(--proto-bg);--paper:var(--proto-bg);"
+        "--panel:var(--proto-surface);--panel-2:var(--proto-surface-2);"
+        "--ink:var(--proto-ink);--muted:var(--proto-muted);--line:var(--proto-line);"
+        "--accent:var(--proto-accent);--accent-ink:var(--proto-accent-ink);"
+        "--accent-weak:var(--proto-accent-weak);--r:var(--proto-radius);"
+        "--sh:var(--proto-shadow-sm);--ff:var(--proto-font);"
+        "--good:var(--proto-positive);--ok:var(--proto-positive);"
+        "--warn:var(--proto-warning);--bad:var(--proto-negative)}"
+        "body[data-design-density=compact]{--proto-card-pad:var(--proto-space-4);"
+        "--proto-page-pad:var(--proto-space-5);--proto-control-y:var(--proto-space-1)}"
+        "body[data-design-density=spacious]{--proto-card-pad:var(--proto-space-6);"
+        "--proto-page-pad:var(--proto-space-8);--proto-control-y:var(--proto-space-3)}"
+        "body[data-design-radius=sharp]{--proto-chip-radius:var(--proto-radius-sm)}"
+        "body[data-design-radius=round]{--proto-card-radius:var(--proto-radius-lg);"
+        "--proto-control-radius:var(--proto-radius-full)}"
+        "header{background:var(--proto-header-bg);border-color:var(--proto-line);"
+        "padding:var(--proto-space-4) var(--proto-page-pad)}"
+        "h1{font-family:var(--proto-font-display);font-size:var(--proto-type-xl);"
+        "line-height:1.12;color:var(--proto-ink)}"
+        "h2{font-family:var(--proto-font-display);font-size:var(--proto-type-lg);"
+        "line-height:1.18;color:var(--proto-ink)}"
+        ".sub,p,.meta,.metric-delta,.computed .clabel,.barhead,.state,.kind-label{color:var(--proto-muted)}"
+        "nav,.rail{background:var(--proto-surface);border-color:var(--proto-line);"
+        "gap:var(--proto-gap-item)}"
+        "nav{padding:var(--proto-space-3) var(--proto-page-pad)}"
+        "main,.wrap{padding:var(--proto-page-pad)}"
+        ".screen,.step,.card,.tile,.col,.layer,.state,.computed,.barwrap,.chartwrap,.verdict,"
+        ".pin,.ticket,.sl-prototype-panel{background:var(--proto-card-bg);border-color:var(--proto-line);"
+        "border-radius:var(--proto-card-radius);box-shadow:var(--proto-shadow-sm)}"
+        ".stage{background:var(--proto-surface);border-color:var(--proto-line);"
+        "border-radius:var(--proto-card-radius);box-shadow:var(--proto-shadow-lg)}"
+        ".panel,.panel-2,.col,.ticket,.computed,.barwrap,.chartwrap,.imagebox,.state{"
+        "background:var(--proto-surface-2)}"
+        ".card,.tile,.step,.layer,.computed,.barwrap,.chartwrap,.verdict{padding:var(--proto-card-pad)}"
+        ".grid,.cols,.cards,.tiles,.board,.timeline,.rail,.nav,.rangerow,.chartlegend{"
+        "gap:var(--proto-gap-group)}"
+        "button,.btn,nav button,.dot,.pin,.actions button,input,select,textarea{"
+        "font:inherit;border-color:var(--proto-line);border-radius:var(--proto-control-radius);"
+        "min-height:var(--proto-control-sm)}"
+        "input,select,textarea{background:var(--proto-field-bg);color:var(--proto-ink);"
+        "padding:var(--proto-control-y) var(--proto-control-x)}"
+        "input[type=range]{accent-color:var(--proto-accent)}"
+        "button,.btn{padding:var(--proto-control-y) var(--proto-control-x)}"
+        "button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible,"
+        "textarea:focus-visible,a:focus-visible{outline:none;box-shadow:var(--proto-focus)}"
+        "nav button.active,.dot.active .n,.dot.done .n,.btn,.el button,.kind-hotspot,.kind-button,"
+        ".actions button.primary,.barfill,.meter span,.route,.avatar{"
+        "background:var(--proto-accent);color:var(--proto-accent-ink);border-color:var(--proto-accent)}"
+        ".dot.active,nav button.active{border-color:var(--proto-accent)}"
+        ".dot.active,.dot.done,.card.clickable:hover,a,.el a{color:var(--proto-accent)}"
+        ".dot .n,.kind-label,.card .tag,.col,.ticket{background:var(--proto-accent-weak)}"
+        ".btn.secondary,.el button.secondary,.actions button:not(.primary){"
+        "background:var(--proto-surface);color:var(--proto-ink);border-color:var(--proto-line)}"
+        ".metric-value,.computed .cval,.barhead b,.rangeval{color:var(--proto-ink)}"
+        ".kind-status.good,.verdict[data-tone=good]{border-color:var(--proto-positive);"
+        "background:var(--proto-status-good-bg);color:var(--proto-positive)}"
+        ".kind-status.warn,.verdict[data-tone=warn]{border-color:var(--proto-warning);"
+        "background:var(--proto-status-warn-bg);color:var(--proto-warning)}"
+        ".kind-status.bad,.verdict[data-tone=bad]{border-color:var(--proto-negative);"
+        "background:var(--proto-status-bad-bg);color:var(--proto-negative)}"
+        "#toast{background:var(--proto-ink);color:var(--proto-bg);"
+        "border-radius:var(--proto-control-radius);box-shadow:var(--proto-shadow-lg)}"
+        "code,kbd,pre,samp{font-family:var(--proto-font-mono)}"
+    )
 
 
 def _prototype_design_system_head(ctx: dict[str, Any]) -> str:
@@ -230,11 +467,10 @@ def _prototype_design_system_head(ctx: dict[str, Any]) -> str:
         + f":root[data-theme=\"light\"]{{{light_decls}}}"
         + f":root[data-theme=\"dark\"]{{{dark_decls}}}"
         + f"@media (prefers-color-scheme: dark){{:root:not([data-theme]){{{dark_decls}}}}}"
-        + "body,body[data-fidelity],button,input,select,textarea{font-family:var(--sl-sans)}"
-        + "code,kbd,pre,samp{font-family:var(--sl-mono)}"
+        + _prototype_runtime_css()
         + ".sl-prototype-brand{display:flex;align-items:center;gap:8px;margin:0 0 8px;"
-        + "color:var(--muted);font:600 var(--t-sm)/1.2 var(--sl-sans)}"
-        + ".sl-prototype-brand img{max-height:24px;max-width:160px;object-fit:contain}"
+        + "color:var(--proto-muted);font:600 var(--proto-type-sm)/1.2 var(--proto-font)}"
+        + ".sl-prototype-brand img{max-height:var(--proto-control-sm);max-width:180px;object-fit:contain}"
         + "</style>"
     )
 
@@ -256,6 +492,9 @@ def _inject_design_system(html: str, concept: dict[str, Any], ctx: dict[str, Any
     head = _prototype_design_system_head(ctx)
     if "</head>" in html:
         html = html.replace("</head>", head + "</head>", 1)
+    attrs = _prototype_body_attrs(ctx)
+    if attrs:
+        html = re.sub(r"<body\b", "<body " + attrs, html, count=1)
     brand = _prototype_brand_markup(ctx, concept)
     if brand and "<header>" in html:
         html = html.replace("<header>", "<header>" + brand, 1)
@@ -276,6 +515,10 @@ def _render_spa(name: str, concept: dict[str, Any], template: str) -> str:
 
 def _esc(s: str) -> str:
     return (str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+
+
+def _esc_attr(s: Any) -> str:
+    return _esc(str(s)).replace('"', "&quot;")
 
 
 def scaffold_artifact(slug: str, name: str, concept: dict[str, Any], type: str = "prototype",

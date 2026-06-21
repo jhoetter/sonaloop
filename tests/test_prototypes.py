@@ -32,6 +32,7 @@ _CONCEPT = {
 def _design_system() -> dict:
     return {
         "spec_version": SPEC_VERSION,
+        "meta": {"name": "Acme workspace", "preset": "studio-dense"},
         "brand": {
             "name": "Acme Research",
             "short_name": "Acme",
@@ -41,8 +42,10 @@ def _design_system() -> dict:
             "logo_preferred": "lockup",
         },
         "colors": {
-            "light": {"paper": "#fffdf8", "accent": "#007a5a"},
-            "dark": {"paper": "#101113", "accent": "#62d6b0"},
+            "light": {"paper": "#fffdf8", "panel_2": "#f2efe7", "accent": "#007a5a",
+                      "accent_weak": "#dff4ec"},
+            "dark": {"paper": "#101113", "panel_2": "#202329", "accent": "#62d6b0",
+                     "accent_weak": "#12382f"},
         },
         "typography": {
             "fonts": {
@@ -52,7 +55,14 @@ def _design_system() -> dict:
                 },
             },
         },
-        "layout": {"radius": {"radius": "10px"}},
+        "layout": {
+            "radius": {"radius": "3px", "radius_lg": "18px"},
+            "spacing": {"s_6": "30px"},
+            "density": {"row_h": "52px"},
+        },
+        "charts": {
+            "series": ["#007a5a", "#4c67d8", "#c37b22", "#cf4d5f"],
+        },
     }
 
 
@@ -65,7 +75,9 @@ def test_scaffold_creates_runnable_app(store, tmp_path, monkeypatch):
     assert "Vergleichen" in html and "concept" in html
     assert 'id="sonaloop-design-system"' in html
     assert "--sl-accent:#5e6ad2" in html
+    assert "--proto-accent:#5e6ad2" in html
     assert "--ff:Sona,Geist,Inter,system-ui,sans-serif" in html
+    assert 'data-design-system="sonaloop"' in html
     assert store.get_prototype("ueberg-test")["id"] == rec["id"]
 
 
@@ -82,7 +94,21 @@ def test_scaffold_uses_active_workspace_design_system_context(store, tmp_path, m
 
     html = (tmp_path / "ueberg-themed" / "index.html").read_text(encoding="utf-8")
     assert '"workspace_id": "ws_acme"' in html
+    assert '"compiled_hash": "' in html
     assert "--accent:#007a5a" in html
+    assert "--proto-accent:#007a5a" in html
+    assert "--proto-accent-weak:#dff4ec" in html
+    assert "--proto-radius:3px" in html
+    assert "--proto-radius-lg:18px" in html
+    assert "--proto-space-6:30px" in html
+    assert "--proto-control-h:52px" in html
+    assert "--proto-chart-1:#007a5a" in html
+    assert "--proto-card-radius:var(--proto-radius-lg)" in html
+    assert 'data-design-system="workspace"' in html
+    assert 'data-design-preset="studio-dense"' in html
+    assert 'data-design-density="spacious"' in html
+    assert 'data-design-radius="sharp"' in html
+    assert 'data-design-version="dsv_1"' in html
     assert "--ff:\"Acme Sans\",Sona,system-ui,sans-serif" in html
     assert 'class="sl-prototype-brand"' in html
     assert 'src="data:image/png;base64,iVBORw0KGgo="' in html

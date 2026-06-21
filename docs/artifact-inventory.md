@@ -42,7 +42,11 @@ Use three layers:
   prototypes are not limited to forms or clickflows: the artifact registry can
   render flows, dashboards, cards, comparisons, models, journeys and freeform
   canvases (`kind="canvas"` / `--type canvas`) for spatial maps, control rooms,
-  boards and simulation-like experiences.
+  boards and simulation-like experiences. Generated HTML carries a compiled
+  prototype token layer (`--proto-*`) derived from the active design system:
+  color schemes, font stacks, chart series, status colors, radius, spacing,
+  density, shadows, focus rings and optional logos adapt per workspace/version
+  and per preset without template-specific branching.
 - **Sessions** (`record_usability_session`, outline kind `session`): replayable
   usage traces against a screen walkthrough, `prototype` or `live_url`.
   `define_flow` stores a reusable screen-walkthrough test script under

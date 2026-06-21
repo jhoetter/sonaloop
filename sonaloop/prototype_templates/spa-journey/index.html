@@ -97,7 +97,10 @@
       return xs.map(function(xv){ state[x.id]=xv; return evalExpr(s.formula!=null?s.formula:0); });
     }); state[x.id]=save;
     var all=[].concat.apply([],rows), mx=Math.max.apply(null,all.concat([1])), mn=Math.min.apply(null,all.concat([0]));
-    var cols=['#5b6cff','#ea4335','#0aa37f','#f29900'];
+    var css=getComputedStyle(document.documentElement);
+    var cols=[1,2,3,4,5].map(function(i){return css.getPropertyValue('--proto-chart-'+i).trim();})
+      .filter(Boolean);
+    if(!cols.length) cols=['#5b6cff','#ea4335','#0aa37f','#f29900'];
     function px(i){return P+(W-2*P)*(xs.length<2?0:i/(xs.length-1));}
     function py(val){return P+(H-2*P)*(1-(mx===mn?0.5:(val-mn)/(mx-mn)));}
     var paths=rows.map(function(r,si){return '<polyline fill="none" stroke="'+cols[si%4]+'" stroke-width="2" points="'+

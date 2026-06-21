@@ -239,10 +239,20 @@ Generated prototypes are design-system surfaces. `prototypes.py` injects the com
 `workspace_design_system.v2` runtime context into the static HTML: local/core runs use the
 Sonaloop default tokens; Cloud-hosted or Remote-MCP runs bind the active workspace design system
 before scaffolding. Templates therefore consume tokenized color, radius, shadow, typography and
-chart/status variables instead of hardcoded brand choices. If the concept explicitly requests a
-visible brand mark (`show_brand` / `brand_header`), the logo or wordmark is rendered from the
-design system; Cloud resolves `workspace-asset:` logo refs to data URIs so the generated file stays
-self-contained.
+chart/status variables instead of hardcoded brand choices. The generated file includes:
+
+- a reproducible `sonaloop-design-system` JSON snapshot with workspace/version/hash metadata;
+- light/dark CSS variable blocks;
+- a semantic `--proto-*` layer for prototype components (surfaces, fields, controls, cards,
+  chips, maps, charts, focus rings, spacing, density and radius);
+- `data-design-*` body attributes for the resolved preset, density and radius mode;
+- optional brand markup from the design-system logo/wordmark when the concept requests
+  `show_brand` / `brand_header`.
+
+That means presets and fine-grained workspace edits both flow through the same token compiler:
+changing radius, density rows, spacing, font stacks, chart series or status colors changes the next
+scaffolded prototype without adding a template-specific branch. Cloud resolves `workspace-asset:`
+logo refs to data URIs so the generated file stays self-contained.
 
 Other entry points: `register_prototype(...)` for hand-authored apps (any `run` mode); richer
 templates (`fastapi-min`) deferred.
