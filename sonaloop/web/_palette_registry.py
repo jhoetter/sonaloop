@@ -295,7 +295,7 @@ def palette_nav() -> list[dict[str, Any]]:
     `children` (rendered as one expandable "Library" entry; each child stays individually
     matchable when typing). `quiet` items skip the empty-state listing but stay searchable
     (Runs was deliberately retired from the IA — it must not look like nav again)."""
-    from ._ext import nav_model, resolve_label
+    from ._ext import nav_model, palette_items, resolve_label
     from .pages.library import LIBRARY_TABS   # late: pages import web modules, not vice versa
     items: list[dict[str, Any]] = []
     for _sec, navitems in nav_model():
@@ -306,6 +306,7 @@ def palette_nav() -> list[dict[str, Any]]:
                 entry["children"] = [{"title": label(), "url": route, "icon": icon}
                                      for _k, route, icon, label, *_rest in LIBRARY_TABS]
             items.append(entry)
+    items.extend(palette_items())
     items += [
         {"title": t("activity_h"), "url": "/activity", "icon": "bell"},
         {"title": t("settings"), "url": "#settings", "icon": "settings"},

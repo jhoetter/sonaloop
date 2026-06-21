@@ -88,6 +88,52 @@ def nav_model() -> list[tuple[dict[str, Any], list[dict[str, Any]]]]:
 
 
 # ---------------------------------------------------------------------------
+# Palette-only jump targets
+# ---------------------------------------------------------------------------
+# Some destinations are too specific for the sidebar but must be directly reachable
+# from Cmd+K, e.g. settings tabs or extension-owned sections. These entries ride the
+# command palette only; they never render as navigation chrome.
+
+_PALETTE_ITEMS: list[dict[str, Any]] = []
+
+
+def register_palette_item(title: Any, url: str, icon: str = "arrowRight", *,
+                          order: int = 0, quiet: bool = True,
+                          subtitle: Any = None) -> None:
+    """Register (or update) a Cmd+K-only destination. Idempotent by URL."""
+    item: dict[str, Any] = {
+        "title": title,
+        "url": url,
+        "icon": icon,
+        "order": order,
+        "quiet": quiet,
+    }
+    if subtitle is not None:
+        item["subtitle"] = subtitle
+    for existing in _PALETTE_ITEMS:
+        if existing["url"] == url:
+            existing.update(item)
+            return
+    _PALETTE_ITEMS.append(item)
+
+
+def palette_items() -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    for it in sorted(_PALETTE_ITEMS, key=lambda i: i.get("order", 0)):
+        row: dict[str, Any] = {
+            "title": resolve_label(it.get("title")),
+            "url": it["url"],
+            "icon": it.get("icon") or "arrowRight",
+        }
+        if it.get("subtitle") is not None:
+            row["subtitle"] = resolve_label(it.get("subtitle"))
+        if it.get("quiet", True):
+            row["quiet"] = True
+        out.append(row)
+    return out
+
+
+# ---------------------------------------------------------------------------
 # Layout slots
 # ---------------------------------------------------------------------------
 

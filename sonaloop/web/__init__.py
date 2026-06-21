@@ -27,7 +27,7 @@ from .pages import (  # noqa: F401  (public surface preserved; routes split into
 from .pages import register_runs_section  # noqa: F401  (public /runs extension seam — see pages/runs.py)
 from ._routes_api import register_api  # noqa: F401
 from ._ext import (  # noqa: F401  (public extension surface for sonaloop-cloud / sonaloop-research)
-    register_nav_section, register_nav_item, register_slot,
+    register_nav_section, register_nav_item, register_palette_item, register_slot,
     register_detail_extra, render_detail_extra,
     set_theme_overrides, reset_theme_overrides, set_brand, load_extensions,
     set_runtime_brand, reset_runtime_brand,
