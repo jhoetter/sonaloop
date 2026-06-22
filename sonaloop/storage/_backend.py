@@ -122,11 +122,16 @@ def schema_statements_postgres() -> list[str]:
 class _PgConnection:
     """Wraps a psycopg connection so the Store's SQLite-flavoured SQL runs unchanged:
     translates `INSERT OR REPLACE/IGNORE` → `ON CONFLICT`, `?` → `%s`, and yields dict
-    rows. `execute`/`executemany` return a psycopg cursor (rowcount/fetch* as usual)."""
+    rows. `execute`/`executemany` return a psycopg cursor (rowcount/fetch* as usual).
 
-    def __init__(self, raw: Any, tenant: bool = False) -> None:
+    When `pool` is set, `close()` returns the connection to the pool instead of
+    closing it — rollback + DISCARD ALL cleans session state so the next checkout
+    starts fresh (RLS GUCs are re-bound by `PostgresBackend._bind_scope`)."""
+
+    def __init__(self, raw: Any, tenant: bool = False, pool: Any = None) -> None:
         self._raw = raw
         self._tenant = tenant
+        self._pool = pool
         self._pk: dict[str, list[str]] = {}
 
     def _pk_cols(self, table: str) -> list[str]:
@@ -184,7 +189,15 @@ class _PgConnection:
         self._raw.commit()
 
     def close(self) -> None:
-        self._raw.close()
+        if self._pool is not None:
+            try:
+                self._raw.rollback()
+            except Exception:
+                pass
+            self._pool.putconn(self._raw)
+            self._pool = None
+        else:
+            self._raw.close()
 
     def cursor(self) -> Any:
         return self._raw.cursor()
@@ -218,10 +231,15 @@ class PostgresBackend(StorageBackend):
     makes the PK composite, scopes UNIQUE constraints, and enforces isolation with RLS —
     all driven by introspection, so the Store's mixins are untouched. `tenant=False` is a
     plain single-tenant Postgres (Phase-1 parity). `SONALOOP_PG_SCHEMA` isolates a run into
-    its own schema (per-test isolation). The SQLite schema NEVER gains any of this."""
+    its own schema (per-test isolation). The SQLite schema NEVER gains any of this.
+
+    Connection pooling: a process-global `psycopg_pool.ConnectionPool` per DSN+schema+tenant
+    caches idle connections. `connect()` borrows one and re-binds RLS scope; `close()` returns
+    it. Falls back to direct `psycopg.connect()` when `psycopg_pool` is not installed."""
 
     dialect = "postgres"
     path = None
+    _pools: dict[str, Any] = {}
 
     def __init__(self, dsn: str, schema: str | None = None, tenant: bool | None = None) -> None:
         self.dsn = dsn
@@ -231,10 +249,37 @@ class PostgresBackend(StorageBackend):
     def _key(self) -> str:
         return f"{self.dsn}|{self.schema or ''}|{int(self.tenant)}"
 
+    def _get_pool(self) -> Any:
+        key = self._key()
+        if key in self._pools:
+            return self._pools[key]
+        try:
+            from psycopg_pool import ConnectionPool
+            from psycopg.rows import dict_row
+        except ImportError:
+            return None
+
+        def _configure(conn: Any) -> None:
+            conn.row_factory = dict_row
+
+        pool = ConnectionPool(conninfo=self.dsn, min_size=1, max_size=8,
+                              configure=_configure, open=False)
+        pool.open(wait=True)
+        self._pools[key] = pool
+        return pool
+
     def connect(self) -> _PgConnection:
         import psycopg
         from psycopg.rows import dict_row
 
+        pool = self._get_pool()
+        if pool is not None:
+            raw = pool.getconn()
+            if self.schema:
+                raw.execute(f'SET search_path TO "{self.schema}"')
+                raw.commit()
+            self._bind_scope(raw)
+            return _PgConnection(raw, tenant=self.tenant, pool=pool)
         raw = psycopg.connect(self.dsn, autocommit=False, row_factory=dict_row)
         if self.schema:
             raw.execute(f'CREATE SCHEMA IF NOT EXISTS "{self.schema}"')

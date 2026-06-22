@@ -159,15 +159,39 @@ def list_research_projects(store: Store | None = None) -> list[dict[str, Any]]:
     """Project summaries for the inspector list. Counts come from the project GRAPH —
     the plan-evidence graph is the source of truth, and `study_ids` is empty for
     plan-based projects, so a raw len(study_ids) would read 0. `studies` counts
-    synthesis nodes (matching the list's label); `edges` is the build-order count."""
+    synthesis nodes (matching the list's label); `edges` is the build-order count.
+
+    Batch-loads all list tables once and groups in Python to avoid N+1 queries
+    (prototype_sessions was a full table scan per project — N x full-scan)."""
     store = store or Store()
+    projects = store.list_research_projects()
+    # Batch-load all per-project tables once, group by project_id/prototype_id.
+    all_proto_sessions = store.list_prototype_sessions()
+    proto_sessions_by_proto: dict[str, list[dict]] = {}
+    for s in all_proto_sessions:
+        proto_sessions_by_proto.setdefault(s.get("prototype_id", ""), []).append(s)
+    all_surveys = store.list_surveys()
+    surveys_by_proj: dict[str, list[dict]] = {}
+    for s in all_surveys:
+        surveys_by_proj.setdefault(s.get("project_id", ""), []).append(s)
+    all_hypotheses = store.list_hypotheses()
+    hyp_by_proj: dict[str, list[dict]] = {}
+    for h in all_hypotheses:
+        hyp_by_proj.setdefault(h.get("project_id", ""), []).append(h)
+    all_decisions = store.list_decisions()
+    dec_by_proj: dict[str, list[dict]] = {}
+    for d in all_decisions:
+        dec_by_proj.setdefault(d.get("project_id", ""), []).append(d)
+    all_usability = store.list_usability_sessions()
+    usability_by_proj: dict[str, list[dict]] = {}
+    for u in all_usability:
+        usability_by_proj.setdefault(u.get("project_id", ""), []).append(u)
     out = []
-    for p in store.list_research_projects():
+    for p in projects:
         graph = get_project_graph(p["id"], store=store)
         protos = graph.get("prototypes") or []
         proto_ids = {pr.get("id") for pr in protos}
-        proto_sessions = [s for s in store.list_prototype_sessions()
-                          if s.get("prototype_id") in proto_ids]
+        proto_sessions = [s for pid in proto_ids for s in proto_sessions_by_proto.get(pid, [])]
         try:
             rs = _plan.project_run_state(p["id"], store=store)
         except Exception:
@@ -175,19 +199,17 @@ def list_research_projects(store: Store | None = None) -> list[dict[str, Any]]:
         out.append({"id": p["id"], "slug": p["slug"], "title": p["title"], "goal": p.get("goal", ""),
                     "status": p.get("status", "active"),
                     "icon": p.get("icon") or {"kind": "regular", "name": "projects"},
-                    # the link to hand the user ("what are my projects") — absent before
-                    "url": web_url(f"/projects/{p['id']}"),  # noqa: F821 (bound)
+                    "url": web_url(f"/jobs/{p['id']}"),  # noqa: F821 (bound)
                     "persona_ids": list(p.get("persona_ids") or []),
                     **({"run_state": rs} if rs else {}),
                     "studies": sum(1 for n in graph["nodes"] if n.get("kind") == "synthesis"),
                     "councils": sum(1 for n in graph["nodes"] if n.get("kind") == "council"),
                     "notes": sum(1 for n in graph["nodes"] if n.get("kind") == "note"),
                     "prototypes": len(protos),
-                    "sessions": (len(store.list_usability_sessions(project_id=p["id"]))
-                                 + len(proto_sessions)),
-                    "surveys": len(store.list_surveys(p["id"])),
-                    "hypotheses": len(store.list_hypotheses(p["id"])),
-                    "decisions": len(store.list_decisions(p["id"])),
+                    "sessions": len(usability_by_proj.get(p["id"], [])) + len(proto_sessions),
+                    "surveys": len(surveys_by_proj.get(p["id"], [])),
+                    "hypotheses": len(hyp_by_proj.get(p["id"], [])),
+                    "decisions": len(dec_by_proj.get(p["id"], [])),
                     "open_questions": len(graph.get("open_questions") or []),
                     "references": len(graph.get("artifacts") or []),
                     "assets": len(graph.get("assets") or []),

@@ -31,6 +31,7 @@ dependencies = [
     # Native PowerPoint export of reports (one slide per section + native charts). Lazy-imported;
     # the export degrades gracefully with a clear message if the package is absent.
     "python-pptx>=0.6.23",
+    "psycopg-pool>=3.3.1",
 ]
 
 [project.optional-dependencies]
