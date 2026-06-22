@@ -10,6 +10,7 @@ tags validated by reference — there is NO closed set in code. The host authors
 """
 from __future__ import annotations
 
+import contextvars
 from typing import Any
 
 from .config import utc_now_iso
@@ -155,10 +156,30 @@ def seed_plan_from_methodology(project_id: str, goal: str, spec: dict[str, Any])
     return new_plan(project_id, goal, spec["key"], tasks)
 
 
+_PLAN_CACHE: contextvars.ContextVar[dict[tuple[int, str], dict[str, Any] | None] | None] = \
+    contextvars.ContextVar("sonaloop_plan_cache", default=None)
+
+
+def begin_plan_cache() -> contextvars.Token:
+    return _PLAN_CACHE.set({})
+
+
+def end_plan_cache(token: contextvars.Token) -> None:
+    _PLAN_CACHE.reset(token)
+
+
 def get_plan(project_id: str, store: Store | None = None) -> dict[str, Any] | None:
+    cache = _PLAN_CACHE.get()
+    if cache is not None:
+        key = (id(store), project_id)
+        if key in cache:
+            return cache[key]
     store = store or Store()
     p = store.get_research_plan(project_id)
-    return validate_plan(p) if p else None
+    result = validate_plan(p) if p else None
+    if cache is not None:
+        cache[(id(store), project_id)] = result
+    return result
 
 
 def save_plan(plan: dict[str, Any], store: Store | None = None) -> dict[str, Any]:

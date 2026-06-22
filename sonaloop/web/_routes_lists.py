@@ -82,12 +82,16 @@ def _projects_page(page: int = 1, q: str = "") -> str:
     convention (docs/pagination.md): ?page=N in the URL next to the ?q= filter, ~25 rows
     per page, the h1 count over the FULL filtered set."""
     store = Store()
-    projects = services.list_research_projects(store=store)
+    # Lean metadata only — NO graph builds for the full list. Enrich only the visible page.
+    projects = services.list_research_project_summaries(store=store)
     if q:
         needle = q.strip().casefold()
         projects = [p for p in projects
                     if needle in p.get("title", "").casefold() or needle in p.get("slug", "").casefold()]
     visible, page, pages = _page_window(projects, page)
+    # Enrich only the 25 visible rows with graph counts + run state.
+    batch = services._research._project_count_batch(store)
+    visible = [services._research.enrich_research_project(p, store, _batch=batch) for p in visible]
     rows = []
     for p in visible:
         plan = services.get_plan(p["id"], store=store)

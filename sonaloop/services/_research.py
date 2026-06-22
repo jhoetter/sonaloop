@@ -123,7 +123,7 @@ def create_research_project(title: str, goal: str = "", persona_ids: list[str] |
     # The answer to "where can I look at this?" rides every creation result —
     # remote hosts (MCP connectors) surface it to the user.
     from ._common import web_url
-    return {**project, "url": web_url(f"/projects/{pid}")}
+    return {**project, "url": web_url(f"/jobs/{pid}")}
 
 
 
@@ -155,6 +155,80 @@ def update_research_project(project_id: str, patch: dict[str, Any],
 
 
 
+def list_research_project_summaries(store: Store | None = None) -> list[dict[str, Any]]:
+    """Lean project metadata for list pages — NO graph builds, NO run-state, NO counts.
+    Returns id/slug/title/goal/status/icon/persona_ids/themes only. The list page
+    paginates this lean list, then enriches only the visible page with
+    `enrich_research_project` (graph counts, run state)."""
+    store = store or Store()
+    return [
+        {"id": p["id"], "slug": p["slug"], "title": p["title"], "goal": p.get("goal", ""),
+         "status": p.get("status", "active"),
+         "icon": p.get("icon") or {"kind": "regular", "name": "projects"},
+         "url": web_url(f"/jobs/{p['id']}"),  # noqa: F821 (bound)
+         "persona_ids": list(p.get("persona_ids") or []),
+         "themes": p.get("themes", [])}
+        for p in store.list_research_projects()
+    ]
+
+
+def enrich_research_project(
+    summary: dict[str, Any], store: Store,
+    _batch: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Add graph counts, run state, and per-project counts to a lean summary.
+    `_batch` is an optional pre-loaded batch from `_project_count_batch(store)` —
+    pass it when enriching multiple projects to avoid re-loading per project."""
+    pid = summary["id"]
+    graph = get_project_graph(pid, store=store)
+    protos = graph.get("prototypes") or []
+    proto_ids = {pr.get("id") for pr in protos}
+    b = _batch or _project_count_batch(store)
+    proto_sessions = [s for mid in proto_ids for s in b["proto_sessions_by_proto"].get(mid, [])]
+    try:
+        rs = _plan.project_run_state(pid, store=store)
+    except Exception:
+        rs = None
+    return {**summary,
+            **({"run_state": rs} if rs else {}),
+            "studies": sum(1 for n in graph["nodes"] if n.get("kind") == "synthesis"),
+            "councils": sum(1 for n in graph["nodes"] if n.get("kind") == "council"),
+            "notes": sum(1 for n in graph["nodes"] if n.get("kind") == "note"),
+            "prototypes": len(protos),
+            "sessions": len(b["usability_by_proj"].get(pid, [])) + len(proto_sessions),
+            "surveys": len(b["surveys_by_proj"].get(pid, [])),
+            "hypotheses": len(b["hyp_by_proj"].get(pid, [])),
+            "decisions": len(b["dec_by_proj"].get(pid, [])),
+            "open_questions": len(graph.get("open_questions") or []),
+            "references": len(graph.get("artifacts") or []),
+            "assets": len(graph.get("assets") or []),
+            "edges": graph["counts"].get("edges", 0)}
+
+
+def _project_count_batch(store: Store) -> dict[str, Any]:
+    """Batch-load all per-project count tables once, grouped by project_id/prototype_id."""
+    proto_sessions_by_proto: dict[str, list[dict]] = {}
+    for s in store.list_prototype_sessions():
+        proto_sessions_by_proto.setdefault(s.get("prototype_id", ""), []).append(s)
+    surveys_by_proj: dict[str, list[dict]] = {}
+    for s in store.list_surveys():
+        surveys_by_proj.setdefault(s.get("project_id", ""), []).append(s)
+    hyp_by_proj: dict[str, list[dict]] = {}
+    for h in store.list_hypotheses():
+        hyp_by_proj.setdefault(h.get("project_id", ""), []).append(h)
+    dec_by_proj: dict[str, list[dict]] = {}
+    for d in store.list_decisions():
+        dec_by_proj.setdefault(d.get("project_id", ""), []).append(d)
+    usability_by_proj: dict[str, list[dict]] = {}
+    for u in store.list_usability_sessions():
+        usability_by_proj.setdefault(u.get("project_id", ""), []).append(u)
+    return {"proto_sessions_by_proto": proto_sessions_by_proto,
+            "surveys_by_proj": surveys_by_proj,
+            "hyp_by_proj": hyp_by_proj,
+            "dec_by_proj": dec_by_proj,
+            "usability_by_proj": usability_by_proj}
+
+
 def list_research_projects(store: Store | None = None) -> list[dict[str, Any]]:
     """Project summaries for the inspector list. Counts come from the project GRAPH —
     the plan-evidence graph is the source of truth, and `study_ids` is empty for
@@ -162,60 +236,15 @@ def list_research_projects(store: Store | None = None) -> list[dict[str, Any]]:
     synthesis nodes (matching the list's label); `edges` is the build-order count.
 
     Batch-loads all list tables once and groups in Python to avoid N+1 queries
-    (prototype_sessions was a full table scan per project — N x full-scan)."""
+    (prototype_sessions was a full table scan per project — N x full-scan).
+
+    For paginated list pages, prefer `list_research_project_summaries` + enrich only
+    the visible page with `enrich_research_project` — this avoids building N graphs
+    when only 25 rows are visible."""
     store = store or Store()
-    projects = store.list_research_projects()
-    # Batch-load all per-project tables once, group by project_id/prototype_id.
-    all_proto_sessions = store.list_prototype_sessions()
-    proto_sessions_by_proto: dict[str, list[dict]] = {}
-    for s in all_proto_sessions:
-        proto_sessions_by_proto.setdefault(s.get("prototype_id", ""), []).append(s)
-    all_surveys = store.list_surveys()
-    surveys_by_proj: dict[str, list[dict]] = {}
-    for s in all_surveys:
-        surveys_by_proj.setdefault(s.get("project_id", ""), []).append(s)
-    all_hypotheses = store.list_hypotheses()
-    hyp_by_proj: dict[str, list[dict]] = {}
-    for h in all_hypotheses:
-        hyp_by_proj.setdefault(h.get("project_id", ""), []).append(h)
-    all_decisions = store.list_decisions()
-    dec_by_proj: dict[str, list[dict]] = {}
-    for d in all_decisions:
-        dec_by_proj.setdefault(d.get("project_id", ""), []).append(d)
-    all_usability = store.list_usability_sessions()
-    usability_by_proj: dict[str, list[dict]] = {}
-    for u in all_usability:
-        usability_by_proj.setdefault(u.get("project_id", ""), []).append(u)
-    out = []
-    for p in projects:
-        graph = get_project_graph(p["id"], store=store)
-        protos = graph.get("prototypes") or []
-        proto_ids = {pr.get("id") for pr in protos}
-        proto_sessions = [s for pid in proto_ids for s in proto_sessions_by_proto.get(pid, [])]
-        try:
-            rs = _plan.project_run_state(p["id"], store=store)
-        except Exception:
-            rs = None
-        out.append({"id": p["id"], "slug": p["slug"], "title": p["title"], "goal": p.get("goal", ""),
-                    "status": p.get("status", "active"),
-                    "icon": p.get("icon") or {"kind": "regular", "name": "projects"},
-                    "url": web_url(f"/jobs/{p['id']}"),  # noqa: F821 (bound)
-                    "persona_ids": list(p.get("persona_ids") or []),
-                    **({"run_state": rs} if rs else {}),
-                    "studies": sum(1 for n in graph["nodes"] if n.get("kind") == "synthesis"),
-                    "councils": sum(1 for n in graph["nodes"] if n.get("kind") == "council"),
-                    "notes": sum(1 for n in graph["nodes"] if n.get("kind") == "note"),
-                    "prototypes": len(protos),
-                    "sessions": len(usability_by_proj.get(p["id"], [])) + len(proto_sessions),
-                    "surveys": len(surveys_by_proj.get(p["id"], [])),
-                    "hypotheses": len(hyp_by_proj.get(p["id"], [])),
-                    "decisions": len(dec_by_proj.get(p["id"], [])),
-                    "open_questions": len(graph.get("open_questions") or []),
-                    "references": len(graph.get("artifacts") or []),
-                    "assets": len(graph.get("assets") or []),
-                    "edges": graph["counts"].get("edges", 0),
-                    "themes": p.get("themes", [])})
-    return out
+    summaries = list_research_project_summaries(store=store)
+    batch = _project_count_batch(store)
+    return [enrich_research_project(s, store, _batch=batch) for s in summaries]
 
 
 

@@ -120,8 +120,10 @@ def create_app():
         with the slide-over already open — reload of a context URL reproduces the click
         view with no fetch flash. Invalid/unknown `d` -> the background renders alone."""
         from ..services import _research as _research_services
+        from ..plan import begin_plan_cache, end_plan_cache
         from ._runs_widget import begin_run_states_cache, end_run_states_cache
         graph_cache_token = _research_services.begin_project_graph_cache()
+        plan_cache_token = begin_plan_cache()
         run_states_token = begin_run_states_cache()
         lang, persist = _resolve_request_language(
             request.query_params.get("lang"), request.cookies.get("ui_lang"))
@@ -145,6 +147,7 @@ def create_app():
             response = await call_next(request)
         finally:
             _research_services.end_project_graph_cache(graph_cache_token)
+            end_plan_cache(plan_cache_token)
             end_run_states_cache(run_states_token)
             _UI_LANG.reset(token)
             _REQ_PATH.reset(path_token)
