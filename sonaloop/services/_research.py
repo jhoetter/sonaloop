@@ -322,7 +322,7 @@ def ref_backlinks(project_id: str, store: Store | None = None) -> dict[str, list
         idx.setdefault(addr, []).append({"href": href, "label": label, "role": target.get("role")})
 
     syns = store.list_syntheses()
-    councils = {c["id"]: c for c in store.list_council_sessions() if c.get("project_id") == proj["id"]}
+    councils = {c["id"]: c for c in store.list_council_sessions(project_id=proj["id"])}
     for syn in syns:
         if not any(cid in councils for cid in (syn.get("council_ids") or [])) and \
            syn["id"] not in (proj.get("study_ids") or []):

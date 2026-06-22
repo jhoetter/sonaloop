@@ -14,9 +14,9 @@ from .. import presentation as _pres
 from ..storage import Store
 from ..web_assets import CSS, HEAD_JS  # noqa: F401  (extracted assets)
 from ._i18n import t, _lang
-from ._html import h, raw, fragment, register_css, collect_css  # noqa: F401  (component-SSR foundation)
+from ._html import h, raw, fragment, register_css, collect_css, _minify_css  # noqa: F401  (component-SSR foundation)
 from ._palette import PALETTE_CSS, PALETTE_JS, palette_markup
-from ._slide import slide_mode
+from ._slide import slide_mode, spa_mode
 from ._live import LIVE_CSS, LIVE_JS, live_markup
 from ._runs_widget import RUNS_WIDGET_CSS, RUNS_WIDGET_JS, runs_widget_markup
 from ._keymap import KEYMAP_CSS, KEYMAP_JS, keymap_markup
@@ -380,7 +380,7 @@ def _user_menu_control(label: str, icon: str, control: str) -> str:
 
 
 def docs_footer_entry(active: str) -> str:
-    """Legacy footer entry helper. The core shell now renders Documentation from the
+    """Compatibility footer entry helper. The core shell now renders Documentation from the
     user menu so the sidebar footer stays focused."""
     return h("a", {"href": "/documentation",
                    "class_": "pi-hover is-active" if active == "docs" else "pi-hover"},
@@ -388,7 +388,7 @@ def docs_footer_entry(active: str) -> str:
 
 
 def activity_footer_entry(active: str) -> str:
-    """Legacy footer entry helper. The core shell now renders Activity from the user menu."""
+    """Compatibility footer entry helper. The core shell now renders Activity from the user menu."""
     return h("a", {"href": "/activity",
                    "class_": "pi-hover is-active" if active == "activity" else "pi-hover"},
              raw(_icon("clock", animate=True)), h("span", {}, t("activity_h")))
@@ -518,6 +518,16 @@ def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
         acts = (f'<span class="sl-tb-actions" data-slide-actions hidden>{actions}</span>'
                 if actions else "")
         return f'<div class="sl-slide">{acts}{body}</div>'
+    # SPA fragment: the router fetches with `X-Requested-With: spa` and extracts `#main`
+    # via DOMParser. Return only the main content — skip the 465 KB shell (CSS/JS/sidebar).
+    if spa_mode():
+        return (
+            f'<!doctype html><html><head><title>{_esc(title)}</title></head>'
+            f'<body><div class="sl-main" id="main">'
+            f'<header class="sl-topbar"><span class="sl-tb-actions">{actions}</span></header>'
+            f'<section>{body}</section>'
+            f'</div></body></html>'
+        )
     crumbs = crumbs or [(title, None)]
     # Inject per-request translations into the static JS (client renders need them
     # too — same __PLACEHOLDER__ -> t() pattern used for the voices chart).
@@ -549,7 +559,7 @@ def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
 <link rel="icon" type="image/svg+xml" href="{_FAVICON_HREF}">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-{HEAD_JS}<style>{CSS}{PALETTE_CSS}{LIVE_CSS}{RUNS_WIDGET_CSS}{KEYMAP_CSS}{collect_css()}</style>{theme_override_css()}{render_slot("head_extra", store)}</head>
+{HEAD_JS}<style>{_minify_css(CSS)}{_minify_css(PALETTE_CSS)}{_minify_css(LIVE_CSS)}{_minify_css(RUNS_WIDGET_CSS)}{_minify_css(KEYMAP_CSS)}{collect_css()}</style>{theme_override_css()}{render_slot("head_extra", store)}</head>
 <body><div class="sl-app-shell" id="app">
   <aside class="sl-sidebar">
     <div class="sl-brand"><a class="sl-logo" href="/">{_lockup}</a><button class="sl-sidebar-close sl-iconbtn sl-iconbtn--ghost" type="button" data-sidebar-close aria-label="{t("cmdk_close")}" title="{t("cmdk_close")}">{_CLOSE_SVG}</button></div>
@@ -683,7 +693,7 @@ def _list_page(store: Store, *, title: str, lead: str, rows: list,
 def _empty_state(title: str, message: str, *, icon: str = "overview", action: tuple | None = None) -> str:
     """A calm, centered empty/not-found state (Linear-style): a hi-fi product glyph as the small
     'illustration', a title, one explanatory line, and a single CTA. `action` = (label, href, icon)."""
-    label, href, ic = action or (t("projects"), "/projects", "back")
+    label, href, ic = action or (t("projects"), "/jobs", "back")
     return h("div", {"class_": "page"}, h("div", {"class_": "sl-empty"},
              h("div", {"class_": "sl-empty__icon"}, raw(_hifi(icon, 44))),
              h("h2", {"class_": "sl-empty__title"}, title),

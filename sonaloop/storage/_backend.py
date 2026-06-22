@@ -299,6 +299,18 @@ class PostgresBackend(StorageBackend):
             if not cur.fetchone():
                 raw.execute(f"CREATE POLICY tenant_isolation ON {t} "
                             f"USING ({_RLS_USING}) WITH CHECK ({_RLS_CHECK})")
+        # GIN index on the JSON data column for tenant tables that are frequently
+        # filtered by project_id (council_sessions, syntheses) — turns full table
+        # scans into indexed lookups for WHERE data->>'project_id' = ?
+        for t in ("council_sessions", "syntheses"):
+            idx_name = f"idx_{t}_data_project_id"
+            cur = raw.execute(
+                "SELECT 1 FROM pg_indexes WHERE schemaname = current_schema() "
+                "AND indexname = %s", (idx_name,))
+            if not cur.fetchone():
+                raw.execute(
+                    f"CREATE INDEX IF NOT EXISTS {idx_name} ON {t} "
+                    f"USING btree ((data::jsonb ->> 'project_id'))")
         raw.commit()
 
     @staticmethod

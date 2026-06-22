@@ -21,6 +21,12 @@ from urllib.parse import parse_qs, quote
 
 _SLIDE: contextvars.ContextVar[bool] = contextvars.ContextVar("slide_mode", default=False)
 
+# SPA fragment mode: when the SPA router fetches a page with `X-Requested-With: spa`,
+# the server returns only the #main content (no sidebar/topbar/CSS/JS shell). The
+# client's `swap()` extracts `#main` via DOMParser — this skips ~465 KB of redundant
+# shell transfer per navigation.
+_SPA: contextvars.ContextVar[bool] = contextvars.ContextVar("spa_mode", default=False)
+
 # The current request's URL path (set by the same middleware). The palette's recents
 # beacon (web/_palette.visit_marker, UX V6) reads it to stamp WHICH detail is being
 # rendered — correct in all three render modes (full page, ?slide=1 fragment, and the
@@ -40,6 +46,11 @@ _SSR_DRAWER: contextvars.ContextVar[tuple[str, str, str] | None] = contextvars.C
 def slide_mode() -> bool:
     """True while rendering the `?slide=1` fragment variant of the current request."""
     return _SLIDE.get()
+
+
+def spa_mode() -> bool:
+    """True while rendering the SPA fragment variant (X-Requested-With: spa)."""
+    return _SPA.get()
 
 
 def ssr_drawer() -> tuple[str, str, str] | None:

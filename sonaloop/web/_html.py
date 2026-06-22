@@ -10,6 +10,7 @@ h() never hand-escape again.
 from __future__ import annotations
 
 import html
+import re
 from typing import Any, Iterable
 
 # void (self-closing) elements — no closing tag, no children
@@ -31,7 +32,7 @@ def esc(value: Any) -> Safe:
 
 
 def raw(value: Any) -> Safe:
-    """Mark already-HTML (markdown render, inline SVG icon, a legacy f-string component) as trusted.
+    """Mark already-HTML (markdown render, inline SVG icon, a compatibility f-string component) as trusted.
     Use only for HTML you control — the whole point of Safe is that everything else is escaped."""
     return Safe("" if value is None else str(value))
 
@@ -81,6 +82,23 @@ def fragment(*children: Any) -> Safe:
 
 # ---- CSS co-location (spec C2): a component registers its own rules; _layout collects them ----
 _CSS_FRAGMENTS: list[str] = []
+_CSS_MINIFIED_CACHE: dict[str, str] = {}
+
+_CSS_COMMENT_RE = re.compile(r'/\*.*?\*/', re.DOTALL)
+_CSS_WS_RE = re.compile(r'\s+')
+_CSS_COLLAPSE_RE = re.compile(r'\s*([{};:,>])\s*')
+_CSS_SEMI_RE = re.compile(r';+\}')
+
+
+def _minify_css(css: str) -> str:
+    if css in _CSS_MINIFIED_CACHE:
+        return _CSS_MINIFIED_CACHE[css]
+    out = _CSS_COMMENT_RE.sub('', css)
+    out = _CSS_COLLAPSE_RE.sub(r'\1', out)
+    out = _CSS_WS_RE.sub(' ', out).strip()
+    out = _CSS_SEMI_RE.sub('}', out)
+    _CSS_MINIFIED_CACHE[css] = out
+    return out
 
 
 def register_css(css: str) -> str:
@@ -92,4 +110,4 @@ def register_css(css: str) -> str:
 
 
 def collect_css() -> str:
-    return "".join(_CSS_FRAGMENTS)
+    return "".join(_minify_css(f) for f in _CSS_FRAGMENTS)

@@ -45,8 +45,14 @@ class CouncilsMixin:
         ).fetchall()
         return [json.loads(r["data"]) for r in rows]
 
-    def list_council_sessions(self) -> list[dict[str, Any]]:
-        rows = self.conn.execute("SELECT data FROM council_sessions ORDER BY created_at DESC").fetchall()
+    def list_council_sessions(self, project_id: str | None = None) -> list[dict[str, Any]]:
+        if project_id:
+            rows = self.conn.execute(
+                "SELECT data FROM council_sessions WHERE json_extract(data, '$.project_id')=? "
+                "ORDER BY created_at DESC", (project_id,)
+            ).fetchall()
+        else:
+            rows = self.conn.execute("SELECT data FROM council_sessions ORDER BY created_at DESC").fetchall()
         return [_load_healed(r["data"], "prompt", "proposal") for r in rows]
 
     def get_council_session(self, session_id: str) -> dict[str, Any] | None:
@@ -64,8 +70,14 @@ class CouncilsMixin:
         row = self.conn.execute("SELECT data FROM syntheses WHERE id=?", (synthesis_id,)).fetchone()
         return _load_healed(row["data"], "title") if row else None
 
-    def list_syntheses(self) -> list[dict[str, Any]]:
-        rows = self.conn.execute("SELECT data FROM syntheses ORDER BY created_at DESC").fetchall()
+    def list_syntheses(self, project_id: str | None = None) -> list[dict[str, Any]]:
+        if project_id:
+            rows = self.conn.execute(
+                "SELECT data FROM syntheses WHERE json_extract(data, '$.project_id')=? "
+                "ORDER BY created_at DESC", (project_id,)
+            ).fetchall()
+        else:
+            rows = self.conn.execute("SELECT data FROM syntheses ORDER BY created_at DESC").fetchall()
         return [_load_healed(r["data"], "title") for r in rows]
 
     def delete_synthesis(self, synthesis_id: str) -> int:

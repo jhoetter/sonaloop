@@ -21,11 +21,27 @@ from .._icons import icon as _picon     # direct import avoids a cycle (_compone
 from ..storage import Store
 from ._i18n import t
 from ._html import h, raw, fragment
+import contextvars
+
+_RUN_STATES_CACHE: contextvars.ContextVar[dict[str, list[dict[str, Any]]] | None] = \
+    contextvars.ContextVar("sonaloop_run_states_cache", default=None)
+
+
+def begin_run_states_cache() -> contextvars.Token:
+    return _RUN_STATES_CACHE.set(None)
+
+
+def end_run_states_cache(token: contextvars.Token) -> None:
+    _RUN_STATES_CACHE.reset(token)
 
 
 def collect_run_states(store: Store | None = None) -> dict[str, list[dict[str, Any]]]:
     """Every project's run state (services.project_run_state), grouped by state.
-    Projects without a plan (state None) are skipped — there is no driver to show."""
+    Projects without a plan (state None) are skipped — there is no driver to show.
+    Cached per-request so multiple calls within one page render don't re-query."""
+    cached = _RUN_STATES_CACHE.get()
+    if cached is not None:
+        return cached
     from .. import services
     store = store or Store()
     out: dict[str, list[dict[str, Any]]] = {"active": [], "stalled": [], "finished": []}
@@ -37,9 +53,10 @@ def collect_run_states(store: Store | None = None) -> dict[str, list[dict[str, A
         if not rs or rs.get("state") not in out:
             continue
         out[rs["state"]].append({
-            "project_id": p["id"], "title": p["title"], "url": f'/projects/{p["id"]}',
+            "project_id": p["id"], "title": p["title"], "url": f'/jobs/{p["id"]}',
             "last_activity": rs.get("last_activity", ""),
             "next_ready": rs.get("next_ready") or [], "note": rs.get("note", "")})
+    _RUN_STATES_CACHE.set(out)
     return out
 
 
