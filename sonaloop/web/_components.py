@@ -524,7 +524,11 @@ def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
         return (
             f'<!doctype html><html><head><title>{_esc(title)}</title></head>'
             f'<body><div class="sl-main" id="main">'
-            f'<header class="sl-topbar"><span class="sl-tb-actions">{actions}</span></header>'
+            f'<header class="sl-topbar"><button class="sl-iconbtn sl-iconbtn--ghost" id="sbt" '
+            f'data-sidebar-toggle title="{t("sidebar")} ([)" aria-label="{t("sidebar")}" '
+            f'aria-expanded="true">{_icon("panel")}</button>'
+            f'{_crumbs_html(crumbs or [(title, None)])}<span class="sl-spacer"></span>'
+            f'{runs_widget_markup(store)}<span class="sl-tb-actions">{actions}</span></header>'
             f'<section>{body}</section>'
             f'</div></body></html>'
         )

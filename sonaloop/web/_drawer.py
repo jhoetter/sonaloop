@@ -39,18 +39,53 @@ SPA_JS = """
       s.textContent=old.textContent; old.parentNode.replaceChild(s, old);
     });
   }
-  function syncActive(doc){             // mirror the fetched page's sidebar active-state onto the live nav
-    var on={}; doc.querySelectorAll('.sl-sidebar .sl-nav a.is-active').forEach(function(a){ on[a.getAttribute('href')]=1; });
-    document.querySelectorAll('.sl-sidebar .sl-nav a').forEach(function(a){ a.classList.toggle('is-active', !!on[a.getAttribute('href')]); });
+  function syncActive(doc, url){        // mirror the fetched page's sidebar active-state onto the live nav
+    var on={}, found=false;
+    doc.querySelectorAll('.sl-sidebar .sl-nav a.is-active').forEach(function(a){
+      on[a.getAttribute('href')]=1; found=true;
+    });
+    var target=''; try{ target=new URL(url, location.origin).pathname; }catch(_){}
+    document.querySelectorAll('.sl-sidebar .sl-nav a').forEach(function(a){
+      var active=false, href=a.getAttribute('href')||'';
+      if(found) active=!!on[href];
+      else if(href && href.charAt(0)==='/'){
+        try{ var path=new URL(href, location.origin).pathname;
+          active=path===target || (path!=='/' && target.indexOf(path+'/')===0);
+        }catch(_){}
+      }
+      a.classList.toggle('is-active', active);
+    });
+  }
+  function syncTopbar(nextMain){
+    var top=main.querySelector('.sl-topbar'), nextTop=nextMain.querySelector('.sl-topbar');
+    if(!top || !nextTop) return false;
+    function replace(selector, anchorSelector){
+      var cur=top.querySelector(selector), next=nextTop.querySelector(selector);
+      if(cur && next){ cur.replaceWith(document.importNode(next, true)); return; }
+      if(cur && !next){ cur.remove(); return; }
+      if(next){
+        var anchor=anchorSelector ? top.querySelector(anchorSelector) : null;
+        top.insertBefore(document.importNode(next, true), anchor ? anchor.nextSibling : null);
+      }
+    }
+    replace('.sl-breadcrumb', '[data-sidebar-toggle]');
+    replace('#runsw', '.sl-spacer');
+    replace('.sl-tb-actions', '#runsw');
+    return true;
   }
   function swap(html, url, push){
     var doc=new DOMParser().parseFromString(html, 'text/html');
     var nm=doc.getElementById('main');
     if(!nm){ location.href=url; return; }                 // unexpected shape -> full load
-    var imp=document.importNode(nm, true);
-    main.replaceWith(imp); main=imp;
+    var nextSection=nm.querySelector('section'), currentSection=main.querySelector('section');
+    if(currentSection && nextSection && syncTopbar(nm)){
+      currentSection.replaceWith(document.importNode(nextSection, true));
+    }else{
+      var imp=document.importNode(nm, true);
+      main.replaceWith(imp); main=imp;
+    }
     if(doc.title) document.title=doc.title;
-    syncActive(doc);
+    syncActive(doc, url);
     if(push) history.pushState({spa:1}, '', url);
     runScripts(main);
     window.__slBg=url;                                     // the page now behind any overlay
