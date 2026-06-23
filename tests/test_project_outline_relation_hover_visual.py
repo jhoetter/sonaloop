@@ -53,7 +53,7 @@ def test_outline_relation_hover_paths_dock_to_row_icons(store):
         with sync_playwright() as pw:
             b = pw.chromium.launch()
             pg = b.new_context(viewport={"width": 1440, "height": 900}).new_page()
-            pg.goto(f"http://127.0.0.1:{port}/projects/{project['id']}?lang=en",
+            pg.goto(f"http://127.0.0.1:{port}/jobs/{project['id']}?lang=en",
                     wait_until="load")
             pg.wait_for_timeout(300)
             result = pg.evaluate(

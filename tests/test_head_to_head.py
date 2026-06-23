@@ -239,18 +239,18 @@ def test_recordings_without_variant_metadata_stay_loadable(store):
     segment rows) still load, and segmented_verdict derives the missing numbers from the stored
     tallies."""
     a = create_persona(store, "A", customer_type="X")
-    proj = services.create_research_project("legacy", goal="g", persona_ids=[a], store=store)
+    proj = services.create_research_project("compatibility", goal="g", persona_ids=[a], store=store)
     session = services.record_head_to_head(
         proj["id"], "old", ["o1", "o2"],
         preferences=[{"persona_id": a, "choice": "A"}], store=store)
-    # Strip the block down to the LEGACY shape (as recorded before this ticket) and re-persist.
-    legacy = store.get_council_session(session["id"])
-    ht = legacy["head_to_head"]
+    # Strip the block down to the COMPATIBILITY shape (as recorded before this ticket) and re-persist.
+    compatibility = store.get_council_session(session["id"])
+    ht = compatibility["head_to_head"]
     ht.pop("variant_meta", None)
     ht["result"].pop("abstentions")
     for seg in ht["result"]["segment_splits"]:
         seg.pop("margin"), seg.pop("abstentions")
-    store.insert_council_session(legacy)
+    store.insert_council_session(compatibility)
 
     fetched = services.get_head_to_head(session["id"], store=store)
     assert "variant_meta" not in fetched

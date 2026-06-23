@@ -51,7 +51,7 @@ def register_council(mcp):
         head-to-head/red-team reactions. Every stance is
         {value -2..2, label?: support|conditional|neutral|skeptical|oppose}:
         the five terms in scale order (+2 support … −2 oppose) with each
-        term's value, i18n label_key and accepted aliases (EN/DE legacy tokens). Unlike the other
+        term's value, i18n label_key and accepted aliases (EN/DE compatibility tokens). Unlike the other
         suggest_* vocabularies this set is CLOSED: `label` is optional when `value` is given, a known
         alias resolves to its term, and an unknown label buckets at neutral but is preserved as
         `label_raw` — never invent stance words when these five fit. Derived live from the scale data

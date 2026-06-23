@@ -30,7 +30,7 @@ _TS = {k: v.get("size", 13) for k, v in _TYPE.items()}
 
 from ._pptx_charts import _num
 
-# canonical stance terms → tone colour (stance_scale.json roles; legacy "opposed" kept).
+# canonical stance terms → tone colour (stance_scale.json roles; compatibility "opposed" kept).
 _SENTIMENT = {"support": _GREEN, "conditional": _AMBER, "neutral": _MUTED,
               "skeptical": _AMBER, "oppose": _RED, "opposed": _RED}
 _CALLOUT_RGB = {"accent": _ACCENT, "green": _GREEN, "amber": _AMBER}

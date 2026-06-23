@@ -150,7 +150,7 @@ def test_direction_defaults_in_and_validates(store, project, tmp_path):
         services.attach_asset(project["id"], path=str(f), direction="sideways", store=store)
 
 
-def test_directionless_legacy_records_read_as_evidence(store, project, tmp_path):
+def test_directionless_compatibility_records_read_as_evidence(store, project, tmp_path):
     f = tmp_path / "old.txt"
     f.write_text("pre-direction record")
     rec = services.attach_asset(project["id"], path=str(f), store=store)
@@ -158,8 +158,8 @@ def test_directionless_legacy_records_read_as_evidence(store, project, tmp_path)
     p["assets"][0].pop("direction")
     store.upsert_research_project(p)
     from sonaloop.web._presence import asset_direction
-    legacy = services.get_asset(project["id"], rec["id"], store=store)
-    assert "direction" not in legacy and asset_direction(legacy) == "in"
+    compatibility = services.get_asset(project["id"], rec["id"], store=store)
+    assert "direction" not in compatibility and asset_direction(compatibility) == "in"
 
 
 def _project_synthesis(store, project):
@@ -236,7 +236,7 @@ def test_assets_render_as_tag_free_outline_rows(store, project, tmp_path, monkey
     from starlette.testclient import TestClient
     from sonaloop import web
     client = TestClient(web.create_app())
-    html = client.get(f'/projects/{project["id"]}?lang=en').text
+    html = client.get(f'/jobs/{project["id"]}?lang=en').text
     assert html.count('data-rkind="asset"') == 2
     assert "Deliverable</span>" not in html and "Evidence</span>" not in html
     assert ">Assets (1)<" in html
@@ -250,7 +250,7 @@ def test_assets_render_as_tag_free_outline_rows(store, project, tmp_path, monkey
     # ...while the file itself stays one click away (the trailing chip: download / open)
     assert f'href="{deliverable["url"]}"' in html and f'href="{ev["url"]}"' in html
     # and there is no separate project files lens chip anymore.
-    assert f'/projects/{project["id"]}?view=files' not in html
+    assert f'/jobs/{project["id"]}?view=files' not in html
 
 
 def test_attach_prototype_shot_uses_capture(store, project, monkeypatch, tmp_path):
@@ -304,11 +304,11 @@ def test_attach_asset_writes_pptx_preview_beside_binary(store, project):
     assert fake["preview_url"] == ""
 
 
-def test_ensure_asset_preview_backfills_legacy_records(store, project):
+def test_ensure_asset_preview_backfills_compatibility_records(store, project):
     from pathlib import Path
     from sonaloop.services._project_assets import _assets_dir
     rec = services.attach_asset(project["id"], content_base64=base64.b64encode(_deck_bytes()).decode(),
-                                filename="legacy-deck.pptx", store=store)
+                                filename="compatibility-deck.pptx", store=store)
     sha = Path(rec["asset_path"]).stem
     # simulate a pre-W6 record: no preview field, no preview file
     (_assets_dir() / f"{sha}.preview.png").unlink()
@@ -367,7 +367,7 @@ def test_export_synthesis_deliverable_returns_download_url(store, project, monke
     res = services.export_synthesis_deliverable(syn["id"], "pptx", store=store)
     rec = services.get_asset(project["id"], res["asset_id"], store=store)
     assert res["url"] == "https://app.sonaloop.test" + rec["url"]
-    assert res["project_url"] == f'https://app.sonaloop.test/projects/{project["id"]}'
+    assert res["project_url"] == f'https://app.sonaloop.test/jobs/{project["id"]}'
     assert (Path(config.DATA_DIR) / "assets" / Path(rec["asset_path"]).name).read_bytes() == b"PK deck"
 
 

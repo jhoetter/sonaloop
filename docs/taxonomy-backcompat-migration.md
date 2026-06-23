@@ -7,7 +7,7 @@ stores, URLs and MCP clients keep working. This migration is intentionally
 lazy: records are classified at read/render time through registry aliases rather
 than destructively rewritten.
 
-## Canonical vs legacy fields
+## Canonical vs compatibility fields
 
 Canonical vocabulary:
 
@@ -19,7 +19,7 @@ Canonical vocabulary:
 - orthogonal attributes such as `prototype_fidelity`, `survey_status`,
   `decision_status` and `variant_label`.
 
-Legacy/storage fields that remain valid:
+Compatibility/storage fields that remain valid:
 
 - `CouncilSession.mode` values such as `discovery`, `evaluation`, `decision`;
 - special council blocks: `head_to_head`, `red_team`, `price_ladder`,
@@ -27,7 +27,7 @@ Legacy/storage fields that remain valid:
 - URL material `kind` values such as `url`, `website`, `prototype`, `variant`;
 - usability-session `subject.kind` values such as `flow`, `prototype`,
   `live_url`, `variant`;
-- legacy `prototype_sessions` rows carrying `prototype_id` instead of a modern
+- compatibility `prototype_sessions` rows carrying `prototype_id` instead of a modern
   `subject`;
 - old Library filter tokens such as `red_team`, `head_to_head`,
   `ab_variant`, `prototype_session`, `single_survey`.
@@ -45,9 +45,9 @@ Alias-only fields:
 
 Classification is lazy and registry-backed:
 
-- `services.council_form(row)` maps legacy council modes and special blocks to
+- `services.council_form(row)` maps compatibility council modes and special blocks to
   canonical `council/*` forms.
-- `services.session_form(row)` maps modern usability sessions and legacy
+- `services.session_form(row)` maps modern usability sessions and compatibility
   `prototype_sessions` rows to canonical `session/*` forms.
 - `services.survey_form(row)` maps question structures and old survey subtype
   tokens to canonical `survey/*` forms.
@@ -92,7 +92,7 @@ additively:
 1. Add nullable `primitive_id` / `form_id` columns or JSON metadata.
 2. Backfill with the same service classifiers used by the web/MCP read path.
 3. Keep alias resolution indefinitely for URL and API compatibility.
-4. Never delete legacy blocks (`head_to_head`, `red_team`, `price_ladder`,
+4. Never delete compatibility blocks (`head_to_head`, `red_team`, `price_ladder`,
    `ideation`) until every public export and old MCP client has a replacement
    contract.
 
@@ -104,5 +104,5 @@ Compatibility is pinned by tests for:
 - old Library subtype filter URLs;
 - specialized MCP tools still recording rows that classify to canonical forms;
 - shipped example projects, including image assets, references, sessions,
-  reports, decisions and graph/library parity;
+  reports, decisions and graph/formats parity;
 - report/export round trips through the existing synthesis/report contracts.

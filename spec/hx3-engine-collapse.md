@@ -13,13 +13,13 @@
   has one (which all new projects do).
 - `get_project_graph` already routes to `plan_graph`, whose `methodology_state` is derived from the
   plan via `_plan_methodology_state` — **not** from `phase_log`. The `get_methodology_state`/`phase_log`
-  branch in `get_project_graph` only fires for legacy plan-less methodology projects.
+  branch in `get_project_graph` only fires for compatibility plan-less methodology projects.
 - The ONLY autonomous driver, `runtime.run_methodology`, runs on the constellation engine with a
   `StubAuthoringBackend`. It is unused in production (CLI `run-methodology` + 2 tests only).
 
 So the duplication that remains is: (a) the unused autonomous driver, (b) a parallel MCP/CLI surface
 (`record_node`/`record_decision`/`advance`/`get_methodology_state`/…), (c) the `phase_log` lifecycle
-engine inside `methodology.py`, and (d) the legacy graph branch.
+engine inside `methodology.py`, and (d) the compatibility graph branch.
 
 ## 2. Target end state
 **`plan.py`** — unchanged; the single runtime engine.
@@ -68,7 +68,7 @@ active path.
   `StubAuthoringBackend`, owned by the test (production has ONE engine, no stub driver).
 - `tests/test_methodology_engine.py` — keep the spec-validation / registry / no-hardcoded-vocab /
   seed tests; remove the phase_log lifecycle tests (record_node/decision/advance/state/aliases).
-- `tests/test_research_plan.py::test_legacy_methodology_project_still_renders` — remove (the legacy
+- `tests/test_research_plan.py::test_compatibility_methodology_project_still_renders` — remove (the compatibility
   plan-less path is gone; every methodology project now has a plan).
 - `tests/test_mcp_contract.py` — drop assertions on the removed tools; assert the plan surface.
 

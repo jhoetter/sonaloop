@@ -365,7 +365,7 @@ def record_head_to_head(project_id: str, prompt: str, options: list[Any],
     }
     store.insert_council_session(session)
     return {**session, "url": web_url(f"/councils/{session['id']}"),  # noqa: F821 (bound)
-            "project_url": web_url(f"/projects/{project_id}")}  # noqa: F821 (bound)
+            "project_url": web_url(f"/jobs/{project_id}")}  # noqa: F821 (bound)
 
 
 def get_head_to_head(session_id: str, store: Store | None = None) -> dict[str, Any]:
@@ -381,7 +381,7 @@ def get_head_to_head(session_id: str, store: Store | None = None) -> dict[str, A
     out = {"id": c["id"], "prompt": c["prompt"], "project_id": c.get("project_id", ""),
            "created_at": c["created_at"], "url": web_url(f"/councils/{c['id']}"), **ht}  # noqa: F821 (bound)
     if c.get("project_id"):
-        out["project_url"] = web_url(f"/projects/{c['project_id']}")  # noqa: F821 (bound)
+        out["project_url"] = web_url(f"/jobs/{c['project_id']}")  # noqa: F821 (bound)
     return out
 
 
@@ -408,7 +408,7 @@ def segmented_verdict(session_id: str, store: Store | None = None) -> dict[str, 
         seg_cast = s.get("voters", 0)
         if "margin" in s:                                  # post-metadata recording: stored as-is
             seg_margin = s["margin"]
-        else:                                              # legacy recording: derive from the tally
+        else:                                              # compatibility recording: derive from the tally
             ranked = sorted(counts, key=lambda lab: counts[lab], reverse=True)
             top = counts[ranked[0]] if ranked else 0
             runner = counts[ranked[1]] if len(ranked) > 1 else 0

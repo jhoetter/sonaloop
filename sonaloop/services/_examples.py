@@ -379,7 +379,7 @@ def list_examples(store: Store | None = None) -> list[dict[str, Any]]:
             "tagline": fx.get("tagline", ""),
             "loaded": store.get_research_project(pid) is not None,
             "project_id": pid,
-            "url": f"/projects/{pid}",
+            "url": f"/jobs/{pid}",
         })
     return out
 
@@ -674,7 +674,7 @@ def load_example(slug: str, store: Store | None = None) -> dict[str, Any]:  # no
     emit_lifecycle_event("example.loaded", {"project_id": pid, "slug": slug,  # noqa: F821 (bound)
                                             "title": fx["project"]["title"]}, store)
     return {
-        "slug": slug, "project_id": pid, "url": f"/projects/{pid}",
+        "slug": slug, "project_id": pid, "url": f"/jobs/{pid}",
         "title": fx["project"]["title"],
         "counts": {
             "personas": len(pids),

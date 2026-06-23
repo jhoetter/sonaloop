@@ -126,12 +126,12 @@ def test_rows_without_participation_render_none(seeded):
 
 
 def test_projects_list_rows_render_the_cohort_group(seeded):
-    html = TestClient(web.create_app()).get("/projects?lang=en").text
+    html = TestClient(web.create_app()).get("/jobs?lang=en").text
     assert GROUP in html and MORE in html        # 5-persona cohort ⇒ 4 avatars + "+1"
 
 
 def test_project_outline_prototype_row_renders_the_drivers(seeded):
-    html = TestClient(web.create_app()).get(f'/projects/{seeded["project"]["id"]}?lang=en').text
+    html = TestClient(web.create_app()).get(f'/jobs/{seeded["project"]["id"]}?lang=en').text
     # the prototype outline row (data-oid = prototype id) carries the crew cluster
     row = html.split(f'data-oid="{seeded["proto"]["id"]}"', 1)[1].split("</a>", 1)[0]
     assert GROUP in row, "the outline prototype row must show its session drivers (W11)"

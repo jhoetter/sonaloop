@@ -1,21 +1,21 @@
-# MCP surface cleanup — retire legacy, fix placement, signal the front door
+# MCP surface cleanup — retire compatibility, fix placement, signal the front door
 
-> **Status: ✅ IMPLEMENTED 2026-06-05 (suite green, pushed).** M1 retired the 6 legacy study-graph
+> **Status: ✅ IMPLEMENTED 2026-06-05 (suite green, pushed).** M1 retired the 6 compatibility study-graph
 > tools (162→156). M2 demoted the 8 admin/maintenance tools to CLI-only (156→**148**). M3 relocated the
 > `delete_*` CRUD to its domain file (rest scoped out — zero agent impact). M4 made the proto_*/
 > prototype_* convention intentional in-code (no churn-rename). M5 rewrote the `research_guide` front
-> door (it taught the RETIRED legacy flow!) to the canonical ESV path + pointed the entry docstrings
+> door (it taught the RETIRED compatibility flow!) to the canonical ESV path + pointed the entry docstrings
 > (start_project/start_run) to the next step. Agent surface: 162 → 148, one graph engine, no
 > destructive admin tools, a discoverable happy path. A contract-test guard keeps the retired/admin
 > tools off the surface.
 
-> User: "make the MCP genuinely cleaner, get rid of legacy. Analyze deeply, define a spec tracker."
+> User: "make the MCP genuinely cleaner, get rid of compatibility. Analyze deeply, define a spec tracker."
 > Findings from a full cross-reference of all **162** registered tools against actual skill/doc usage
 > + their service functions + their module-file placement. Tracked as M1–M5.
 
 ## The picture
 The MCP is **well-patterned** (`brief_*`/`record_*`, `get_*`/`list_*`/`delete_*`, `verb_noun`) and
-modular, but it has accreted: **162 agent-facing tools**, a layer of **pre-HX3 legacy** (the old
+modular, but it has accreted: **162 agent-facing tools**, a layer of **pre-HX3 compatibility** (the old
 constellation study-graph, replaced by the plan engine), a set of **admin/maintenance** tools that
 don't belong in an authoring surface, **incoherent file placement** (tools live in the wrong module
 files), some **naming drift**, and **no signaled happy path** (clarity depends entirely on the skills).
@@ -27,7 +27,7 @@ files), some **naming drift**, and **no signaled happy path** (clarity depends e
 
 ---
 
-## M1 — Retire the LEGACY constellation study-graph tools
+## M1 — Retire the COMPATIBILITY constellation study-graph tools
 The pre-HX3 engine built a graph of *studies* wired by *study-edges*; HX3 made the **plan** the single
 engine (`add_task`/`link_evidence`/`record_frame`). These study-edge tools are referenced by **0**
 skills and duplicate the plan engine — two ways to build a graph is the #1 confusion:
@@ -115,10 +115,10 @@ right files (M3), name consistently (M4), and announce their happy path (M5) —
 one clear graph engine (the plan), no destructive admin tools, and a discoverable path.
 
 ## Build order
-M1 (retire legacy — biggest clarity win, removes the "two engines" confusion) → M2 (demote admin) →
+M1 (retire compatibility — biggest clarity win, removes the "two engines" confusion) → M2 (demote admin) →
 M3 (file placement) → M4 (naming) → M5 (front-door). Each: implement → `list_tools()` + mcp-contract +
 full suite green → commit/push. Keep every change behaviour-preserving for the *kept* tools; only the
-legacy/admin registrations are removed.
+compatibility/admin registrations are removed.
 
 ## Explicitly NOT touched (verified legitimate, despite low skill-references)
 `attach_evidence` (attaches a SOURCE to a persona — unrelated to plan `link_evidence`),

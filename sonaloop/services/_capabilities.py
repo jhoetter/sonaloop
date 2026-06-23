@@ -144,7 +144,7 @@ def merge_capabilities(base: Any, patch: Any) -> dict[str, Any]:
 
 def capability_profile(persona: dict[str, Any]) -> dict[str, Any]:
     """The capability profile IN EFFECT for a persona: its declared `capabilities` normalized over
-    the safe defaults (missing fields filled, legacy extra keys preserved), or — when none was ever
+    the safe defaults (missing fields filled, compatibility extra keys preserved), or — when none was ever
     declared — the derived heuristic profile. Pure read: never rewrites the stored persona."""
     declared = persona.get("capabilities")
     if not isinstance(declared, dict):
@@ -152,7 +152,7 @@ def capability_profile(persona: dict[str, Any]) -> dict[str, Any]:
     out = {**default_capabilities(), **declared}
     out["rungs"] = {**default_capabilities()["rungs"],
                     **(declared.get("rungs") if isinstance(declared.get("rungs"), dict) else {})}
-    level = _A.resolve_tech_comfort(out.get("tech_comfort"))     # legacy tokens tolerated on READ
+    level = _A.resolve_tech_comfort(out.get("tech_comfort"))     # compatibility tokens tolerated on READ
     out["tech_comfort"] = level["value"] if level else default_capabilities()["tech_comfort"]
     if out.get("provenance") not in _CAPABILITY_PROVENANCES:
         out["provenance"] = "authored"

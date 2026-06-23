@@ -180,9 +180,9 @@ def register_surveys(app) -> None:
         by_q = {r["question_id"]: r for r in results["questions"]}
         qmap = {q["id"]: q for q in s["questions"]}
         proj = store.get_research_project(s.get("project_id")) if s.get("project_id") else None
-        crumbs = [(t("projects"), "/projects")]
+        crumbs = [(t("projects"), "/jobs")]
         if proj:
-            crumbs.append((proj["title"], f'/projects/{proj["id"]}'))
+            crumbs.append((proj["title"], f'/jobs/{proj["id"]}'))
         crumbs.append((s["title"], None))
         intro_html = (h("p", {"class_": "sub"}, s.get("intro", "")) if s.get("intro") else None)
         # When every question shares one answered count, state it ONCE at section level instead
@@ -204,7 +204,7 @@ def register_surveys(app) -> None:
                             if not n_resp else
                             fragment(*(_response_row(r, qmap, store) for r in responses))))
         body = fragment(intro_html, questions_html, responses_html)
-        proj_link = (h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"]) if proj else "—")
+        proj_link = (h("a", {"href": f'/jobs/{proj["id"]}'}, proj["title"]) if proj else "—")
         # Detail-header attribution (ux-contract §10 W11): the persona-sourced respondents
         # as the one avatar-group anatomy, leading the meta line.
         resp_pids = services.survey_respondent_personas(s["id"], store=store)

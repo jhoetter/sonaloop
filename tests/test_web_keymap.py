@@ -81,6 +81,6 @@ def test_sibling_urls_skip_gracefully():
 
 def test_old_inline_g_chord_nav_is_gone():
     """The ad-hoc 'g then o/p' jump map in APP_JS must not survive beside the registry
-    (it would shadow the registry's `g r` with /projects)."""
+    (it would shadow the registry's `g r` with /jobs)."""
     from sonaloop.web._components import APP_JS
-    assert "o:'/projects'" not in APP_JS
+    assert "o:'/jobs'" not in APP_JS

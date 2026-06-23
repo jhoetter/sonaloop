@@ -62,7 +62,7 @@ def _subject_key(subject: dict[str, Any]) -> str:
 def session_form(session: dict[str, Any]) -> str:
     """Classify usability/prototype-session records through the form registry.
 
-    A `flow` subject is material; the test run form is `walkthrough`. Legacy
+    A `flow` subject is material; the test run form is `walkthrough`. Compatibility
     PrototypeSession records have `prototype_id` rather than a `subject`, and
     still resolve to `prototype_use`.
     """

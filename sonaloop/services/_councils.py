@@ -343,7 +343,7 @@ def record_council_form(project_id: str, form_id: str, payload: dict[str, Any],
         stored["form_payload"] = dict(payload)
         store.insert_council_session(stored)
         return {**stored, "url": web_url(f"/councils/{stored['id']}"),  # noqa: F821 (bound)
-                "project_url": web_url(f"/projects/{project_id}")}  # noqa: F821 (bound)
+                "project_url": web_url(f"/jobs/{project_id}")}  # noqa: F821 (bound)
 
     # For built-in structured forms, delegate to the existing recorders so the
     # specialized blocks are complete (result/case_against/derived ladder/etc.).
@@ -492,7 +492,7 @@ def record_council(project_id: str, prompt: str, persona_ids: list[str],
     # The links a remote agent hands the user: the council's own page + its project (absent
     # before, so an agent that just ran a council couldn't say WHERE to see it).
     out = {**session, "url": web_url(f"/councils/{cid}"),  # noqa: F821 (bound)
-           "project_url": web_url(f"/projects/{project['id']}")}  # noqa: F821 (bound)
+           "project_url": web_url(f"/jobs/{project['id']}")}  # noqa: F821 (bound)
     if warnings:
         out["warnings"] = warnings
     return out
@@ -506,7 +506,7 @@ def get_council(session_id: str, store: Store | None = None) -> dict[str, Any]:
         raise KeyError(f"Unknown council session: {session_id}")
     out = {**c, "url": web_url(f"/councils/{c['id']}")}  # noqa: F821 (bound)
     if c.get("project_id"):
-        out["project_url"] = web_url(f"/projects/{c['project_id']}")  # noqa: F821 (bound)
+        out["project_url"] = web_url(f"/jobs/{c['project_id']}")  # noqa: F821 (bound)
     return out
 
 

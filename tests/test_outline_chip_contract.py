@@ -150,7 +150,7 @@ def _every_kind_project(store) -> str:
 
 def test_project_outline_rows_are_tag_free_but_keep_every_kind(store):
     pid = _every_kind_project(store)
-    html = _client().get(f"/projects/{pid}?lang=en").text
+    html = _client().get(f"/jobs/{pid}?lang=en").text
     _assert_tag_free_outline(html)
     assert {
         "council", "synthesis", "note", "prototype", "session", "report", "url_artifact",
@@ -184,7 +184,7 @@ def test_freeform_project_synthesis_rows_stay_tag_free(store):
                  "findings": [{"text": "f1", "kind": "cluster"},
                               {"text": "f2", "kind": "key_problem"}]},
         store=store)
-    html = _client().get(f'/projects/{proj["id"]}?lang=en').text
+    html = _client().get(f'/jobs/{proj["id"]}?lang=en').text
     _assert_tag_free_outline(html)
     assert 'data-rkind="synthesis"' in html and "Pains" in html and "2 findings" not in html
 
@@ -202,7 +202,7 @@ def test_every_row_kind_opens_a_resolving_slideover(store):
     import re as _re
     pid = _every_kind_project(store)
     client = _client()
-    html = client.get(f"/projects/{pid}?lang=en").text
+    html = client.get(f"/jobs/{pid}?lang=en").text
     rows = _re.findall(r'<a class="olrow[^>]*>|<a class="ol-stretch[^>]*>|<a class="sl-file__open[^>]*>', html)
     armed = {}
     for row in rows:
@@ -249,15 +249,15 @@ def test_context_url_ssr_opens_the_slideover(store):
     from urllib.parse import quote
     pid = _every_kind_project(store)
     client = _client()
-    detail = _first_drawer_url(client.get(f"/projects/{pid}?lang=en").text)
-    r = client.get(f"/projects/{pid}?lang=en&d={quote(detail, safe='')}")
+    detail = _first_drawer_url(client.get(f"/jobs/{pid}?lang=en").text)
+    r = client.get(f"/jobs/{pid}?lang=en&d={quote(detail, safe='')}")
     assert r.status_code == 200
     assert 'class="sl-drawer sl-drawer--wide is-open"' in r.text, "panel not SSR-opened"
     assert '<div class="sl-slide">' in r.text, "detail fragment missing from the panel"
     assert "sl-sidebar" in r.text and 'class="olrow' in r.text, "background page missing"
     import html as _h
     assert f'data-ssr="{_h.escape(detail, quote=True)}"' in r.text
-    assert f'data-drawer-close href="/projects/{pid}?lang=en"' in r.text, "no-JS close must drop ?d="
+    assert f'data-drawer-close href="/jobs/{pid}?lang=en"' in r.text, "no-JS close must drop ?d="
     assert f'data-drawer-expand href="{_h.escape(detail, quote=True)}"' in r.text
 
 
@@ -268,14 +268,14 @@ def test_context_param_composes_with_existing_params(store):
     from urllib.parse import quote
     pid = _every_kind_project(store)
     client = _client()
-    detail = _first_drawer_url(client.get(f"/projects/{pid}?lang=en").text)
-    r = client.get(f"/projects/{pid}?lang=en&kind=decision&d={quote(detail, safe='')}")
+    detail = _first_drawer_url(client.get(f"/jobs/{pid}?lang=en").text)
+    r = client.get(f"/jobs/{pid}?lang=en&kind=decision&d={quote(detail, safe='')}")
     assert r.status_code == 200
     assert 'class="sl-drawer sl-drawer--wide is-open"' in r.text
     body = r.text.split('id="drawer"')[0]                  # the background, before the panel
     kinds = {m for m in _RKIND.findall(body)}
     assert kinds == {"decision"}, f"filter not applied behind the panel: {kinds}"
-    assert f'data-drawer-close href="/projects/{pid}?lang=en&amp;kind=decision"' in r.text
+    assert f'data-drawer-close href="/jobs/{pid}?lang=en&amp;kind=decision"' in r.text
 
 
 @pytest.mark.parametrize("bad", [
@@ -283,7 +283,7 @@ def test_context_param_composes_with_existing_params(store):
     "//evil.example/phish",              # protocol-relative host
     "/\\evil.example/phish",             # backslash normalization trick
     "councils/x",                        # not rooted
-    "/projects/x?d=%2Fy",                # nested ?d= (recursion)
+    "/jobs/x?d=%2Fy",                # nested ?d= (recursion)
     "/nope/unknown-route",               # valid shape, unknown path -> 404 fragment
     "/data/assets",                      # static mount: no .sl-slide fragment
 ])
@@ -293,7 +293,7 @@ def test_invalid_context_param_renders_background_only(store, bad):
     so ?d= cannot become an open-redirect/IFRAME-style injection vector)."""
     pid = _every_kind_project(store)
     from urllib.parse import quote
-    r = _client().get(f"/projects/{pid}?lang=en&d={quote(bad, safe='')}")
+    r = _client().get(f"/jobs/{pid}?lang=en&d={quote(bad, safe='')}")
     assert r.status_code == 200
     assert 'class="sl-drawer sl-drawer--wide is-open"' not in r.text
     assert "data-ssr=" not in r.text
@@ -306,8 +306,8 @@ def test_slide_fragment_variant_ignores_context_param(store):
     from urllib.parse import quote
     pid = _every_kind_project(store)
     client = _client()
-    detail = _first_drawer_url(client.get(f"/projects/{pid}?lang=en").text)
-    r = client.get(f"/projects/{pid}?lang=en&slide=1&d={quote(detail, safe='')}")
+    detail = _first_drawer_url(client.get(f"/jobs/{pid}?lang=en").text)
+    r = client.get(f"/jobs/{pid}?lang=en&slide=1&d={quote(detail, safe='')}")
     assert r.status_code == 200
     assert r.text.startswith('<div class="sl-slide">') and "sl-drawer" not in r.text
 
@@ -316,7 +316,7 @@ def test_slide_fragment_variant_ignores_context_param(store):
 
 def test_seeded_outline_suppresses_counts_statuses_and_stance_tags(store):
     pid = _every_kind_project(store)
-    html = _client().get(f"/projects/{pid}?lang=en").text
+    html = _client().get(f"/jobs/{pid}?lang=en").text
     _assert_tag_free_outline(html)
     for retired in (
         "2 statements", "3 findings", "running</span>", "2 sections", "Observation</span>",
@@ -330,7 +330,7 @@ def test_only_prototype_sessions_are_outline_children(store):
     """Prototype sessions nest under the prototype. Flow/live-url subjects render directly as
     session rows, so the outline never invents walkthrough/live-surface row kinds."""
     pid = _every_kind_project(store)
-    html = _client().get(f"/projects/{pid}?lang=en").text
+    html = _client().get(f"/jobs/{pid}?lang=en").text
     top_level_session = child_seen = False
     assert 'data-rkind="flow"' not in html
     assert 'data-rkind="live_url"' not in html
@@ -349,6 +349,6 @@ def test_only_prototype_sessions_are_outline_children(store):
 
 def test_outline_uses_icons_not_type_text_columns(store):
     pid = _every_kind_project(store)
-    html = _client().get(f"/projects/{pid}?lang=en").text
+    html = _client().get(f"/jobs/{pid}?lang=en").text
     assert 'class="ol-ptag' not in html
     assert 'class="ol-ico"' in html

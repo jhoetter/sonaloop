@@ -65,7 +65,7 @@ details.qround>summary:hover .qround-q{border-color:var(--accent)}
 
 def render_stance(st: dict | None) -> str:
     """The one stance chip — label + color resolved from the canonical VALUE via the data-driven scale
-    (artifacts.stance_meta → i18n label_key). Stored label strings never pick the key: a legacy free
+    (artifacts.stance_meta → i18n label_key). Stored label strings never pick the key: a compatibility free
     label ('mixed') is ignored, an unresolvable host token (`label_raw`) only surfaces as the tooltip."""
     if not st:
         return ""

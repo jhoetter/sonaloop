@@ -1,6 +1,6 @@
 {
   "kind": "likelihood_levels",
-  "note": "The ONE likelihood vocabulary for predicted behaviors (ticket behavioral-prediction-output). An ordered probability scale; each level carries the numeric midpoint calibration scores against, so a prediction is falsifiable by construction. Resolved via artifacts.resolve_likelihood(): a known alias maps onto its level; a NUMBER in 0..1 is kept as the value and labelled with the nearest level; an unknown token is REJECTED on record (a vague 'probably-ish' would corrupt the calibration loop). `aliases` map free/legacy tokens (EN/DE) onto a canonical level — add an alias, no code change.",
+  "note": "The ONE likelihood vocabulary for predicted behaviors (ticket behavioral-prediction-output). An ordered probability scale; each level carries the numeric midpoint calibration scores against, so a prediction is falsifiable by construction. Resolved via artifacts.resolve_likelihood(): a known alias maps onto its level; a NUMBER in 0..1 is kept as the value and labelled with the nearest level; an unknown token is REJECTED on record (a vague 'probably-ish' would corrupt the calibration loop). `aliases` map free/compatibility tokens (EN/DE) onto a canonical level — add an alias, no code change.",
   "items": [
     {"tag": "rare",     "value": 0.1,  "label_key": "likelihood_rare",     "presentation": {"color": "var(--muted)"}},
     {"tag": "unlikely", "value": 0.3,  "label_key": "likelihood_unlikely", "presentation": {"color": "var(--muted)"}},

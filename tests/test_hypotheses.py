@@ -301,7 +301,7 @@ def test_project_page_rows_and_hypothesis_slideover(store):
                                                            "text": "street panel"},
                                       note="close enough", store=store)
     client = TestClient(web.create_app())
-    html = client.get(f'/projects/{proj["id"]}?lang=en').text
+    html = client.get(f'/jobs/{proj["id"]}?lang=en').text
     assert html.count('data-rkind="hypothesis"') == 2    # both bets are rows
     assert open_bet["text"] in html and resolved["text"] in html
     assert STRINGS["en"]["hyp_status_open"] in html      # lifecycle pills on the rows
@@ -327,11 +327,11 @@ def test_project_page_rows_and_hypothesis_slideover(store):
     assert "38" in detail and "close enough" in detail
     # the rail's Project link lands ON the bet's row (round-2 audit: the old
     # "View in project" meta-line link retired — no other kind carried one)
-    assert f'/projects/{proj["id"]}#hyp-{resolved["id"]}' in detail
+    assert f'/jobs/{proj["id"]}#hyp-{resolved["id"]}' in detail
     assert STRINGS["en"]["runtime_maybe_cleared"] in client.get("/hypotheses/nope?lang=en").text
     # a project without hypotheses shows no hypothesis rows (and no empty chrome)
     other = _project(store, "Quiet study")
-    assert 'data-rkind="hypothesis"' not in client.get(f'/projects/{other["id"]}?lang=en').text
+    assert 'data-rkind="hypothesis"' not in client.get(f'/jobs/{other["id"]}?lang=en').text
 
 
 # --------------------------------------------------------------- inspector: the cross-project list
@@ -365,7 +365,7 @@ def test_global_hypotheses_list_renders_empty_and_populated(store):
     # the list route does not shadow the canonical /hypotheses/{id} DETAIL page (UX U7)
     r = client.get(f'/hypotheses/{resolved["id"]}?lang=en')
     assert r.status_code == 200 and resolved["text"] in r.text
-    assert f'/projects/{pb["id"]}#hyp-{resolved["id"]}' in r.text  # secondary view-in-project link
+    assert f'/jobs/{pb["id"]}#hyp-{resolved["id"]}' in r.text  # secondary view-in-project link
 
 
 # --------------------------------------------------------------- review fixes (audit-trail integrity)

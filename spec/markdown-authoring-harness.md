@@ -87,4 +87,4 @@ showcases the target style immediately.
 - [x] skills updated (5)
 - [x] suite green
 - [x] new Markdown-first design-thinking project created & viewable (since purged — store reset to a
-  clean, zero-legacy slate at the user's request; new content authors natively via the primitives)
+  clean, zero-compatibility slate at the user's request; new content authors natively via the primitives)

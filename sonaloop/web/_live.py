@@ -81,7 +81,7 @@ function show(text,sub,url){
 function concerns(d){
   var p=location.pathname;
   if(p==='/activity') return true;
-  if(d.url && d.url!=='/projects' && (p===d.url||p.indexOf(d.url+'/')===0)) return true;
+  if(d.url && d.url!=='/jobs' && (p===d.url||p.indexOf(d.url+'/')===0)) return true;
   if(d.entity_id && p.indexOf(d.entity_id)>=0) return true;
   if(d.project_id && p.indexOf(d.project_id)>=0) return true;
   return false;

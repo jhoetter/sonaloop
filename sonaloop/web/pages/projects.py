@@ -1,6 +1,7 @@
 """Project pages: home/index, detail (outline/graph + hypotheses), report, plan (spec/roadmap.md R2)."""
 from __future__ import annotations
 
+from fastapi import Request
 from fastapi.responses import RedirectResponse
 
 from ... import result_outcomes
@@ -15,15 +16,28 @@ from .._project_icons import project_icon_edit_script, project_icon_html
 
 
 def register_projects(app) -> None:
+    def _redirect_legacy(request: Request, target: str) -> RedirectResponse:
+        query = request.url.query
+        return RedirectResponse(target + (f"?{query}" if query else ""), status_code=308)
+
     @app.get("/", response_class=HTMLResponse)
     def index(page: int = Query(default=1, ge=1), q: str = Query(default="")) -> str:
         # Home is the Projects list (project-centric IA; Overview removed).
         return _projects_page(page, q)
-    @app.get("/projects", response_class=HTMLResponse)
+
+    @app.get("/jobs", response_class=HTMLResponse)
     def projects(page: int = Query(default=1, ge=1), q: str = Query(default="")) -> str:
         return _projects_page(page, q)
 
-    @app.get("/projects/{project_id}", response_class=HTMLResponse)
+    @app.get("/projects", include_in_schema=False)
+    def legacy_projects_redirect(request: Request):
+        return _redirect_legacy(request, "/jobs")
+
+    @app.get("/projects/{project_path:path}", include_in_schema=False)
+    def legacy_project_path_redirect(project_path: str, request: Request):
+        return _redirect_legacy(request, f"/jobs/{project_path}")
+
+    @app.get("/jobs/{project_id}", response_class=HTMLResponse)
     def project_detail(project_id: str,
                        kind: str = Query(default=""), phase: str = Query(default=""),
                        persona: str = Query(default=""), status: str = Query(default=""),
@@ -53,7 +67,7 @@ def register_projects(app) -> None:
         # inline in the outline as first-class artifacts (add as many as you like; they flow into the project).
         top_btn = ""
         if plan:
-            plan_url = f'/projects/{proj["id"]}/plan'
+            plan_url = f'/jobs/{proj["id"]}/plan'
             top_btn = h("a", {"class_": "sl-toolbtn tour-plan-chip", "href": plan_url,
                               "data-drawer": plan_url, "data-drawer-title": t("plan_h")},
                         raw(_icon("target")), " ", _methodology_name())
@@ -102,8 +116,8 @@ def register_projects(app) -> None:
         outline = _outline_html(display_graph, sessions=sess_groups, decisions=decisions,
                                 hypotheses=hypotheses, surveys=surveys,
                                 filters=selected, facets_out=facets,
-                                clear_href=f'/projects/{proj["id"]}', q=q)
-        base = f'/projects/{proj["id"]}' + (f"?q={quote(q)}" if q else "")
+                                clear_href=f'/jobs/{proj["id"]}', q=q)
+        base = f'/jobs/{proj["id"]}' + (f"?q={quote(q)}" if q else "")
         bar = filter_bar(base, facets, selected,
                          search={"value": q, "placeholder": t("search_project_ph")})
         # data-keynav arms the keymap's j/k row walk on the outline (ux-contract C7).
@@ -126,21 +140,21 @@ def register_projects(app) -> None:
                  main_view) + raw(project_icon_edit_script())
         # Write affordances (web CRUD, V10 §9): the ONE visible "…" overflow — Edit opens the
         # metadata dialog over the page, Delete the typed-confirm modal. No create buttons
-        # (notes/sections/projects are created by the MCP/CLI host).
+        # (notes/sections/jobs are created by the MCP/CLI host).
         from .edit import project_actions
         actions = fragment(top_btn,
                            raw(project_actions(proj)),
-                           raw(_star("project", proj["id"], proj["title"], f'/projects/{proj["id"]}')))
+                           raw(_star("project", proj["id"], proj["title"], f'/jobs/{proj["id"]}')))
         from .._palette import visit_marker   # the palette's recents beacon (UX V6)
         return _layout(proj["title"], body + visit_marker(proj["title"]), store, active="projects",
-                       crumbs=[(t("projects"), "/projects"), (proj["title"], None)], actions=actions)
+                       crumbs=[(t("projects"), "/jobs"), (proj["title"], None)], actions=actions)
 
     # ---- Hypotheses/decisions still anchor on their project page (the bets/decisions rows),
     #      but their canonical Ref routes /hypotheses/{id} and /decisions/{id} now serve REAL
     #      detail pages (UX U7, §8.2) — registered with their kind modules (pages/hypotheses,
     #      pages/decisions); the old redirects retired. ----
 
-    @app.get("/projects/{project_id}/outcomes/{outcome_id}", response_class=HTMLResponse)
+    @app.get("/jobs/{project_id}/outcomes/{outcome_id}", response_class=HTMLResponse)
     def project_job_outcome(project_id: str, outcome_id: str) -> str:
         store = Store()
         try:
@@ -152,7 +166,7 @@ def register_projects(app) -> None:
         if not outcome:
             return _layout(t("not_found"), _empty_state(t("job_outcome_kind"), t("runtime_maybe_cleared"), icon="target"),
                            store, active="projects",
-                           crumbs=[(t("projects"), "/projects"), (proj["title"], f'/projects/{project_id}'),
+                           crumbs=[(t("projects"), "/jobs"), (proj["title"], f'/jobs/{project_id}'),
                                    (t("job_outcome_kind"), None)])
         body = h("div", {"class_": "syn-main"}, raw(render_schema_outcomes([outcome], store, project_id)))
         evidence_refs = outcome.get("evidence_refs") or []
@@ -167,17 +181,17 @@ def register_projects(app) -> None:
         title = outcome.get("name") or outcome.get("schema_id", "")
         return detail_page(
             store, title=title, active="projects",
-            crumbs=[(t("projects"), "/projects"), (proj["title"], f'/projects/{project_id}'),
+            crumbs=[(t("projects"), "/jobs"), (proj["title"], f'/jobs/{project_id}'),
                     (t("job_outcome_kind"), None)],
             body=body, icon="target", kind=t("job_outcome_kind"),
             sub=(outcome.get("schema") or {}).get("summary", ""),
             prop_rows=prop_rows,
             rel_proj_id=project_id,
-            star=("job_outcome", outcome["id"], title, f'/projects/{project_id}/outcomes/{outcome["id"]}'))
+            star=("job_outcome", outcome["id"], title, f'/jobs/{project_id}/outcomes/{outcome["id"]}'))
 
     # ---- A report is a project-scope synthesis; its canonical URL is /syntheses/{id} (+ .pdf).
-    #      /projects/{id}/meta is a convenience → the project's latest report. ----
-    @app.get("/projects/{project_id}/meta")
+    #      /jobs/{id}/meta is a convenience → the project's latest report. ----
+    @app.get("/jobs/{project_id}/meta")
     def project_meta(project_id: str):
         store = Store()
         reports = store.list_reports(project_id)
@@ -190,9 +204,9 @@ def register_projects(app) -> None:
         return HTMLResponse(_layout(proj["title"] + " — " + t("synthesis_kind"),
                                     _empty_state(t("synthesis_kind"), t("report_unavailable"), icon="overview"),
                                     store, active="projects",
-                                    crumbs=[(t("projects"), "/projects"), (proj["title"], f"/projects/{project_id}"), (t("synthesis_kind"), None)]))
+                                    crumbs=[(t("projects"), "/jobs"), (proj["title"], f"/jobs/{project_id}"), (t("synthesis_kind"), None)]))
 
-    @app.get("/projects/{project_id}/plan", response_class=HTMLResponse)
+    @app.get("/jobs/{project_id}/plan", response_class=HTMLResponse)
     def project_plan(project_id: str) -> str:
         store = Store()
         try:
@@ -205,5 +219,5 @@ def register_projects(app) -> None:
         else:
             body = _plan_html(plan, store)
         return _layout(f'{proj["title"]} — {t("plan_h")}', body, store,
-                       crumbs=[(t("projects"), "/projects"), (proj["title"], f"/projects/{project_id}"), (t("plan_h"), None)],
+                       crumbs=[(t("projects"), "/jobs"), (proj["title"], f"/jobs/{project_id}"), (t("plan_h"), None)],
                        active="projects")

@@ -2,7 +2,7 @@
 
 Guards the `stance_mixed` bug class: every stored Stance carries a canonical value (-2..+2); the web
 layer derives chip label, color and distribution bucket from that value via artifacts.stance_meta.
-Stored label strings (legacy free labels, `label_raw` host tokens) never pick an i18n key or a bucket.
+Stored label strings (compatibility free labels, `label_raw` host tokens) never pick an i18n key or a bucket.
 """
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from sonaloop.web._render import render_stance
 from sonaloop.web._synthesis import _stance_dist_html
 
 
-def test_legacy_free_label_renders_the_canonical_chip_from_its_value():
+def test_compatibility_free_label_renders_the_canonical_chip_from_its_value():
     # constructed dict bypassing the validator — the pre-normalization stored shape
     html = render_stance({"value": 1, "label": "mixed"})
     assert t(A.stance_meta(1)["label_key"]) in html

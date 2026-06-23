@@ -24,7 +24,7 @@ def test_checkpoint_step_persists_trace_io_fields(store):
     }, store=store)
 
     entry = services.run_journal(run["run_id"], store=store)["steps"][0]
-    assert entry["evidence"] == ["council:c1"]          # old callers still have the legacy field
+    assert entry["evidence"] == ["council:c1"]          # old callers still have the compatibility field
     assert entry["consume_refs"] == ["frame:frame__root"]
     assert entry["optional_context_refs"] == ["memory:p1:day"]
     assert entry["produced_refs"] == ["council:c1"]

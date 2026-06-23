@@ -17,7 +17,7 @@ PAGES_DIR = Path(__file__).resolve().parent.parent / "sonaloop" / "web" / "pages
 # ---------------------------------------------------------------- inline-style ratchet
 
 # Inline style attributes across web/pages/*.py — both the h() attr form ("style": "…")
-# and any literal style="…" in legacy f-strings. Measured 2026-06-11; lowered by P2
+# and any literal style="…" in compatibility f-strings. Measured 2026-06-11; lowered by P2
 # (the project-page appendix sections retired), P3 (the list pages folded into the
 # Library browser's primitive_row rendering), P4 (the survey detail rebuilt on
 # question/response rows), U7 (the hyp/decision card margins moved into the

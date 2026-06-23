@@ -47,9 +47,9 @@ def register_syntheses(app) -> None:
         proj = (store.get_research_project(syn.get("project_id")) if (is_project and syn.get("project_id"))
                 else services.parent_project_of_synthesis(synthesis_id, store))
         short_title = _display_title(syn["title"])
-        crumbs = [(t("projects"), "/projects")]
+        crumbs = [(t("projects"), "/jobs")]
         if proj:
-            crumbs.append((proj["title"], f"/projects/{proj['id']}"))
+            crumbs.append((proj["title"], f"/jobs/{proj['id']}"))
         crumbs.append((short_title, None))
         # One renderer, plus the section list → the right-edge scrollspy rail (§3.6c): the
         # report's structure stays navigable even when the clamped prose sections are short.
@@ -63,7 +63,7 @@ def register_syntheses(app) -> None:
         # The shared detail scaffold (UX U7, §8.2): the report shell keeps its own cover (the
         # REPORT eyebrow + title + meta line ARE the header anatomy), detail_page adds what the
         # page was missing — the properties rail (project, sources, dates) beside the document.
-        proj_link = (h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"]) if proj else "")
+        proj_link = (h("a", {"href": f'/jobs/{proj["id"]}'}, proj["title"]) if proj else "")
         n_sources = (len({x for sec in syn.get("sections") or [] for x in sec.get("source_study_ids", [])})
                      if is_project else len(syn.get("council_ids") or []))
         # Rail order is the §8.2 anatomy (project → kind-specifics → dates); no "Type: Report"

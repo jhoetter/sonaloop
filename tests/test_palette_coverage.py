@@ -92,7 +92,7 @@ def test_palette_markup_seeds_registry_commands_and_groups(store):
     labels/icons/order as JSON (UX V6)."""
     html = TestClient(web.create_app()).get("/?lang=en").text
     cfg = html.split('id="cmdk-cfg" type="application/json">')[1].split("</script>")[0]
-    for url in ("/projects", "/personas", "/activity", "/runs", "/documentation",
+    for url in ("/jobs", "/personas", "/activity", "/runs", "/documentation",
                 "/surveys", "/hypotheses", "/decisions", "#settings", "#shortcuts"):
         assert f'"url": "{url}"' in cfg or f'"{url}"' in cfg, f"palette command {url} missing"
     import json
@@ -107,7 +107,7 @@ def test_palette_markup_seeds_registry_commands_and_groups(store):
 
 
 def test_palette_consolidates_library_kinds_under_one_entry(store):
-    """C10/V6: the kind lists are CHILDREN of the one /library entry — the palette never
+    """C10/V6: the kind lists are CHILDREN of the one /formats entry — the palette never
     re-exposes the retired flat IA as top-level commands."""
     import json
     from sonaloop.web.pages.library import LIBRARY_TABS
@@ -115,12 +115,12 @@ def test_palette_consolidates_library_kinds_under_one_entry(store):
     cfg = html.split('id="cmdk-cfg" type="application/json">')[1].split("</script>")[0]
     parsed = json.loads(cfg)
     tops = [n["url"] for n in parsed["nav"]]
-    lib = next(n for n in parsed["nav"] if n["url"] == "/library")
+    lib = next(n for n in parsed["nav"] if n["url"] == "/formats")
     assert [c["url"] for c in lib["children"]] == [route for _k, route, *_ in LIBRARY_TABS]
     for _k, route, *_rest in LIBRARY_TABS:
         assert route not in tops, (
             f"{route} is a flat top-level palette entry again — kind lists must ride the "
-            "/library item's `children` (web/_palette_registry.palette_nav)")
+            "/formats item's `children` (web/_palette_registry.palette_nav)")
     # /runs stays searchable but quiet (retired from the IA — it must not read like nav)
     runs = next(n for n in parsed["nav"] if n["url"] == "/runs")
     assert runs.get("quiet") is True
@@ -219,7 +219,7 @@ def test_search_is_diacritic_and_case_insensitive(store):
     proj = services.create_research_project("Überstunden im Schichtdienst", goal="g", store=store)
     for q in ("überst", "uberst", "ÜBERST"):
         rows = search_rows(q, store=store)
-        assert any(r["url"] == f'/projects/{proj["id"]}' for r in rows), f"no hit for {q!r}"
+        assert any(r["url"] == f'/jobs/{proj["id"]}' for r in rows), f"no hit for {q!r}"
 
 
 def test_search_caps_results_per_kind(store):
@@ -268,7 +268,7 @@ def test_detail_pages_stamp_the_recents_beacon(store):
     # the slide-over fragment stamps the SAME visit (peek counts as a visit)
     assert beacon(client.get(f"/councils/{cid}?slide=1").text)["url"] == f"/councils/{cid}"
     # project + persona pages stamp their own kind
-    assert beacon(client.get(f"/projects/{pid}").text)["type"] == "project"
+    assert beacon(client.get(f"/jobs/{pid}").text)["type"] == "project"
     per = store.list_personas()[0]
     assert beacon(client.get(f'/personas/{per["id"]}').text)["type"] == "persona"
     # list pages never pollute the recents

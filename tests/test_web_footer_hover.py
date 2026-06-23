@@ -40,7 +40,7 @@ def test_user_menu_rows_hover_like_nav_rows():
         with sync_playwright() as pw:
             b = pw.chromium.launch()
             pg = b.new_context(viewport={"width": 1440, "height": 900}).new_page()
-            pg.goto(f"http://127.0.0.1:{port}/projects", wait_until="load")
+            pg.goto(f"http://127.0.0.1:{port}/jobs", wait_until="load")
             pg.wait_for_timeout(400)
 
             # the nav rows' reference hover background (a NON-active row)

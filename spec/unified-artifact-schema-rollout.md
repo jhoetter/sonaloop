@@ -22,7 +22,7 @@ Progress:
   council voices, synthesis voices and prototype sessions are the SAME `.turn` statement card; every
   finding section (key_problems/pain_solvers/clusters/segmente/ranking/recommendations + persona pains)
   is the SAME `.fitem` row; one stance scale everywhere.
-- ✅ **Phase 3 (legacy-field removal)** — DONE (2026-06-06; no backwards-compat needed — local dev,
+- ✅ **Phase 3 (compatibility-field removal)** — DONE (2026-06-06; no backwards-compat needed — local dev,
   test data only). Storage + model are **primitives-only**: `CouncilSession` dropped `turns`;
   `Synthesis` dropped `key_problems/pain_solvers/handlungsempfehlungen/offene_fragen/shortlist/clusters/
   segmente/ranking/voices`. `record_*` convert the validated payload (or accept native primitives) to
@@ -35,7 +35,7 @@ Progress:
   `_persona_voices_html` now renders the unified `.turn` card. Demo re-seeded clean; 127 tests green;
   `tests/test_render_consolidation.py` guards that voice/finding markup comes only from `_render.py`.
   Remaining (NOT done, by choice): the host-authoring INPUT contract still accepts the convenient
-  `turns`/`key_problems` shapes and converts them — that's authoring convenience, not stored legacy.
+  `turns`/`key_problems` shapes and converts them — that's authoring convenience, not stored compatibility.
 
 Guiding rules for every phase:
 - **Non-breaking until the last step.** Each phase ships independently and leaves the app green.
@@ -72,7 +72,7 @@ normalize. No rendering or reading wired yet — pure additions + unit tests.
     "skeptical": {"value": -1, "label": "skeptical",   "color": "var(--amber)"},
     "oppose":    {"value": -2, "label": "oppose",      "color": "var(--red)"} }
   ```
-  Plus an alias map (legacy → canonical): `SUPPORT→support, MAYBE→conditional, ABSTAIN→neutral,
+  Plus an alias map (compatibility → canonical): `SUPPORT→support, MAYBE→conditional, ABSTAIN→neutral,
   OPPOSE→oppose, positiv→support, bedingt→conditional, skeptisch→skeptical, dafür→support, …`. Put aliases
   in the same JSON (`"_aliases": {...}`) or a sibling; resolved by `present()`-style lookup.
 - NEW `suggestions/finding_kinds.json` — the finding kinds → {label_key, id, glyph?}:
@@ -81,7 +81,7 @@ normalize. No rendering or reading wired yet — pure additions + unit tests.
 
 **Tests (NEW `tests/test_artifacts_primitives.py`)**
 - constructors normalize + drop empties; round-trip JSON-serializable.
-- stance alias resolution (every legacy vote/stance/sentiment term resolves to a canonical value).
+- stance alias resolution (every compatibility vote/stance/sentiment term resolves to a canonical value).
 - `present("stance:support")` / finding-kind lookups return label+color (extends the presentation gate).
 
 **Done when:** module + JSON exist, unit tests green, full suite green (nothing wired yet).
@@ -94,7 +94,7 @@ normalize. No rendering or reading wired yet — pure additions + unit tests.
 **Zero data migration.** This is the completion of the `_prose`/`.turn`-card unification, pushed down to
 the data view — the four "looks different" surfaces collapse to one code path.
 
-### 1A — Adapters (legacy record → primitives)
+### 1A — Adapters (compatibility record → primitives)
 NEW `sonaloop/artifacts.py` (same module), pure read, `(record, store=None)`:
 ```python
 def council_prompts(c)        -> list[prompt]      # prompt(kind=question|proposal) + questions[]
@@ -116,7 +116,7 @@ def session_statements(se,store)-> list[statement] # reaction → statement(text
 def note_findings(n)          -> list[finding]      # text → finding(kind from note.kind)
 ```
 Rule: adapters PREFER a record's native primitive fields if present (forward-compat for Phase 2), else
-derive from legacy fields. Stance terms resolved through `stance_scale.json`.
+derive from compatibility fields. Stance terms resolved through `stance_scale.json`.
 
 ### 1B — Renderers
 NEW `sonaloop/web/_render.py` (web HTML via `h()`/`_prose`):
@@ -172,31 +172,31 @@ reviewed, burndown down.
 
 ## Phase 2 — Native authoring of primitives  ·  ~1–2 days  ·  additive, dual-read
 
-**Goal:** new councils/syntheses/sessions WRITE the primitive shape directly; adapters keep reading legacy.
+**Goal:** new councils/syntheses/sessions WRITE the primitive shape directly; adapters keep reading compatibility.
 
 **Steps**
 - **Models** (`models.py`): add optional fields `statements: list, findings: list, prompts: list,
   refs: list` to CouncilSession / Synthesis (additive; default `[]`). PrototypeSession: `statements`.
 - **record_* (`services/_councils.py`, `_synthesis.py`, `_engines.py`)**: accept the primitive fields;
   `validate_statement`/`validate_finding`/`validate_prompt` (NEW in `artifacts.py`) normalize + check
-  (persona_id resolvable, stance in scale, kind in finding_kinds). Legacy params still accepted (back-compat).
+  (persona_id resolvable, stance in scale, kind in finding_kinds). Compatibility params still accepted (back-compat).
   Persist whichever was given.
-- **Adapter precedence** (from 1A) already prefers native fields → new records render natively, old via legacy.
+- **Adapter precedence** (from 1A) already prefers native fields → new records render natively, old via compatibility.
 - **brief_\* (`services/_councils.py`, `_synthesis.py`)**: extend the instructions (precedent:
   `MARKDOWN_CONTRACT`) to describe the primitive shape — "author `statements[]` (one per persona answer)
-  and `findings[]` (kind = key_problem|recommendation|…) instead of the legacy fields."
+  and `findings[]` (kind = key_problem|recommendation|…) instead of the compatibility fields."
 - **Skills**: update run-council / synthesize / design-thinking to author primitives.
 - **Validation tests**: `tests/test_record_primitives.py` — record a council/synthesis via primitives →
-  read back → renders identically to the adapter-on-legacy path.
+  read back → renders identically to the adapter-on-compatibility path.
 
 **Done when:** a council/synthesis can be authored entirely in primitives and renders identically;
-legacy authoring still works; suite green.
+compatibility authoring still works; suite green.
 
 ---
 
-## Phase 3 — Backfill + retire legacy  ·  ~1 day  ·  the breaking cleanup (last)
+## Phase 3 — Backfill + retire compatibility  ·  ~1 day  ·  the breaking cleanup (last)
 
-**Goal:** migrate existing records into primitive fields, then delete the duplicate legacy fields/branches.
+**Goal:** migrate existing records into primitive fields, then delete the duplicate compatibility fields/branches.
 
 **Steps**
 1. **Backfill script** `scripts/migrate_to_primitives.py` (idempotent): for every council/synthesis/
@@ -204,16 +204,16 @@ legacy authoring still works; suite green.
    fields; `upsert`. Dry-run + `--apply`. Re-runnable.
 2. **Verify**: golden-diff before/after backfill = identical (adapters already produced these primitives,
    so rendering is unchanged) — proves the backfill is loss-free.
-3. **Retire**: drop the legacy branches from the adapters (now always native); deprecate the legacy model
+3. **Retire**: drop the compatibility branches from the adapters (now always native); deprecate the compatibility model
    fields (`turns/votes/voices/key_problems/pain_solvers/handlungsempfehlungen/offene_fragen/clusters/
-   segmente/shortlist/ranking/exec_summary/summary/...`). Keep a thin legacy export shim only if an
+   segmente/shortlist/ranking/exec_summary/summary/...`). Keep a thin compatibility export shim only if an
    external consumer needs it; otherwise remove.
 4. **Lower burndown** + delete dead code; update `spec/unified-artifact-schema.md` status → done.
 
 **Risks:** this is the only breaking step. Gate it behind: backfill dry-run review, golden identity check,
 and a DB snapshot (`make snapshot`) before `--apply`. Reversible via snapshot restore.
 
-**Done when:** records store primitives natively, legacy fields gone, all gates green, golden identical
+**Done when:** records store primitives natively, compatibility fields gone, all gates green, golden identical
 across the migration.
 
 ---
@@ -275,7 +275,7 @@ collapses the surfaces the user flagged into one code path, non-breaking, behind
 ## Definition of done (whole programme)
 - Five render functions (`render_statement/finding/prompt/ref/stance`) are the ONLY way artifact content is
   drawn; no per-artifact prose/voice/list builders remain.
-- Records store the five primitives natively; legacy fields removed; one stance scale + one finding-kind
+- Records store the five primitives natively; compatibility fields removed; one stance scale + one finding-kind
   vocab, both in `suggestions/*.json`.
 - Memory subsystem unified on `event` + persona-scoped `finding`.
 - All gates green; `spec/unified-artifact-schema.md` marked done.

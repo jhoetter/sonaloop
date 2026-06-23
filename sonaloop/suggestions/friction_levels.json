@@ -1,6 +1,6 @@
 {
   "kind": "friction_levels",
-  "note": "The ONE per-step friction vocabulary for usability sessions (the usability-session artifact). An ordered severity scale (0 none … 3 blocked) mirroring stance_scale.json; resolved via artifacts.resolve_friction(). `aliases` map free/legacy tokens (incl. EN/DE display words) onto a canonical level — add an alias, no code change; lookup is case/whitespace-insensitive. Unlike stances, an UNKNOWN level is rejected on record instead of bucketed: silently downgrading a 'blocked' read to 'none' would corrupt the session funnel.",
+  "note": "The ONE per-step friction vocabulary for usability sessions (the usability-session artifact). An ordered severity scale (0 none … 3 blocked) mirroring stance_scale.json; resolved via artifacts.resolve_friction(). `aliases` map free/compatibility tokens (incl. EN/DE display words) onto a canonical level — add an alias, no code change; lookup is case/whitespace-insensitive. Unlike stances, an UNKNOWN level is rejected on record instead of bucketed: silently downgrading a 'blocked' read to 'none' would corrupt the session funnel.",
   "items": [
     {"tag": "none",       "value": 0, "label_key": "friction_none",       "presentation": {"color": "var(--green)"}},
     {"tag": "hesitation", "value": 1, "label_key": "friction_hesitation", "presentation": {"color": "var(--accent)"}},

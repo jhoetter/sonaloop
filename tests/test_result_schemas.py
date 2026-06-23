@@ -216,16 +216,16 @@ def test_project_page_renders_job_outcome_not_synthesis_schema_section(store):
 
     pid, syn = _record_reaction_outcome_fixture(store)
     client = TestClient(web.create_app())
-    html = client.get(f"/projects/{pid}?lang=en").text
+    html = client.get(f"/jobs/{pid}?lang=en").text
     assert "Job outcome" in html
     assert "Stimulus Reaction" in html
     assert "Threshold Gate" in html
     assert 'data-rkind="job_outcome"' in html
     outcome = O.get_project_schema_outcome(store, pid, "stimulus_reaction.v1")
     assert outcome
-    assert f'/projects/{pid}/outcomes/{outcome["id"]}' in html
+    assert f'/jobs/{pid}/outcomes/{outcome["id"]}' in html
 
-    detail = client.get(f'/projects/{pid}/outcomes/{outcome["id"]}?slide=1&lang=en').text
+    detail = client.get(f'/jobs/{pid}/outcomes/{outcome["id"]}?slide=1&lang=en').text
     assert "Stimulus Reaction" in detail
     assert "Score plus themes" in detail
     assert "sentiment_score" in detail

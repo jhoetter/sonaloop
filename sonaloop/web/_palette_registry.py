@@ -82,7 +82,7 @@ def _date(rec: dict, key: str = "created_at") -> str:
 
 def _project_rows(store: Store) -> Iterator[Row]:
     for p in store.list_research_projects():
-        yield p.get("title", ""), (p.get("goal", "") or "")[:90], f'/projects/{p["id"]}', _date(p)
+        yield p.get("title", ""), (p.get("goal", "") or "")[:90], f'/jobs/{p["id"]}', _date(p)
 
 
 def _persona_rows(store: Store) -> Iterator[Row]:
@@ -194,7 +194,7 @@ def _methodology_rows(store: Store) -> Iterator[Row]:
 # ------------------------------------------------- the searchable entity types (ordered)
 
 SEARCH_SOURCES: dict[str, SearchSource] = {
-    "project": SearchSource(lambda: t("projects"), "projects", "#7a5ed1", "/projects", _project_rows),
+    "project": SearchSource(lambda: t("projects"), "projects", "#7a5ed1", "/jobs", _project_rows),
     "persona": SearchSource(lambda: t("personas"), "personas", "#3d7fc4", "/personas", _persona_rows),
     "methodology": SearchSource(lambda: t("methodologies_h"), "target", "#5e6ad2", "/methodologies",
                                 _methodology_rows),
@@ -291,7 +291,7 @@ def palette_nav() -> list[dict[str, Any]]:
     nav item (core seeds AND extension registrations — the nav registry stays the source of
     truth) with its icon, then the chrome/menu surfaces (Activity, Settings popover on
     '#settings', Documentation, the ? cheat sheet on '#shortcuts') and the /runs journal. The Library's
-    kind lists are NOT flat top-level commands anymore — they ride the /library item as
+    kind lists are NOT flat top-level commands anymore — they ride the /formats item as
     `children` (rendered as one expandable "Library" entry; each child stays individually
     matchable when typing). `quiet` items skip the empty-state listing but stay searchable
     (Runs was deliberately retired from the IA — it must not look like nav again)."""
@@ -302,7 +302,7 @@ def palette_nav() -> list[dict[str, Any]]:
         for it in navitems:
             entry: dict[str, Any] = {"title": resolve_label(it["label"]), "url": it["href"],
                                      "icon": it.get("icon") or "arrowRight"}
-            if it["href"] == "/library":
+            if it["href"] == "/formats":
                 entry["children"] = [{"title": label(), "url": route, "icon": icon}
                                      for _k, route, icon, label, *_rest in LIBRARY_TABS]
             items.append(entry)
@@ -333,6 +333,7 @@ def nav_commands() -> list[dict[str, str]]:
 
 # Detail routes (GET /{prefix}/{param}) that are deliberately NOT entity-search targets.
 NON_SEARCHABLE_ROUTES: dict[str, str] = {
+    "/projects": "legacy redirect to /jobs; canonical job records are searchable under /jobs",
     "/activities": "one simulated calendar activity of one persona — reached from the persona's "
                    "calendar; far too granular for a global jump target",
     "/documentation": "the curated docs hub — the nav-derived 'Documentation' jump command covers "

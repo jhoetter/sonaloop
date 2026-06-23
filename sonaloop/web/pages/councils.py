@@ -210,22 +210,22 @@ def register_councils(app) -> None:
         # Forward, project-rooted crumb: Projects > [Project] > [Council]. (A Discover council FEEDS
         # the Define synthesis — it is not nested under it; and the project lookup must work for
         # plan-based projects, where the council is scoped directly to the project.)
-        crumbs = [(t("projects"), "/projects")]
+        crumbs = [(t("projects"), "/jobs")]
         proj = (services.parent_project_of_council(session_id, store)
                 or (services.parent_project_of_synthesis(ps["id"], store)
                     if (ps := services.parent_study_of_council(session_id, store)) else None))
         if proj:
-            crumbs.append((proj["title"], f"/projects/{proj['id']}"))
+            crumbs.append((proj["title"], f"/jobs/{proj['id']}"))
         crumbs.append((short_title, None))
         # Rail order is the §8.2 anatomy: project → kind-specifics → dates.
-        proj_link = (h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"]) if proj else "")
+        proj_link = (h("a", {"href": f'/jobs/{proj["id"]}'}, proj["title"]) if proj else "")
         # No rail "Type" row: the header mode pill already states it — with the pill the rail row
         # became an echo (round-3 H3, reversing the round-2 keep; assets keep Type = real info).
         prop_rows = [("projects", t("project"), proj_link),
                      *detail_form_rows("council", session),
                      ("personas", personas_h, str(n_voices))]
         if mode != "discovery":                               # the vote panel only where a vote/reaction exists
-            # value-bucketed via the scale (votes ARE stances; legacy tokens resolve through the
+            # value-bucketed via the scale (votes ARE stances; compatibility tokens resolve through the
             # aliases); zero buckets drop (V3 — an "Oppose 0" row is noise, not data)
             vals = [st["value"] for x in session["votes"] if (st := _A.vote_stance(x)) is not None]
             prop_rows += [("dot", t(r["label_key"]), str(n))

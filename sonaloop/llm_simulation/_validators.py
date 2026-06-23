@@ -388,7 +388,7 @@ def validate_synthesis_section_payload(payload: dict[str, Any]) -> dict[str, Any
 
 def validate_synthesis_payload(payload: dict[str, Any]) -> dict[str, Any]:
     """Validate the host-authored synthesis PROSE + provenance. The structured content is the unified
-    primitives (findings/statements/prompts) validated separately at record time — no legacy list/voice
+    primitives (findings/statements/prompts) validated separately at record time — no compatibility list/voice
     shapes (spec/unified-artifact-schema.md)."""
     if not isinstance(payload, dict):
         raise ValueError("Synthesis must be a JSON object.")

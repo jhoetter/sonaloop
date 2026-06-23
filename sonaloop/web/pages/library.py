@@ -1,16 +1,19 @@
 """The Library — ONE browser over every produced primitive (spec/ux-contract.md §3.5) —
 plus the library detail pages: sections, notes, prototypes (spec/roadmap.md R2).
 
-/library renders `ui.tabs` across the 8 produced kinds; every tab is the SAME shape:
+/formats renders `ui.tabs` across the 8 produced kinds; every tab is the SAME shape:
 the kind's existing list read rendered as `ui.primitive_row` rows (canonical href; click
 opens it as the slide-over, §8.1) through the shared _list_page shell. The old list routes (/councils,
 /syntheses, /prototypes, /sessions, /surveys, /hypotheses, /decisions, /notes) stay
 registered — their handlers render the library with that tab active, so deep links and
 `next_recommended_tool` hints survive without redirects; the tab links use the
-canonical routes, ?tab= addresses a tab on /library itself. Detail routes unchanged."""
+canonical routes, ?tab= addresses a tab on /formats itself. Detail routes unchanged."""
 from __future__ import annotations
 
 from collections import Counter
+
+from fastapi import Request
+from fastapi.responses import RedirectResponse
 
 from ._ctx import *  # noqa: F401,F403  (shared render toolkit)
 from .sessions import _sessions_section
@@ -461,7 +464,7 @@ def library_page(tab: str = "questions", store: Store | None = None, *,
     U10/V1 (§8.5, §9 V1): `flt` = {project/status/direction -> [values]} from the URL applies
     the shared FilterBar semantics (OR within a facet, AND across) server-side; `q` is the
     tab's text search, composing with the facets; `base` is the canonical path the bar's
-    links target (defaults to /library?tab=…), so /councils, /sessions … keep their own
+    links target (defaults to /formats?tab=…), so /councils, /sessions … keep their own
     addresses while sharing the one bar."""
     from urllib.parse import quote
     from .._graph_outline import _q_match
@@ -472,7 +475,7 @@ def library_page(tab: str = "questions", store: Store | None = None, *,
     _k, _route, icon, tab_label, empty_msg, _lead, teach = next(
         row for row in LIBRARY_TABS if row[0] == tab)
     tab_kind = TAB_KIND.get(tab, "note")
-    base0 = base or f"/library?tab={tab}"
+    base0 = base or f"/formats?tab={tab}"
     base = base0 + (("&" if "?" in base0 else "?") + f"q={quote(q)}" if q else "")
     selected = {k: v for k, v in (flt or {}).items()}
     raw_entries = _tab_entries(tab, store, sessions=sessions)
@@ -532,7 +535,11 @@ def library_filters(project: str = "", status: str = "", direction: str = "",
 
 
 def register_library(app) -> None:
-    @app.get("/library", response_class=HTMLResponse)
+    def _redirect_legacy(request: Request, target: str) -> RedirectResponse:
+        query = request.url.query
+        return RedirectResponse(target + (f"?{query}" if query else ""), status_code=308)
+
+    @app.get("/formats", response_class=HTMLResponse)
     def library(tab: str = Query(default="questions"), project: str = Query(default=""),
                 status: str = Query(default=""), direction: str = Query(default=""),
                 subtype: str = Query(default=""), trace: str = Query(default=""),
@@ -540,6 +547,10 @@ def register_library(app) -> None:
                 q: str = Query(default="")) -> str:
         tab = _first_tab_for_family(family) or tab
         return library_page(tab, flt=library_filters(project, status, direction, subtype, trace), q=q)
+
+    @app.get("/library", include_in_schema=False)
+    def legacy_library_redirect(request: Request):
+        return _redirect_legacy(request, "/formats")
 
     @app.get("/open-questions", response_class=HTMLResponse)
     def open_questions_list(project: str = Query(default=""), status: str = Query(default=""),
@@ -568,12 +579,12 @@ def register_library(app) -> None:
                           id="sec-question")
         return detail_page(
             store, title=title, active="projects",
-            crumbs=[(t("projects"), "/projects"), (proj["title"], f'/projects/{proj["id"]}'),
+            crumbs=[(t("projects"), "/jobs"), (proj["title"], f'/jobs/{proj["id"]}'),
                     (t("open_question_kind"), None)],
             icon="help", kind=t("open_question_kind"),
             pills=[_label(status_label, "var(--amber)" if status == "open" else "var(--green)")],
             body=body,
-            prop_rows=[("projects", t("project"), h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"])),
+            prop_rows=[("projects", t("project"), h("a", {"href": f'/jobs/{proj["id"]}'}, proj["title"])),
                        *detail_form_rows("open_question", oq),
                        ("flag", t("status_h"), status_label),
                        ("dot", t("created"), ui.fmt_date(oq.get("created_at") or ""))],
@@ -604,12 +615,12 @@ def register_library(app) -> None:
                        id="sec-snapshot"))
         return detail_page(
             store, title=title, active="projects",
-            crumbs=[(t("projects"), "/projects"), (proj["title"], f'/projects/{proj["id"]}'),
+            crumbs=[(t("projects"), "/jobs"), (proj["title"], f'/jobs/{proj["id"]}'),
                     (t("reference_kind"), None)],
             icon="link", kind=t("reference_kind"),
             pills=[_label(kind_label, "var(--blue)"), _reference_status_pill(ref)],
             body=body,
-            prop_rows=[("projects", t("project"), h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"])),
+            prop_rows=[("projects", t("project"), h("a", {"href": f'/jobs/{proj["id"]}'}, proj["title"])),
                        *detail_form_rows("url_artifact", ref),
                        ("tag", t("variant_label_h"), ref.get("label", "")),
                        ("link", t("url_h"), h("a", {"href": ref.get("url", "#"), "target": "_blank", "rel": "noopener"}, ref.get("url", ""))),
@@ -641,11 +652,11 @@ def register_library(app) -> None:
                         fragment(*rows) if rows else raw(_empty_state(t("section"), t("no_members"), icon="squareGrid"))))
         return detail_page(
             store, title=sec["title"], active="projects",
-            crumbs=[(t("projects"), "/projects"), (proj["title"], f'/projects/{proj["id"]}'), (sec["title"], None)],
+            crumbs=[(t("projects"), "/jobs"), (proj["title"], f'/jobs/{proj["id"]}'), (sec["title"], None)],
             icon="squareGrid", kind=t("section"), sub=sec_sub, body=body,
             prop_rows=[*detail_form_rows("section", sec),
                        ("dot", t("type_h"), pr.get("short", sec.get("kind", ""))),
-                       ("projects", t("project"), h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"]))],
+                       ("projects", t("project"), h("a", {"href": f'/jobs/{proj["id"]}'}, proj["title"]))],
             star=("section", sec["id"], sec["title"], f'/sections/{sec["id"]}'),
             # V10: the "…" overflow — edit as a dialog over this page + the confirm delete
             actions=section_actions(sec))
@@ -666,11 +677,11 @@ def register_library(app) -> None:
         nkind = _pres.present(note.get("kind") or "note")["label"]
         return detail_page(
             store, title=ntitle, active="projects",   # G5: notes are project-rooted
-            crumbs=[(t("projects"), "/projects"), (proj["title"], f'/projects/{proj["id"]}'), (ntitle, None)],
+            crumbs=[(t("projects"), "/jobs"), (proj["title"], f'/jobs/{proj["id"]}'), (ntitle, None)],
             icon="panel", kind=nkind, hid="sec-content",
             body=h("div", {"class_": "sl-prose", "style": "margin-top:4px"}, raw(_md(note.get("text", "")))),
             # Rail order is the §8.2 anatomy: project → dates.
-            prop_rows=[("projects", t("project"), h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"])),
+            prop_rows=[("projects", t("project"), h("a", {"href": f'/jobs/{proj["id"]}'}, proj["title"])),
                        *detail_form_rows("note", note),
                        ("dot", t("created"), ui.fmt_date(note.get("created_at", "")))],
             rel_study_id=f"note:{note_id}", rel_proj_id=proj["id"],
@@ -689,10 +700,10 @@ def register_library(app) -> None:
         # The route accepts slug OR id (⌘K and ref chips link by id) — every file URL and
         # sibling route below must use the CANONICAL slug, or the iframe/raw links 404.
         slug = p.get("slug") or slug
-        crumbs = [(t("projects"), "/projects")]
+        crumbs = [(t("projects"), "/jobs")]
         proj = store.get_research_project(p["project_id"]) if p.get("project_id") else None
         if proj:
-            crumbs.append((proj["title"], f"/projects/{proj['id']}"))
+            crumbs.append((proj["title"], f"/jobs/{proj['id']}"))
         crumbs.append((p["name"], None))
         _ap = _artifact_present(p)
         fid = h("span", {"class_": "pill"}, form_label("prototype", p) or _ap["label"])
@@ -742,7 +753,7 @@ def register_library(app) -> None:
             except Exception:
                 concept_in = []
         n_grounded = sum(1 for s in sessions if s.get("grounded_verified"))
-        proj_link = (h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"]) if proj else "—")
+        proj_link = (h("a", {"href": f'/jobs/{proj["id"]}'}, proj["title"]) if proj else "—")
         # Detail-header attribution (ux-contract §10 W11): the personas who drove this
         # prototype's sessions — BOTH kinds (reactions + usability walks) — as the one
         # avatar-group anatomy, leading the meta line.

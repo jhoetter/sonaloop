@@ -8,7 +8,7 @@ Three routes on the shared anatomy, zero new presentation:
                           block, properties rail). GLOBAL id resolution across projects, like
                           every other kind's detail route (get_asset is project-scoped, so the
                           lookup scans the project records — assets ride the project JSON blob).
-  - /projects/{id}     — the project outline includes the project's assets in context.
+  - /jobs/{id}     — the project outline includes the project's assets in context.
 
 The shared pill/size/source-chip/preview renderers live in web/_presence (the house pattern);
 rows are ui.primitive_row, so the slide-over (§8.1) works from every surface."""
@@ -101,7 +101,7 @@ def register_assets(app) -> None:
                h("h2", {}, t("asset_excerpt_h")),
                ui.clamp(excerpt, threshold=ui.SECTION_CLAMP)) if excerpt else None),
             raw(_provenance_section(a, store)))
-        proj_link = h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"])
+        proj_link = h("a", {"href": f'/jobs/{proj["id"]}'}, proj["title"])
         prop_rows = [
             ("projects", t("project"), proj_link),
             *detail_form_rows("asset", a),
@@ -110,7 +110,7 @@ def register_assets(app) -> None:
         return detail_page(
             store, title=title, active="projects",   # G5: an asset always lives on a project
             # Project-rooted crumb (§8.2 — the council pattern; an asset always has a project).
-            crumbs=[(t("projects"), "/projects"), (proj["title"], f'/projects/{proj["id"]}'),
+            crumbs=[(t("projects"), "/jobs"), (proj["title"], f'/jobs/{proj["id"]}'),
                     (title, None)],
             icon="file", kind=t("asset_kind"),
             pills=[asset_kind_pill(a), asset_direction_pill(a)],

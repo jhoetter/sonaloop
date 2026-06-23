@@ -96,12 +96,12 @@ def _persona_values(p: dict) -> dict:
 def project_actions(proj: dict, *, values: dict | None = None, errors: dict | None = None,
                     edit_open: bool = False, confirm_error: str = "") -> str:
     return detail_overflow(
-        edit={"action": f'/projects/{proj["id"]}/edit', "title": f'{proj["title"]} — {t("edit")}',
+        edit={"action": f'/jobs/{proj["id"]}/edit', "title": f'{proj["title"]} — {t("edit")}',
               "fields": project_fields(values if values is not None else _project_values(proj),
                                        errors or {}),
               "lead": t("project_form_lead"), "open_now": edit_open,
               "dialog_attrs": {"data-project-edit": proj["id"]}},
-        delete={"action": f'/projects/{proj["id"]}/delete', "label": t("delete_project"),
+        delete={"action": f'/jobs/{proj["id"]}/delete', "label": t("delete_project"),
                 "expected": proj["title"], "error": confirm_error})
 
 
@@ -155,12 +155,12 @@ def _project_form(store, proj: dict | None, values: dict, errors: dict,
     no GET form, U9); edit adds the header overflow with the typed-confirm delete."""
     new = proj is None
     title = t("new_project") if new else f'{proj["title"]} — {t("edit")}'
-    action = "/projects/new" if new else f'/projects/{proj["id"]}/edit'
-    cancel = "/projects" if new else f'/projects/{proj["id"]}'
-    crumbs = ([(t("projects"), "/projects"), (t("new_project"), None)] if new else
-              [(t("projects"), "/projects"), (proj["title"], f'/projects/{proj["id"]}'), (t("edit"), None)])
+    action = "/jobs/new" if new else f'/jobs/{proj["id"]}/edit'
+    cancel = "/jobs" if new else f'/jobs/{proj["id"]}'
+    crumbs = ([(t("projects"), "/jobs"), (t("new_project"), None)] if new else
+              [(t("projects"), "/jobs"), (proj["title"], f'/jobs/{proj["id"]}'), (t("edit"), None)])
     actions = "" if new else overflow_delete(
-        f'/projects/{proj["id"]}/delete', t("delete_project"), expected=proj["title"],
+        f'/jobs/{proj["id"]}/delete', t("delete_project"), expected=proj["title"],
         error=confirm_error)
     return form_page(
         store, title=title, crumbs=crumbs, active="projects", action=action,
@@ -185,12 +185,12 @@ def _persona_form(store, p: dict, values: dict, errors: dict, confirm_error: str
 def _note_form(store, proj: dict, note: dict | None, values: dict, errors: dict) -> str:
     new = note is None
     title = t("new_note") if new else f'{note.get("title") or t("notes_h")} — {t("edit")}'
-    action = f'/projects/{proj["id"]}/notes/new' if new else f'/notes/{note["id"]}/edit'
-    cancel = f'/projects/{proj["id"]}' if new else f'/notes/{note["id"]}'
+    action = f'/jobs/{proj["id"]}/notes/new' if new else f'/notes/{note["id"]}/edit'
+    cancel = f'/jobs/{proj["id"]}' if new else f'/notes/{note["id"]}'
     actions = "" if new else overflow_delete(f'/notes/{note["id"]}/delete', t("delete_note"))
     return form_page(
         store, title=title, active="library",
-        crumbs=[(t("projects"), "/projects"), (proj["title"], f'/projects/{proj["id"]}'), (title, None)],
+        crumbs=[(t("projects"), "/jobs"), (proj["title"], f'/jobs/{proj["id"]}'), (title, None)],
         action=action, fields=note_fields(values, errors),
         submit_label=t("create") if new else t("save"), cancel_href=cancel, actions=actions)
 
@@ -198,12 +198,12 @@ def _note_form(store, proj: dict, note: dict | None, values: dict, errors: dict)
 def _section_form(store, proj: dict, sec: dict | None, values: dict, errors: dict) -> str:
     new = sec is None
     title = t("new_section") if new else f'{sec["title"]} — {t("edit")}'
-    action = f'/projects/{proj["id"]}/sections/new' if new else f'/sections/{sec["id"]}/edit'
-    cancel = f'/projects/{proj["id"]}' if new else f'/sections/{sec["id"]}'
+    action = f'/jobs/{proj["id"]}/sections/new' if new else f'/sections/{sec["id"]}/edit'
+    cancel = f'/jobs/{proj["id"]}' if new else f'/sections/{sec["id"]}'
     actions = "" if new else overflow_delete(f'/sections/{sec["id"]}/delete', t("delete_section"))
     return form_page(
         store, title=title, active="projects",
-        crumbs=[(t("projects"), "/projects"), (proj["title"], f'/projects/{proj["id"]}'), (title, None)],
+        crumbs=[(t("projects"), "/jobs"), (proj["title"], f'/jobs/{proj["id"]}'), (title, None)],
         action=action, lead=t("section_form_lead"), fields=section_fields(values, errors),
         submit_label=t("create") if new else t("save"), cancel_href=cancel, actions=actions)
 
@@ -214,7 +214,7 @@ def register_edit(app) -> None:  # noqa: C901  (route table — one block per en
     # ---------------------------------------------------------------- projects
     # POST-only (U9): creation is API surface for hosts/automations — the UI renders no
     # create form; the 400 validation re-render below is the only place the form appears.
-    @app.post("/projects/new")
+    @app.post("/jobs/new")
     async def project_create(request: Request):
         store = Store()
         form = await request.form()
@@ -229,9 +229,9 @@ def register_edit(app) -> None:  # noqa: C901  (route table — one block per en
         p = services.create_research_project(values["title"], goal=values["goal"],
                                              description=values["description"], store=store,
                                              icon=values["icon"] or "random")
-        return see_other(f'/projects/{p["id"]}')
+        return see_other(f'/jobs/{p["id"]}')
 
-    @app.get("/projects/{project_id}/edit", response_class=HTMLResponse)
+    @app.get("/jobs/{project_id}/edit", response_class=HTMLResponse)
     def project_edit_form(project_id: str):
         store = Store()
         try:
@@ -241,7 +241,7 @@ def register_edit(app) -> None:  # noqa: C901  (route table — one block per en
         return _project_form(store, proj, {"title": proj["title"], "goal": proj.get("goal", ""),
                                            "icon": _project_values(proj)["icon"]}, {})
 
-    @app.post("/projects/{project_id}/edit")
+    @app.post("/jobs/{project_id}/edit")
     async def project_update(project_id: str, request: Request):
         store = Store()
         form = await request.form()
@@ -257,14 +257,14 @@ def register_edit(app) -> None:  # noqa: C901  (route table — one block per en
         if not values["title"]:
             return HTMLResponse(_dialog_error_page(
                 store, title=proj["title"], active="projects",
-                crumbs=[(t("projects"), "/projects"), (proj["title"], f"/projects/{project_id}"),
+                crumbs=[(t("projects"), "/jobs"), (proj["title"], f"/jobs/{project_id}"),
                         (t("edit"), None)],
                 actions=project_actions(proj, values=values, errors={"title": t("field_required")},
                                         edit_open=True)), status_code=400)
         services.update_research_project(project_id, values, store=store)
-        return see_other(f"/projects/{project_id}")
+        return see_other(f"/jobs/{project_id}")
 
-    @app.post("/projects/{project_id}/delete")
+    @app.post("/jobs/{project_id}/delete")
     async def project_delete(project_id: str, request: Request):
         store = Store()
         form = await request.form()
@@ -277,12 +277,12 @@ def register_edit(app) -> None:  # noqa: C901  (route table — one block per en
         if _s(form, "confirm") != proj["title"]:
             return HTMLResponse(_dialog_error_page(
                 store, title=proj["title"], active="projects",
-                crumbs=[(t("projects"), "/projects"), (proj["title"], f"/projects/{project_id}"),
+                crumbs=[(t("projects"), "/jobs"), (proj["title"], f"/jobs/{project_id}"),
                         (t("delete_project"), None)],
                 actions=project_actions(proj, confirm_error=t("confirm_mismatch"))),
                 status_code=400)
         services.delete_research_project(project_id, store=store)
-        return see_other("/projects")
+        return see_other("/jobs")
 
     # ---------------------------------------------------------------- personas
     @app.get("/personas/{persona_id}/edit", response_class=HTMLResponse)
@@ -342,7 +342,7 @@ def register_edit(app) -> None:  # noqa: C901  (route table — one block per en
         return see_other("/personas")
 
     # ------------------------------------------------------------------- notes
-    @app.post("/projects/{project_id}/notes/new")
+    @app.post("/jobs/{project_id}/notes/new")
     async def note_create(project_id: str, request: Request):
         store = Store()
         form = await request.form()
@@ -385,7 +385,7 @@ def register_edit(app) -> None:  # noqa: C901  (route table — one block per en
             ntitle = note.get("title") or t("notes_h")
             return HTMLResponse(_dialog_error_page(
                 store, title=ntitle, active="library",
-                crumbs=[(t("projects"), "/projects"), (proj["title"], f'/projects/{proj["id"]}'),
+                crumbs=[(t("projects"), "/jobs"), (proj["title"], f'/jobs/{proj["id"]}'),
                         (ntitle, None)],
                 actions=note_actions(note, values=values, errors={"text": t("field_required")},
                                      edit_open=True)), status_code=400)
@@ -403,10 +403,10 @@ def register_edit(app) -> None:  # noqa: C901  (route table — one block per en
         except KeyError:
             return not_found(icon="panel", active="library")
         services.delete_note(data["project"]["id"], note_id, store=store)
-        return see_other(f'/projects/{data["project"]["id"]}')
+        return see_other(f'/jobs/{data["project"]["id"]}')
 
     # ---------------------------------------------------------------- sections
-    @app.post("/projects/{project_id}/sections/new")
+    @app.post("/jobs/{project_id}/sections/new")
     async def section_create(project_id: str, request: Request):
         store = Store()
         form = await request.form()
@@ -451,7 +451,7 @@ def register_edit(app) -> None:  # noqa: C901  (route table — one block per en
             sec, proj = data["section"], data["project"]
             return HTMLResponse(_dialog_error_page(
                 store, title=sec["title"], active="projects",
-                crumbs=[(t("projects"), "/projects"), (proj["title"], f'/projects/{proj["id"]}'),
+                crumbs=[(t("projects"), "/jobs"), (proj["title"], f'/jobs/{proj["id"]}'),
                         (sec["title"], None)],
                 actions=section_actions(sec, values=values, errors={"title": t("field_required")},
                                         edit_open=True)), status_code=400)
@@ -469,7 +469,7 @@ def register_edit(app) -> None:  # noqa: C901  (route table — one block per en
         except KeyError:
             return not_found(icon="squareGrid")
         services.delete_section(section_id, store=store)
-        return see_other(f'/projects/{sec["project_id"]}')
+        return see_other(f'/jobs/{sec["project_id"]}')
 
     # ------------------------------- studies/artifacts: DELETE only (no content editing)
     @app.post("/councils/{session_id}/delete")

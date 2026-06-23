@@ -1,0 +1,267 @@
+{
+  "title": "PawRide Dispatch Room",
+  "summary": "Eine freie Einsatz- und Handover-Oberflaeche fuer Hundetransport statt linearer Formularstrecke.",
+  "fidelity": "hifi",
+  "start": "dispatch",
+  "frames": [
+    {
+      "id": "dispatch",
+      "title": "Live Dispatch",
+      "subtitle": "Koordiniere Hund, Fahrer, Route und Uebergabe in einer operativen Karte.",
+      "layout": "map",
+      "layers": [
+        {
+          "kind": "map",
+          "id": "city_map",
+          "x": 3,
+          "y": 15,
+          "w": 58,
+          "h": 72,
+          "pins": [
+            {
+              "id": "home",
+              "title": "Milo zuhause",
+              "x": 18,
+              "y": 64
+            },
+            {
+              "id": "driver",
+              "title": "Jasmin",
+              "x": 38,
+              "y": 52
+            },
+            {
+              "id": "daycare",
+              "title": "Dog Daycare",
+              "x": 78,
+              "y": 28
+            }
+          ],
+          "routes": [
+            {
+              "from": "driver",
+              "to": "home"
+            },
+            {
+              "from": "home",
+              "to": "daycare"
+            }
+          ]
+        },
+        {
+          "kind": "person",
+          "id": "driver_card",
+          "title": "Jasmin",
+          "meta": "4.9 Sterne, Rampe, Hundebox, nervoese Hunde verifiziert",
+          "avatar": "J",
+          "x": 64,
+          "y": 15,
+          "w": 29,
+          "h": 14
+        },
+        {
+          "kind": "metric",
+          "id": "eta",
+          "title": "Abholung",
+          "value": "6 min",
+          "delta": "Handover-Fenster passt",
+          "x": 64,
+          "y": 32,
+          "w": 14,
+          "h": 14
+        },
+        {
+          "kind": "meter",
+          "id": "trust",
+          "title": "Sicherheits-Fit",
+          "value": 86,
+          "x": 79,
+          "y": 32,
+          "w": 14,
+          "h": 14
+        },
+        {
+          "kind": "timeline",
+          "id": "timeline",
+          "title": "Live-Handover",
+          "x": 64,
+          "y": 50,
+          "w": 29,
+          "h": 30,
+          "items": [
+            {
+              "title": "Geschirrfoto bestaetigt"
+            },
+            {
+              "title": "Fahrer am Eingang"
+            },
+            {
+              "title": "Box gesichert"
+            },
+            {
+              "title": "Uebergabefoto offen"
+            }
+          ]
+        },
+        {
+          "kind": "hotspot",
+          "id": "care_desk_hotspot",
+          "title": "Care Desk oeffnen",
+          "x": 70,
+          "y": 84,
+          "w": 22,
+          "h": 8,
+          "goto": "care_desk"
+        }
+      ],
+      "actions": [
+        {
+          "label": "Care Desk",
+          "goto": "care_desk",
+          "primary": true
+        },
+        {
+          "label": "Board",
+          "goto": "ops_board"
+        }
+      ]
+    },
+    {
+      "id": "care_desk",
+      "title": "Care Desk",
+      "subtitle": "Alles, was Vertrauen schafft, ohne den Nutzer in ein Formular zu ziehen.",
+      "layout": "room",
+      "layers": [
+        {
+          "kind": "panel",
+          "id": "dog_profile",
+          "title": "Milo",
+          "body": "12 kg, entspannt, mag keine engen Aufzuege. Kontaktperson: Lea.",
+          "x": 5,
+          "y": 18,
+          "w": 28,
+          "h": 26
+        },
+        {
+          "kind": "status",
+          "id": "risk_status",
+          "title": "Risiko niedrig",
+          "body": "Route kurz, Fahrer verifiziert, Daycare kennt Milo.",
+          "tone": "good",
+          "x": 36,
+          "y": 18,
+          "w": 25,
+          "h": 18
+        },
+        {
+          "kind": "control",
+          "id": "care_level",
+          "label": "Betreuungsbedarf",
+          "value": 3,
+          "min": 1,
+          "max": 5,
+          "x": 64,
+          "y": 18,
+          "w": 27,
+          "h": 18
+        },
+        {
+          "kind": "board",
+          "id": "handover_board",
+          "title": "Handover-Board",
+          "x": 5,
+          "y": 50,
+          "w": 86,
+          "h": 34,
+          "columns": [
+            {
+              "title": "Vor Abholung",
+              "items": [
+                "Leine",
+                "Geschirrfoto",
+                "Tierarztkontakt"
+              ]
+            },
+            {
+              "title": "Im Auto",
+              "items": [
+                "Box verriegelt",
+                "Wasser",
+                "Live-Standort"
+              ]
+            },
+            {
+              "title": "Ankunft",
+              "items": [
+                "Kontaktperson",
+                "Uebergabefoto",
+                "Abschlussnotiz"
+              ]
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "label": "Zurueck zur Karte",
+          "goto": "dispatch"
+        },
+        {
+          "label": "Ops Board",
+          "goto": "ops_board",
+          "primary": true
+        }
+      ]
+    },
+    {
+      "id": "ops_board",
+      "title": "Operations Board",
+      "subtitle": "Nicht nur buchen: sehen, was gerade im Service passiert.",
+      "layout": "board",
+      "layers": [
+        {
+          "kind": "board",
+          "id": "ops_columns",
+          "x": 4,
+          "y": 17,
+          "w": 92,
+          "h": 67,
+          "columns": [
+            {
+              "title": "Needs attention",
+              "items": [
+                "Balu braucht Rampe",
+                "Nala nervoes bei LKWs"
+              ]
+            },
+            {
+              "title": "On route",
+              "items": [
+                "Milo zu Daycare",
+                "Lotte zum Grooming"
+              ]
+            },
+            {
+              "title": "Done",
+              "items": [
+                "Oscar beim Sitter",
+                "Luna beim Tierarzt"
+              ]
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "label": "Karte",
+          "goto": "dispatch",
+          "primary": true
+        },
+        {
+          "label": "Care Desk",
+          "goto": "care_desk"
+        }
+      ]
+    }
+  ]
+}

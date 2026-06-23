@@ -21,7 +21,7 @@ PRIMITIVES_CONTRACT = (
     "statement, author your OWN finding text + a ref {kind:'council', id, anchor:'<statement-id>', "
     "role:'derived_from'} — the source words are resolved live, not duplicated.\n"
     "One positivity scale only (oppose -2 / skeptical -1 / neutral 0 / conditional +1 / support +2) for "
-    "every stance. A DECISION council may also pass `votes` (the formal tally). There are NO legacy "
+    "every stance. A DECISION council may also pass `votes` (the formal tally). There are NO compatibility "
     "turns/voices/key_problems inputs."
 )
 

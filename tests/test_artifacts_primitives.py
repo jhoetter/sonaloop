@@ -39,8 +39,8 @@ def test_session_ref_resolves_prototype_session_when_needed():
     assert out["href"] == "/sessions/protosession_1"
 
 
-def test_stance_alias_resolution_covers_legacy_vocab():
-    # every legacy vote/stance/sentiment token resolves to a canonical value
+def test_stance_alias_resolution_covers_compatibility_vocab():
+    # every compatibility vote/stance/sentiment token resolves to a canonical value
     cases = {"SUPPORT": 2, "dafür": 2, "positiv": 2, "MAYBE": 1, "bedingt": 1,
              "ABSTAIN": 0, "skeptisch": -1, "OPPOSE": -2, "dagegen": -2, "ablehnend": -2}
     for token, val in cases.items():

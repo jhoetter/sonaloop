@@ -97,7 +97,7 @@ between tags, and evidence-backed judgment *presence*. It **never compares a tag
   artifact carrying tag T; for each `requires.session_of_tags[T]`: ≥1 recorded session of an
   artifact carrying tag T. Pure tag-equality references (an artifact's tags = its type + any
   discriminators, e.g. a fidelity tag) — no literal `"prototype"`/`"prototype_session"` in the
-  invariants (only the legacy `phases→steps` translator names old strings, as back-compat glue).
+  invariants (only the compatibility `phases→steps` translator names old strings, as back-compat glue).
 - **INV-CITE** every node cites ≥1 council; every artifact claim cites a session-log state.
 
 A4 stands: "explored enough?", "which wins?", "ready?" are LLM judgments recorded with evidence;
@@ -145,7 +145,7 @@ catalog** — all become open tags + MCP suggestions (data).
 ## 7. Migration & back-compat
 - Re-express the four built-ins as **tag constellations** under `methodologies/*.json` (and seed the
   same as templates under `suggestions/`).
-- **Legacy loader:** specs with the old `phases` key auto-translate to `steps` (`mode:diverge`→a
+- **Compatibility loader:** specs with the old `phases` key auto-translate to `steps` (`mode:diverge`→a
   step the host records multiple nodes against; `converge`→`requires.min_inputs:2 + gate_tag` + a
   single node; `produces_role`→`produces.role`; `requires_artifacts`→`requires.artifact_tags`;
   `fidelity`→a tag). Existing user phase-specs keep working.
@@ -155,7 +155,7 @@ catalog** — all become open tags + MCP suggestions (data).
 
 ## 8. Milestones (each with a failure-proof acceptance test)
 - **C1 — Tags + suggestions, zero enums:** step schema (all tags) + `suggestions/` data +
-  `suggest_*` tools + legacy translator. **Accept:** **grep proves no closed capability/role/
+  `suggest_*` tools + compatibility translator. **Accept:** **grep proves no closed capability/role/
   breadth/judgment/artifact set remains in code**; a step using an **invented capability tag** and
   an **invented artifact_type tag** loads and validates.
 - **C2 — Tag-agnostic engine:** DAG frontier + INV-* by graph/`min_inputs`/`gate_tag`/tag-equality
@@ -174,5 +174,5 @@ catalog** — all become open tags + MCP suggestions (data).
 
 ## 9. Amendments to existing specs
 The **phase grammar and the rev.1 code-level capability catalog are superseded** by this tag-driven
-constellation grammar. Built-ins move to `steps` (legacy `phases` still loads). Host-authoring,
+constellation grammar. Built-ins move to `steps` (compatibility `phases` still loads). Host-authoring,
 no-LLM, the prototype harness, and the fidelity concept (now a tag) are retained.

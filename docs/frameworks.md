@@ -58,6 +58,6 @@ set_project_methodology(project_id, "double_diamond")     # or (re)bind an exist
 ```
 
 In the inspector, a running study shows its Framework + current stage on the **Plan** drawer
-(`/projects/{id}/plan`). The sidebar's **Methodologies** tab (`/methodologies`) lists every
+(`/jobs/{id}/plan`). The sidebar's **Methodologies** tab (`/methodologies`) lists every
 Framework with its own icon, page, process visualization, stages, and matching Jobs; the
 **Documentation → Methodology** page remains the conceptual overview.

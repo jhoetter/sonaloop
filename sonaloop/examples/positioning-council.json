@@ -257,7 +257,7 @@
         "company_context": {
           "industry": "Elder care (stationäre Pflege)",
           "size": "3 homes, 240 employees, ~60 shared PCs and 40 tablets",
-          "stack": "Vivendi, Windows AD, a Fritzbox empire he is slowly civilizing, M365, the legacy time-clock system nobody dares touch",
+          "stack": "Vivendi, Windows AD, a Fritzbox empire he is slowly civilizing, M365, the compatibility time-clock system nobody dares touch",
           "operating_model": "Everything must run with 1.0 FTE of IT: himself; every new system is a standing cost in his calendar, forever"
         },
         "goals": [

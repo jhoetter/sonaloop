@@ -57,7 +57,7 @@ def visit_marker(title: str, project: str = "") -> str:
     {type, title, project, url} into localStorage ('sl-recent', last 6, deduped by url) —
     the palette's Recent group. Emits NOTHING unless the current request path is a
     searchable detail URL (/{prefix}/{id} with a SEARCH_SOURCES prefix), so list pages,
-    sub-pages (/projects/{id}/plan) and excused routes never pollute the recents."""
+    sub-pages (/jobs/{id}/plan) and excused routes never pollute the recents."""
     from ._slide import request_path
     path = (request_path() or "").partition("?")[0]
     seg = [s for s in path.split("/") if s]

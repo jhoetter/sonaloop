@@ -28,9 +28,9 @@ def _post(client, **data):
 
 def test_submit_happy_path_persists_with_transparent_context(store):
     fb = services.submit_feedback("The tour is great", email="x@y.z",
-                                  page="/projects?page=2", store=store)
+                                  page="/jobs?page=2", store=store)
     assert fb["message"] == "The tour is great" and fb["email"] == "x@y.z"
-    assert fb["page"] == "/projects?page=2" and fb["app_version"]
+    assert fb["page"] == "/jobs?page=2" and fb["app_version"]
     rows = services.list_feedback(store=store)
     assert len(rows) == 1 and rows[0]["read_at"] is None
     assert services.unread_feedback_count(store=store) == 1

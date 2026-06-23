@@ -218,13 +218,13 @@ SUBTYPE_DOCS: dict[str, tuple[SubtypeDoc, ...]] = {
 }
 
 
-_LEGACY_SUBTYPE_DOCS = SUBTYPE_DOCS
-_LEGACY_BY_KIND_VALUE: dict[str, dict[str, SubtypeDoc]] = {
-    kind: {doc.value: doc for doc in docs} for kind, docs in _LEGACY_SUBTYPE_DOCS.items()
+_COMPATIBILITY_SUBTYPE_DOCS = SUBTYPE_DOCS
+_COMPATIBILITY_BY_KIND_VALUE: dict[str, dict[str, SubtypeDoc]] = {
+    kind: {doc.value: doc for doc in docs} for kind, docs in _COMPATIBILITY_SUBTYPE_DOCS.items()
 }
 _SUBTYPE_LABELS: dict[str, str] = {}
 _SUBTYPE_LABEL_KEYS: dict[str, str] = {
-    doc.value: doc.label_key for docs in _LEGACY_SUBTYPE_DOCS.values() for doc in docs
+    doc.value: doc.label_key for docs in _COMPATIBILITY_SUBTYPE_DOCS.values() for doc in docs
 }
 _LIBRARY_VALUE_PRIORITY: dict[str, tuple[str, ...]] = {
     "url_artifact": ("website", "external_prototype", "ab_variant"),
@@ -268,9 +268,9 @@ def _registry_subtype_docs() -> dict[str, tuple[SubtypeDoc, ...]]:
         aliases = [str(a) for a in form.get("aliases") or []]
         alias_text = ", ".join(aliases) if aliases else form_id
         for value in _form_values_for_library(form):
-            legacy = _LEGACY_BY_KIND_VALUE.get(primitive, {}).get(value)
-            if legacy:
-                doc = legacy
+            compatibility = _COMPATIBILITY_BY_KIND_VALUE.get(primitive, {}).get(value)
+            if compatibility:
+                doc = compatibility
             else:
                 label = str(form.get("label") or value.replace("_", " ").title())
                 meaning = str(form.get("description") or label)
@@ -279,7 +279,7 @@ def _registry_subtype_docs() -> dict[str, tuple[SubtypeDoc, ...]]:
                 doc = SubtypeDoc(value, f"subtype_{value}", meaning, meaning, rule_en, rule_de)
             grouped.setdefault(primitive, []).append(doc)
             _SUBTYPE_LABELS[value] = str(form.get("label") or value.replace("_", " ").title())
-    for kind, docs in _LEGACY_SUBTYPE_DOCS.items():
+    for kind, docs in _COMPATIBILITY_SUBTYPE_DOCS.items():
         existing = {doc.value for doc in grouped.get(kind, [])}
         for doc in docs:
             if kind == "prototype" and doc.value in _PROTOTYPE_DISCRIMINATORS:
@@ -441,7 +441,7 @@ def survey_question_form_labels(rec: dict[str, Any]) -> list[str]:
 
 
 def prototype_fidelity_value(rec: dict[str, Any]) -> str:
-    """Return the true prototype fidelity rung, excluding legacy form values stored there."""
+    """Return the true prototype fidelity rung, excluding compatibility form values stored there."""
     fidelity = str((rec or {}).get("fidelity") or "")
     return fidelity if fidelity in _PROTOTYPE_DISCRIMINATORS else ""
 

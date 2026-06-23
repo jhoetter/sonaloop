@@ -246,7 +246,7 @@ def test_project_page_rows_and_decision_slideover(store):
                    status="adopted")
     services.update_decision(adopted["id"], superseded_by=succ["id"], store=store)
     client = TestClient(web.create_app())
-    html = client.get(f'/projects/{proj["id"]}?lang=en').text
+    html = client.get(f'/jobs/{proj["id"]}?lang=en').text
     for key in ("dec_status_adopted", "dec_status_proposed", "dec_status_superseded"):
         assert STRINGS["en"][key] in html                     # the three lifecycle pills, on rows
     assert adopted["title"] in html and proposed["title"] in html and succ["title"] in html
@@ -279,11 +279,11 @@ def test_project_page_rows_and_decision_slideover(store):
     assert f'/decisions/{succ["id"]}' in detail               # supersede → the sibling DETAIL page
     # the rail's Project link lands ON the deciding row (round-2 audit: the old
     # "View in project" meta-line link retired — no other kind carried one)
-    assert f'/projects/{proj["id"]}#dec-{adopted["id"]}' in detail
+    assert f'/jobs/{proj["id"]}#dec-{adopted["id"]}' in detail
     assert STRINGS["en"]["runtime_maybe_cleared"] in client.get("/decisions/nope?lang=en").text
     # a project without decisions shows no decision rows (and no empty chrome)
     other = _project(store, "Quiet study")
-    assert 'data-rkind="decision"' not in client.get(f'/projects/{other["id"]}?lang=en').text
+    assert 'data-rkind="decision"' not in client.get(f'/jobs/{other["id"]}?lang=en').text
 
 
 def test_global_decisions_list_renders_empty_and_populated(store):
@@ -319,7 +319,7 @@ def test_global_decisions_list_renders_empty_and_populated(store):
     # the list route does not shadow the canonical /decisions/{id} DETAIL page (UX U7)
     r = client.get(f'/decisions/{adopted["id"]}?lang=en')
     assert r.status_code == 200 and adopted["decision"] in r.text
-    assert f'/projects/{pa["id"]}#dec-{adopted["id"]}' in r.text   # secondary view-in-project link
+    assert f'/jobs/{pa["id"]}#dec-{adopted["id"]}' in r.text   # secondary view-in-project link
 
 
 def test_synthesis_page_shows_informed_decisions(store):
@@ -394,11 +394,11 @@ def test_decision_rows_replace_the_header_jump_chips(store):
     _record(store, proj["id"], council=council, key="a", status="adopted")
     _record(store, proj["id"], council=council, key="b")
     client = TestClient(web.create_app())
-    html = client.get(f'/projects/{proj["id"]}?lang=en').text
+    html = client.get(f'/jobs/{proj["id"]}?lang=en').text
     assert html.count('data-rkind="decision"') == 2      # both decisions are rows
     assert 'href="#decisions"' not in html and "projjump" not in html
     assert 'id="decisions"' not in html                  # the appendix section is gone
     # ... and a project without decisions shows no decision chrome at all
     other = _project(store, "Quiet study")
-    other_html = client.get(f'/projects/{other["id"]}?lang=en').text
+    other_html = client.get(f'/jobs/{other["id"]}?lang=en').text
     assert 'data-rkind="decision"' not in other_html and 'href="#decisions"' not in other_html

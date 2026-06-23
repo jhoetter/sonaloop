@@ -1,0 +1,188 @@
+{
+  "title": "PawRide",
+  "summary": "On-demand Fahrten fuer Hunde: sicherer Handover, gepruefte Fahrer, Live-Status.",
+  "fidelity": "hifi",
+  "show_brand": true,
+  "start": "home",
+  "screens": [
+    {
+      "id": "home",
+      "title": "Was braucht dein Hund?",
+      "elements": [
+        {
+          "kind": "text",
+          "id": "intro",
+          "label": "Buche eine gepruefte Dog-Driverin fuer Tierarzt, Daycare, Grooming oder Sitter-Handover."
+        },
+        {
+          "kind": "select",
+          "id": "dog_size",
+          "label": "Hund",
+          "options": [
+            "Milo, 12 kg, entspannt",
+            "Nala, 24 kg, nervoes",
+            "Balu, 36 kg, braucht Rampe"
+          ]
+        },
+        {
+          "kind": "select",
+          "id": "ride_reason",
+          "label": "Ziel",
+          "options": [
+            "Tierarzttermin",
+            "Hundetagesstaette",
+            "Grooming",
+            "Sitter-Handover"
+          ]
+        },
+        {
+          "kind": "button",
+          "id": "start_booking",
+          "label": "Fahrt planen",
+          "goto": "booking",
+          "action": "booking"
+        }
+      ]
+    },
+    {
+      "id": "booking",
+      "title": "Fahrt konfigurieren",
+      "elements": [
+        {
+          "kind": "number",
+          "id": "distance",
+          "label": "Strecke in km",
+          "value": 7
+        },
+        {
+          "kind": "range",
+          "id": "care_level",
+          "label": "Betreuungsbedarf",
+          "min": 1,
+          "max": 5,
+          "step": 1,
+          "value": 3,
+          "suffix": "/5"
+        },
+        {
+          "kind": "computed",
+          "id": "eta",
+          "label": "Geschaetzte Ankunft",
+          "formula": "round(8 + distance * 2 + care_level * 3)",
+          "suffix": " Min."
+        },
+        {
+          "kind": "computed",
+          "id": "price",
+          "label": "Preis",
+          "formula": "round(9 + distance * 2.4 + care_level * 3.5)",
+          "prefix": "EUR "
+        },
+        {
+          "kind": "bar",
+          "id": "trust_fit",
+          "label": "Sicherheits-Fit",
+          "formula": "max(35, 100 - care_level * 8 + distance)",
+          "max": 100,
+          "suffix": "%"
+        },
+        {
+          "kind": "button",
+          "id": "find_driver",
+          "label": "Passende Dog-Driver suchen",
+          "goto": "match",
+          "action": "match"
+        }
+      ]
+    },
+    {
+      "id": "match",
+      "title": "Match gefunden",
+      "elements": [
+        {
+          "kind": "text",
+          "id": "driver_card",
+          "label": "Jasmin ist 6 Minuten entfernt, hat 4.9 Sterne, Hundebox + Rampe, und ist fuer nervoese Hunde verifiziert."
+        },
+        {
+          "kind": "verdict",
+          "id": "handover_check",
+          "cases": [
+            {
+              "when": "care_level >= 4",
+              "text": "Extra-Handover noetig: Foto vom Geschirr, Maulkorb-Hinweis und Tierarztkontakt bestaetigen.",
+              "tone": "warn"
+            },
+            {
+              "when": "care_level < 4",
+              "text": "Standard-Handover reicht: Leine, Zieladresse, Kontaktperson und Abholfoto.",
+              "tone": "good"
+            }
+          ]
+        },
+        {
+          "kind": "button",
+          "id": "confirm",
+          "label": "Fahrt bestaetigen",
+          "goto": "live",
+          "action": "live"
+        }
+      ]
+    },
+    {
+      "id": "live",
+      "title": "Live-Fahrt",
+      "elements": [
+        {
+          "kind": "text",
+          "id": "live_intro",
+          "label": "Du siehst Abholung, Sicherheitscheck, Fahrt, Uebergabe und Abschlussfoto in einer Timeline."
+        },
+        {
+          "kind": "range",
+          "id": "progress",
+          "label": "Fahrtfortschritt",
+          "min": 0,
+          "max": 100,
+          "step": 10,
+          "value": 40,
+          "suffix": "%"
+        },
+        {
+          "kind": "bar",
+          "id": "handover_progress",
+          "label": "Handover abgeschlossen",
+          "formula": "progress",
+          "max": 100,
+          "suffix": "%"
+        },
+        {
+          "kind": "verdict",
+          "id": "status",
+          "cases": [
+            {
+              "when": "progress < 30",
+              "text": "Jasmin ist auf dem Weg zur Abholung.",
+              "tone": "warn"
+            },
+            {
+              "when": "progress < 80",
+              "text": "Milo ist im Auto, Box gesichert, Fahrt laeuft.",
+              "tone": "good"
+            },
+            {
+              "when": "progress >= 80",
+              "text": "Ankunft fast fertig: Uebergabefoto und Kontaktperson werden geprueft.",
+              "tone": "good"
+            }
+          ]
+        },
+        {
+          "kind": "button",
+          "id": "done",
+          "label": "Abschluss ansehen"
+        }
+      ]
+    }
+  ]
+}

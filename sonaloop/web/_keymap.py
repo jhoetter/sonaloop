@@ -37,7 +37,7 @@ BINDINGS: list[dict] = [
      "action": {"hook": "palette"}},
     {"keys": "g h", "scope": "global", "desc": lambda: t("kbd_go_home"), "action": {"nav": "/"}},
     {"keys": "g p", "scope": "global", "desc": lambda: t("kbd_go_personas"), "action": {"nav": "/personas"}},
-    {"keys": "g l", "scope": "global", "desc": lambda: t("kbd_go_library"), "action": {"nav": "/library"}},
+    {"keys": "g l", "scope": "global", "desc": lambda: t("kbd_go_library"), "action": {"nav": "/formats"}},
     {"keys": "g c", "scope": "global", "desc": lambda: t("kbd_go_councils"), "action": {"nav": "/councils"}},
     {"keys": "g s", "scope": "global", "desc": lambda: t("kbd_go_syntheses"), "action": {"nav": "/syntheses"}},
     {"keys": "g a", "scope": "global", "desc": lambda: t("kbd_go_activity"), "action": {"nav": "/activity"}},

@@ -191,7 +191,7 @@ def _vote_chart_parts(cnt: Counter) -> list[tuple]:
 
 
 def _vote_parts(sessions: list[dict]) -> tuple[Counter, list[tuple]]:
-    """Bucket votes by canonical stance VALUE (legacy tokens resolve via the scale's aliases; an
+    """Bucket votes by canonical stance VALUE (compatibility tokens resolve via the scale's aliases; an
     unresolvable token lands in its value bucket via label_raw — never dropped from the charts)."""
     tot: Counter = Counter()
     for s in sessions:
@@ -264,7 +264,7 @@ def _personas_by_sentiment_html(store: Store, sessions: list[dict]) -> str:
 
 def _stance_dist_html(sessions: list[dict]) -> str:
     # Bucketed by the canonical stance VALUE (the five scale buckets via artifacts.stance_meta) —
-    # stored label strings (legacy free labels, label_raw tokens) never classify a contribution.
+    # stored label strings (compatibility free labels, label_raw tokens) never classify a contribution.
     sb: Counter = Counter()
     for s in sessions:
         for st in _A.council_statements(s):

@@ -10,7 +10,7 @@ def test_assets_present_and_app_builds():
     assert app is not None
     # routes registered
     paths = {getattr(r, "path", "") for r in app.routes}
-    assert "/projects" in paths
+    assert "/jobs" in paths
 
 
 def test_spa_navigation_sets_url_before_running_page_scripts():
@@ -31,7 +31,7 @@ def test_sidebar_is_exactly_four_workspace_items():
     sidebar = html.split('class="sl-sidebar"')[1].split("</aside>")[0]
     nav = "".join(re.findall(r'<nav class="sl-nav">.*?</nav>', sidebar, re.S))
     assert re.findall(r'href="([^"]+)"', nav) == [
-        "/projects", "/methodologies", "/library", "/personas",
+        "/jobs", "/methodologies", "/formats", "/personas",
     ]
     assert STRINGS["en"]["library_h"] in nav
     # the retired/utility items answer elsewhere: user menu/palette for utilities,
@@ -145,14 +145,14 @@ def test_icon_animation_css_references_existing_keyframes():
 
 
 def test_library_browser_tabs_and_old_routes(store):
-    """The Library is ONE browser (ux-contract §3.5): /library groups primitives by
+    """The Library is ONE browser (ux-contract §3.5): /formats groups primitives by
     family, scopes the second-level tabs to that family, and every old list route
     still answers 200 rendering the library with ITS tab active — no redirects."""
     from starlette.testclient import TestClient
     from sonaloop.web._i18n import STRINGS
     from sonaloop.web.pages.library import LIBRARY_TABS
     client = TestClient(web.create_app())
-    html = client.get("/library?lang=en").text
+    html = client.get("/formats?lang=en").text
     assert STRINGS["en"]["library_h"] in html
     assert STRINGS["en"]["library_lead"] in html
     first_route = LIBRARY_TABS[0][1]
@@ -167,16 +167,16 @@ def test_library_browser_tabs_and_old_routes(store):
     sess = client.get("/sessions?lang=en").text
     assert "Test" in sess and 'href="/sessions"' in sess
     assert 'aria-current="page"' in sess.split('href="/sessions"')[1][:160]
-    ask = client.get("/library?family=ask&lang=en").text
+    ask = client.get("/formats?family=ask&lang=en").text
     assert STRINGS["en"]["library_lead"] in ask
     assert STRINGS["en"]["councils_lead"] not in ask
     assert "Ask" in ask and 'href="/councils"' in ask and 'href="/surveys"' in ask
     assert 'aria-current="page"' in ask.split('href="/councils"')[1][:160]
-    dec = client.get("/library?tab=decisions&lang=en").text
+    dec = client.get("/formats?tab=decisions&lang=en").text
     assert STRINGS["en"]["library_lead"] in dec
     assert "Conclude" in dec and 'href="/syntheses"' in dec
     assert 'aria-current="page"' in dec.split('href="/decisions"')[1][:160]
-    fallback = client.get("/library?tab=nope&lang=en").text   # unknown tab → first tab
+    fallback = client.get("/formats?tab=nope&lang=en").text   # unknown tab → first tab
     assert 'aria-current="page"' in fallback.split(f'href="{first_route}"')[1][:160]
     for _key, route, *_ in LIBRARY_TABS:                      # old URLs answer 200, as the library
         r = client.get(f"{route}?lang=en")
@@ -194,7 +194,7 @@ def test_library_ignores_orphan_project_trace_rows(store):
         "persona_ids": [], "statements": [], "votes": [], "proposal": "",
         "summary": "", "exec_summary": "", "selection_reason": "",
     })
-    r = TestClient(web.create_app()).get("/library?family=ask&lang=en")
+    r = TestClient(web.create_app()).get("/formats?family=ask&lang=en")
     assert r.status_code == 200
     assert "Orphan council?" in r.text
 
@@ -202,7 +202,7 @@ def test_library_ignores_orphan_project_trace_rows(store):
 def test_vote_tally_is_case_robust():
     """A council's votes display regardless of token case ('support' counts like SUPPORT) — so
     host/subagent-authored votes aren't silently dropped. Buckets are stance VALUES (votes ARE
-    stances; legacy tokens resolve via stance_scale.json aliases)."""
+    stances; compatibility tokens resolve via stance_scale.json aliases)."""
     from sonaloop.web._synthesis import _vote_parts
     sessions = [{"votes": [{"vote": "support"}, {"vote": "SUPPORT"}, {"vote": "maybe"}, {"vote": "oppose"}]}]
     tot, _ = _vote_parts(sessions)

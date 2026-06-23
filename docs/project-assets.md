@@ -61,7 +61,7 @@ readable. `record_asset_supersession` is the service seam that writes it.
   source resolved as a chip, direction, supersede chain, notes.
 - **Library → Assets tab** (`/assets`): every asset across projects, badged by
   kind + direction, owning project on the row.
-- **Project outline** (`/projects/{id}`): every project asset appears in context
+- **Project outline** (`/jobs/{id}`): every project asset appears in context
   under an Assets subgroup for incoming files, or as a deliverable row when the
   software generated it.
 

@@ -24,7 +24,7 @@ from .._routes_lists import _projects_page  # noqa: F401  (re-export preserved)
 
 
 def register_pages(app) -> None:
-    register_edit(app)          # write routes FIRST: /projects/new must beat /projects/{id}
+    register_edit(app)          # write routes FIRST: /jobs/new must beat /jobs/{id}
     register_projects(app)      # owns "/" (home = projects index)
     register_methodologies(app)
     register_personas(app)

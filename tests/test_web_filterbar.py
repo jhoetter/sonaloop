@@ -60,11 +60,11 @@ def _rkinds(html: str) -> set[str]:
 def test_parse_multi_and_filter_url_round_trip():
     assert parse_multi("council,decision") == ["council", "decision"]
     assert parse_multi("") == [] and parse_multi(None) == []
-    url = filter_url("/projects/p1", {"kind": ["council", "decision"], "status": []})
-    assert url == "/projects/p1?kind=council,decision"
-    assert filter_url("/library?tab=assets", {"direction": ["in"]}) \
-        == "/library?tab=assets&direction=in"
-    assert filter_url("/projects/p1", {"kind": []}) == "/projects/p1"
+    url = filter_url("/jobs/p1", {"kind": ["council", "decision"], "status": []})
+    assert url == "/jobs/p1?kind=council,decision"
+    assert filter_url("/formats?tab=assets", {"direction": ["in"]}) \
+        == "/formats?tab=assets&direction=in"
+    assert filter_url("/jobs/p1", {"kind": []}) == "/jobs/p1"
 
 
 # -------------------------------------------------------------------------- project outline
@@ -73,24 +73,24 @@ def test_outline_kind_filter_round_trips_and_hides_other_rows(store):
     ids = _seed(store)
     pid = ids["project_id"]
     client = _client()
-    full = client.get(f"/projects/{pid}?lang=en").text
+    full = client.get(f"/jobs/{pid}?lang=en").text
     assert {"council", "decision", "hypothesis", "survey", "asset"} <= _rkinds(full)
-    html = client.get(f"/projects/{pid}?kind=decision&lang=en").text
+    html = client.get(f"/jobs/{pid}?kind=decision&lang=en").text
     assert _rkinds(html) == {"decision"}                       # rows filter server-side
     assert "Pick A" in html
     # the active chip + the Clear action render; the URL is the state
-    assert "sl-filter-chip" in html and f'href="/projects/{pid}"' in html
+    assert "sl-filter-chip" in html and f'href="/jobs/{pid}"' in html
 
 
 def test_outline_or_within_a_facet_and_across_facets(store):
     ids = _seed(store)
     pid = ids["project_id"]
     client = _client()
-    html = client.get(f"/projects/{pid}?kind=decision,hypothesis&lang=en").text
+    html = client.get(f"/jobs/{pid}?kind=decision,hypothesis&lang=en").text
     assert _rkinds(html) == {"decision", "hypothesis"}          # comma = OR
     # AND across facets: hypotheses are status=open, decisions are proposed — combining
     # kind=decision with status=open matches nothing of the decision kind
-    html = client.get(f"/projects/{pid}?kind=decision&status=open&lang=en").text
+    html = client.get(f"/jobs/{pid}?kind=decision&status=open&lang=en").text
     assert "decision" not in _rkinds(html)
 
 
@@ -98,13 +98,13 @@ def test_outline_status_persona_and_phase_facets_are_honest(store):
     ids = _seed(store)
     pid = ids["project_id"]
     client = _client()
-    html = client.get(f"/projects/{pid}?status=open&lang=en").text
+    html = client.get(f"/jobs/{pid}?status=open&lang=en").text
     assert {"hypothesis", "open_question"} <= _rkinds(html)     # both carry status=open
     assert "decision" not in _rkinds(html)
-    html = client.get(f'/projects/{pid}?persona={ids["persona_id"]}&lang=en').text
+    html = client.get(f'/jobs/{pid}?persona={ids["persona_id"]}&lang=en').text
     assert "council" in _rkinds(html)                           # the persona debated here
     assert "decision" not in _rkinds(html)
-    html = client.get(f"/projects/{pid}?phase=frame__discover&lang=en").text
+    html = client.get(f"/jobs/{pid}?phase=frame__discover&lang=en").text
     assert "council" in _rkinds(html)                           # the discover-phase council
 
 
@@ -112,9 +112,9 @@ def test_outline_trace_facet_filters_consumed_rows(store):
     ids = _seed(store)
     pid = ids["project_id"]
     client = _client()
-    full = client.get(f"/projects/{pid}?lang=en").text
+    full = client.get(f"/jobs/{pid}?lang=en").text
     assert "Trace" in full and "used" in full                    # the trace facet is advertised
-    html = client.get(f"/projects/{pid}?trace=consumed&lang=en").text
+    html = client.get(f"/jobs/{pid}?trace=consumed&lang=en").text
     assert "council" in _rkinds(html)                            # council feeds the decision
     assert "Pick A" not in html                                  # terminal decision is not consumed
     assert "sl-filter-chip" in html and "Trace" in html
@@ -128,7 +128,7 @@ def test_outline_trace_facet_filters_orphaned_rows(store):
         status="open", store=store)
     services.record_frame(proj["id"], "frame__root", ["What needs tracing?"],
                           memory_refs=["note:seed"], store=store)
-    html = _client().get(f'/projects/{proj["id"]}?trace=orphaned&lang=en').text
+    html = _client().get(f'/jobs/{proj["id"]}?trace=orphaned&lang=en').text
     assert _rkinds(html) == {"survey"}
     assert "Unconsumed survey" in html and "unused" in html
 
@@ -150,7 +150,7 @@ def test_library_trace_facet_uses_project_trace_states(store):
 def test_outline_facet_menu_carries_counts_over_the_unfiltered_set(store):
     ids = _seed(store)
     pid = ids["project_id"]
-    html = _client().get(f"/projects/{pid}?kind=decision&lang=en").text
+    html = _client().get(f"/jobs/{pid}?kind=decision&lang=en").text
     # the menu still offers the other kinds, with their true counts (2 hypotheses)
     assert "sl-menu-item__count" in html
     assert 'kind=decision,hypothesis' in html                   # toggling adds to the OR set
@@ -160,9 +160,9 @@ def test_outline_facet_menu_carries_counts_over_the_unfiltered_set(store):
 def test_outline_empty_filter_result_teaches(store):
     ids = _seed(store)
     pid = ids["project_id"]
-    html = _client().get(f"/projects/{pid}?kind=session&lang=en").text  # no sessions recorded
+    html = _client().get(f"/jobs/{pid}?kind=session&lang=en").text  # no sessions recorded
     assert "Nothing matches these filters" in html
-    assert f'href="/projects/{pid}"' in html                    # the Clear way out
+    assert f'href="/jobs/{pid}"' in html                    # the Clear way out
 
 
 # --------------------------------------------------------------------------------- library
@@ -187,11 +187,11 @@ def test_library_project_filter_round_trips(store):
 def test_library_status_filter_and_composition_with_tab(store):
     _seed(store)
     client = _client()
-    html = client.get("/library?tab=hypotheses&status=open&lang=en").text
+    html = client.get("/formats?tab=hypotheses&status=open&lang=en").text
     assert "Users abandon at the price reveal" in html
-    html = client.get("/library?tab=hypotheses&status=validated&lang=en").text
+    html = client.get("/formats?tab=hypotheses&status=validated&lang=en").text
     assert "Nothing matches these filters" in html              # honest: nothing validated yet
-    assert 'href="/library?tab=hypotheses"' in html             # Clear keeps the tab
+    assert 'href="/formats?tab=hypotheses"' in html             # Clear keeps the tab
 
 
 def test_assets_tab_gains_the_direction_facet(store):
@@ -239,33 +239,33 @@ def test_library_subtype_filter_separates_council_formats(store):
     assert "Red-team" in html
 
 
-def test_legacy_subtype_filter_values_keep_resolving_to_registry_forms(store):
+def test_compatibility_subtype_filter_values_keep_resolving_to_registry_forms(store):
     ids = _seed(store)
     pid = ids["project_id"]
     p = ids["persona_id"]
     services.add_artifact(pid, "https://example.test/a", kind="variant",
-                          label="A", title="Legacy A/B stimulus", capture=False, store=store)
-    services.record_head_to_head(pid, "Legacy option comparison?", ["A", "B"], key="legacy-h2h", store=store)
-    services.record_survey(pid, "Legacy choice survey",
+                          label="A", title="Compatibility A/B stimulus", capture=False, store=store)
+    services.record_head_to_head(pid, "Compatibility option comparison?", ["A", "B"], key="compatibility-h2h", store=store)
+    services.record_survey(pid, "Compatibility choice survey",
                            [{"id": "q1", "kind": "single", "text": "Pick one", "options": ["A", "B"]}],
                            store=store)
-    proto = services.register_prototype("legacy-filter-proto", "Legacy prototype", ".",
+    proto = services.register_prototype("compatibility-filter-proto", "Compatibility prototype", ".",
                                         project_id=pid, store=store)
     services.record_usability_session(
-        p, {"kind": "prototype", "id": proto["id"], "label": "Legacy prototype"},
+        p, {"kind": "prototype", "id": proto["id"], "label": "Compatibility prototype"},
         "artifact", "2026-06-16",
         [{"index": 0, "action": {"type": "look", "target": "home"},
           "state": {"screen": "Home"}, "friction": {"level": "none", "note": ""},
           "verdict": {"would_continue": True, "reason": "clear"}}],
         {"completed": True, "summary": "completed", "predicted_behaviors": []},
-        project_id=pid, key="legacy-proto-session", store=store)
+        project_id=pid, key="compatibility-proto-session", store=store)
 
     client = _client()
     cases = [
-        ("/references?subtype=ab_variant&lang=en", "Legacy A/B stimulus", "Marketing site"),
-        ("/councils?subtype=head_to_head&lang=en", "Legacy option comparison?", "Would you pay for this?"),
-        ("/surveys?subtype=single_survey&lang=en", "Legacy choice survey", "Pricing survey"),
-        ("/sessions?subtype=prototype_session&lang=en", "Legacy prototype", "No sessions yet"),
+        ("/references?subtype=ab_variant&lang=en", "Compatibility A/B stimulus", "Marketing site"),
+        ("/councils?subtype=head_to_head&lang=en", "Compatibility option comparison?", "Would you pay for this?"),
+        ("/surveys?subtype=single_survey&lang=en", "Compatibility choice survey", "Pricing survey"),
+        ("/sessions?subtype=prototype_session&lang=en", "Compatibility prototype", "No sessions yet"),
     ]
     for path, present, absent in cases:
         html = client.get(path).text
@@ -274,7 +274,7 @@ def test_legacy_subtype_filter_values_keep_resolving_to_registry_forms(store):
 
 
 def test_library_explains_primitives_and_subforms(store):
-    html = _client().get("/library?tab=councils&lang=en").text
+    html = _client().get("/formats?tab=councils&lang=en").text
     assert "Family" in html and "Primitive" in html and "Form" in html
     assert "sl-taxonomy" in html
     assert "sl-taxo-pill" in html
@@ -299,9 +299,9 @@ def test_outline_search_slot_renders_inside_the_bar(store):
     ids = _seed(store)
     pid = ids["project_id"]
     client = _client()
-    html = client.get(f"/projects/{pid}?lang=en").text
+    html = client.get(f"/jobs/{pid}?lang=en").text
     assert "sl-filter-search" in html and 'name="q"' in html
-    html = client.get(f"/projects/{pid}?q=pricing&lang=en").text
+    html = client.get(f"/jobs/{pid}?q=pricing&lang=en").text
     assert 'value="pricing"' in html
 
 
@@ -309,15 +309,15 @@ def test_outline_text_search_filters_rows_server_side(store):
     ids = _seed(store)
     pid = ids["project_id"]
     client = _client()
-    html = client.get(f"/projects/{pid}?q=pricing&lang=en").text
+    html = client.get(f"/jobs/{pid}?q=pricing&lang=en").text
     kinds = _rkinds(html)
     assert "survey" in kinds and "open_question" in kinds       # both carry "pricing"
     assert "decision" not in kinds                              # "Pick A" does not
     # case- AND diacritic-insensitive ("Prícing" folds to "pricing")
-    html = client.get(f"/projects/{pid}?q=Pr%C3%ADcing&lang=en").text
+    html = client.get(f"/jobs/{pid}?q=Pr%C3%ADcing&lang=en").text
     assert "survey" in _rkinds(html)
     # status is a facet, not hidden search text.
-    html = client.get(f"/projects/{pid}?q=proposed&lang=en").text
+    html = client.get(f"/jobs/{pid}?q=proposed&lang=en").text
     assert "decision" not in _rkinds(html)
 
 
@@ -325,9 +325,9 @@ def test_outline_search_composes_with_facets(store):
     ids = _seed(store)
     pid = ids["project_id"]
     client = _client()
-    html = client.get(f"/projects/{pid}?q=pricing&kind=survey&lang=en").text
+    html = client.get(f"/jobs/{pid}?q=pricing&kind=survey&lang=en").text
     assert _rkinds(html) == {"survey"}                          # q AND kind
-    html = client.get(f"/projects/{pid}?q=zzz-no-match&lang=en").text
+    html = client.get(f"/jobs/{pid}?q=zzz-no-match&lang=en").text
     assert "Nothing matches these filters" in html              # the teaching empty state
 
 
@@ -340,18 +340,18 @@ def test_outline_theme_facet_replaces_the_chip_row(store):
     sec = services.create_section(pid, "Pricing pains", kind="theme",
                                   member_ids=[council_oid], store=store)
     client = _client()
-    full = client.get(f"/projects/{pid}?lang=en").text
+    full = client.get(f"/jobs/{pid}?lang=en").text
     assert "olthemes" not in full and "olth-chip" not in full   # the chip row is gone
     assert "olth-dot" not in full
     assert "Pricing pains" in full                              # the facet menu offers it
-    html = client.get(f'/projects/{pid}?theme={sec["id"]}&lang=en').text
+    html = client.get(f'/jobs/{pid}?theme={sec["id"]}&lang=en').text
     assert _rkinds(html) == {"council"}                         # membership filters rows
 
 
 def test_library_text_search_per_tab(store):
     ids = _seed(store)
     client = _client()
-    html = client.get("/library?tab=hypotheses&q=abandon&lang=en").text
+    html = client.get("/formats?tab=hypotheses&q=abandon&lang=en").text
     assert "Users abandon at the price reveal" in html
     assert "Setup takes under five minutes" not in html
     assert 'value="abandon"' in html                            # the input keeps its value

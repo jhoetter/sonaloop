@@ -41,7 +41,7 @@ def _record(store, subject, fidelity, steps=None, outcome=None, **kw):
         outcome if outcome is not None else _outcome(), store=store, **kw)
 
 
-def test_session_form_classifies_subjects_and_legacy_reactions():
+def test_session_form_classifies_subjects_and_compatibility_reactions():
     assert services.session_form({"subject": _FLOW}) == "walkthrough"
     assert services.session_form({"subject": _PROTO}) == "prototype_use"
     assert services.session_form({"subject": _LIVE}) == "live_use"
@@ -325,7 +325,7 @@ def test_brief_includes_capabilities_when_the_persona_carries_them(store):
     from conftest import create_persona
     pid = create_persona(store, "Carl Capable")
     persona = store.get_persona(pid)
-    # legacy free-form keys survive normalization; canonical fields fill from the defaults
+    # compatibility free-form keys survive normalization; canonical fields fill from the defaults
     persona["capabilities"] = {"vision": "low", "tech_comfort": "high"}
     store.upsert_persona(persona, reason="test: capabilities profile")
     brief = services.brief_usability_session(pid, _LIVE, "live", store=store)

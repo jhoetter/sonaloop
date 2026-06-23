@@ -82,7 +82,7 @@ notes, etc. A persona/proband statement `text` stays in that persona’s natural
 ## Unified primitives (the ONLY shape)
 
 Author content as the shared primitives (spec/unified-artifact-schema.md) — these are the only inputs
-the code accepts (legacy `turns`/`votes`/`voices`/`key_problems`/… were removed):
+the code accepts (compatibility `turns`/`votes`/`voices`/`key_problems`/… were removed):
 
 - **`record_council(..., statements=[…], votes=None, proposal="", questions=[…], findings=[…])`** —
   `statements`: one per persona utterance `{persona_id, text (Markdown), stance:{value -2..2, label},

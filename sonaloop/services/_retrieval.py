@@ -37,7 +37,7 @@ def _project_hit(p: dict, q: list[str]) -> tuple[int, dict] | None:
     if not score:
         return None
     return score, {"id": p["id"], "title": p.get("title", p["id"]),
-                   "url": web_url(f"/projects/{p['id']}"),  # noqa: F821 (bound)
+                   "url": web_url(f"/jobs/{p['id']}"),  # noqa: F821 (bound)
                    "text": (p.get("goal", "") or "")[:300]}
 
 
@@ -51,7 +51,7 @@ def retrieval_search(query: str, limit: int = 20, store: Store | None = None) ->
     if not q:                                   # empty query: most-recent projects, still useful
         for p in store.list_research_projects()[:limit]:
             scored.append((0, {"id": p["id"], "title": p.get("title", p["id"]),
-                               "url": web_url(f"/projects/{p['id']}"),  # noqa: F821 (bound)
+                               "url": web_url(f"/jobs/{p['id']}"),  # noqa: F821 (bound)
                                "text": (p.get("goal", "") or "")[:300]}))
         return {"results": [r for _, r in scored]}
 
@@ -109,7 +109,7 @@ def retrieval_fetch(id: str, store: Store | None = None) -> dict[str, Any]:
                  f"Status: {p.get('status','active')}", "",
                  f"Councils: {len(cs)}", "Council prompts:"]
         lines += [f"- {c.get('prompt','')}" for c in cs[:25]]
-        return doc(p.get("title", rid), "\n".join(lines), f"/projects/{rid}",
+        return doc(p.get("title", rid), "\n".join(lines), f"/jobs/{rid}",
                    kind="project", councils=len(cs), status=p.get("status", "active"))
     if rid.startswith("council_"):
         c = store.get_council_session(rid)

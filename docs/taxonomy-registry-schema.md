@@ -281,7 +281,7 @@ Existing and new session records classify through `services.session_form()`:
 
 - `subject.kind == "flow"` -> `session/walkthrough`
 - `subject.kind == "prototype"` -> `session/prototype_use`
-- legacy `prototype_id` without a subject -> `session/prototype_use`
+- compatibility `prototype_id` without a subject -> `session/prototype_use`
 - `subject.kind == "live_url"` -> `session/live_use`
 - `subject.kind == "variant"` or a `variants` payload -> `session/variant_test`
 

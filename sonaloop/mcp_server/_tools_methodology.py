@@ -60,7 +60,7 @@ def register_methodologies(mcp):
         strategy, diverge_by, produces:{role, artifact_type, more_tags}, requires:{min_inputs,
         gate_tag, artifact_tags, session_of_tags}, loop_back}]} — copy a template from
         suggest_methodologies / get_methodology and pull tag vocabulary from suggest_capabilities /
-        suggest_roles / suggest_artifact_types (all SUGGESTED; tags are free). Legacy `phases`
+        suggest_roles / suggest_artifact_types (all SUGGESTED; tags are free). Compatibility `phases`
         specs auto-translate to `steps`. User specs overlay built-ins by `key`, so re-registering
         your key updates it — but built-in keys are RESERVED (rejected with code RESERVED_KEY).
         Invalid specs fail with a stable MethodologyError code (e.g. BAD_SPEC) + message: fix and retry."""

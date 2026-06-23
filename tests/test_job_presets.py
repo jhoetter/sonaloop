@@ -185,6 +185,6 @@ def test_job_renders_in_the_inspector_plan_page(store):
     from sonaloop import web
 
     out = services.start_job_study("positioning", "Render", "goal", store=store)
-    html = TestClient(web.create_app()).get(f"/projects/{out['project']['id']}/plan").text
+    html = TestClient(web.create_app()).get(f"/jobs/{out['project']['id']}/plan").text
     assert "plan-fw-job" in html and "Positioning" in html
     assert "Double Diamond" in html                              # the framework strip still renders

@@ -123,7 +123,7 @@ document.addEventListener('click',function(e){
 
 # Action type → icon (the recorder's code enum; see services._usability_sessions._ACTION_TYPES).
 # The chip label resolves through i18n (t("action_" + type)) only for known enum members — an
-# off-enum legacy token renders verbatim instead of painting a raw i18n key.
+# off-enum compatibility token renders verbatim instead of painting a raw i18n key.
 _ACTION_ICONS = {"look": "eye", "click": "target", "type": "pencil", "select": "check",
                  "scroll": "sort", "key": "command", "navigate": "compass", "back": "back",
                  "wait": "clock", "give_up": "flag"}
@@ -391,14 +391,14 @@ def _proto_session_detail(store: Store, sess: dict) -> str:
                     raw(LIGHTBOX_JS) if timeline else None)
     # Project-rooted crumb (§8.2 — the council pattern); the kind root stays only for
     # orphan records that have no project to live under.
-    crumbs = ([(t("projects"), "/projects"), (proj["title"], f'/projects/{proj["id"]}')]
+    crumbs = ([(t("projects"), "/jobs"), (proj["title"], f'/jobs/{proj["id"]}')]
               if proj else [(t("sessions"), "/sessions")])
     crumbs.append((_display_title(title), None))
     # Rail order is the §8.2 anatomy: project → kind-specifics → dates; the prototype row
     # is ONE prototype (singular label).
     prop_rows = [
         ("projects", t("project"),
-         h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"]) if proj else ""),
+         h("a", {"href": f'/jobs/{proj["id"]}'}, proj["title"]) if proj else ""),
         *detail_form_rows("session", proto_session_vm(sess, store)),
         ("square", t("fidelity"), raw(_fidelity_chip("prototype"))),
         ("prototype", t("prototype_kind"), proto_link),
@@ -642,7 +642,7 @@ def register_sessions(app) -> None:
                         raw(LIGHTBOX_JS))
         proj = store.get_research_project(sess["project_id"]) if sess.get("project_id") else None
         # Project-rooted crumb (§8.2 — the council pattern); kind root only for orphans.
-        crumbs = ([(t("projects"), "/projects"), (proj["title"], f'/projects/{proj["id"]}')]
+        crumbs = ([(t("projects"), "/jobs"), (proj["title"], f'/jobs/{proj["id"]}')]
                   if proj else [(t("sessions"), "/sessions")])
         crumbs.append((_display_title(title), None))
         grounded = sess.get("grounded_verified")
@@ -653,7 +653,7 @@ def register_sessions(app) -> None:
             caps_prop = raw(_label(t(cm["label_key"]), cm["color"], title=cm["hint"]))
         # Rail order is the §8.2 anatomy: project → kind-specifics → dates.
         prop_rows = [
-            ("projects", t("project"), h("a", {"href": f'/projects/{proj["id"]}'}, proj["title"]) if proj else ""),
+            ("projects", t("project"), h("a", {"href": f'/jobs/{proj["id"]}'}, proj["title"]) if proj else ""),
             *detail_form_rows("session", sess),
             ("square", t("fidelity"), raw(_fidelity_chip(sess.get("fidelity", "")))),
             ("compass", t("subject_h"), _subject_link(store, subject)),

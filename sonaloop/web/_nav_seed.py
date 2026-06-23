@@ -20,9 +20,9 @@ register_nav_section("workspace", label=None, order=0)
 
 _CORE_NAV = {
     "workspace": [
-        ("/projects", "projects", "projects", lambda: t("projects")),
+        ("/jobs", "projects", "projects", lambda: t("projects")),
         ("/methodologies", "methodologies", "target", lambda: t("methodologies_h")),
-        ("/library", "library", "book", lambda: t("library_h")),
+        ("/formats", "library", "book", lambda: t("library_h")),
         ("/personas", "personas", "personas", lambda: t("personas")),
     ],
 }

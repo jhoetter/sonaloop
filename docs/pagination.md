@@ -48,5 +48,5 @@ views are shareable and back/forward restores them. Submitting the filter box
 drops the page param (a changed filter resets to page 1); the h1 count and
 `Page N of M` are computed over the **full filtered set**. ~25 rows per page.
 
-Adopters: `/personas`, `/projects` (components: `_page_window` / `_pager` /
+Adopters: `/personas`, `/jobs` (components: `_page_window` / `_pager` /
 `_list_filter_box` in `sonaloop/web/_pager.py`).

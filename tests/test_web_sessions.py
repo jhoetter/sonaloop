@@ -170,7 +170,7 @@ def test_persona_page_lists_its_sessions(store):
 def test_project_page_lists_its_sessions(store):
     proj = services.create_research_project("Q", store=store)
     sess = _record(store, project_id=proj["id"])
-    html = _client().get(f'/projects/{proj["id"]}?lang=en').text
+    html = _client().get(f'/jobs/{proj["id"]}?lang=en').text
     assert f'/sessions/{sess["id"]}' in html
 
 
@@ -193,7 +193,7 @@ def test_project_outline_nests_sessions_under_their_subject(store):
     pid = create_persona(store, "Greta Tester")
     sess = _record(store, persona_id=pid, project_id=proj["id"],
                    subject={"kind": "prototype", "id": proto["id"], "label": "Signup prototype"})
-    html = _client().get(f'/projects/{proj["id"]}?lang=en').text
+    html = _client().get(f'/jobs/{proj["id"]}?lang=en').text
     # the appended flat section is gone — sessions live IN the outline now
     assert 'id="sec-sessions"' not in html
     # the subject (prototype) row precedes its session child row, which carries the tree-connector
@@ -216,7 +216,7 @@ def test_project_outline_parent_row_stays_tag_free_with_multiple_sessions(store)
             steps=[_step(0), _step(1, friction="blocked", would_continue=False, reason="lost")],
             outcome={"completed": False, "dropoff_step": 1, "summary": "gave up",
                      "predicted_behaviors": []})
-    html = _client().get(f'/projects/{proj["id"]}?lang=en').text
+    html = _client().get(f'/jobs/{proj["id"]}?lang=en').text
     # session rows still nest under the prototype, but counts/drop-off tags stay out of the outline.
     assert html.count('data-rkind="session"') == 2
     assert "2 sessions · 1× drop @ step 1" not in html
@@ -233,7 +233,7 @@ def test_project_outline_renders_live_url_use_as_a_session_row(store):
         [_step(0, url="https://example.test/checkout", title="Checkout Example"), _step(1)],
         {"completed": True, "dropoff_step": None, "summary": "done", "predicted_behaviors": []},
         project_id=proj["id"], store=store)["usability_session"]
-    html = _client().get(f'/projects/{proj["id"]}?lang=en').text
+    html = _client().get(f'/jobs/{proj["id"]}?lang=en').text
     # No synthesized LIVE SURFACE parent: the replay itself is the visible primitive.
     assert 'data-rkind="live_url"' not in html
     assert "Live surface" not in html
@@ -247,7 +247,7 @@ def test_freeform_project_outline_shows_project_synthesis_nodes_and_compacts(sto
     services.record_synthesis("Pains", "What hurts?", project_id=proj["id"],
                               payload={"status": "done", "gesamtbild": "big picture"},
                               synthesis_id="syn0", store=store)
-    html = _client().get(f'/projects/{proj["id"]}?lang=en').text
+    html = _client().get(f'/jobs/{proj["id"]}?lang=en').text
     assert "Pains" in html and 'href="/syntheses/syn0"' in html
     # a near-empty outline sizes to content instead of pinning a viewport-high dead zone
     assert "ol-compact" in html
@@ -323,7 +323,7 @@ def test_prototype_session_full_detail_page(store):
     # no screenshot files for this session id -> text screens, no <img> rows
     assert "proto-screen-0" in html and 'class="sess-shot"' not in html
     # the properties rail: prototype + project links, the unverified grounding read
-    assert f'/prototypes/{proto["slug"]}' in html and f'/projects/{proj["id"]}' in html
+    assert f'/prototypes/{proto["slug"]}' in html and f'/jobs/{proj["id"]}' in html
     assert STRINGS["en"]["grounded_no"] in html              # no live session log -> unverified
 
 

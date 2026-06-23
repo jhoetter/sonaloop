@@ -171,6 +171,6 @@ def test_activity_groups_events_per_run(store):
 
 
 def test_chrome_includes_the_live_client(store):
-    html = TestClient(web.create_app()).get("/projects?lang=en").text
+    html = TestClient(web.create_app()).get("/jobs?lang=en").text
     assert "EventSource('/api/events')" in html               # the live module ships on every page
     assert 'id="live-toast"' in html

@@ -117,7 +117,7 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
     # Plan-less projects (hand-built data / the study_ids report path) have NO methodology steps, so
     # pmeta is empty — their nodes must still render (parity with ?view=graph): one flat chronological
     # round, the kind label standing in for the phase column (tracker: outline-drops-study-nodes-on-
-    # plan-less-projects). A phase-less legacy study node IS a synthesis (services._study_node).
+    # plan-less-projects). A phase-less compatibility study node IS a synthesis (services._study_node).
     planless = not pmeta
     for n in nodes:
         if str(n["study_id"]).startswith("note:"):  # notes (phase-free) added below
@@ -176,7 +176,7 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         schema_id = out.get("schema_id", "")
         title = out.get("title", "") or schema_id
         add(out["id"], primitive_color("hypothesis"), title,
-            t("job_outcome_kind"), f'/projects/{graph["project"]["id"]}/outcomes/{out["id"]}',
+            t("job_outcome_kind"), f'/jobs/{graph["project"]["id"]}/outcomes/{out["id"]}',
             last_key, max(nrounds - 1, 0), f'~~{out.get("created_at", "")}',
             out.get("created_at", ""), plabel=t("job_outcome_kind") if planless else None,
             rkind="job_outcome", node=out)

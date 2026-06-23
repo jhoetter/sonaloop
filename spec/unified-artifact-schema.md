@@ -134,9 +134,9 @@ three non-breaking phases so we never do a risky big-bang migration:
    `_prose` / `.turn`-card unification already shipped — it pushes the unification down to the data view.)
 2. **Author the primitives natively.** Update the `brief_*` instructions + `record_*` schemas
    (spec/markdown-authoring-harness.md is the precedent) so new councils/syntheses/sessions write
-   `statements`/`findings`/`prompts`/`refs` directly. Keep the adapters reading legacy records.
+   `statements`/`findings`/`prompts`/`refs` directly. Keep the adapters reading compatibility records.
 3. **Optional backfill.** A one-off migration rewrites old records into the primitive shape; then the
-   legacy fields + adapters can be retired. Never required for correctness — the adapters cover old data
+   compatibility fields + adapters can be retired. Never required for correctness — the adapters cover old data
    forever.
 
 A `stance_scale.json` (like `section_kinds.json`) holds the one stance vocabulary → label/color, keeping

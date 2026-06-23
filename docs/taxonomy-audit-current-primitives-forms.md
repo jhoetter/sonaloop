@@ -10,7 +10,7 @@ The important rule is narrow:
 
 - A **primitive** is a stable Library object users learn and navigate.
 - A **form** is a concrete protocol or format of that primitive.
-- An **alias** is a legacy/storage/API value that should resolve to a form.
+- An **alias** is a compatibility/storage/API value that should resolve to a form.
 - A **parameter** is a property of a form, not a new form.
 - A **status** is lifecycle state, not a form.
 - A **relationship** is graph trace data between objects, not a primitive.

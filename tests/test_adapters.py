@@ -5,7 +5,7 @@ from sonaloop import artifacts as A
 
 
 def test_council_prompts_built_from_canonical_fields():
-    # prompts are derived from the council's canonical question/proposal fields (not legacy)
+    # prompts are derived from the council's canonical question/proposal fields (not compatibility)
     c = {"prompt": "P?", "questions": ["q0?", "q1?"], "proposal": ""}
     assert [p["id"] for p in A.council_prompts(c)] == ["prompt", "q0", "q1"]
 

@@ -98,7 +98,7 @@ def register_activity(app) -> None:
             # text discipline, ux-contract C6 (ux-audit P5 finding).
             if label and label.casefold() in title.casefold():
                 label = ""
-            return h("a", {"class_": "row", "href": ev["data"].get("url") or "/projects"},
+            return h("a", {"class_": "row", "href": ev["data"].get("url") or "/jobs"},
                      h("span", {"class_": "rico", "style": "color:var(--accent)"},
                        raw(_icon("activity"))),
                      h("span", {"class_": "title"}, title,

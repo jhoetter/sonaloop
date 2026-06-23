@@ -18,7 +18,7 @@ from conftest import create_persona
 def _client():
     from starlette.testclient import TestClient
     client = TestClient(web.create_app())
-    client.get("/projects?lang=en")            # primes the sl_csrf double-submit cookie
+    client.get("/jobs?lang=en")            # primes the sl_csrf double-submit cookie
     return client
 
 
@@ -41,14 +41,14 @@ def test_csrf_cookie_is_issued_and_forms_embed_it(store):
     client = _client()
     token = client.cookies.get("sl_csrf")
     assert token
-    html = client.get(f'/projects/{proj["id"]}/edit?lang=en').text
+    html = client.get(f'/jobs/{proj["id"]}/edit?lang=en').text
     assert f'name="csrf_token" value="{token}"' in html
 
 
 def test_post_without_or_with_wrong_csrf_token_is_403():
     client = _client()
-    assert client.post("/projects/new", data={"title": "x"}).status_code == 403
-    r = client.post("/projects/new", data={"title": "x", "csrf_token": "forged"})
+    assert client.post("/jobs/new", data={"title": "x"}).status_code == 403
+    r = client.post("/jobs/new", data={"title": "x", "csrf_token": "forged"})
     assert r.status_code == 403
     assert not services.list_research_projects()
 
@@ -57,7 +57,7 @@ def test_post_without_or_with_wrong_csrf_token_is_403():
 
 def test_project_create_happy_path_redirects_303(store):
     client = _client()
-    r = _post(client, "/projects/new", title="Pricing study", goal="WTP", description="desc")
+    r = _post(client, "/jobs/new", title="Pricing study", goal="WTP", description="desc")
     assert r.status_code == 303
     pid = r.headers["location"].rsplit("/", 1)[1]
     proj = services.get_research_project(pid, store=store)
@@ -66,7 +66,7 @@ def test_project_create_happy_path_redirects_303(store):
 
 def test_project_create_empty_title_rerenders_form_with_inline_error():
     client = _client()
-    r = _post(client, "/projects/new", title="   ", goal="kept goal")
+    r = _post(client, "/jobs/new", title="   ", goal="kept goal")
     assert r.status_code == 400
     assert "This field is required." in r.text          # inline error …
     assert "kept goal" in r.text                        # … and the submitted values survive
@@ -76,42 +76,42 @@ def test_project_create_empty_title_rerenders_form_with_inline_error():
 def test_project_edit_happy_validation_and_404(store):
     proj = services.create_research_project("Old title", description="kept via API", store=store)
     client = _client()
-    edit_html = client.get(f'/projects/{proj["id"]}/edit?lang=en').text
+    edit_html = client.get(f'/jobs/{proj["id"]}/edit?lang=en').text
     assert "Old title" in edit_html and 'name="icon"' in edit_html
     assert 'name="description"' not in edit_html
     assert "sl-icon-grid" in edit_html
     assert 'id="f-icon" name="icon"' not in edit_html
-    r = _post(client, f'/projects/{proj["id"]}/edit', title="New title", goal="g2",
+    r = _post(client, f'/jobs/{proj["id"]}/edit', title="New title", goal="g2",
               icon="positioning")
-    assert r.status_code == 303 and r.headers["location"] == f'/projects/{proj["id"]}'
+    assert r.status_code == 303 and r.headers["location"] == f'/jobs/{proj["id"]}'
     updated = services.get_research_project(proj["id"], store=store)
     assert updated["title"] == "New title"
     assert updated["description"] == "kept via API"
     assert updated["icon"] == {"kind": "regular", "name": "positioning"}
-    detail_html = client.get(f'/projects/{proj["id"]}?lang=en').text
+    detail_html = client.get(f'/jobs/{proj["id"]}?lang=en').text
     assert "project-rico" in detail_html and "pi-positioning" in detail_html
     assert f'data-project-icon-trigger="{proj["id"]}"' in detail_html
     assert f'data-project-edit="{proj["id"]}"' in detail_html
-    assert _post(client, f'/projects/{proj["id"]}/edit', title="").status_code == 400
-    assert client.get("/projects/nope/edit").status_code == 404
-    assert _post(client, "/projects/nope/edit", title="x").status_code == 404
+    assert _post(client, f'/jobs/{proj["id"]}/edit', title="").status_code == 400
+    assert client.get("/jobs/nope/edit").status_code == 404
+    assert _post(client, "/jobs/nope/edit", title="x").status_code == 404
 
 
 def test_project_delete_requires_typed_confirmation(store):
     proj = services.create_research_project("Keep me safe", store=store)
     client = _client()
-    r = _post(client, f'/projects/{proj["id"]}/delete', confirm="wrong name")
+    r = _post(client, f'/jobs/{proj["id"]}/delete', confirm="wrong name")
     assert r.status_code == 400
     assert "The typed name does not match." in r.text
     assert services.get_research_project(proj["id"], store=store)
-    r = _post(client, f'/projects/{proj["id"]}/delete', confirm="Keep me safe")
-    assert r.status_code == 303 and r.headers["location"] == "/projects"
+    r = _post(client, f'/jobs/{proj["id"]}/delete', confirm="Keep me safe")
+    assert r.status_code == 303 and r.headers["location"] == "/jobs"
     with pytest.raises(KeyError):
         services.get_research_project(proj["id"], store=store)
 
 
 def test_project_delete_404():
-    assert _post(_client(), "/projects/nope/delete", confirm="x").status_code == 404
+    assert _post(_client(), "/jobs/nope/delete", confirm="x").status_code == 404
 
 
 # ------------------------------------------------------------------------ personas
@@ -189,8 +189,8 @@ def test_note_create_edit_delete_roundtrip(store):
     proj = services.create_research_project("P", store=store)
     client = _client()
     # no GET create form (U9) — the POST route stays as API surface
-    assert client.get(f'/projects/{proj["id"]}/notes/new?lang=en').status_code == 405
-    r = _post(client, f'/projects/{proj["id"]}/notes/new', title="Obs", text="saw a thing")
+    assert client.get(f'/jobs/{proj["id"]}/notes/new?lang=en').status_code == 405
+    r = _post(client, f'/jobs/{proj["id"]}/notes/new', title="Obs", text="saw a thing")
     assert r.status_code == 303
     nid = r.headers["location"].rsplit("/", 1)[1]
     assert services.get_note(nid, store=store)["note"]["text"] == "saw a thing"
@@ -198,7 +198,7 @@ def test_note_create_edit_delete_roundtrip(store):
     assert r.status_code == 303 and r.headers["location"] == f"/notes/{nid}"
     assert services.get_note(nid, store=store)["note"]["title"] == "Obs2"
     r = _post(client, f"/notes/{nid}/delete")
-    assert r.status_code == 303 and r.headers["location"] == f'/projects/{proj["id"]}'
+    assert r.status_code == 303 and r.headers["location"] == f'/jobs/{proj["id"]}'
     with pytest.raises(KeyError):
         services.get_note(nid, store=store)
 
@@ -206,11 +206,11 @@ def test_note_create_edit_delete_roundtrip(store):
 def test_note_validation_csrf_and_404(store):
     proj = services.create_research_project("P", store=store)
     client = _client()
-    r = _post(client, f'/projects/{proj["id"]}/notes/new', title="t", text="  ")
+    r = _post(client, f'/jobs/{proj["id"]}/notes/new', title="t", text="  ")
     assert r.status_code == 400 and "This field is required." in r.text
-    assert client.post(f'/projects/{proj["id"]}/notes/new',
+    assert client.post(f'/jobs/{proj["id"]}/notes/new',
                        data={"text": "x"}).status_code == 403
-    assert _post(client, "/projects/nope/notes/new", text="x").status_code == 404
+    assert _post(client, "/jobs/nope/notes/new", text="x").status_code == 404
     assert client.get("/notes/nope/edit").status_code == 404
     assert _post(client, "/notes/nope/edit", text="x").status_code == 404
     assert _post(client, "/notes/nope/delete").status_code == 404
@@ -221,7 +221,7 @@ def test_note_validation_csrf_and_404(store):
 def test_section_create_edit_delete_roundtrip(store):
     proj = services.create_research_project("P", store=store)
     client = _client()
-    r = _post(client, f'/projects/{proj["id"]}/sections/new', title="Theme A", kind="theme", note="")
+    r = _post(client, f'/jobs/{proj["id"]}/sections/new', title="Theme A", kind="theme", note="")
     assert r.status_code == 303
     sid = r.headers["location"].rsplit("/", 1)[1]
     r = _post(client, f"/sections/{sid}/edit", title="Theme B", kind="phase", note="why")
@@ -229,7 +229,7 @@ def test_section_create_edit_delete_roundtrip(store):
     sec = services.get_section(sid, store=store)
     assert (sec["title"], sec["kind"], sec["note"]) == ("Theme B", "phase", "why")
     r = _post(client, f"/sections/{sid}/delete")
-    assert r.status_code == 303 and r.headers["location"] == f'/projects/{proj["id"]}'
+    assert r.status_code == 303 and r.headers["location"] == f'/jobs/{proj["id"]}'
     with pytest.raises(KeyError):
         services.get_section(sid, store=store)
 
@@ -237,9 +237,9 @@ def test_section_create_edit_delete_roundtrip(store):
 def test_section_validation_and_404(store):
     proj = services.create_research_project("P", store=store)
     client = _client()
-    r = _post(client, f'/projects/{proj["id"]}/sections/new', title=" ", kind="theme")
+    r = _post(client, f'/jobs/{proj["id"]}/sections/new', title=" ", kind="theme")
     assert r.status_code == 400 and "This field is required." in r.text
-    assert _post(client, "/projects/nope/sections/new", title="x").status_code == 404
+    assert _post(client, "/jobs/nope/sections/new", title="x").status_code == 404
     assert client.get("/sections/nope/edit").status_code == 404
     assert _post(client, "/sections/nope/edit", title="x").status_code == 404
     assert _post(client, "/sections/nope/delete").status_code == 404
@@ -300,10 +300,10 @@ def test_web_writes_pass_the_access_guard_seam(store):
     client = _client()
     services.register_access_guard(viewer_guard)
     try:
-        assert _post(client, "/projects/new", title="x").status_code == 403
-        assert _post(client, f'/projects/{proj["id"]}/edit', title="x").status_code == 403
-        assert _post(client, f'/projects/{proj["id"]}/delete', confirm="Guarded").status_code == 403
-        assert _post(client, f'/projects/{proj["id"]}/notes/new', text="x").status_code == 403
+        assert _post(client, "/jobs/new", title="x").status_code == 403
+        assert _post(client, f'/jobs/{proj["id"]}/edit', title="x").status_code == 403
+        assert _post(client, f'/jobs/{proj["id"]}/delete', confirm="Guarded").status_code == 403
+        assert _post(client, f'/jobs/{proj["id"]}/notes/new', text="x").status_code == 403
     finally:
         _substrate.clear_access_guards()
     assert {"web.create_project", "web.update_project",
@@ -317,7 +317,7 @@ def test_guard_denial_renders_a_403_page_not_a_traceback(store):
     services.register_access_guard(
         lambda op, res: (_ for _ in ()).throw(PermissionError()) if op.startswith("web.") else None)
     client = _client()
-    r = _post(client, "/projects/new", title="x")
+    r = _post(client, "/jobs/new", title="x")
     assert r.status_code == 403
     assert "permission" in r.text
 
@@ -329,16 +329,16 @@ def test_no_create_affordances_anywhere_in_the_ui(store):
     host. No "New …" button, no create-form link, no GET create form."""
     client = _client()
     html = client.get("/?lang=en").text             # empty DB -> first-steps checklist
-    assert "/projects/new" not in html              # the checklist TELLS, it never links a form
+    assert "/jobs/new" not in html              # the checklist TELLS, it never links a form
     services.create_research_project("P", store=store)
     proj = services.list_research_projects(store=store)[0]
-    assert "/projects/new" not in client.get("/projects?lang=en").text
-    html = client.get(f'/projects/{proj["id"]}?lang=en').text
-    assert f'/projects/{proj["id"]}/notes/new' not in html
-    assert f'/projects/{proj["id"]}/sections/new' not in html
+    assert "/jobs/new" not in client.get("/jobs?lang=en").text
+    html = client.get(f'/jobs/{proj["id"]}?lang=en').text
+    assert f'/jobs/{proj["id"]}/notes/new' not in html
+    assert f'/jobs/{proj["id"]}/sections/new' not in html
     # the GET create forms are gone; the POST routes stay as API surface
-    assert client.get(f'/projects/{proj["id"]}/notes/new').status_code == 405
-    assert client.get(f'/projects/{proj["id"]}/sections/new').status_code == 405
+    assert client.get(f'/jobs/{proj["id"]}/notes/new').status_code == 405
+    assert client.get(f'/jobs/{proj["id"]}/sections/new').status_code == 405
 
 
 def test_edit_is_a_dialog_on_the_detail_header_overflow(store):
@@ -349,7 +349,7 @@ def test_edit_is_a_dialog_on_the_detail_header_overflow(store):
     proj = services.create_research_project("P", persona_ids=[pid], store=store)
     client = _client()
     token = client.cookies.get("sl_csrf")
-    for page_url, edit_action in [(f'/projects/{proj["id"]}', f'/projects/{proj["id"]}/edit'),
+    for page_url, edit_action in [(f'/jobs/{proj["id"]}', f'/jobs/{proj["id"]}/edit'),
                                   (f"/personas/{pid}", f"/personas/{pid}/edit")]:
         html = client.get(f"{page_url}?lang=en").text
         assert "sl-overflow" in html, page_url                       # the visible "…"
@@ -361,9 +361,9 @@ def test_edit_is_a_dialog_on_the_detail_header_overflow(store):
         assert "Type the name to confirm" in html, page_url          # typed confirm (server-checked)
         assert "danger-zone" not in html, page_url
     # the deep-link edit PAGE keeps answering (same fields, one source)
-    edit_html = client.get(f'/projects/{proj["id"]}/edit?lang=en').text
+    edit_html = client.get(f'/jobs/{proj["id"]}/edit?lang=en').text
     assert 'name="title"' in edit_html and "sl-overflow" in edit_html
-    assert f'/projects/{proj["id"]}/delete' in edit_html
+    assert f'/jobs/{proj["id"]}/delete' in edit_html
 
 
 def test_dialog_validation_error_rerenders_in_the_dialog(store):
@@ -372,7 +372,7 @@ def test_dialog_validation_error_rerenders_in_the_dialog(store):
     values survive."""
     proj = services.create_research_project("Dialog project", goal="old goal", store=store)
     client = _client()
-    r = _post(client, f'/projects/{proj["id"]}/edit', title="  ", goal="typed goal")
+    r = _post(client, f'/jobs/{proj["id"]}/edit', title="  ", goal="typed goal")
     assert r.status_code == 400
     assert 'class="wdialog"' in r.text
     m = __import__("re").search(r'class="wdialog" id="([^"]+)"', r.text)
@@ -380,7 +380,7 @@ def test_dialog_validation_error_rerenders_in_the_dialog(store):
     assert "This field is required." in r.text
     assert "typed goal" in r.text
     # the typed-confirm delete mismatch re-opens ITS dialog the same way
-    r = _post(client, f'/projects/{proj["id"]}/delete', confirm="wrong")
+    r = _post(client, f'/jobs/{proj["id"]}/delete', confirm="wrong")
     assert r.status_code == 400
     m = __import__("re").search(r'class="danger-dialog" id="([^"]+)"', r.text)
     assert m and f'document.getElementById("{m.group(1)}").showModal()' in r.text
@@ -405,7 +405,7 @@ def test_every_delete_surface_uses_the_overflow_pattern(store):
     client = _client()
     surfaces = [
         # (page, delete action, has the edit dialog)
-        (f'/projects/{proj["id"]}', f'/projects/{proj["id"]}/delete', True),
+        (f'/jobs/{proj["id"]}', f'/jobs/{proj["id"]}/delete', True),
         (f"/personas/{pid}", f"/personas/{pid}/delete", True),
         (f'/notes/{note["id"]}', f'/notes/{note["id"]}/delete', True),
         (f'/sections/{sec["id"]}', f'/sections/{sec["id"]}/delete', True),
@@ -444,6 +444,6 @@ def test_slideover_fragment_carries_the_header_actions(store):
 def test_forms_render_in_german_too(store):
     proj = services.create_research_project("P", store=store)
     client = _client()
-    html = client.get(f'/projects/{proj["id"]}/edit?lang=de').text
+    html = client.get(f'/jobs/{proj["id"]}/edit?lang=de').text
     assert "Titel" in html and "Speichern" in html
-    assert "Gefahrenzone" not in html and "Projekt löschen" in html
+    assert "Gefahrenzone" not in html and "Job löschen" in html

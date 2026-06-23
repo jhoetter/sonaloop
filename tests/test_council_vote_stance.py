@@ -7,7 +7,7 @@ positivity vocabulary). Guards the invariants:
   - the web stance distribution is ONE encoding (ux-contract §10 W9 + §11 T5): the scaled
     stance BARS — no donut and no proportional strip re-encoding the same distribution
     (the deck keeps its single donut card).
-  - legacy stored uppercase tokens (SUPPORT/MAYBE/ABSTAIN/OPPOSE) chart identically via the aliases.
+  - compatibility stored uppercase tokens (SUPPORT/MAYBE/ABSTAIN/OPPOSE) chart identically via the aliases.
   - the per-persona score is the MEAN of the resolved stance values (−2..+2), its color the nearest
     scale value's — no token-specific coefficients, no label-keyword matching.
 """
@@ -29,7 +29,7 @@ def test_record_council_normalizes_votes_onto_the_scale(store):
                                 votes=[{"persona_id": "pa", "vote": "MAYBE"},
                                        {"persona_id": "pb", "vote": "lieber nicht??"}])
     v1, v2 = c["votes"]
-    # legacy token → canonical term + resolved stance; the reader-compatible shape is kept
+    # compatibility token → canonical term + resolved stance; the reader-compatible shape is kept
     assert v1["persona_id"] == "pa" and v1["vote"] == "conditional"
     assert v1["stance"] == {"value": 1, "label": "conditional"}
     # unresolvable token → neutral VALUE bucket, the raw token traced — never silently dropped
@@ -45,7 +45,7 @@ def test_conditional_vote_appears_in_the_distribution():
     assert color == A.stance_meta(1)["color"] and label == t(A.stance_meta(1)["label_key"])
 
 
-def test_legacy_uppercase_votes_bucket_identically():
+def test_compatibility_uppercase_votes_bucket_identically():
     # the pre-change stored shape: uppercase tokens in `vote`, no stance sub-dict
     tot, parts = _vote_parts(_sessions(["SUPPORT", "SUPPORT", "MAYBE", "ABSTAIN", "OPPOSE"]))
     assert dict(tot) == {2: 2, 1: 1, 0: 1, -2: 1}                  # token → value bucket via aliases

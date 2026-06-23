@@ -130,7 +130,7 @@ New / changed (old names kept as aliases where sensible):
   subgraph as fresh `__r<n>` tasks (todo, no carried evidence/frames, gates preserved), the new
   entry consuming the looping task.
 - `get_plan(project_id)` / `export_plan_md(project_id)` → DB plan + rendered md.
-- `suggest_*` extended with bucket/kind presentation. Legacy `record_node`/`record_decision`/
+- `suggest_*` extended with bucket/kind presentation. Compatibility `record_node`/`record_decision`/
   `advance` map onto act/verify task ops for back-compat.
 
 ---
@@ -182,5 +182,5 @@ Each milestone is independently shippable with a failure-proof acceptance test.
   councils + 1 synthesis (NOT 14 micro-councils); the plan.md reads as a coherent analyze/act/verify
   log; three diamonds still emerge over act→verify.
 - **R8 — Migration + grep gate + full suite.** Back-compat (old projects render); extend the
-  no-hardcoded-vocabulary gate to buckets/kinds; full test suite green. **Accept:** legacy
+  no-hardcoded-vocabulary gate to buckets/kinds; full test suite green. **Accept:** compatibility
   methodology projects still render; grep gate passes; `pytest` green.

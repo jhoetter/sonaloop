@@ -107,7 +107,7 @@ old `_synthesis_html` structured view and the meta-report renderer **converge in
 
 `plan_graph` builds nodes from plan tasks' `produces` — those are **convergence** syntheses only, so it
 naturally never lists project-scope ones. Guard explicitly anyway: graph node-building and gate counting
-consider only `scope == "convergence"` (or unset = legacy convergence). Project-scope syntheses are
+consider only `scope == "convergence"` (or unset = compatibility convergence). Project-scope syntheses are
 exposed via `_attach_meta_reports` (renamed `_attach_project_reports`) for the outline rows.
 
 ## 6. Migration

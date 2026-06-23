@@ -173,7 +173,7 @@ def write_soul(persona: dict[str, Any], store: Store | None = None) -> dict[str,
 
 
 
-def _replace_legacy_inferred_defaults(persona: dict[str, Any]) -> bool:
+def _replace_compatibility_inferred_defaults(persona: dict[str, Any]) -> bool:
     changed = False
     source_tool_ids, source_tools = normalized_tools(persona["source_description"])
     has_explicit_source_tools = bool(source_tools) and source_tools != [label for _, label in GENERIC_TOOLS]
@@ -193,7 +193,7 @@ def _replace_legacy_inferred_defaults(persona: dict[str, Any]) -> bool:
 
 def ensure_persona_runtime_fields(persona: dict[str, Any], store: Store | None = None) -> dict[str, Any]:
     changed = False
-    if _replace_legacy_inferred_defaults(persona):
+    if _replace_compatibility_inferred_defaults(persona):
         changed = True
     if (
         "identity_traits" not in persona

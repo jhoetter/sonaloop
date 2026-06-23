@@ -25,7 +25,7 @@ def _client():
     from starlette.testclient import TestClient
     from sonaloop import web
     client = TestClient(web.create_app())
-    client.get("/projects?lang=en")            # primes the sl_csrf double-submit cookie
+    client.get("/jobs?lang=en")            # primes the sl_csrf double-submit cookie
     return client
 
 
@@ -173,7 +173,7 @@ def test_onboarding_showcase_loads_every_tour_artifact(store):
     plan = services.get_plan(out["project_id"], store=store)
     assert plan["methodology"] == "double_diamond"
     assert all(t["status"] == "done" for t in plan["tasks"])
-    projects_html = _client().get("/projects?lang=en").text
+    projects_html = _client().get("/jobs?lang=en").text
     assert "Pausenschutz im Schichtalltag" in projects_html
     assert "Methodology · Double Diamond" in projects_html
     assert "Run · Finished" in projects_html
@@ -352,7 +352,7 @@ def test_empty_home_offers_one_click_example_load_and_303s_to_project():
     r = _post(client, f"/examples/{PREMIUM}/load")
     assert r.status_code == 303
     project_url = r.headers["location"]
-    assert project_url.startswith("/projects/rproject_")
+    assert project_url.startswith("/jobs/rproject_")
     page = client.get(project_url)
     assert page.status_code == 200 and "Klar money coaching" in page.text
 
@@ -371,7 +371,7 @@ def test_every_major_inspector_page_is_non_empty_after_loading_both(store):
     p3 = services.load_example(ONBOARDING, store=store)
     client = _client()
     checks = {
-        "/projects": ["Klar money coaching", "Schichtwerk", "Pausenschutz im Schichtalltag"],
+        "/jobs": ["Klar money coaching", "Schichtwerk", "Pausenschutz im Schichtalltag"],
         "/personas": ["Maren Ostendorf", "Birgit Krautmann"],
         "/councils": ["Klar Lite at €19/month", "Position under fire", "Pilotrichtung"],
         "/syntheses": ["Pricing story", "fair, audit-proof roster", "Pausenschutz-Pilot"],

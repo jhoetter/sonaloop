@@ -182,7 +182,7 @@ design-system work re-verifies anyway); the route split is optional cleanliness 
   (`tests/test_web_burndown.py`) blocks regressions. **Burndown: 606 → 528 units; 110 tests green.**
 
 ## 11. Rollout across the WHOLE app — what's LEFT (exact, 2026-06-06)
-**Remaining = 528 legacy-HTML units** (`_esc`/`html.escape` + inline `f'<`), per file:
+**Remaining = 528 compatibility-HTML units** (`_esc`/`html.escape` + inline `f'<`), per file:
 - **`_routes_pages.py` — 239.** Still f-strings: the **calendar grid** (`_calendar_html`,
   `_period_calendar_html` — note: not visually verifiable today, the demo persona is unsimulated →
   no calendar data), **`_memory_html`** (persona memory page), the **persona profile** body

@@ -136,13 +136,13 @@ def register_hypotheses(app) -> None:
         vals, note, src, _derived = _hypothesis_reads(hx, store)
         body = h("div", {"class_": "sec", "id": "sec-bet"}, vals, note, src)
         # Project-rooted crumb (§8.2 — the council pattern); kind root only for orphans.
-        crumbs = ([(t("projects"), "/projects"), (proj["title"], f'/projects/{proj["id"]}')]
+        crumbs = ([(t("projects"), "/jobs"), (proj["title"], f'/jobs/{proj["id"]}')]
                   if proj else [(t("hypotheses_h"), "/hypotheses")])
         crumbs.append((_display_title(hx.get("text", "")), None))
-        anchor = (f'/projects/{hx["project_id"]}#hyp-{hx["id"]}' if hx.get("project_id") else "")
+        anchor = (f'/jobs/{hx["project_id"]}#hyp-{hx["id"]}' if hx.get("project_id") else "")
         # The rail's project link lands ON the bet's row (the #hyp- anchor) — replaces the old
         # "View in project" meta-line link, which no other kind carried (round 2, §8.2).
-        proj_link = (h("a", {"href": anchor or f'/projects/{proj["id"]}'}, proj["title"]) if proj else "")
+        proj_link = (h("a", {"href": anchor or f'/jobs/{proj["id"]}'}, proj["title"]) if proj else "")
         prop_rows = [
             ("projects", t("project"), proj_link),
             *detail_form_rows("hypothesis", hx),

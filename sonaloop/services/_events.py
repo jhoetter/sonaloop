@@ -41,7 +41,7 @@ _ENTITY: dict[str, tuple[str, str, str]] = {
 
 # entity_type -> the inspector detail route (the toast/feed link target).
 _ENTITY_ROUTE = {"persona": "/personas/", "council": "/councils/",
-                 "synthesis": "/syntheses/", "project": "/projects/",
+                 "synthesis": "/syntheses/", "project": "/jobs/",
                  "asset": "/assets/"}        # the U8 asset detail page (global id resolution)
 
 
@@ -49,11 +49,11 @@ def event_url(entity_type: str, entity_id: str, project_id: str | None) -> str:
     """The inspector URL an event points at. A run has no page of its own → its
     project; calibration's 'global' scope (no project row) → the projects index."""
     if entity_type == "run":
-        return f"/projects/{project_id}" if project_id else "/projects"
+        return f"/jobs/{project_id}" if project_id else "/jobs"
     route = _ENTITY_ROUTE.get(entity_type)
     if route and entity_id and entity_id != "global":
         return route + entity_id
-    return "/projects"
+    return "/jobs"
 
 
 def _append_bus_event(envelope: dict[str, Any]) -> None:

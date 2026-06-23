@@ -84,10 +84,12 @@ data/sonaloop.db-shm
 data/sonaloop.db-wal
 # Local UI/content language choice (auto-detected per user) — local-only.
 data/settings.json
+data/tmp/
 data/avatars/
 data/personas/
 # Per-step walkthrough/session screenshots (harness-written runtime artifacts).
 data/sessions/
+data/workspace-design-assets/
 # Export snapshot (your personas / councils / syntheses) — keep private.
 data/export/
 # Canonical persona source prompts — your own profiles; keep private.

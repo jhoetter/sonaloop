@@ -14,10 +14,10 @@ remain MCP-only.
 
 | Entity | Create | Edit | Delete | Notes |
 | --- | --- | --- | --- | --- |
-| Project | ❌ UI (MCP/CLI: `start_project` / `create_research_project`; `POST /projects/new` stays as API surface) | ✅ title/goal/icon | ✅ typed-confirmation (type the project title) | browser edits the primary container metadata only; description remains API/MCP metadata; the graph/plan stays agent-driven; regular icons are selectable in the browser, custom SVG icons are generated/set through MCP/CLI |
+| Project | ❌ UI (MCP/CLI: `start_project` / `create_research_project`; `POST /jobs/new` stays as API surface) | ✅ title/goal/icon | ✅ typed-confirmation (type the project title) | browser edits the primary container metadata only; description remains API/MCP metadata; the graph/plan stays agent-driven; regular icons are selectable in the browser, custom SVG icons are generated/set through MCP/CLI |
 | Persona | ❌ MCP-only for authored profiles (`brief_persona` → `record_persona`); ✅ catalog import from `/personas/catalog` via `catalog_pull` | ✅ metadata: name, role title, segment, industry | ✅ typed-confirmation (type the display name) | catalog import is a selective structural pull from sonaloop-data, not browser authoring |
-| Note | ❌ UI (MCP: `create_note`; `POST /projects/{id}/notes/new` stays as API surface) | ✅ title/text | ✅ | notes are observations the agent records; editing their text in the browser stays fine |
-| Section | ❌ UI (MCP: `create_section`; `POST /projects/{id}/sections/new` stays as API surface) | ✅ title/kind/note | ✅ (member nodes untouched) | a section is a view; membership editing stays MCP (`add_to_section` …) |
+| Note | ❌ UI (MCP: `create_note`; `POST /jobs/{id}/notes/new` stays as API surface) | ✅ title/text | ✅ | notes are observations the agent records; editing their text in the browser stays fine |
+| Section | ❌ UI (MCP: `create_section`; `POST /jobs/{id}/sections/new` stays as API surface) | ✅ title/kind/note | ✅ (member nodes untouched) | a section is a view; membership editing stays MCP (`add_to_section` …) |
 | Council | ❌ | ❌ | ✅ delete only | statements are generated prose — never editable |
 | Synthesis / report | ❌ | ❌ | ✅ delete only | report prose is authored/generated — never editable |
 | Prototype | ❌ | ❌ | ✅ delete only | recorded artifacts |

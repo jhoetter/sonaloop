@@ -1,6 +1,6 @@
 """Phase 3 backfill — write the unified primitives onto existing records (spec/unified-artifact-schema-
 rollout.md §3). Idempotent + loss-free: the primitives are exactly what the Phase-1 adapters already
-derive from the legacy fields, and the adapters PREFER native fields, so rendering is unchanged after the
+derive from the compatibility fields, and the adapters PREFER native fields, so rendering is unchanged after the
 backfill (golden-identical). It only ADDS fields — nothing is deleted.
 
 Run a dry-run first:        uv run python scripts/migrate_to_primitives.py

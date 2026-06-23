@@ -58,7 +58,7 @@ def _clamp_value(v: int) -> int:
 
 
 def resolve_stance(term: Any) -> dict[str, Any] | None:
-    """Map any legacy stance/sentiment/vote token (or a numeric value) onto a canonical Stance dict
+    """Map any compatibility stance/sentiment/vote token (or a numeric value) onto a canonical Stance dict
     {value,label}. Nothing degrades silently: an unknown non-empty token falls back to neutral (value 0)
     with the original kept as `label_raw`; an off-scale numeric clamps to the nearest endpoint with the
     original kept as `value_raw`. Returns None for empty input."""
@@ -95,7 +95,7 @@ def stance_terms() -> list[dict[str, Any]]:
 
 def vote_stance(v: Any) -> dict[str, Any] | None:
     """A council vote IS a stance. Resolve a stored vote — normalized ({vote: term, stance: {...}}) or
-    legacy ({vote: "SUPPORT"}) — onto the scale; None for an empty vote. No token can vanish: an
+    compatibility ({vote: "SUPPORT"}) — onto the scale; None for an empty vote. No token can vanish: an
     unresolvable one buckets at neutral with `label_raw` (resolve_stance contract)."""
     if not isinstance(v, dict):
         return resolve_stance(v)
@@ -106,7 +106,7 @@ def vote_stance(v: Any) -> dict[str, Any] | None:
 
 def vote_tally(votes: list | None) -> dict[str, int]:
     """Tally votes by canonical stance term — every term present (+2 → −2 order, legend-stable),
-    legacy tokens resolved via the scale's aliases, so no vote can vanish from a tally."""
+    compatibility tokens resolved via the scale's aliases, so no vote can vanish from a tally."""
     out = {r["term"]: 0 for r in stance_terms()}
     by_value = _stance_scale()["by_value"]
     for v in votes or []:
@@ -645,7 +645,7 @@ def synthesis_statements(s: dict) -> list[dict]:
 # the old field shapes get them reconstructed from the stored findings/statements. Storage is
 # primitives-only; these are READ helpers, never written (spec/unified-artifact-schema).
 
-# stance value (-2..+2) → the legacy sentiment word, for the synthesis header's count strip.
+# stance value (-2..+2) → the compatibility sentiment word, for the synthesis header's count strip.
 _STANCE_SENTIMENT = {2: "positiv", 1: "bedingt", 0: "neutral", -1: "skeptisch", -2: "ablehnend"}
 
 
@@ -667,7 +667,7 @@ def synthesis_recommendations(s: dict) -> list[tuple]:
 
 
 def synthesis_sentiment_counts(s: dict, store: Any = None) -> dict[str, int]:
-    """Counts keyed by the legacy sentiment word, aggregated over the REAL council voices the synthesis
+    """Counts keyed by the compatibility sentiment word, aggregated over the REAL council voices the synthesis
     consolidates (the synthesis no longer holds its own voices — spec/artifact-cross-references.md).
     `store` is duck-typed (get_council_session); without it, falls back to any stored synthesis voices."""
     stmts: list[dict] = []

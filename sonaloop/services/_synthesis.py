@@ -163,7 +163,7 @@ def record_synthesis(title: str, start_input: str, council_ids: list[str] | None
     data = validate_synthesis_payload(payload or {})
     _pl = payload or {}
     # Primitives-only authoring (spec/unified-artifact-schema): the host authors findings/statements/
-    # prompts directly — the ONE representation. No legacy list/voice input shapes.
+    # prompts directly — the ONE representation. No compatibility list/voice input shapes.
     findings = [_A.validate_finding(f) for f in (_pl.get("findings") or [])]
     statements = [_A.validate_statement(s) for s in (_pl.get("statements") or [])]
     prompts = [_A.validate_prompt(p) for p in (_pl.get("prompts") or [])]
@@ -208,7 +208,7 @@ def record_synthesis(title: str, start_input: str, council_ids: list[str] | None
     out = dict(rec)
     out["url"] = web_url(f"/syntheses/{sid}")  # noqa: F821 (bound) — the report's own page to hand the user
     if rec.get("project_id"):
-        out["project_url"] = web_url(f"/projects/{rec['project_id']}")  # noqa: F821 (bound)
+        out["project_url"] = web_url(f"/jobs/{rec['project_id']}")  # noqa: F821 (bound)
     has_substance = any([rec["gesamtbild"].strip(), rec["positionierung"].strip(), rec["arc_narrative"].strip(),
                          rec["findings"], rec["statements"]])
     warnings: list[str] = []
@@ -240,7 +240,7 @@ def get_synthesis(synthesis_id: str, store: Store | None = None) -> dict[str, An
         raise KeyError(f"Unknown synthesis: {synthesis_id}")
     out = {**syn, "url": web_url(f"/syntheses/{syn['id']}")}  # noqa: F821 (bound)
     if syn.get("project_id"):
-        out["project_url"] = web_url(f"/projects/{syn['project_id']}")  # noqa: F821 (bound)
+        out["project_url"] = web_url(f"/jobs/{syn['project_id']}")  # noqa: F821 (bound)
     return out
 
 

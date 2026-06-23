@@ -41,7 +41,7 @@ def test_provider_resolution(monkeypatch):
     assert E.active_provider() == "none"                       # keyless default: off, no probing
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
     assert E.active_provider() == "openai"
-    assert E.provider_model() == "text-embedding-3-small"      # legacy-compatible, un-namespaced
+    assert E.provider_model() == "text-embedding-3-small"      # compatible, un-namespaced
     monkeypatch.setenv("SONALOOP_EMBEDDINGS_PROVIDER", "ollama")
     assert E.active_provider() == "ollama"                     # explicit env wins over the key
     assert E.provider_model() == "ollama:nomic-embed-text"     # namespaced: a distinct vector space

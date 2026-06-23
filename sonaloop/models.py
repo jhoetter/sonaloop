@@ -328,7 +328,7 @@ class Prototype:
     run_cmd: str | None
     notes: str
     created_at: str
-    fidelity: str = "midfi"     # legacy discriminator (now just one of `tags`)
+    fidelity: str = "midfi"     # compatibility discriminator (now just one of `tags`)
     type: str = "prototype"     # free artifact-type tag (spec/methodology-presentation-from-data.md)
     tags: list[str] = field(default_factory=list)  # free discriminator/extra tags (e.g. fidelity)
 

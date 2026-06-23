@@ -33,7 +33,7 @@ SHOWCASE_SLUG = "onboarding-showcase"
 
 def _showcase() -> dict:
     pid = services.stable_id("rproject", "example", SHOWCASE_SLUG)
-    return {"slug": SHOWCASE_SLUG, "project_id": pid, "url": f"/projects/{pid}"}
+    return {"slug": SHOWCASE_SLUG, "project_id": pid, "url": f"/jobs/{pid}"}
 
 
 def tour_steps() -> list[dict]:
@@ -71,7 +71,7 @@ def tour_link(extra_class: str = "") -> str:
 
 
 def tour_footer_entry() -> str:
-    """Legacy footer entry helper. The core shell now renders the tour from the user menu."""
+    """Compatibility footer entry helper. The core shell now renders the tour from the user menu."""
     return h("button", {"type": "button", "class_": "pi-hover", "data-tour-start": True},
              raw(_icon("compass", animate=True)), h("span", {}, t("tour_take")))
 

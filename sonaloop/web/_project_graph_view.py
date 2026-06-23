@@ -1,6 +1,6 @@
 """Experimental full project graph adapter.
 
-This module is intentionally removable: /projects still owns the canonical list view, while this
+This module is intentionally removable: /jobs still owns the canonical list view, while this
 adapter only translates the same project primitives into graph nodes so we can judge whether a
 spatial view is useful enough to keep.
 """

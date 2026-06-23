@@ -42,16 +42,20 @@ function setCollapsed(collapsed,save){ app.classList.toggle('is-collapsed',colla
   if(toggleBtn) toggleBtn.setAttribute('aria-expanded',String(!collapsed));
   if(save!==false) persist('sl-shell:open', String(!collapsed)); }
 try{ var open=localStorage.getItem('sl-shell:open');
-     if(open==='false') setCollapsed(true,false); else if(open===null && isMobile()) setCollapsed(true,false); else setCollapsed(false,false);
+     if(isMobile()) setCollapsed(true,false); else if(open==='false') setCollapsed(true,false); else setCollapsed(false,false);
      var w=localStorage.getItem('sl-shell:width'); if(w) app.style.setProperty('--sl-sidebar-w',w+'px'); }catch(e){}
 function toggle(){ setCollapsed(!app.classList.contains('is-collapsed')); }
 function closeSidebar(){ setCollapsed(true); }
+function closest(target,selector){ return target&&target.closest ? target.closest(selector) : null; }
+function closeFromEvent(e){ if(!closest(e.target,'[data-sidebar-close]')) return false; e.preventDefault(); closeSidebar(); return true; }
 // delegated so it survives an SPA swap of the toggle button
 document.addEventListener('click',function(e){
-  if(e.target.closest&&e.target.closest('[data-sidebar-toggle]')){ e.preventDefault(); toggle(); return; }
-  if(e.target.closest&&e.target.closest('[data-sidebar-close]')){ e.preventDefault(); closeSidebar(); return; }
-  if(e.target.closest&&e.target.closest('.sl-sidebar .sl-nav a')&&isMobile()) closeSidebar();
+  if(closeFromEvent(e)) return;
+  if(closest(e.target,'[data-sidebar-toggle]')){ e.preventDefault(); toggle(); return; }
+  if(closest(e.target,'.sl-sidebar .sl-nav a')&&isMobile()) closeSidebar();
 });
+document.addEventListener('pointerup',closeFromEvent);
+document.addEventListener('touchend',closeFromEvent,{passive:false});
 document.addEventListener('keydown',function(e){ var t=(e.target.tagName||'').toLowerCase();
   if(e.key==='['){ if(t==='input'||t==='textarea'||t==='select') return; e.preventDefault(); toggle(); return; }
   if(e.key==='Escape' && isMobile() && !app.classList.contains('is-collapsed')){ e.preventDefault(); closeSidebar(); } });

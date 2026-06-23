@@ -279,7 +279,7 @@ def assess_project(project_id: str, store: Store | None = None) -> dict[str, Any
         "tasks_complete": tasks_complete,
         # the link to hand the user alongside the status (was absent — an agent reporting
         # project health had no URL to show)
-        "url": web_url(f"/projects/{project_id}"),
+        "url": web_url(f"/jobs/{project_id}"),
         "recommendation": rec,
         **({"run_state": rs} if rs else {}),
         "coverage": cov,

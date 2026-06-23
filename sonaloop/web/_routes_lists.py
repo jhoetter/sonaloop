@@ -133,8 +133,8 @@ def _projects_page(page: int = 1, q: str = "") -> str:
         meta = fragment(cohort if cohort else None,
                         _label(f'{t("methodology_h")} · {_methodology_name()}', "var(--accent)"),
                         raw(_run_label() or ""),
-                        raw(_star("project", p["id"], p["title"], f'/projects/{p["id"]}')))
-        rows.append(_row(f'/projects/{p["id"]}', raw(project_icon_html(p)), p["title"], meta))
+                        raw(_star("project", p["id"], p["title"], f'/jobs/{p["id"]}')))
+        rows.append(_row(f'/jobs/{p["id"]}', raw(project_icon_html(p)), p["title"], meta))
     if not rows and not q and not store.list_personas():
         # Truly fresh database (no projects AND no personas): orient instead of an empty list.
         return _layout(t("first_steps_h"), _first_steps_html(), store,
@@ -146,8 +146,8 @@ def _projects_page(page: int = 1, q: str = "") -> str:
     return _list_page(store, title=t("projects"), lead=t("projects_lead"), rows=rows,
                       empty_icon="projects", empty_msg=t("no_projects"), active="projects",
                       empty_teach=t("fs_step_project_d"),
-                      pre=_list_filter_box("/projects", q) if (q or pages > 1) else "",
-                      count=len(projects), after=_pager("/projects", page, pages, q))
+                      pre=_list_filter_box("/jobs", q) if (q or pages > 1) else "",
+                      count=len(projects), after=_pager("/jobs", page, pages, q))
 
 
 def _persona_row(p: dict, store: Store) -> str:

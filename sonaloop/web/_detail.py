@@ -206,10 +206,10 @@ def detail_page(store, *, title: str, active: str, crumbs: list, body,
     hero_html = hero if hero is not None else _hero(title, icon=icon, sub=sub, hid=hid, top=top)
     # The palette's recents beacon (UX V6): one injection point covers EVERY artifact detail
     # page — full page, ?slide=1 fragment and the ?d= SSR panel alike. The owning project's
-    # title rides the existing crumbs (the /projects/{id} crumb), no new parameter.
+    # title rides the existing crumbs (the /jobs/{id} crumb), no new parameter.
     from ._palette import visit_marker
     beacon = visit_marker(title, next((lbl for lbl, href in (crumbs or [])
-                                       if href and str(href).startswith("/projects/")), ""))
+                                       if href and str(href).startswith("/jobs/")), ""))
     props = _properties_html(prop_rows, aside=True) if prop_rows else ""
     rel = ""
     if rel_study_id:

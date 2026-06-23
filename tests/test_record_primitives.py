@@ -39,11 +39,11 @@ def test_synthesis_native_primitives_via_payload(store):
 
 
 def test_council_primitives_only_no_turns(store):
-    """Authoring is primitives-only: statements are stored, there is no legacy `turns` field."""
+    """Authoring is primitives-only: statements are stored, there is no compatibility `turns` field."""
     proj = services.create_research_project("L", store=store)
     res = services.record_council(proj["id"], "Q?", ["p1"],
                                   statements=[{"persona_id": "p1", "text": "an answer"}], key="k2", store=store)
     c = store.get_council_session(res["id"])
-    assert "turns" not in c                            # legacy field gone
+    assert "turns" not in c                            # compatibility field gone
     assert c["statements"][0]["text"] == "an answer"
     assert A.council_statements(c) == c["statements"]

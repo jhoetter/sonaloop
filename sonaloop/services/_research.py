@@ -285,7 +285,7 @@ def parent_project_of_council(council_id: str, store: Store | None = None) -> di
         p = store.get_research_project(pid)
         if p:
             return {"id": p["id"], "slug": p["slug"], "title": p["title"]}
-    # Fallback for projects that track the council in their list (e.g. legacy/migrated data).
+    # Fallback for projects that track the council in their list (e.g. compatibility/migrated data).
     for p in store.list_research_projects():
         if council_id in (p.get("council_ids") or []):
             return {"id": p["id"], "slug": p["slug"], "title": p["title"]}
@@ -302,7 +302,7 @@ def parent_project_of_synthesis(synthesis_id: str, store: Store | None = None) -
     declared = store.get_research_project(syn["project_id"]) if syn.get("project_id") else None
     if declared:
         return {"id": declared["id"], "slug": declared["slug"], "title": declared["title"]}
-    p = parent_project_of_study(synthesis_id, store=store)        # legacy/constellation path
+    p = parent_project_of_study(synthesis_id, store=store)        # compatibility/constellation path
     if p:
         return p
     for proj in store.list_research_projects():                   # plan path: a task produces it
@@ -409,7 +409,7 @@ def get_project_graph(project_id: str, store: Store | None = None) -> dict[str, 
     plan = _plan.get_plan(project_id, store=store)
     if plan is not None:                       # the plan engine is the single source of truth (HX3)
         g = _attach_reports(plan_graph(project_id, store=store), project_id, store)
-        g["project"]["url"] = web_url(f"/projects/{project_id}")  # noqa: F821 (bound) — the link to hand the user
+        g["project"]["url"] = web_url(f"/jobs/{project_id}")  # noqa: F821 (bound) — the link to hand the user
         return _store_project_graph_cache(cache, cache_key, g)
     # Plan-less fallback (start_project always seeds a plan, so this is only hit by hand-built data /
     # the study_ids-based report path): nodes from the project's councils/studies + notes — NO
@@ -435,7 +435,7 @@ def get_project_graph(project_id: str, store: Store | None = None) -> dict[str, 
                     "persona_ids": project.get("persona_ids", []), "themes": project.get("themes", []),
                     "methodology": project.get("methodology", ""), "phase": project.get("phase", ""),
                     "icon": project.get("icon") or {"kind": "regular", "name": "projects"},
-                    "url": web_url(f"/projects/{project['id']}")},  # noqa: F821 (bound)
+                    "url": web_url(f"/jobs/{project['id']}")},  # noqa: F821 (bound)
         "methodology_state": None,
         "prototypes": _protos_with_session_counts(project["id"], store),
         "artifacts": list(project.get("artifacts") or []),

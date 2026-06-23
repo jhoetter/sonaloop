@@ -1,6 +1,6 @@
 {
   "kind": "stance_scale",
-  "note": "The ONE positivity vocabulary (spec/unified-artifact-schema.md). Unifies council votes, turn.stance and synthesis voice.sentiment onto a single ordered scale (-2 oppose … +2 support). Resolved via artifacts.resolve_stance()/stance_meta(); colors here, labels via i18n label_key (no stance words hardcoded in engine/UI). `aliases` maps every legacy token onto a canonical term — add an alias, no code change. Aliases include the EN/DE i18n DISPLAY labels (web/_i18n.py stance_* keys) so a host echoing the UI's own wording round-trips; lookup is case/whitespace-insensitive.",
+  "note": "The ONE positivity vocabulary (spec/unified-artifact-schema.md). Unifies council votes, turn.stance and synthesis voice.sentiment onto a single ordered scale (-2 oppose … +2 support). Resolved via artifacts.resolve_stance()/stance_meta(); colors here, labels via i18n label_key (no stance words hardcoded in engine/UI). `aliases` maps every compatibility token onto a canonical term — add an alias, no code change. Aliases include the EN/DE i18n DISPLAY labels (web/_i18n.py stance_* keys) so a host echoing the UI's own wording round-trips; lookup is case/whitespace-insensitive.",
   "items": [
     {"tag": "support",     "value":  2, "label_key": "stance_support",     "presentation": {"color": "var(--green)"}},
     {"tag": "conditional", "value":  1, "label_key": "stance_conditional", "presentation": {"color": "var(--accent)"}},

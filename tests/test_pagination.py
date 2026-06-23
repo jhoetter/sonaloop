@@ -162,10 +162,10 @@ def test_projects_page_controls_and_filter(store):
     for i in range(26):
         services.create_research_project(f"Project {i:02d}", store=store)
     client = TestClient(web.create_app())
-    p1 = client.get("/projects?lang=en").text
+    p1 = client.get("/jobs?lang=en").text
     assert "Page 1 of 2" in p1 and 'name="q"' in p1
-    p2 = client.get("/projects?lang=en&page=2&q=Project").text
+    p2 = client.get("/jobs?lang=en&page=2&q=Project").text
     assert "Page 2 of 2" in p2
-    assert 'href="/projects?page=1&amp;q=Project"' in p2             # q rides the page links
-    hit = client.get("/projects?lang=en&q=Project+25").text
+    assert 'href="/jobs?page=1&amp;q=Project"' in p2             # q rides the page links
+    hit = client.get("/jobs?lang=en&q=Project+25").text
     assert '<span class="h1cnt">1</span>' in hit

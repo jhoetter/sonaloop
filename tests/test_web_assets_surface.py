@@ -57,8 +57,8 @@ def test_asset_detail_page_full_anatomy(store, project, both_directions):
     assert 'class="sl-file"' in html and ">md</span>" in html
     assert f'href="{a["url"]}"' in html
     # the rail names the project; there is no separate project files lens.
-    assert f'/projects/{project["id"]}' in html
-    assert f'/projects/{project["id"]}?view=files' not in html
+    assert f'/jobs/{project["id"]}' in html
+    assert f'/jobs/{project["id"]}?view=files' not in html
     # the document's text excerpt is quoted on the page
     assert "the approval flow confuses" in html
 
@@ -114,7 +114,7 @@ def test_library_assets_tab_rows_with_project_and_direction(store, project, both
     assert "Evidence" in html and "Deliverable" in html        # badged by direction
     assert "Asset surface" in html                             # the owning project on the meta line
     # the canonical route and ?tab= address the same browser
-    assert _client().get("/library?tab=assets&lang=en").text.count("sl-file__open") == \
+    assert _client().get("/formats?tab=assets&lang=en").text.count("sl-file__open") == \
            html.count("sl-file__open")
 
 
@@ -129,7 +129,7 @@ def test_library_assets_tab_empty_state_teaches_attach_asset(store):
 def test_outline_asset_and_deliver_rows_are_file_rows(store, project, both_directions):
     """V9: the project outline's Assets/Deliver asset rows use the compact `.sl-file--row`
     — ext badge identity instead of a generic icon, one affordance, slide-over armed."""
-    html = _client().get(f'/projects/{project["id"]}?lang=en').text
+    html = _client().get(f'/jobs/{project["id"]}?lang=en').text
     assert html.count('data-rkind="asset"') == 2
     assert html.count('class="sl-file sl-file--row" data-rkind="asset"') == 2
     assert ">Assets (1)<" in html
@@ -141,6 +141,6 @@ def test_outline_asset_and_deliver_rows_are_file_rows(store, project, both_direc
 
 
 def test_project_header_has_no_files_lens_chip(store, project):
-    html = _client().get(f'/projects/{project["id"]}?lang=en').text
-    assert f'/projects/{project["id"]}?view=files' not in html
+    html = _client().get(f'/jobs/{project["id"]}?lang=en').text
+    assert f'/jobs/{project["id"]}?view=files' not in html
     assert "0 files" not in html

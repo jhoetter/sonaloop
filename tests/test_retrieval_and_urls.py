@@ -34,15 +34,15 @@ def _seed(store):
 def test_every_research_result_carries_its_link(store):
     p, c, syn, h = _seed(store)
     base = "https://app.sonaloop.test"
-    assert p["url"] == f"{base}/projects/{p['id']}"
-    assert c["url"] == f"{base}/councils/{c['id']}" and c["project_url"] == f"{base}/projects/{p['id']}"
-    assert syn["url"] == f"{base}/syntheses/{syn['id']}" and syn["project_url"] == f"{base}/projects/{p['id']}"
+    assert p["url"] == f"{base}/jobs/{p['id']}"
+    assert c["url"] == f"{base}/councils/{c['id']}" and c["project_url"] == f"{base}/jobs/{p['id']}"
+    assert syn["url"] == f"{base}/syntheses/{syn['id']}" and syn["project_url"] == f"{base}/jobs/{p['id']}"
     assert h["url"] == f"{base}/hypotheses/{h['hypothesis']['id']}"
     # the read side an agent uses to answer "what are my projects" / "show me this project"
     listed = next(x for x in services.list_research_projects(store=store) if x["id"] == p["id"])
-    assert listed["url"] == f"{base}/projects/{p['id']}"
-    assert services.get_project_graph(p["id"], store=store)["project"]["url"] == f"{base}/projects/{p['id']}"
-    assert services.assess_project(p["id"], store=store)["url"] == f"{base}/projects/{p['id']}"
+    assert listed["url"] == f"{base}/jobs/{p['id']}"
+    assert services.get_project_graph(p["id"], store=store)["project"]["url"] == f"{base}/jobs/{p['id']}"
+    assert services.assess_project(p["id"], store=store)["url"] == f"{base}/jobs/{p['id']}"
     assert services.get_council(c["id"], store=store)["url"] == f"{base}/councils/{c['id']}"
     assert services.get_synthesis(syn["id"], store=store)["url"] == f"{base}/syntheses/{syn['id']}"
     assert all(x.get("url") for x in services.list_councils(store=store))

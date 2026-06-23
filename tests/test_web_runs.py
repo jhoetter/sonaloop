@@ -27,7 +27,7 @@ def test_runs_page_groups_active_stalled_finished(store):
     html = _client().get("/runs?lang=en").text
     # all three projects show, each linking to its project page
     for pid, title in ((sid, "Stalled Proj"), (aid, "Active Proj"), (fid, "Finished Proj")):
-        assert title in html and f'href="/projects/{pid}"' in html
+        assert title in html and f'href="/jobs/{pid}"' in html
     # the stalled lane is flagged and carries the copyable resume affordance
     assert web.STRINGS["en"]["runs_stalled_h"] in html
     assert "start_run(" in html and f"data-copy=" in html and sid in html
@@ -90,7 +90,7 @@ def test_project_head_run_chip_with_popover(store):
     plan carries its run-state chip in the project head, with state, last activity,
     the copyable resume hint (stalled) and the /runs journal link."""
     sid = _planned(store, "Stalled Proj")                      # open work, nobody driving
-    html = _client().get(f"/projects/{sid}?lang=en").text
+    html = _client().get(f"/jobs/{sid}?lang=en").text
     assert 'class="sl-toolbtn runchip runchip--stalled"' in html          # the rendered chip, not the chrome CSS/JS
     assert f'{web.STRINGS["en"]["run_chip"]} · {web.STRINGS["en"]["runs_stalled_h"]}' in html
     topbar_actions = html.split('<span class="sl-tb-actions">', 1)[1].split('</span></header>', 1)[0]
@@ -108,13 +108,13 @@ def test_project_head_run_chip_with_popover(store):
     # an active run flips the chip state
     aid = _planned(store, "Active Proj")
     S.start_run(aid, store=store)
-    active_html = _client().get(f"/projects/{aid}?lang=en").text
+    active_html = _client().get(f"/jobs/{aid}?lang=en").text
     assert 'class="sl-toolbtn runchip runchip--active"' in active_html
     assert f'{web.STRINGS["en"]["run_chip"]} · {web.STRINGS["en"]["runs_active_h"]}' in active_html
     # New projects now get a minimal frame plan immediately, so there is always
     # a driver to resume from the project header.
     bare = S.create_research_project("No plan", goal="g", store=store)
-    bare_html = _client().get(f'/projects/{bare["id"]}?lang=en').text
+    bare_html = _client().get(f'/jobs/{bare["id"]}?lang=en').text
     assert 'class="sl-toolbtn runchip runchip--stalled"' in bare_html
 
 
@@ -123,7 +123,7 @@ def test_api_runs_returns_grouped_states(store):
     S.start_run(aid, store=store)
     data = _client().get("/api/runs").json()
     assert [r["project_id"] for r in data["active"]] == [aid]
-    assert data["active"][0]["url"] == f"/projects/{aid}"
+    assert data["active"][0]["url"] == f"/jobs/{aid}"
     assert data["stalled"] == [] and data["finished"] == []
 
 

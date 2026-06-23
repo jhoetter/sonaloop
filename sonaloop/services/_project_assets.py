@@ -278,7 +278,7 @@ def get_asset_content(project_id: str, asset_id: str,
     record = get_asset(project_id, asset_id, store=store)
     # The record's asset_path is the canonical `data/assets/<sha>.<ext>`; we address the
     # store by its BASENAME (partition-correct), but a path that isn't that exact shape
-    # (a tampered/legacy record) is rejected loudly rather than silently coerced.
+    # (a tampered/compatibility record) is rejected loudly rather than silently coerced.
     ap = record["asset_path"]
     if ap != f"data/assets/{Path(ap).name}":
         raise ValueError(f"Asset path escapes the asset store: {ap}")

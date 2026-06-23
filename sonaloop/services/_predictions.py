@@ -69,7 +69,7 @@ def aggregate_predictions(project_id: str, store: Store | None = None) -> dict[s
         lk = r.get("likelihood")
         if isinstance(lk, dict):                         # canonical {value, label}
             lk = lk.get("value")
-        elif isinstance(lk, str):                        # legacy free token: resolve if it's on scale
+        elif isinstance(lk, str):                        # compatibility free token: resolve if it's on scale
             lk = (_A.resolve_likelihood(lk) or {}).get("value")
         if isinstance(lk, (int, float)) and not isinstance(lk, bool):
             g["likelihoods"].append(float(lk))

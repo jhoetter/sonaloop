@@ -31,7 +31,7 @@ def test_detail_relations_use_augmented_project_trace_edges(store):
                              evidence_refs=[f"survey:{survey['id']}"], store=store)
 
     client = TestClient(web.create_app())
-    outline = client.get(f"/projects/{pid}?lang=en").text
+    outline = client.get(f"/jobs/{pid}?lang=en").text
     m = re.search(rf'data-oid="{re.escape(survey["id"])}"[^>]*data-rel-out="([^"]*)"', outline)
     assert m, "survey row is missing its outline trace relation"
     assert f"synthesis:{syn['id']}" in html.unescape(m.group(1))

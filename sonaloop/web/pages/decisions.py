@@ -101,16 +101,16 @@ def register_decisions(app) -> None:
         by_id = {x["id"]: x for x in store.list_decisions(d.get("project_id"))}
         body_clamp, _based, rejected, links = _decision_reads(
             d, store, by_id, clamp_at=ui.SECTION_CLAMP, dec_href=lambda oid: f"/decisions/{oid}")
-        anchor = (f'/projects/{d["project_id"]}#dec-{d["id"]}' if d.get("project_id") else "")
+        anchor = (f'/jobs/{d["project_id"]}#dec-{d["id"]}' if d.get("project_id") else "")
         body = fragment(
             h("div", {"class_": "sec", "id": "sec-decision"}, body_clamp, rejected, links))
         # Project-rooted crumb (§8.2 — the council pattern); kind root only for orphans.
-        crumbs = ([(t("projects"), "/projects"), (proj["title"], f'/projects/{proj["id"]}')]
+        crumbs = ([(t("projects"), "/jobs"), (proj["title"], f'/jobs/{proj["id"]}')]
                   if proj else [(t("decisions_h"), "/decisions")])
         crumbs.append((d.get("title", ""), None))
         # The rail's project link lands ON the deciding row (the #dec- anchor) — this replaces
         # the old "View in project" meta-line link, which no other kind carried (round 2, §8.2).
-        proj_link = (h("a", {"href": anchor or f'/projects/{proj["id"]}'}, proj["title"]) if proj else "")
+        proj_link = (h("a", {"href": anchor or f'/jobs/{proj["id"]}'}, proj["title"]) if proj else "")
         prop_rows = [
             ("projects", t("project"), proj_link),
             *detail_form_rows("decision", d),

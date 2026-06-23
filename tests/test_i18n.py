@@ -4,7 +4,7 @@ These guard the invariants documented in sonaloop/web/_i18n.py:
   - STRINGS covers exactly SUPPORTED_LANGUAGES.
   - every language defines the SAME key set with the SAME {placeholders}.
   - every t("literal") in the codebase resolves to a defined key.
-  - no key is defined-but-unused (no legacy strings lingering).
+  - no key is defined-but-unused (no compatibility strings lingering).
   - every vocabulary `label_key` (suggestions/*.json) is defined in every language —
     keys resolved from data (t(meta["label_key"])) are invisible to the literal scan.
   - the web layer never ASSEMBLES a t() key (prefix + value); the frozen prefix
@@ -100,7 +100,7 @@ def test_every_used_literal_key_is_defined():
     assert not missing, f"t() called with undefined keys: {missing}"
 
 
-def test_no_legacy_unused_keys():
+def test_no_compatibility_unused_keys():
     literals, prefixes = _scan_sources()
     literals |= _vocab_label_keys()                          # resolved as data: t(meta["label_key"])
     # Namespaced ("ns.key") strings come from EXTENSIONS via register_strings() — their
@@ -116,7 +116,7 @@ def test_no_legacy_unused_keys():
         return any(key != p and key.startswith(p) for p in prefixes)
 
     unused = sorted(k for k in defined if not is_used(k))
-    assert not unused, f"defined but never used via t() (legacy — remove): {unused}"
+    assert not unused, f"defined but never used via t() (compatibility — remove): {unused}"
 
 
 def test_every_vocabulary_label_key_is_defined_in_every_language():

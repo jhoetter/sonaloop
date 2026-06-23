@@ -118,7 +118,7 @@ def _seed_tier3(store) -> str:
 
 def test_absorbed_kinds_are_outline_rows_on_the_default_view(store):
     pid = _seed_tier3(store)
-    html = _client().get(f"/projects/{pid}?lang=en").text   # the project outline (graph view retired)
+    html = _client().get(f"/jobs/{pid}?lang=en").text   # the project outline (graph view retired)
     # open questions: an outline row
     assert 'data-rkind="open_question"' in html and "What about pricing?" in html
     # URL artifacts: an outline row without capture/status pills
@@ -158,7 +158,7 @@ def test_freeform_project_outline_uses_its_plan_not_fake_lanes(store):
                              [{"kind": "council", "id": council["id"]}],
                              store=store)
 
-    html = _client().get(f"/projects/{pid}?lang=en").text
+    html = _client().get(f"/jobs/{pid}?lang=en").text
     assert 'class="ol-flat"' not in html
     topbar_actions = html.split('<span class="sl-tb-actions">', 1)[1].split('</span></header>', 1)[0]
     assert 'class="sl-toolbtn tour-plan-chip"' in topbar_actions
@@ -175,11 +175,11 @@ def test_project_header_surfaces_applied_methodology(store):
     free = services.start_project("Freeform study", "Understand this", store=store)
     dd = services.start_project("DD study", "Understand this", methodology="double_diamond", store=store)
     client = _client()
-    html = client.get(f'/projects/{free["id"]}?lang=en').text
+    html = client.get(f'/jobs/{free["id"]}?lang=en').text
     topbar_actions = html.split('<span class="sl-tb-actions">', 1)[1].split('</span></header>', 1)[0]
     assert 'class="sl-toolbtn tour-plan-chip"' in topbar_actions
     assert "freeform</a>" in topbar_actions
-    html = client.get(f'/projects/{dd["id"]}?lang=en').text
+    html = client.get(f'/jobs/{dd["id"]}?lang=en').text
     topbar_actions = html.split('<span class="sl-tb-actions">', 1)[1].split('</span></header>', 1)[0]
     assert 'class="sl-toolbtn tour-plan-chip"' in topbar_actions
     assert "Double Diamond</a>" in topbar_actions
@@ -196,7 +196,7 @@ def test_project_outline_rows_expose_real_hover_relations(store):
     decision = services.record_decision(project["id"], "Use the evidence", "Proceed from the report.",
                                         based_on=[{"kind": "synthesis", "id": synthesis["id"]}],
                                         status="adopted", store=store)["decision"]
-    html = _client().get(f'/projects/{project["id"]}?lang=en').text
+    html = _client().get(f'/jobs/{project["id"]}?lang=en').text
     assert 'class="ol-rel-svg"' in html and "data-relgraph" in html
     assert f'data-oid="council:{council["id"]}"' in html
     assert f'data-rel-out="synthesis:{synthesis["id"]}"' in html
@@ -245,7 +245,7 @@ def test_project_outline_surfaces_plan_judgment_trace_edges(store):
                                             f"synthesis:{deliver_syn['id']}"],
                              store=store)
 
-    page = _client().get(f'/projects/{project["id"]}?lang=en').text
+    page = _client().get(f'/jobs/{project["id"]}?lang=en').text
 
     def rel_out(oid: str) -> str:
         m = re.search(rf'data-oid="{re.escape(oid)}"[^>]*data-rel-out="([^"]*)"', page)
@@ -310,21 +310,21 @@ def test_project_outline_marks_orphaned_trace_nodes_after_plan_completion(store)
         project["id"], "Unconsumed survey",
         [{"id": "q1", "text": "Still useful?", "kind": "single", "options": ["yes", "no"]}],
         status="open", store=store)
-    page = _client().get(f'/projects/{project["id"]}?lang=en').text
+    page = _client().get(f'/jobs/{project["id"]}?lang=en').text
     assert "unused after phase close" not in page
 
     services.record_frame(project["id"], "frame__root", ["What needs tracing?"],
                           memory_refs=["note:seed"], store=store)
-    page = _client().get(f'/projects/{project["id"]}?lang=en').text
+    page = _client().get(f'/jobs/{project["id"]}?lang=en').text
     assert "Unconsumed survey" in page
     assert "trace=orphaned" in page
-    filtered = _client().get(f'/projects/{project["id"]}?trace=orphaned&lang=en').text
+    filtered = _client().get(f'/jobs/{project["id"]}?trace=orphaned&lang=en').text
     assert "Unconsumed survey" in filtered
 
 
 def test_empty_kinds_render_no_chrome(store):
     proj = services.create_research_project("Empty", goal="g", store=store)
-    html = _client().get(f'/projects/{proj["id"]}?lang=en').text
+    html = _client().get(f'/jobs/{proj["id"]}?lang=en').text
     for kind in ("hypothesis", "decision", "open_question", "asset", "survey"):
         assert f'data-rkind="{kind}"' not in html, f"empty kind {kind} rendered a row"
     for anchor in ("#hypotheses", "#decisions", "#open-questions", "#assets", "#surveys"):
@@ -337,6 +337,6 @@ def test_survey_row_keeps_counts_on_detail_not_outline(store):
     services.import_survey_responses(
         sv["id"], [{"respondent_key": "r1", "answers": [{"question_id": "q1", "value": "too high"}]}],
         store=store)
-    html = _client().get(f"/projects/{pid}?lang=en").text
+    html = _client().get(f"/jobs/{pid}?lang=en").text
     # Counts live on the survey detail header/sections, not as project-outline pills.
     assert "1 responses" not in html and "1 questions" not in html
