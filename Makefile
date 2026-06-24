@@ -1,9 +1,10 @@
 WEB_PORT ?= 8787
 FORWARDED_WEB_PORT ?= 18787
+FUGU_WEB_PORT ?= 58787
 
 UV ?= uv
 
-.PHONY: install dev dev-forwarded mcp snapshot restore skills test test-smoke kill-ports playwright icons check-icons hooks template-deck ux
+.PHONY: install dev dev-forwarded dev-forwarded-fugu mcp snapshot restore skills test test-smoke kill-ports playwright icons check-icons hooks template-deck ux
 
 # Install the repo's git hooks (pre-push runs `check-icons`, so a stale vendored
 # copy is caught locally before the design-sync CI goes red). Idempotent; `make
@@ -65,6 +66,11 @@ dev: kill-ports
 #   ssh -L $(FORWARDED_WEB_PORT):127.0.0.1:$(FORWARDED_WEB_PORT) <host>
 dev-forwarded:
 	$(MAKE) dev WEB_PORT=$(FORWARDED_WEB_PORT)
+
+# Same, but on the Fugu (non-EU) dev host's port range so it can be tunnelled
+# alongside the EU host without local port clashes (FUGU = FORWARDED + 40000).
+dev-forwarded-fugu:
+	$(MAKE) dev WEB_PORT=$(FUGU_WEB_PORT)
 
 mcp:
 	$(UV) run sonaloop-mcp
