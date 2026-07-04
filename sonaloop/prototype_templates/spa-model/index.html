@@ -104,7 +104,7 @@
   }
   function renderEl(el){
     var w=document.createElement('div'); w.className='el';
-    if(el.kind==='text'){ var p=document.createElement('p'); p.textContent=el.label||''; w.appendChild(p); }
+    if(el.kind==='text'){ var p=document.createElement('p'); p.textContent=el.text||el.label||''; w.appendChild(p); }
     else if(el.kind==='range'){
       var l=document.createElement('label'); l.textContent=el.label||el.id; w.appendChild(l);
       var row=document.createElement('div'); row.className='rangerow';

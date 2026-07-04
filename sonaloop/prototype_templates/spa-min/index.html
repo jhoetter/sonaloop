@@ -54,7 +54,7 @@
     var h = document.createElement('h2'); h.textContent = scr.title || scr.id; sec.appendChild(h);
     (scr.elements||[]).forEach(function(el){
       var wrap = document.createElement('div'); wrap.className='el';
-      if(el.kind==='text'){ var p=document.createElement('p'); p.textContent=el.label||''; wrap.appendChild(p); }
+      if(el.kind==='text'){ var p=document.createElement('p'); p.textContent=el.text||el.label||''; wrap.appendChild(p); }
       else if(el.kind==='input'){ var l=document.createElement('label'); l.textContent=el.label||el.id; var inp=document.createElement('input'); inp.id=el.id; inp.setAttribute('aria-label', el.label||el.id); inp.addEventListener('input', function(){ state[el.id]=inp.value; }); wrap.appendChild(l); wrap.appendChild(inp); }
       else if(el.kind==='select'){ var l2=document.createElement('label'); l2.textContent=el.label||el.id; var sel=document.createElement('select'); sel.id=el.id; sel.setAttribute('aria-label', el.label||el.id); (el.options||[]).forEach(function(o){ var op=document.createElement('option'); op.value=o; op.textContent=o; sel.appendChild(op); }); sel.addEventListener('change', function(){ state[el.id]=sel.value; }); wrap.appendChild(l2); wrap.appendChild(sel); }
       else if(el.kind==='link'){ var a=document.createElement('a'); a.href='#'; a.textContent=el.label||el.id; if(el.goto){ a.addEventListener('click', function(e){ e.preventDefault(); show(el.goto); }); } wrap.appendChild(a); }
