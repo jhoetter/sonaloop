@@ -1,0 +1,981 @@
+{
+  "title": "Circle & Key v2",
+  "summary": "Hifi rung-2 iteration of the leading concept, merging Circle & Key and the Neighborhood Relay: circle-first with family/household members and courtyard mode, introduction ladder with gates that honestly lock on 'unsure' logs, while-asleep access as a separately-consented stage, a parallel same-day trigger with live resolution status (<15 min target), and a professional back-stop with standby-retainer economics. Free core formalizes existing favors verbatim; money exists only on the back-stop rung. Explicit non-targets: no marketplace, no substitute walkers, weekly-paid-walk households are not the paying segment.",
+  "fidelity": "hifi",
+  "start": "home",
+  "screens": [
+    {
+      "id": "home",
+      "title": "Your Circle",
+      "elements": [
+        {
+          "id": "h_intro",
+          "kind": "text",
+          "text": "Your circle: the small set of people your dog already knows. Trust is built in person, on your dog's terms — never bought at booking speed. Everything on this screen is free. Money exists in exactly one place here: the professional back-stop, the last rung."
+        },
+        {
+          "id": "h_state",
+          "kind": "text",
+          "text": "Your circle right now:\n• Your person — invited by you, stage 2 of 4 (joint walks logged)\n• Household: 1 member sharing the trigger\n• Courtyard-mode member: configured, keyless — a full configuration, not a downgrade\n• Vouched candidate: see honest local supply before you commit\n• Professional back-stop: available in your territory (capacity 4 of 12 circles)"
+        },
+        {
+          "id": "h_invite",
+          "kind": "button",
+          "label": "Invite someone you already trust (free)",
+          "goto": "invite_person",
+          "action": "invite_person"
+        },
+        {
+          "id": "h_family",
+          "kind": "button",
+          "label": "Add family & household members (free)",
+          "goto": "family_household",
+          "action": "family_household"
+        },
+        {
+          "id": "h_courtyard",
+          "kind": "button",
+          "label": "Courtyard / keyless mode",
+          "goto": "courtyard_mode",
+          "action": "courtyard_mode"
+        },
+        {
+          "id": "h_vouched",
+          "kind": "button",
+          "label": "Vouched candidate — see local supply truth first",
+          "goto": "vouched_supply",
+          "action": "vouched_supply"
+        },
+        {
+          "id": "h_ladder",
+          "kind": "button",
+          "label": "Introduction ladder & gates",
+          "goto": "ladder",
+          "action": "ladder"
+        },
+        {
+          "id": "h_trigger",
+          "kind": "button",
+          "label": "Same-day trigger (parallel cascade)",
+          "goto": "trigger_setup",
+          "action": "trigger_setup"
+        },
+        {
+          "id": "h_backstop",
+          "kind": "button",
+          "label": "Professional back-stop (the only paid rung)",
+          "goto": "backstop_owner",
+          "action": "backstop_owner"
+        },
+        {
+          "id": "h_plans",
+          "kind": "button",
+          "label": "Plans & pricing",
+          "goto": "plans",
+          "action": "plans"
+        },
+        {
+          "id": "h_honesty",
+          "kind": "button",
+          "label": "Who this is NOT for — honest check",
+          "goto": "honesty_exit",
+          "action": "honesty_exit"
+        }
+      ]
+    },
+    {
+      "id": "invite_person",
+      "title": "Invite your existing person",
+      "elements": [
+        {
+          "id": "ip_intro",
+          "kind": "text",
+          "text": "The fastest path to a working circle is a person your dog already knows. We formalize the arrangement you already have — verbatim, nothing added, nothing re-priced. This is and stays free."
+        },
+        {
+          "id": "ip_name",
+          "kind": "input",
+          "label": "Name of your person",
+          "placeholder": "e.g. Katrin from next door"
+        },
+        {
+          "id": "ip_known",
+          "kind": "input",
+          "label": "How does your dog already know them?",
+          "placeholder": "e.g. greets her daily in the stairwell for 3 years"
+        },
+        {
+          "id": "ip_soft",
+          "kind": "select",
+          "label": "How do you want to start?",
+          "options": [
+            "Soft start: verbal arrangement first, add written objects later (recommended for neighbours)",
+            "Full start: countersigned handover objects from day one",
+            "Paper only: they never touch the app — you keep a printed care card for them"
+          ]
+        },
+        {
+          "id": "ip_softnote",
+          "kind": "text",
+          "text": "Soft start exists because paper changes prices between neighbours. Start the favour as a favour. The written failure plan and care card can be added later — or stay on paper on their side entirely. Your person never needs an account: you can hand them a printed care card and keep the app on your side only."
+        },
+        {
+          "id": "ip_send",
+          "kind": "button",
+          "label": "Send invitation (people your dog knows start at stage 2)",
+          "goto": "ladder",
+          "action": "ladder"
+        },
+        {
+          "id": "ip_paper",
+          "kind": "button",
+          "label": "Export paper care card instead (no account needed)",
+          "goto": "care_card_export",
+          "action": "care_card_export"
+        },
+        {
+          "id": "ip_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "home",
+          "variant": "secondary",
+          "action": "home"
+        }
+      ]
+    },
+    {
+      "id": "family_household",
+      "title": "Family & household members",
+      "elements": [
+        {
+          "id": "fh_intro",
+          "kind": "text",
+          "text": "Your real circle is rarely one walker. It is a partner, a parent, a grown kid, a grandparent in another city on weekends. Household members share the trigger: any of them can fire it, any of them can answer it, and the household sees one shared status — the group chat scramble, with a spine."
+        },
+        {
+          "id": "fh_add1",
+          "kind": "input",
+          "label": "Household member 1",
+          "placeholder": "e.g. Sandra (partner)"
+        },
+        {
+          "id": "fh_add2",
+          "kind": "input",
+          "label": "Household member 2",
+          "placeholder": "e.g. Bernd (father, takes the dog some weekends)"
+        },
+        {
+          "id": "fh_role",
+          "kind": "select",
+          "label": "Trigger rights for household members",
+          "options": [
+            "Can fire AND answer the trigger (full household)",
+            "Can answer only (helper)",
+            "Can fire only (e.g. the person who discovers the gap)"
+          ]
+        },
+        {
+          "id": "fh_note",
+          "kind": "text",
+          "text": "Household members skip the ladder — your dog lives with them or has known them for years. They appear on the cascade at the priority you set. Free, unlimited, forever."
+        },
+        {
+          "id": "fh_save",
+          "kind": "button",
+          "label": "Add to circle and set cascade priority",
+          "goto": "trigger_setup",
+          "action": "trigger_setup"
+        },
+        {
+          "id": "fh_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "home",
+          "variant": "secondary",
+          "action": "home"
+        }
+      ]
+    },
+    {
+      "id": "courtyard_mode",
+      "title": "Courtyard / keyless mode",
+      "elements": [
+        {
+          "id": "cm_intro",
+          "kind": "text",
+          "text": "A keyless circle is a full, respected configuration — not a downgrade. Handover at the gate, the courtyard, the stairwell door. Nobody enters your flat. Ever."
+        },
+        {
+          "id": "cm_what",
+          "kind": "text",
+          "text": "What changes in courtyard mode:\n• Stage 4 (home alone) and the key ceremony are permanently hidden — not locked, hidden. There is nothing to upgrade to.\n• While-asleep access does not exist in this mode.\n• Handover objects shrink to what the arrangement actually needs: care card + failure plan. No key location field, no entry protocol.\n• The trigger works exactly the same."
+        },
+        {
+          "id": "cm_where",
+          "kind": "input",
+          "label": "Where does handover happen?",
+          "placeholder": "e.g. courtyard gate, Wednesdays 13:00"
+        },
+        {
+          "id": "cm_confirm",
+          "kind": "button",
+          "label": "Confirm courtyard mode for this member",
+          "goto": "home",
+          "action": "home"
+        },
+        {
+          "id": "cm_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "home",
+          "variant": "secondary",
+          "action": "home"
+        }
+      ]
+    },
+    {
+      "id": "vouched_supply",
+      "title": "Vouched candidates — local supply, honestly",
+      "elements": [
+        {
+          "id": "vs_intro",
+          "kind": "text",
+          "text": "Before you invest a single afternoon: here is what actually exists near you. We will not take a commitment against supply that is not there."
+        },
+        {
+          "id": "vs_truth",
+          "kind": "text",
+          "text": "Within 10 minutes of your address, today:\n• Vouched candidates accepting new introductions: 1 (Milan K., vouched by Dr. Kamps — currently 4 of 6 households)\n• Professional back-stop: 1 (S. Kandlbinder, §11 verified — capacity 4 of 12 circles, your street is inside her territory)\n• Waitlist if Milan is full when you finish the ladder: position would be #2, typical wait 5–9 weeks\n\nIf this number is zero in your area, we say so on this screen and you pay nothing, because there is nothing to pay for."
+        },
+        {
+          "id": "vs_review",
+          "kind": "button",
+          "label": "Review Milan K.'s vouch and start the ladder",
+          "goto": "vouch_verify",
+          "action": "vouch_verify"
+        },
+        {
+          "id": "vs_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "home",
+          "variant": "secondary",
+          "action": "home"
+        }
+      ]
+    },
+    {
+      "id": "vouch_verify",
+      "title": "Verify the vouch — on your schedule",
+      "elements": [
+        {
+          "id": "vv_intro",
+          "kind": "text",
+          "text": "A vouch is only worth what its verification costs. You verify it with the voucher directly — and we schedule that around shift life, not around office hours."
+        },
+        {
+          "id": "vv_how",
+          "kind": "select",
+          "label": "How do you want to verify Dr. Kamps' vouch for Milan?",
+          "options": [
+            "Evening video call (slots 18:00–21:00, incl. weekends)",
+            "Async: signed vouch form from the vet practice, verify anytime",
+            "Callback at a time YOU name (also 6:00–8:00 before an early, or 15:00 after day-sleep)",
+            "Classic daytime call (Mon–Fri 9–12) if that happens to fit"
+          ]
+        },
+        {
+          "id": "vv_slot",
+          "kind": "input",
+          "label": "Your preferred time window",
+          "placeholder": "e.g. Tue or Wed after 18:30, or async"
+        },
+        {
+          "id": "vv_note",
+          "kind": "text",
+          "text": "Night shifts, earlies, day-sleep: the old Mon–Fri 9–12 line was useless for exactly the people who need this most. Every verification path above is equivalent — none is the 'lesser' one."
+        },
+        {
+          "id": "vv_confirm",
+          "kind": "button",
+          "label": "Book verification and open the ladder",
+          "goto": "ladder",
+          "action": "ladder"
+        },
+        {
+          "id": "vv_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "vouched_supply",
+          "variant": "secondary",
+          "action": "vouched_supply"
+        }
+      ]
+    },
+    {
+      "id": "ladder",
+      "title": "Introduction ladder — your dog sets the pace",
+      "elements": [
+        {
+          "id": "la_intro",
+          "kind": "text",
+          "text": "Four stages, each gated by your dog's actual behaviour — logged by both sides, visible to both sides. Weeks, not days, is normal. The calendar never opens a gate; only logs do."
+        },
+        {
+          "id": "la_stages",
+          "kind": "text",
+          "text": "Stage 1 — Meeting on neutral ground, you present. Repeatable, expected to repeat.\nStage 2 — Joint walk, you present. (People your dog already knows start here.)\nStage 3 — Solo walk, you nearby.\nStage 4 — Home access / alone time. Only in keyed mode; hidden in courtyard mode.\nWhile-asleep access — a separate stage with its own consent, after stage 4. Never bundled."
+        },
+        {
+          "id": "la_intensive",
+          "kind": "text",
+          "text": "Weekend intensive (for Mon–Thu travellers): stages 1–3 may be compressed into consecutive days IF and only if each gate's log is clean. Same rungs, same dog-led gates, tighter calendar. The dog can veto the compression at any gate — then it is weeks again, and the app says so instead of letting you push."
+        },
+        {
+          "id": "la_log",
+          "kind": "button",
+          "label": "Log today's stage-1 trial",
+          "goto": "stage_log",
+          "action": "stage_log"
+        },
+        {
+          "id": "la_gates",
+          "kind": "button",
+          "label": "View gate status",
+          "goto": "gate_blocked",
+          "action": "gate_blocked"
+        },
+        {
+          "id": "la_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "home",
+          "variant": "secondary",
+          "action": "home"
+        }
+      ]
+    },
+    {
+      "id": "stage_log",
+      "title": "Stage 1 log — honest, both sides",
+      "elements": [
+        {
+          "id": "sl_intro",
+          "kind": "text",
+          "text": "You log what your dog actually did. Milan logs his side too — you see his log, he sees yours. Honest logs are the only currency the gates accept."
+        },
+        {
+          "id": "sl_result",
+          "kind": "select",
+          "label": "How did the meeting go?",
+          "options": [
+            "Relaxed — approached voluntarily, took the treat, loose body",
+            "Okay with reservations — needed distance at first, settled",
+            "Unsure — repeat stage 1 (this is normal)",
+            "Bad day — abort logged, no penalty, retry when ready"
+          ]
+        },
+        {
+          "id": "sl_notes",
+          "kind": "input",
+          "label": "What exactly did you see?",
+          "placeholder": "e.g. one bark salvo at the door, recovered in 30 seconds, took chew on mat"
+        },
+        {
+          "id": "sl_regression",
+          "kind": "select",
+          "label": "Context that gates must know about",
+          "options": [
+            "Normal week",
+            "After a night-shift block (regression watch: gates tighten)",
+            "After a stressful event (vet, move, thunderstorm)"
+          ]
+        },
+        {
+          "id": "sl_save",
+          "kind": "button",
+          "label": "Save log — see what this does to the gates",
+          "goto": "gate_blocked",
+          "action": "gate_blocked"
+        },
+        {
+          "id": "sl_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "ladder",
+          "variant": "secondary",
+          "action": "ladder"
+        }
+      ]
+    },
+    {
+      "id": "gate_blocked",
+      "title": "Gate status: STAGE 2 IS LOCKED",
+      "elements": [
+        {
+          "id": "gb_state",
+          "kind": "text",
+          "text": "Stage 2 gate: LOCKED.\n\nWhy, precisely: your log from today reads 'Unsure — repeat stage 1 (this is normal)'. An unsure log blocks the next stage. Always. There is no override, no 'proceed anyway', and money does not open it."
+        },
+        {
+          "id": "gb_evidence",
+          "kind": "text",
+          "text": "What the gate is looking at (your own words):\n• Today: 'Unsure — repeat stage 1' — BLOCKING\n• Last week: 'Relaxed — took the treat' — counts, but does not outvote today\n• Milan's log today: 'kept distance, no approach' — matches yours\n\nWhat re-opens stage 2: one clean stage-1 log from BOTH sides, on a normal week (post-night-block logs sit in regression watch and count half)."
+        },
+        {
+          "id": "gb_honest",
+          "kind": "text",
+          "text": "In an earlier version this screen once said 'All gates passed' next to an unsure log. That was wrong, and it would have made every lock in this product decoration. The gate now reads your logs — nothing else — and shows you exactly which words locked it."
+        },
+        {
+          "id": "gb_repeat",
+          "kind": "button",
+          "label": "Schedule a stage-1 repeat",
+          "goto": "stage_log",
+          "action": "stage_log"
+        },
+        {
+          "id": "gb_view_open",
+          "kind": "button",
+          "label": "See what an OPEN gate looks like (demo: after two clean logs)",
+          "goto": "gate_open",
+          "action": "gate_open"
+        },
+        {
+          "id": "gb_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "ladder",
+          "variant": "secondary",
+          "action": "ladder"
+        }
+      ]
+    },
+    {
+      "id": "gate_open",
+      "title": "Gate status: stage 2 open — here is why",
+      "elements": [
+        {
+          "id": "go_state",
+          "kind": "text",
+          "text": "Stage 2 gate: OPEN.\n\nOpened by (evidence, not assertion):\n• Tue: your log 'Relaxed — approached voluntarily' + Milan's log 'came to me on the mat, loose'\n• Sat: your log 'Relaxed — took chew, one glance at door, settled' + Milan's log 'greeted at gate, tail neutral-loose'\n\nBoth logs on normal weeks. No unsure entries since. That — and only that — is what opened this gate."
+        },
+        {
+          "id": "go_next",
+          "kind": "text",
+          "text": "Next: stage 2 joint walk, you present. After stage 4, while-asleep access remains ITS OWN consent — passing stage 4 never silently includes it."
+        },
+        {
+          "id": "go_asleep",
+          "kind": "button",
+          "label": "About while-asleep access (separate stage)",
+          "goto": "while_asleep",
+          "action": "while_asleep"
+        },
+        {
+          "id": "go_key",
+          "kind": "button",
+          "label": "Key ceremony (only from genuinely green gates)",
+          "goto": "key_ceremony",
+          "action": "key_ceremony"
+        },
+        {
+          "id": "go_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "ladder",
+          "variant": "secondary",
+          "action": "ladder"
+        }
+      ]
+    },
+    {
+      "id": "while_asleep",
+      "title": "While-asleep access — its own stage, its own consent",
+      "elements": [
+        {
+          "id": "wa_intro",
+          "kind": "text",
+          "text": "Someone your dog trusts takes the 8:30 morning walk while you sleep off night three. This is the deepest access that exists — a person in your home while you are unconscious in it. So it is a separate stage with a separate consent ceremony, never a checkbox inside something else."
+        },
+        {
+          "id": "wa_terms",
+          "kind": "text",
+          "text": "The consent, precisely:\n• Entry windows YOU define (e.g. 8:15–8:45, weekdays after your night blocks only)\n• Entry protocol rehearsed together while you were awake, logged like every stage\n• Automatic suspension: after any logged regression week (e.g. post-night-block door reactivity), this consent SUSPENDS ITSELF until you re-confirm it. The app assumes no; you say yes again.\n• Revocable in one tap, no reason required, no notice period\n• Same-person: the consent names ONE person. It does not transfer. Ever."
+        },
+        {
+          "id": "wa_window",
+          "kind": "input",
+          "label": "Your entry window",
+          "placeholder": "e.g. 8:15–8:45, only days after night shifts"
+        },
+        {
+          "id": "wa_consent",
+          "kind": "select",
+          "label": "Consent decision (nothing is pre-selected in the real app)",
+          "options": [
+            "Not ready — keep it locked (default)",
+            "Rehearse the entry protocol first, decide after a night block has passed",
+            "Grant to the ONE named keyed person, windows above"
+          ]
+        },
+        {
+          "id": "wa_confirm",
+          "kind": "button",
+          "label": "Save decision",
+          "goto": "gate_open",
+          "action": "gate_open"
+        },
+        {
+          "id": "wa_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "gate_open",
+          "variant": "secondary",
+          "action": "gate_open"
+        }
+      ]
+    },
+    {
+      "id": "key_ceremony",
+      "title": "Key ceremony — evidence first, then the key",
+      "elements": [
+        {
+          "id": "kc_gatecheck",
+          "kind": "text",
+          "text": "Before anything else, the gates — re-derived from the logs at this second, not cached:\n• Stage 1: PASSED (2 clean bilateral logs, normal weeks)\n• Stage 2: PASSED (3 joint walks, both logs clean)\n• Stage 3: PASSED (2 solo walks, your log + Milan's log)\n• Stage 4: PASSED (2 home visits, entry protocol rehearsed)\n• Regression watch: no night-block regression logged in the last 14 days\n\nIf ANY line above were yellow or red, this screen would be a locked door, and it would name the log that locked it."
+        },
+        {
+          "id": "kc_objects",
+          "kind": "text",
+          "text": "Also required before the key — all three handover objects, countersigned:\n• Care card (v3, countersigned)\n• Emergency-vet authority (signed, ceiling set by you)\n• Failure plan (versioned, both parties confirmed)"
+        },
+        {
+          "id": "kc_guarantee",
+          "kind": "text",
+          "text": "The same-person guarantee, restated at the moment it matters: if you key Milan, only Milan ever comes. There is no substitute pool. If Milan is unavailable, your cascade and failure plan handle it — never a stranger with your key."
+        },
+        {
+          "id": "kc_confirm",
+          "kind": "select",
+          "label": "Your decision",
+          "options": [
+            "Not ready — and that is a valid permanent answer",
+            "Rehearse the entry protocol once more first",
+            "Hand over the key (records date, witness optional)"
+          ]
+        },
+        {
+          "id": "kc_save",
+          "kind": "button",
+          "label": "Save decision",
+          "goto": "handover_objects",
+          "action": "handover_objects"
+        },
+        {
+          "id": "kc_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "gate_open",
+          "variant": "secondary",
+          "action": "gate_open"
+        }
+      ]
+    },
+    {
+      "id": "handover_objects",
+      "title": "Handover objects",
+      "elements": [
+        {
+          "id": "ho_intro",
+          "kind": "text",
+          "text": "Three objects carry every arrangement — plus a professional layer when a §11 back-stop is in your circle. The doer suggests, the owner confirms; every version is kept."
+        },
+        {
+          "id": "ho_list",
+          "kind": "text",
+          "text": "1. Care card — feeding, meds with times, quirks, recall word, thunderstorm/noise protocol, 'what a bad day looks like'. Exportable to paper at any time, no account needed on the reader's side.\n2. Emergency-vet authority — signed, with the cost ceiling YOU set (or 'no ceiling', explicitly).\n3. Failure plan — the written answer to 'it is 21:00 and nobody has answered': call order, authority, key location (keyed mode only), and the honest last line.\n\nProfessional layer (auto-added when a back-stop joins):\n4. Signed emergency-vet release in the professional's format (insurance + Veterinäramt grade)\n5. Walk log — who walked, when, how long, countersigned per walk. The professional's insurance lives on this log; so does your certainty."
+        },
+        {
+          "id": "ho_correction",
+          "kind": "input",
+          "label": "Suggest a correction to any object (this is a real text field — type into it)",
+          "placeholder": "e.g. recall word is 'Kekse', not 'Keks' — and add: no retractable leash"
+        },
+        {
+          "id": "ho_correction_note",
+          "kind": "text",
+          "text": "Corrections typed here go to the owner for one-tap confirm and land in the object's version history. Nobody has to email anybody."
+        },
+        {
+          "id": "ho_submit",
+          "kind": "button",
+          "label": "Submit correction for owner confirmation",
+          "goto": "handover_objects",
+          "action": "handover_objects"
+        },
+        {
+          "id": "ho_export",
+          "kind": "button",
+          "label": "Export paper care card (PDF, no account needed)",
+          "goto": "care_card_export",
+          "action": "care_card_export"
+        },
+        {
+          "id": "ho_failure",
+          "kind": "button",
+          "label": "Open the failure plan",
+          "goto": "failure_plan",
+          "action": "failure_plan"
+        },
+        {
+          "id": "ho_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "home",
+          "variant": "secondary",
+          "action": "home"
+        }
+      ]
+    },
+    {
+      "id": "care_card_export",
+      "title": "Paper care card — no account, no app, no login",
+      "elements": [
+        {
+          "id": "cc_intro",
+          "kind": "text",
+          "text": "One PDF. Meds with times and the little boxes, feeding, quirks, recall word, thunderstorm note, your number, the vet's number. It goes on the cupboard door. The person who uses it never needs an account, never downloads anything, is never emailed, and is never 'invited'. Paper is a supported platform here, permanently — not a trick to get your neighbour into the app."
+        },
+        {
+          "id": "cc_contents",
+          "kind": "text",
+          "text": "The card also carries the failure plan's first three lines in print — call order and vet authority — because the person holding the paper is usually the person standing in your kitchen when it matters."
+        },
+        {
+          "id": "cc_download",
+          "kind": "button",
+          "label": "Download care card as PDF",
+          "goto": "care_card_export",
+          "action": "care_card_export"
+        },
+        {
+          "id": "cc_print_note",
+          "kind": "text",
+          "text": "Downloaded. (In this prototype: the real product produces the PDF here, before any signup wall — this screen is reachable without an account.)"
+        },
+        {
+          "id": "cc_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "home",
+          "variant": "secondary",
+          "action": "home"
+        }
+      ]
+    },
+    {
+      "id": "failure_plan",
+      "title": "Failure plan — the 21:00 answer, in writing",
+      "elements": [
+        {
+          "id": "fp_intro",
+          "kind": "text",
+          "text": "It is 21:00, your train is standing in Fulda, the dog has been alone since 14:00. This plan is the written answer — call order, authority, access — countersigned by everyone in it."
+        },
+        {
+          "id": "fp_order",
+          "kind": "input",
+          "label": "Call order",
+          "placeholder": "e.g. 1. Sandra (household) 2. Katrin (keyed) 3. Back-stop"
+        },
+        {
+          "id": "fp_nobody",
+          "kind": "input",
+          "label": "If nobody in the circle answers",
+          "placeholder": "Write the truth. If the truth is 'nobody', the back-stop rung exists for exactly this line."
+        },
+        {
+          "id": "fp_honest",
+          "kind": "text",
+          "text": "We do not sell you a stranger at this line. If your honest answer is 'nobody', you have two real options: grow the circle (free, takes weeks) or put the professional back-stop on this line (paid, takes one introduction ladder). Both are written on this screen because this line is where they belong."
+        },
+        {
+          "id": "fp_backstop",
+          "kind": "button",
+          "label": "Put the back-stop on the last line",
+          "goto": "backstop_owner",
+          "action": "backstop_owner"
+        },
+        {
+          "id": "fp_save",
+          "kind": "button",
+          "label": "Save failure plan (goes to all parties for countersign)",
+          "goto": "home",
+          "action": "home"
+        },
+        {
+          "id": "fp_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "handover_objects",
+          "variant": "secondary",
+          "action": "handover_objects"
+        }
+      ]
+    },
+    {
+      "id": "trigger_setup",
+      "title": "Same-day trigger — configure the cascade once",
+      "elements": [
+        {
+          "id": "ts_intro",
+          "kind": "text",
+          "text": "This is not a search. The trigger asks YOUR circle — people who already passed your ladder or live in your household. You configure how it asks, once, now — not at 21:05 on a broken evening."
+        },
+        {
+          "id": "ts_mode",
+          "kind": "select",
+          "label": "Cascade mode",
+          "options": [
+            "Parallel under pressure (default): less than 4 hours' notice → ping ALL rungs at once, first yes wins",
+            "Always parallel: every trigger asks everyone simultaneously",
+            "Serial by priority: one at a time, with per-person response windows YOU set (for planned gaps only)"
+          ]
+        },
+        {
+          "id": "ts_window",
+          "kind": "select",
+          "label": "Per-person response window (serial mode only)",
+          "options": [
+            "5 minutes",
+            "10 minutes",
+            "15 minutes"
+          ]
+        },
+        {
+          "id": "ts_priority",
+          "kind": "input",
+          "label": "Your priority order (who is asked first / listed first in parallel)",
+          "placeholder": "e.g. 1. Sandra 2. Frau Ostrowski (Wed only) 3. Bernd (weekends) 4. Back-stop"
+        },
+        {
+          "id": "ts_target",
+          "kind": "text",
+          "text": "Resolution target: under 15 minutes from tap to a confirmed name. If the circle has not resolved by minute 15, the trigger does not leave you refreshing a screen: your failure plan opens automatically and, if configured, the back-stop is asked in the same moment. Parallel asking is polite here — everyone sees 'first yes wins, no reply needed if you can't', so a decline costs nobody anything."
+        },
+        {
+          "id": "ts_fire",
+          "kind": "button",
+          "label": "Preview: fire the trigger now (demo, 17:32, gap at 19:00)",
+          "goto": "trigger_live",
+          "action": "trigger_live"
+        },
+        {
+          "id": "ts_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "home",
+          "variant": "secondary",
+          "action": "home"
+        }
+      ]
+    },
+    {
+      "id": "trigger_live",
+      "title": "Trigger live — 17:32, gap at 19:00",
+      "elements": [
+        {
+          "id": "tl_status",
+          "kind": "text",
+          "text": "Fired 17:32 by you. Notice: 1h 28min → PARALLEL mode. All rungs asked at once. Live status:\n\n• Sandra (household) — seen 17:33 … answered 17:35: 'in the meeting until 19:30, can't' — declined, no penalty\n• Frau Ostrowski (courtyard, Wed) — asked on her landline relay … no answer yet (2 min elapsed)\n• Bernd (weekends) — seen 17:34 … answered 17:36: 'Bonn, sorry' — declined\n• Milan (keyed) — seen 17:35 … ACCEPTED 17:39: 'I take the 19:00 walk, usual route?'\n\nRESOLVED at 17:39 — 7 minutes after firing. Target: under 15."
+        },
+        {
+          "id": "tl_clock",
+          "kind": "text",
+          "text": "What you were shown while waiting: this exact screen, updating live — who has seen it, who has answered, minutes elapsed, and the 15-minute line drawn visibly on the timeline. At minute 15 unresolved: failure plan opens itself + back-stop asked (if on your last line). You never wait blind, and you never wait serially through three thinking-time windows."
+        },
+        {
+          "id": "tl_confirm",
+          "kind": "button",
+          "label": "Confirm Milan for 19:00",
+          "goto": "trigger_resolved",
+          "action": "trigger_resolved"
+        },
+        {
+          "id": "tl_cancel",
+          "kind": "button",
+          "label": "Cancel trigger (everyone is told, no penalty)",
+          "goto": "trigger_setup",
+          "variant": "secondary",
+          "action": "trigger_setup"
+        }
+      ]
+    },
+    {
+      "id": "trigger_resolved",
+      "title": "Resolved: Milan takes the 19:00 walk",
+      "elements": [
+        {
+          "id": "tr_summary",
+          "kind": "text",
+          "text": "Milan — the person YOUR dog passed the ladder with — takes the 19:00 walk. Not a substitute. Not 'a walker from Milan's team'. Milan. If he had declined too, the failure plan and back-stop would have opened at minute 15, and this screen would say that instead."
+        },
+        {
+          "id": "tr_live",
+          "kind": "text",
+          "text": "During the walk, both sides see:\n• Walk started 19:02 (Milan's tap at your door / courtyard gate)\n• Your reachability status and his (both ways — he can reach you too)\n• Walk ended 19:41, note: 'all normal, one squirrel incident, recall worked'\n• Walk log entry created → countersign lands with you"
+        },
+        {
+          "id": "tr_household",
+          "kind": "text",
+          "text": "Your household sees the same resolution: Sandra's app shows 'Milan 19:00 — resolved by Timo at 17:39'. Nobody double-books, nobody re-fires the trigger, nobody texts 'did you find someone??' at 18:15."
+        },
+        {
+          "id": "tr_home",
+          "kind": "button",
+          "label": "Back to your circle",
+          "goto": "home",
+          "action": "home"
+        }
+      ]
+    },
+    {
+      "id": "backstop_owner",
+      "title": "Professional back-stop — what it costs, honestly",
+      "elements": [
+        {
+          "id": "bo_intro",
+          "kind": "text",
+          "text": "The back-stop is a verified professional (§11, insured, vet-vouched) who holds standby capacity for your circle and answers when the circle can't. It is the ONLY place money exists in this product. And we will not pretend you can have guaranteed availability AND pure pay-per-use — that contradiction is the whole gig economy, and we are not building it."
+        },
+        {
+          "id": "bo_price",
+          "kind": "text",
+          "text": "The honest price, both parts visible:\n• Standby retainer: 7 €/month per circle — 6 € goes to the professional for holding real capacity for you, 1 € to us. This is what 'she actually answers at 17:32' costs. If you never fire the trigger, this is ALL you pay — and it was not nothing, because her held Tuesday capacity was not nothing.\n• Per use: 24 €/walk — 21.60 € to the professional, 2.40 € (10%) to us.\n• Her cap: 12 circles maximum, inside her fixed territory. Your street is inside S. Kandlbinder's territory; she has 4 of 12 taken. The cap is why the retainer buys something real."
+        },
+        {
+          "id": "bo_terms",
+          "kind": "text",
+          "text": "Her side, stated openly because you should know what you are buying:\n• Her contract dogs come first; the back-stop is her margin capacity, honestly capped\n• She can decline without penalty — 'same person, always' sometimes answers 'not today'; your failure plan is the next line, and the retainer for that month is credited\n• She joins through the SAME ladder (met once, dog-led trial walk, same person always)\n• Structural holes get named: if your trigger hits her every Tuesday, the app tells you both — that is not an emergency, that is a standing appointment. She may offer you a walking contract at her normal rates; the app steps aside and takes nothing."
+        },
+        {
+          "id": "bo_pattern",
+          "kind": "text",
+          "text": "Your pattern (example): 4 of the last 6 Tuesdays had no circle cover. Honest verdict: a weekly paid back-stop walk would cost ~100 €/month — if that is your situation, you don't need an emergency product, you need a walking contract or a bigger free circle. The app will keep saying this instead of quietly collecting 100 €."
+        },
+        {
+          "id": "bo_start",
+          "kind": "button",
+          "label": "Start back-stop introduction (ladder, then retainer)",
+          "goto": "backstop_pro",
+          "action": "backstop_pro"
+        },
+        {
+          "id": "bo_decline",
+          "kind": "button",
+          "label": "Not for me — keep the free circle only (valid, permanent)",
+          "goto": "home",
+          "variant": "secondary",
+          "action": "home"
+        },
+        {
+          "id": "bo_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "home",
+          "variant": "secondary",
+          "action": "home"
+        }
+      ]
+    },
+    {
+      "id": "backstop_pro",
+      "title": "For professionals — the back-stop from your side of the counter",
+      "elements": [
+        {
+          "id": "bp_intro",
+          "kind": "text",
+          "text": "You are a §11-verified professional. This page is your contract summary, not marketing."
+        },
+        {
+          "id": "bp_terms",
+          "kind": "text",
+          "text": "• Verification gate: §11 shown once, insurance named, vet vouches checked. Hobby flyers do not pass. 'Professionals cost professional rates' is printed on every owner-facing screen.\n• Territory: circles inside YOUR radius only — you define it once (e.g. 25 minutes from the van). No circle outside it is ever shown to you.\n• Cap: you set it, we enforce it, default 12 circles. Owners see 'capacity 4 of 12' — scarcity is displayed, not hidden.\n• Standby retainer: 6 €/month per circle reaches you — pay for held capacity, independent of calls. 12 full circles = 72 €/month for holding what you already hold.\n• Per use: you set your rate (default 24 €), you keep 90%.\n• Decline right: penalty-free, always. Declines are logged honestly to the owner ('not today'), never scored against you.\n• Your contract dogs always come first — the product says this to owners, in those words.\n• Trained redundancy: YOUR named §11 colleague may be registered as your backup — introduced through the same ladder, never a stranger substitution by us. We never substitute anyone. That is your clause as much as the owner's.\n• Structural holes: when a circle's trigger pattern is really a standing appointment, both sides see it, and you may offer YOUR normal contract directly. We take nothing on it — converting per-use chaos into planned contracts is your business model, and it is allowed to work here.\n• Care card: professional layer with signed vet release, recall word, thunderstorm protocol, and a countersigned per-walk log (insurance/Veterinäramt grade). Corrections you type reach the owner for one-tap confirm and are versioned."
+        },
+        {
+          "id": "bp_join",
+          "kind": "button",
+          "label": "Apply as back-stop (verification first)",
+          "goto": "backstop_owner",
+          "action": "backstop_owner"
+        },
+        {
+          "id": "bp_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "backstop_owner",
+          "variant": "secondary",
+          "action": "backstop_owner"
+        }
+      ]
+    },
+    {
+      "id": "plans",
+      "title": "Plans & pricing — one paid thing, priced honestly",
+      "elements": [
+        {
+          "id": "pl_free",
+          "kind": "text",
+          "text": "FREE — the whole core, forever:\n• Your circle: invite your people, family & household members, courtyard mode\n• The full introduction ladder with honest gates\n• All handover objects incl. paper care-card export (no account needed on the reader's side)\n• The failure plan\n• The same-day trigger with parallel cascade and live status\n\nThere is no 12 €/month tier anymore. Formalizing the favours you already have will never cost money, because the favours were never ours to price."
+        },
+        {
+          "id": "pl_paid",
+          "kind": "text",
+          "text": "PAID — exactly one thing: the professional back-stop rung.\n• 7 €/month standby retainer per circle (6 € to the professional, 1 € to us)\n• 24 €/use (professional sets the rate, keeps 90%)\n• Capped, territory-bounded, decline-right, same-person. See the back-stop page for every number.\n\nWho should NOT pay for it: households that need a paid walk every single week. That is a walking contract, costs less bought as one, and the app will tell you so and show you your own pattern."
+        },
+        {
+          "id": "pl_backstop",
+          "kind": "button",
+          "label": "See the back-stop economics",
+          "goto": "backstop_owner",
+          "action": "backstop_owner"
+        },
+        {
+          "id": "pl_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "home",
+          "variant": "secondary",
+          "action": "home"
+        }
+      ]
+    },
+    {
+      "id": "honesty_exit",
+      "title": "Who this is NOT for",
+      "elements": [
+        {
+          "id": "he_list",
+          "kind": "text",
+          "text": "Read this before you invest an afternoon:\n\n• This is NOT a marketplace. There is no browsing, no profiles of available walkers, no booking a stranger tonight. If you want that, other apps exist and we are not a better version of them.\n• There are NO substitute walkers. Ever. If your person can't, your cascade and failure plan answer — never someone you haven't met.\n• If you need a paid walk EVERY week: the back-stop is the wrong product and we are the wrong company to pay. You need a walking contract with a professional (cheaper, planned, better for the dog) or a bigger free circle. The app will show you your own pattern and keep saying this.\n• Multi-day travel and holidays are NOT covered. August is kennel or family territory. We cover evenings, shifts, and same-day breaks — and we say so before week one, not after.\n• If your arrangement works because nobody made it official — a knock on a door, a key in a drawer, geraniums for courtyard hours — you may not need us at all. Take the free paper care card and keep ringing the doorbell. That is a success, not a lost customer.\n• Building a circle takes WEEKS. If you need someone tonight and have no circle, this product cannot help you tonight, and any product that claims it can is lying to you."
+        },
+        {
+          "id": "he_paper",
+          "kind": "button",
+          "label": "Take the free paper care card and go",
+          "goto": "care_card_export",
+          "action": "care_card_export"
+        },
+        {
+          "id": "he_stay",
+          "kind": "button",
+          "label": "Back to your circle",
+          "goto": "home",
+          "variant": "secondary",
+          "action": "home"
+        }
+      ]
+    }
+  ]
+}

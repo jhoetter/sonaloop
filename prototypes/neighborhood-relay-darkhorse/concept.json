@@ -1,0 +1,426 @@
+{
+  "title": "Neighborhood Relay",
+  "summary": "No marketplace, no strangers, no key handover. The app formalizes YOUR existing favor circle into a structured relay: shared dog card, one-tap relay trigger cascading through your circle in your priority order, and one vouched professional back-stop for when the circle itself fails. Favors stay favors; money only on the last rung.",
+  "start": "home",
+  "show_brand": false,
+  "screens": [
+    {
+      "id": "home",
+      "title": "Your circle — Bruno",
+      "elements": [
+        {
+          "id": "home_intro",
+          "kind": "text",
+          "text": "Bruno's relay circle. These are YOUR people — the app added nobody. Keys stay exactly where they already are."
+        },
+        {
+          "id": "home_circle",
+          "kind": "text",
+          "text": "• 1. Katrin (sister) — has key since 2019 — usually free mornings\n• 2. Herr & Frau Waldeck (Haus 3) — has key — not Tuesdays (physio)\n• 3. Frau Ostrowski (EG) — no stairs since the meniscus — short walks only, ground-floor pickup\n• 4. Familie Malich — courtyard handover, no key needed\n• Last rung: Sabine K. (professional back-stop) — met once at onboarding, insured, §11 — paid per use"
+        },
+        {
+          "id": "home_health",
+          "kind": "text",
+          "text": "Circle health: 1 structural hole — nobody available Tuesday afternoons. The relay will always hit the back-stop on Tuesdays."
+        },
+        {
+          "id": "home_btn_trigger",
+          "kind": "button",
+          "label": "Bruno needs cover — start relay",
+          "goto": "trigger",
+          "action": "trigger"
+        },
+        {
+          "id": "home_btn_card",
+          "kind": "button",
+          "label": "Open Bruno's care card",
+          "goto": "dogcard",
+          "action": "dogcard"
+        },
+        {
+          "id": "home_btn_ledger",
+          "kind": "button",
+          "label": "Favor ledger",
+          "goto": "ledger",
+          "action": "ledger"
+        },
+        {
+          "id": "home_btn_backstop",
+          "kind": "button",
+          "label": "Who is the back-stop?",
+          "goto": "backstop",
+          "action": "backstop"
+        },
+        {
+          "id": "home_btn_honesty",
+          "kind": "button",
+          "label": "Is this for me? (honest limits)",
+          "goto": "honesty",
+          "action": "honesty"
+        }
+      ]
+    },
+    {
+      "id": "dogcard",
+      "title": "Bruno's care card (shared with your circle only)",
+      "elements": [
+        {
+          "id": "card_intro",
+          "kind": "text",
+          "text": "One card the whole circle sees — so the knowledge in Katrin's head survives Katrin being sick."
+        },
+        {
+          "id": "card_list",
+          "kind": "text",
+          "text": "• Food: 2x/day, 150g, cabinet left of sink. NO chicken (allergy).\n• Meds: half a tablet Vetmedin in the morning, hidden in liverwurst.\n• Walks: pulls at bicycles; use the chest harness, never the collar.\n• Sleeps 12–15h — after a night-shift cover, quiet presence + midday walk is enough.\n• Vet: Dr. Salzmann, Bornaer Str. — emergency number on the fridge.\n• Keys: Katrin (full key), Waldecks (full key), Malich (courtyard only, no key). The app never stores or moves a key."
+        },
+        {
+          "id": "card_btn_edit",
+          "kind": "button",
+          "label": "Suggest a correction to the card",
+          "goto": "dogcard_edit",
+          "action": "dogcard_edit"
+        },
+        {
+          "id": "card_btn_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "home",
+          "action": "home"
+        }
+      ]
+    },
+    {
+      "id": "dogcard_edit",
+      "title": "Suggest a correction",
+      "elements": [
+        {
+          "id": "edit_intro",
+          "kind": "text",
+          "text": "Anyone in the circle can suggest; only you confirm. Frau Waldeck suggested last week: 'He now gets the tablet in cheese, liverwurst stopped working.'"
+        },
+        {
+          "id": "edit_input",
+          "kind": "input",
+          "label": "Your correction",
+          "placeholder": "e.g. new feeding time"
+        },
+        {
+          "id": "edit_btn_send",
+          "kind": "button",
+          "label": "Send to owner for confirmation",
+          "goto": "dogcard",
+          "action": "dogcard"
+        },
+        {
+          "id": "edit_btn_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "dogcard",
+          "action": "dogcard"
+        }
+      ]
+    },
+    {
+      "id": "trigger",
+      "title": "Start relay — when and what?",
+      "elements": [
+        {
+          "id": "trig_intro",
+          "kind": "text",
+          "text": "One tap. No browsing, no profiles, no matching. The request cascades through YOUR order until someone says yes."
+        },
+        {
+          "id": "trig_what",
+          "kind": "select",
+          "label": "What does Bruno need?",
+          "options": [
+            "Midday walk (30 min)",
+            "Quiet presence while I sleep after night shift (4h)",
+            "Full day cover",
+            "Overnight"
+          ]
+        },
+        {
+          "id": "trig_when",
+          "kind": "select",
+          "label": "When?",
+          "options": [
+            "Today, 12:00",
+            "Tomorrow morning",
+            "Tuesday afternoon (structural hole!)",
+            "Pick a date"
+          ]
+        },
+        {
+          "id": "trig_order",
+          "kind": "text",
+          "text": "Your cascade order today: Katrin → Waldecks → Malich (Ostrowski skipped: stairs). If all decline or don't answer in 20 min each: Sabine K., 24 € per use."
+        },
+        {
+          "id": "trig_btn_send",
+          "kind": "button",
+          "label": "Send the relay",
+          "goto": "cascade",
+          "action": "cascade"
+        },
+        {
+          "id": "trig_btn_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "home",
+          "action": "home"
+        }
+      ]
+    },
+    {
+      "id": "cascade",
+      "title": "Relay running…",
+      "elements": [
+        {
+          "id": "casc_1",
+          "kind": "text",
+          "text": "12:02 — Katrin: asked… declined ('sister still in hospital, sorry')."
+        },
+        {
+          "id": "casc_2",
+          "kind": "text",
+          "text": "12:04 — Waldecks: asked… no answer yet (physio Tuesday). Auto-skip in 18 min."
+        },
+        {
+          "id": "casc_3",
+          "kind": "text",
+          "text": "12:23 — Malich: asked… ACCEPTED. Courtyard handover 12:45, as always. No key needed."
+        },
+        {
+          "id": "casc_note",
+          "kind": "text",
+          "text": "The dog meets nobody new. If Malich had also declined, the relay would have offered — not booked — the back-stop: 'Sabine K. can take it, 24 €. Confirm?' Money never moves without your tap."
+        },
+        {
+          "id": "casc_btn_confirm",
+          "kind": "button",
+          "label": "Confirm Malich — done",
+          "goto": "confirmed",
+          "action": "confirmed"
+        },
+        {
+          "id": "casc_btn_fail",
+          "kind": "button",
+          "label": "What if the whole circle had failed?",
+          "goto": "backstop_offer",
+          "action": "backstop_offer"
+        }
+      ]
+    },
+    {
+      "id": "confirmed",
+      "title": "Covered — by your own people",
+      "elements": [
+        {
+          "id": "conf_text",
+          "kind": "text",
+          "text": "Malich takes Bruno at 12:45, courtyard handover. The care card is already on their phone. The ledger notes the favor."
+        },
+        {
+          "id": "conf_btn_home",
+          "kind": "button",
+          "label": "Back to circle",
+          "goto": "home",
+          "action": "home"
+        },
+        {
+          "id": "conf_btn_ledger",
+          "kind": "button",
+          "label": "See the ledger entry",
+          "goto": "ledger",
+          "action": "ledger"
+        }
+      ]
+    },
+    {
+      "id": "backstop_offer",
+      "title": "Circle outage — the last rung",
+      "elements": [
+        {
+          "id": "bo_intro",
+          "kind": "text",
+          "text": "Whole circle declined or unavailable. This is the evidenced failure mode: the circle itself ages, gets a meniscus, has a sick sister. For exactly this, ONE professional exists in your relay."
+        },
+        {
+          "id": "bo_who",
+          "kind": "text",
+          "text": "Sabine K. — you met her once, at onboarding, on a dog-led trial walk with Bruno. Same person every time. §11 permit, insured. She holds your key ONLY if you handed it to her yourself back then — the app never touched it."
+        },
+        {
+          "id": "bo_price",
+          "kind": "text",
+          "text": "24 € per use. Honest professional rate — not gig-discounted. No subscription. If you never need her, you never pay."
+        },
+        {
+          "id": "bo_btn_confirm",
+          "kind": "button",
+          "label": "Confirm Sabine, 24 €",
+          "goto": "backstop_confirmed",
+          "action": "backstop_confirmed"
+        },
+        {
+          "id": "bo_btn_decline",
+          "kind": "button",
+          "label": "No — I'll cancel my plans instead",
+          "goto": "declined_backstop",
+          "action": "declined_backstop"
+        },
+        {
+          "id": "bo_btn_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "cascade",
+          "action": "cascade"
+        }
+      ]
+    },
+    {
+      "id": "backstop_confirmed",
+      "title": "Sabine confirmed",
+      "elements": [
+        {
+          "id": "bc_text",
+          "kind": "text",
+          "text": "Sabine K. takes the Tuesday slot. Bruno knows her — this is her 7th visit this year. Payment settles after the walk. The circle sees only 'covered', not the price."
+        },
+        {
+          "id": "bc_btn_home",
+          "kind": "button",
+          "label": "Back to circle",
+          "goto": "home",
+          "action": "home"
+        }
+      ]
+    },
+    {
+      "id": "declined_backstop",
+      "title": "Okay — no cover today",
+      "elements": [
+        {
+          "id": "db_text",
+          "kind": "text",
+          "text": "Nothing is booked, nothing is charged. The relay logged the failed Tuesday so you can see the pattern: 4 of the last 6 Tuesdays had no circle cover. Maybe worth a conversation with the circle — or the back-stop trial."
+        },
+        {
+          "id": "db_btn_home",
+          "kind": "button",
+          "label": "Back to circle",
+          "goto": "home",
+          "action": "home"
+        }
+      ]
+    },
+    {
+      "id": "backstop",
+      "title": "The professional back-stop — how it works",
+      "elements": [
+        {
+          "id": "bs_intro",
+          "kind": "text",
+          "text": "Not a marketplace. You never browse walkers. During onboarding you are introduced to ONE professional — vouched by the network's local vet or an existing relay circle nearby — and you do a dog-led trial walk together. If it doesn't fit, you meet a second. Then it's fixed: same person, always."
+        },
+        {
+          "id": "bs_list",
+          "kind": "text",
+          "text": "• §11 TierSchG permit + liability insurance, shown once, verified by us\n• Key: only if YOU hand it over in person at onboarding — like you would with a neighbor\n• Paid per use at her rate (Sabine: 24 €/walk, 55 €/night-shift presence) — professionals cost professional rates\n• Trained redundancy: if SHE is out, her named §11 colleague (whom you also met at onboarding) steps in — never an unknown"
+        },
+        {
+          "id": "bs_btn_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "home",
+          "action": "home"
+        }
+      ]
+    },
+    {
+      "id": "ledger",
+      "title": "Favor ledger — no money inside the circle",
+      "elements": [
+        {
+          "id": "led_intro",
+          "kind": "text",
+          "text": "Favors stay favors. The ledger just makes them visible before an imbalance curdles. Water crates remain legal tender."
+        },
+        {
+          "id": "led_list",
+          "kind": "text",
+          "text": "• You → Waldecks: carried 3 water crates (Sat), took their parcels twice\n• Waldecks → you: 2 midday walks with Bruno\n• Katrin → you: 1 overnight — you: driving her to the airport (planned)\n• Malich → you: 4 courtyard afternoons — you: kids fed the rabbits at your place, twice\n• Balance check: you owe the Malichs. The app suggests nothing — it only shows."
+        },
+        {
+          "id": "led_money",
+          "kind": "text",
+          "text": "Money appears in this app exactly once: on the professional rung. Never between neighbors."
+        },
+        {
+          "id": "led_btn_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "home",
+          "action": "home"
+        }
+      ]
+    },
+    {
+      "id": "honesty",
+      "title": "Who this is NOT for",
+      "elements": [
+        {
+          "id": "hon_intro",
+          "kind": "text",
+          "text": "Honest limits, on purpose:"
+        },
+        {
+          "id": "hon_list",
+          "kind": "text",
+          "text": "• No circle, no relay. If you just moved here and know nobody, this app cannot conjure neighbors. It formalizes what exists.\n• The back-stop costs real money. §11-grade care at honest rates. If 24 € per use is out of reach, rungs 1–2 still work — but Tuesday stays your problem.\n• If your circle works precisely BECAUSE it is informal, formalizing it may break it. Some people should close this app and keep ringing doorbells. That is a fine outcome."
+        },
+        {
+          "id": "hon_btn_exit",
+          "kind": "button",
+          "label": "That's me — close the app",
+          "goto": "exit_honest",
+          "action": "exit_honest"
+        },
+        {
+          "id": "hon_btn_back",
+          "kind": "button",
+          "label": "Back to circle",
+          "goto": "home",
+          "action": "home"
+        }
+      ]
+    },
+    {
+      "id": "exit_honest",
+      "title": "Keep ringing doorbells",
+      "elements": [
+        {
+          "id": "ex_text",
+          "kind": "text",
+          "text": "Genuinely: if the Waldecks answer when you knock, you don't need us. Take the paper version of the care card as a PDF — it's yours, no account needed."
+        },
+        {
+          "id": "ex_btn_pdf",
+          "kind": "button",
+          "label": "Download care card as PDF",
+          "goto": "exit_honest",
+          "action": "exit_honest"
+        },
+        {
+          "id": "ex_btn_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "home",
+          "action": "home"
+        }
+      ]
+    }
+  ]
+}

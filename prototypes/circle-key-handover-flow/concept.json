@@ -1,0 +1,626 @@
+{
+  "title": "Circle & Key",
+  "summary": "A booking/introduction journey that makes the introduction ladder experienceable: build your keyed circle (invite or vouched candidate), climb four gated stages with dog-led evidence, complete handover objects (care instructions, emergency-vet authority, failure plan) before any key, then use the same-day trigger channel — explicitly not a marketplace. Honest: no fake walker abundance, a 'this may not be for you' exit, keyless courtyard handover as a legitimate stopping point.",
+  "fidelity": "midfi",
+  "start": "circle_home",
+  "screens": [
+    {
+      "id": "circle_home",
+      "title": "Your Circle",
+      "elements": [
+        {
+          "id": "ch_intro",
+          "kind": "text",
+          "text": "Your circle: the small set of people your dog already knows. Trust here is built in person, on your dog's terms — never bought at booking speed."
+        },
+        {
+          "id": "ch_list",
+          "kind": "text",
+          "text": "• Circle member: (none yet) — your circle starts empty. That is honest, not a bug.\n• Candidate in introduction: Milan K. — stage 0 of 4, vouched by Dr. Kamps (your vet)"
+        },
+        {
+          "id": "ch_invite",
+          "kind": "button",
+          "label": "Invite someone you already trust",
+          "goto": "invite_person",
+          "action": "invite_person"
+        },
+        {
+          "id": "ch_vouched",
+          "kind": "button",
+          "label": "Review vouched candidate: Milan K.",
+          "goto": "vouched_candidate",
+          "action": "vouched_candidate"
+        },
+        {
+          "id": "ch_trigger",
+          "kind": "button",
+          "label": "Same-day trigger (needs a keyed circle)",
+          "goto": "trigger_locked",
+          "action": "trigger_locked"
+        },
+        {
+          "id": "ch_plans",
+          "kind": "button",
+          "label": "Plans & pricing",
+          "goto": "plans",
+          "action": "plans"
+        },
+        {
+          "id": "ch_honesty",
+          "kind": "button",
+          "label": "Is this for you? Honest check",
+          "goto": "honesty_exit",
+          "action": "honesty_exit"
+        }
+      ]
+    },
+    {
+      "id": "invite_person",
+      "title": "Invite your existing person",
+      "elements": [
+        {
+          "id": "ip_intro",
+          "kind": "text",
+          "text": "The fastest path to a keyed circle is a person your dog already knows: a neighbour, a friend, a family member. We give the two of you the ladder, the handover objects, and the trigger channel — you bring the relationship."
+        },
+        {
+          "id": "ip_name",
+          "kind": "input",
+          "label": "Name of your person",
+          "placeholder": "e.g. Karin from the second floor"
+        },
+        {
+          "id": "ip_known",
+          "kind": "input",
+          "label": "How does your dog already know them?",
+          "placeholder": "e.g. greets her daily in the stairwell for 3 years"
+        },
+        {
+          "id": "ip_send",
+          "kind": "button",
+          "label": "Send invitation (they start at stage 2: joint walk)",
+          "goto": "ladder",
+          "action": "ladder"
+        },
+        {
+          "id": "ip_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "circle_home",
+          "action": "circle_home"
+        }
+      ]
+    },
+    {
+      "id": "vouched_candidate",
+      "title": "Vouched candidate: Milan K.",
+      "elements": [
+        {
+          "id": "vc_intro",
+          "kind": "text",
+          "text": "Milan K. is not a search result. He is proposed because Dr. Kamps — your own vet — personally vouches for him. The vouch is inspectable: you can call Dr. Kamps before anything else happens."
+        },
+        {
+          "id": "vc_list",
+          "kind": "text",
+          "text": "• Vouch source: Dr. Kamps, Tierarztpraxis Kamps (your vet since 2019) — 'Milan has walked my patients' dogs for four years. Calm hands, no shortcuts.'\n• Documents: liability insurance, certificate of good conduct — entry tickets only. They open the door to stage 1; they are not trust.\n• Same-person guarantee: if you key Milan, only Milan ever comes. There are no substitutes in this product, by construction.\n• Availability: Milan takes at most 6 households. No promises of instant coverage."
+        },
+        {
+          "id": "vc_verify",
+          "kind": "button",
+          "label": "Call/verify the vouch source first",
+          "goto": "vouch_detail",
+          "action": "vouch_detail"
+        },
+        {
+          "id": "vc_start",
+          "kind": "button",
+          "label": "Start the introduction ladder with Milan",
+          "goto": "ladder",
+          "action": "ladder"
+        },
+        {
+          "id": "vc_decline",
+          "kind": "button",
+          "label": "Not comfortable — decline candidate",
+          "goto": "honesty_exit",
+          "action": "honesty_exit"
+        },
+        {
+          "id": "vc_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "circle_home",
+          "action": "circle_home"
+        }
+      ]
+    },
+    {
+      "id": "vouch_detail",
+      "title": "Verify the vouch",
+      "elements": [
+        {
+          "id": "vd_intro",
+          "kind": "text",
+          "text": "A vouch is only worth the person behind it. Dr. Kamps has agreed to take your call about Milan. No script, no platform in the middle."
+        },
+        {
+          "id": "vd_list",
+          "kind": "text",
+          "text": "• Dr. Kamps, practice line: Mon–Fri 9–12 (real call, not in-app chat)\n• What the vouch covers: Milan's conduct with anxious and reactive dogs over 4 years\n• What the vouch does NOT cover: your dog. That evidence only comes from the ladder itself."
+        },
+        {
+          "id": "vd_proceed",
+          "kind": "button",
+          "label": "I've verified — proceed to the ladder",
+          "goto": "ladder",
+          "action": "ladder"
+        },
+        {
+          "id": "vd_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "vouched_candidate",
+          "action": "vouched_candidate"
+        }
+      ]
+    },
+    {
+      "id": "ladder",
+      "title": "Introduction ladder (4 gated stages)",
+      "elements": [
+        {
+          "id": "ld_intro",
+          "kind": "text",
+          "text": "Each stage unlocks only when the previous one is logged with dog-led evidence. This takes as long as your dog needs — typically weeks, not days. You can stop permanently at any rung and keep what you have."
+        },
+        {
+          "id": "ld_stages",
+          "kind": "text",
+          "text": "• Stage 1 — Outdoor meeting, neutral ground: your dog decides the distance. Evidence to log: how your dog approached, or didn't.\n• Stage 2 — Joint walk, you present: candidate handles the leash while you watch. Evidence: your dog's recall, body language, your own gut note.\n• Stage 3 — Rehearsed entry protocol at your home: exact door routine practiced WITH you there. Keyless courtyard handover is a legitimate permanent stopping point here.\n• Stage 4 — Key ceremony: only unlocks when stages 1–3 are logged AND all three handover objects exist and are countersigned."
+        },
+        {
+          "id": "ld_log",
+          "kind": "button",
+          "label": "Log stage 1 evidence (dog-led trial)",
+          "goto": "dog_evidence",
+          "action": "dog_evidence"
+        },
+        {
+          "id": "ld_handover",
+          "kind": "button",
+          "label": "Prepare handover objects (required before stage 4)",
+          "goto": "handover_objects",
+          "action": "handover_objects"
+        },
+        {
+          "id": "ld_key",
+          "kind": "button",
+          "label": "Stage 4: key ceremony (locked until gates pass)",
+          "goto": "key_ceremony",
+          "action": "key_ceremony"
+        },
+        {
+          "id": "ld_courtyard",
+          "kind": "button",
+          "label": "Stop here permanently: courtyard handover only (no key)",
+          "goto": "courtyard_mode",
+          "action": "courtyard_mode"
+        },
+        {
+          "id": "ld_back",
+          "kind": "button",
+          "label": "Back to circle",
+          "goto": "circle_home",
+          "action": "circle_home"
+        }
+      ]
+    },
+    {
+      "id": "dog_evidence",
+      "title": "Dog-led trial evidence — Stage 1",
+      "elements": [
+        {
+          "id": "de_intro",
+          "kind": "text",
+          "text": "The gate is your dog, not a form. Log what actually happened at the outdoor meeting. Milan sees this log too — he is screening you as much as you are screening him."
+        },
+        {
+          "id": "de_what",
+          "kind": "input",
+          "label": "What did your dog do when Milan appeared?",
+          "placeholder": "e.g. kept 5m distance for 20 minutes, then took a treat from the ground near him"
+        },
+        {
+          "id": "de_read",
+          "kind": "select",
+          "label": "Your read of the meeting",
+          "options": [
+            "Dog relaxed — ready to consider stage 2",
+            "Unsure — repeat stage 1 (this is normal)",
+            "Dog said no — pause or end the introduction"
+          ]
+        },
+        {
+          "id": "de_save",
+          "kind": "button",
+          "label": "Save evidence — stage 2 stays locked until a 'relaxed' log exists",
+          "goto": "ladder",
+          "action": "ladder"
+        },
+        {
+          "id": "de_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "ladder",
+          "action": "ladder"
+        }
+      ]
+    },
+    {
+      "id": "handover_objects",
+      "title": "Handover objects (before any key)",
+      "elements": [
+        {
+          "id": "ho_intro",
+          "kind": "text",
+          "text": "Three written objects must exist and be countersigned by BOTH sides before stage 4 unlocks. The walker requires these as much as you do — no key changes hands without them."
+        },
+        {
+          "id": "ho_list",
+          "kind": "text",
+          "text": "• 1. Written care instructions: feeding, meds, triggers, no-go streets, the words your dog knows. Milan countersigns that he has read and will follow them.\n• 2. Emergency-vet payment authority: signed up front, with your cost ceiling and your vet's details. Milan will not accept a key without it.\n• 3. Failure plan (the stuck-at-21:00 scenario): who is called, in which order, what each person may do, where the spare key sits. Written, versioned, visible to everyone in the circle."
+        },
+        {
+          "id": "ho_plan",
+          "kind": "button",
+          "label": "Draft the failure plan now",
+          "goto": "failure_plan",
+          "action": "failure_plan"
+        },
+        {
+          "id": "ho_vet",
+          "kind": "button",
+          "label": "Sign emergency-vet authority",
+          "goto": "vet_authority",
+          "action": "vet_authority"
+        },
+        {
+          "id": "ho_back",
+          "kind": "button",
+          "label": "Back to ladder",
+          "goto": "ladder",
+          "action": "ladder"
+        }
+      ]
+    },
+    {
+      "id": "failure_plan",
+      "title": "Failure plan — stuck at 21:00",
+      "elements": [
+        {
+          "id": "fp_intro",
+          "kind": "text",
+          "text": "The scenario this plan exists for: it is 21:00, you are stuck on a delayed train, the dog has been alone since 14:00. Who acts, in what order, with what authority?"
+        },
+        {
+          "id": "fp_first",
+          "kind": "input",
+          "label": "First call",
+          "placeholder": "e.g. Milan (keyed) — may enter, feed, evening walk"
+        },
+        {
+          "id": "fp_second",
+          "kind": "input",
+          "label": "Second call",
+          "placeholder": "e.g. Karin, 2nd floor (keyed, backup) — may enter and stay until 23:00"
+        },
+        {
+          "id": "fp_nobody",
+          "kind": "input",
+          "label": "If nobody in the circle answers",
+          "placeholder": "e.g. Dr. Kamps emergency line; NOT a stranger from an app"
+        },
+        {
+          "id": "fp_save",
+          "kind": "button",
+          "label": "Save failure plan (countersigned by circle)",
+          "goto": "handover_objects",
+          "action": "handover_objects"
+        },
+        {
+          "id": "fp_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "handover_objects",
+          "action": "handover_objects"
+        }
+      ]
+    },
+    {
+      "id": "vet_authority",
+      "title": "Emergency-vet payment authority",
+      "elements": [
+        {
+          "id": "va_intro",
+          "kind": "text",
+          "text": "Signed before the key, not negotiated during a crisis. This is one of the things Milan checks about YOU: an owner without it is a risk he won't take."
+        },
+        {
+          "id": "va_ceiling",
+          "kind": "input",
+          "label": "Cost ceiling without calling you first",
+          "placeholder": "e.g. 500 €"
+        },
+        {
+          "id": "va_vet",
+          "kind": "input",
+          "label": "Your vet",
+          "placeholder": "e.g. Dr. Kamps, Tierarztpraxis Kamps"
+        },
+        {
+          "id": "va_reach",
+          "kind": "select",
+          "label": "Reachability commitment (bilateral)",
+          "options": [
+            "I am reachable by phone during every walk",
+            "I name a reachable deputy when I am not",
+            "I cannot commit to reachability (this blocks the key stage)"
+          ]
+        },
+        {
+          "id": "va_sign",
+          "kind": "button",
+          "label": "Sign authority",
+          "goto": "handover_objects",
+          "action": "handover_objects"
+        },
+        {
+          "id": "va_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "handover_objects",
+          "action": "handover_objects"
+        }
+      ]
+    },
+    {
+      "id": "courtyard_mode",
+      "title": "Courtyard handover mode (no key, permanent)",
+      "elements": [
+        {
+          "id": "cm_intro",
+          "kind": "text",
+          "text": "A keyless circle is a full, respected configuration — not a downgrade. Handover happens at the courtyard gate; nobody enters your home. The same-day trigger works in this mode too, limited to courtyard pickups."
+        },
+        {
+          "id": "cm_list",
+          "kind": "text",
+          "text": "• Handover point: courtyard gate, agreed time window\n• Stage 4 (key ceremony) permanently hidden for this candidate\n• Failure plan still required — it names who can reach the dog if YOU can't get to the gate"
+        },
+        {
+          "id": "cm_confirm",
+          "kind": "button",
+          "label": "Confirm courtyard mode",
+          "goto": "circle_home",
+          "action": "circle_home"
+        },
+        {
+          "id": "cm_back",
+          "kind": "button",
+          "label": "Back to ladder",
+          "goto": "ladder",
+          "action": "ladder"
+        }
+      ]
+    },
+    {
+      "id": "key_ceremony",
+      "title": "Key ceremony — Stage 4",
+      "elements": [
+        {
+          "id": "kc_intro",
+          "kind": "text",
+          "text": "All gates passed: three dog-led stage logs, three countersigned handover objects. The key is handed over in person, at your door, with the rehearsed entry protocol performed once more while you watch."
+        },
+        {
+          "id": "kc_list",
+          "kind": "text",
+          "text": "• Key holder: Milan K. — and only Milan. Substitution is technically impossible in this product.\n• While-asleep access (optional, separate consent): entry windows you define, e.g. early morning while you sleep — only after weeks of logged entries.\n• Revocation: one tap, no questions, key returned at the courtyard within 24h."
+        },
+        {
+          "id": "kc_complete",
+          "kind": "button",
+          "label": "Complete key ceremony",
+          "goto": "trigger",
+          "action": "trigger"
+        },
+        {
+          "id": "kc_back",
+          "kind": "button",
+          "label": "Not ready — back to ladder",
+          "goto": "ladder",
+          "action": "ladder"
+        }
+      ]
+    },
+    {
+      "id": "trigger_locked",
+      "title": "Same-day trigger (locked)",
+      "elements": [
+        {
+          "id": "tl_intro",
+          "kind": "text",
+          "text": "The trigger channel pings YOUR keyed circle. You don't have one yet — so there is nothing to trigger. We will not offer you a stranger instead. Vetting is plannable; only the trigger is spontaneous."
+        },
+        {
+          "id": "tl_build",
+          "kind": "button",
+          "label": "Build my circle first",
+          "goto": "circle_home",
+          "action": "circle_home"
+        },
+        {
+          "id": "tl_preview",
+          "kind": "button",
+          "label": "Preview how the trigger works",
+          "goto": "trigger",
+          "action": "trigger"
+        }
+      ]
+    },
+    {
+      "id": "trigger",
+      "title": "Same-day trigger — ping your circle",
+      "elements": [
+        {
+          "id": "tr_intro",
+          "kind": "text",
+          "text": "This is not a search. One tap pings your circle in YOUR priority order, with your standing instructions attached. Whoever accepts is already introduced, already keyed, already countersigned."
+        },
+        {
+          "id": "tr_list",
+          "kind": "text",
+          "text": "• Priority 1: Milan K. (keyed, failure plan on file) — ping first\n• Priority 2: Karin, 2nd floor (keyed, backup) — ping if Milan declines within 10 min\n• If nobody can: your failure plan opens. No stranger fallback exists here — that is deliberate."
+        },
+        {
+          "id": "tr_now",
+          "kind": "button",
+          "label": "Trigger now: today 18:00 evening walk",
+          "goto": "live_walk",
+          "action": "live_walk"
+        },
+        {
+          "id": "tr_back",
+          "kind": "button",
+          "label": "Back to circle",
+          "goto": "circle_home",
+          "action": "circle_home"
+        }
+      ]
+    },
+    {
+      "id": "live_walk",
+      "title": "Live walk — Milan is out with your dog",
+      "elements": [
+        {
+          "id": "lw_intro",
+          "kind": "text",
+          "text": "Milan accepted your trigger and picked up at 18:04 (entry protocol log attached). Visibility is mutual: he sees that you are reachable; you see where the walk stands."
+        },
+        {
+          "id": "lw_list",
+          "kind": "text",
+          "text": "• Status: on the walk, 22 min — usual route, no-go streets respected\n• Your reachability: phone on, confirmed 17:58 (Milan sees this)\n• Failure plan: one tap away for both of you\n• After the walk: Milan logs a short note; it lands in the same evidence trail as the ladder"
+        },
+        {
+          "id": "lw_done",
+          "kind": "button",
+          "label": "Walk complete — back to circle",
+          "goto": "circle_home",
+          "action": "circle_home"
+        },
+        {
+          "id": "lw_plan",
+          "kind": "button",
+          "label": "Open failure plan",
+          "goto": "failure_plan",
+          "action": "failure_plan"
+        }
+      ]
+    },
+    {
+      "id": "plans",
+      "title": "Plans & pricing",
+      "elements": [
+        {
+          "id": "pl_intro",
+          "kind": "text",
+          "text": "Honest pricing: building your circle with your OWN people is free, forever. You pay only for what the platform actually adds."
+        },
+        {
+          "id": "pl_list",
+          "kind": "text",
+          "text": "• Own circle (invite people you know): 0 € — ladder, handover objects, trigger channel included\n• Vouched candidates + walker payouts: 12 €/month while an introduction or paid walking relationship is active\n• Paid walks: walker sets the rate (Milan: 18 €/walk); we take 10%. Money buys scheduled slices — it never buys the key faster."
+        },
+        {
+          "id": "pl_free",
+          "kind": "button",
+          "label": "Stay on the free own-circle plan",
+          "goto": "circle_home",
+          "action": "circle_home"
+        },
+        {
+          "id": "pl_paid",
+          "kind": "button",
+          "label": "Start vouched-candidate plan (12 €/mo)",
+          "goto": "vouched_candidate",
+          "action": "vouched_candidate"
+        },
+        {
+          "id": "pl_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "circle_home",
+          "action": "circle_home"
+        }
+      ]
+    },
+    {
+      "id": "honesty_exit",
+      "title": "This may not be for you — and that's fine",
+      "elements": [
+        {
+          "id": "he_intro",
+          "kind": "text",
+          "text": "Some owners will never hand a key to anyone who wasn't already family or friend before any app existed. If that is you, this product cannot manufacture that trust, and it won't pretend to. No account needed to leave."
+        },
+        {
+          "id": "he_list",
+          "kind": "text",
+          "text": "• What we can still offer without any candidate: the failure plan template and the trigger channel for YOUR OWN people (free)\n• What we will never offer: an instant stranger at your door\n• You can leave now — no retention screen follows this one"
+        },
+        {
+          "id": "he_template",
+          "kind": "button",
+          "label": "Take the free failure-plan template for my own people",
+          "goto": "failure_plan",
+          "action": "failure_plan"
+        },
+        {
+          "id": "he_leave",
+          "kind": "button",
+          "label": "Leave — this is not for me",
+          "goto": "exit_final",
+          "action": "exit_final"
+        },
+        {
+          "id": "he_back",
+          "kind": "button",
+          "label": "Back",
+          "goto": "circle_home",
+          "action": "circle_home"
+        }
+      ]
+    },
+    {
+      "id": "exit_final",
+      "title": "Goodbye",
+      "elements": [
+        {
+          "id": "ef_text",
+          "kind": "text",
+          "text": "Understood. Nothing was saved, nobody will email you. If your situation changes, the ladder will still be here — it doesn't rush anyone."
+        },
+        {
+          "id": "ef_restart",
+          "kind": "button",
+          "label": "Return to start",
+          "goto": "circle_home",
+          "action": "circle_home"
+        }
+      ]
+    }
+  ]
+}
