@@ -114,7 +114,7 @@ def test_modal_chrome_trigger_context_and_github_link(store):
     assert STRINGS["en"]["feedback_context_l"] in html
     assert services.app_version() in html
     # prefilled public-channel link
-    assert "github.com/jhoetter/sonaloop/issues/new?title=" in html
+    assert "github.com/jhoetter/sonaloop-research/issues/new?title=" in html
 
 
 def test_admin_page_lists_read_only_and_marks_read(store):

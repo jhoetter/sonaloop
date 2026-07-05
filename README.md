@@ -4,6 +4,10 @@
 
 # Sonaloop
 
+> **Naming note:** this repository was renamed from `sonaloop` to
+> `sonaloop-research` (2026-07-05). On PyPI the package is still called
+> **`sonaloop`** — TODO: publish under the new name in the future.
+
 [![PyPI](https://img.shields.io/pypi/v/sonaloop)](https://pypi.org/project/sonaloop/)
 [![Python](https://img.shields.io/pypi/pyversions/sonaloop)](https://pypi.org/project/sonaloop/)
 [![License](https://img.shields.io/pypi/l/sonaloop)](LICENSE)
@@ -123,7 +127,7 @@ one-line explanation in [.env.example](.env.example).
 ## From source (development)
 
 ```bash
-git clone https://github.com/jhoetter/sonaloop && cd sonaloop
+git clone https://github.com/jhoetter/sonaloop-research && cd sonaloop-research
 uv sync
 make skills                   # symlink claude-skills/* for Claude Code discovery
 make dev                      # web inspector on :8787

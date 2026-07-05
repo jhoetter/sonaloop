@@ -23,7 +23,7 @@ from ._i18n import t
 from ._html import h, raw, fragment, register_css
 from ._ext import register_slot
 
-GITHUB_ISSUES_URL = "https://github.com/jhoetter/sonaloop/issues/new"
+GITHUB_ISSUES_URL = "https://github.com/jhoetter/sonaloop-research/issues/new"
 
 
 def _github_issue_href(page: str = "") -> str:

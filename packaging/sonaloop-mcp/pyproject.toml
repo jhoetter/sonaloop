@@ -10,7 +10,7 @@ keywords = ["mcp", "model-context-protocol", "sonaloop"]
 dependencies = ["sonaloop>=0.2.0"]
 
 [project.urls]
-Homepage = "https://github.com/jhoetter/sonaloop"
+Homepage = "https://github.com/jhoetter/sonaloop-research"
 Documentation = "https://jhoetter.github.io/sonaloop-docs/"
 
 [project.scripts]

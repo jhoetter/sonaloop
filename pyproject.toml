@@ -41,8 +41,8 @@ dependencies = [
 postgres = ["psycopg[binary]>=3.1"]
 
 [project.urls]
-Homepage = "https://github.com/jhoetter/sonaloop"
-Repository = "https://github.com/jhoetter/sonaloop"
+Homepage = "https://github.com/jhoetter/sonaloop-research"
+Repository = "https://github.com/jhoetter/sonaloop-research"
 
 [project.scripts]
 sonaloop = "sonaloop.cli:main"

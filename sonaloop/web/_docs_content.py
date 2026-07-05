@@ -122,6 +122,17 @@ DOCS = [
               "against persona predictions."),
      "why": ("Es quantifiziert offene Spannungen, statt sie nur qualitativ stehen zu lassen.",
              "It quantifies open tensions instead of leaving them only qualitative.")},
+    {"art": "cloud_github", "icon": "network", "name": None, "group": "evidence",
+     "what": ("Eine Cloud-Automation, die GitHub PRs, Issues, Comment-Commands und Preview-Deployments "
+              "in Sonaloop-Reaction-Tests übersetzt und die Ergebnisse als Check Run, Kommentar, Label "
+              "oder Patch-PR zurückschreibt.",
+              "A Cloud automation that turns GitHub PRs, issues, comment commands and preview deployments "
+              "into Sonaloop reaction tests, then writes results back as a Check Run, comment, label or "
+              "Patch PR."),
+     "why": ("User-Reaktionen wandern direkt in den Entwicklungsworkflow: Landing Pages, Feature-Issues "
+             "und UI-Änderungen bekommen ein persona-geerdetes Signal, bevor sie shippen.",
+             "User reaction moves directly into the development workflow: landing pages, feature issues "
+             "and UI changes get a persona-grounded signal before they ship.")},
     {"art": "asset", "icon": "file", "name": "assets_h", "group": "evidence",
      "what": ("Eine echte Datei im Projekt: Screenshot, Dokument, Export oder erzeugtes Deliverable — mit "
               "Herkunft, Richtung und Download.",

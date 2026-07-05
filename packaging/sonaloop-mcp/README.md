@@ -1,6 +1,6 @@
 # sonaloop-mcp
 
-The one-sentence install shim for the [Sonaloop](https://github.com/jhoetter/sonaloop) MCP
+The one-sentence install shim for the [Sonaloop](https://github.com/jhoetter/sonaloop-research) MCP
 server. It exists so the documented one-liner works verbatim with nothing but `uv` installed:
 
 ```bash
