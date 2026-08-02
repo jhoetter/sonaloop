@@ -45,6 +45,20 @@ def test_csrf_cookie_is_issued_and_forms_embed_it(store):
     assert f'name="csrf_token" value="{token}"' in html
 
 
+def test_csrf_cookie_is_secure_behind_public_https_proxy(monkeypatch):
+    from starlette.testclient import TestClient
+
+    monkeypatch.setenv("SONALOOP_CLOUD_PUBLIC_URL", "https://app.sonaloop.com")
+    response = TestClient(web.create_app()).get("/jobs?lang=en")
+    csrf_cookie = next(
+        value for value in response.headers.get_list("set-cookie")
+        if value.lower().startswith("sl_csrf=")
+    ).lower()
+    assert "secure" in csrf_cookie
+    assert "httponly" in csrf_cookie
+    assert "samesite=lax" in csrf_cookie
+
+
 def test_post_without_or_with_wrong_csrf_token_is_403():
     client = _client()
     assert client.post("/jobs/new", data={"title": "x"}).status_code == 403

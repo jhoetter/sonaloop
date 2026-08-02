@@ -18,7 +18,8 @@ the Store directly — so lifecycle events / hooks / cloud guards keep working.
 
 CSRF: DOUBLE-SUBMIT COOKIE (stateless — the app has no session store, and a signed
 token would need a key to manage; the cookie comparison needs neither). The
-middleware issues a random token in an `sl_csrf` cookie (SameSite=Lax, HttpOnly)
+middleware issues a random token in an `sl_csrf` cookie (SameSite=Lax, HttpOnly,
+and Secure whenever the public/request/proxy origin is HTTPS)
 and every form embeds the same token in a hidden field (csrf_field()). A POST is
 accepted only when cookie and field match (constant-time compare). A cross-site
 attacker can make the browser SEND the cookie but can neither read it nor set a
@@ -29,7 +30,9 @@ from __future__ import annotations
 import contextvars
 import hmac
 import json
+import os
 import secrets
+import urllib.parse
 
 from .. import services
 from ..storage import Store
@@ -39,6 +42,15 @@ from ._html import h, raw, fragment, register_css
 
 CSRF_COOKIE = "sl_csrf"
 _CSRF: contextvars.ContextVar[str] = contextvars.ContextVar("csrf_token", default="")
+
+
+def _secure_cookie(request) -> bool:
+    """Preserve HTTPS cookie semantics when Cloud terminates TLS at a proxy."""
+    public_url = (os.getenv("SONALOOP_CLOUD_PUBLIC_URL") or "").strip()
+    public_scheme = urllib.parse.urlsplit(public_url).scheme.lower()
+    forwarded = (request.headers.get("x-forwarded-proto") or "").split(",", 1)[0].strip()
+    return (public_scheme == "https" or request.url.scheme == "https"
+            or forwarded.lower() == "https")
 
 
 def install_forms(app) -> None:
@@ -59,7 +71,8 @@ def install_forms(app) -> None:
             _CSRF.reset(ctx)
         if fresh:
             response.set_cookie(CSRF_COOKIE, token, max_age=60 * 60 * 24 * 365,
-                                samesite="lax", httponly=True)
+                                samesite="lax", httponly=True,
+                                secure=_secure_cookie(request))
         return response
 
 
