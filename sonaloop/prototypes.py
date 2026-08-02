@@ -14,7 +14,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from .config import ROOT, prototype_templates_dir, prototypes_dir, utc_now_iso
+from . import config
+from .config import prototype_templates_dir, prototypes_dir, utc_now_iso
 from .models import Prototype
 from .storage import Store
 
@@ -156,6 +157,12 @@ _PROTO_COMPONENT_DEFAULTS = {
 
 
 # --------------------------------------------------------------------------- scaffolding
+
+def _safe_artifact_slug(slug: str) -> str:
+    value = str(slug or "")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}", value):
+        raise PrototypeError("BAD_SLUG", f"unsafe prototype slug: {value!r}")
+    return value
 
 def _freeform_frames(concept: dict[str, Any]) -> list[dict[str, Any]]:
     frames = concept.get("frames") or concept.get("scenes")
@@ -563,6 +570,7 @@ def scaffold_artifact(slug: str, name: str, concept: dict[str, Any], type: str =
     and no fidelity enum. `tags` carry discriminators (e.g. a fidelity tag)."""
     from . import presentation as _pres
     store = store or Store()
+    slug = _safe_artifact_slug(slug)
     tags = list(tags or [])
     resolved = _pres.resolve_template(type, tags, explicit=template)
     if not resolved:
@@ -575,7 +583,7 @@ def scaffold_artifact(slug: str, name: str, concept: dict[str, Any], type: str =
     (out_dir / "index.html").write_text(_render_spa(name, concept, resolved), encoding="utf-8")
     (out_dir / "concept.json").write_text(json.dumps(concept, ensure_ascii=False, indent=2), encoding="utf-8")
     try:
-        stored_path = str(out_dir.relative_to(ROOT))
+        stored_path = str(out_dir.relative_to(config.ROOT))
     except ValueError:
         stored_path = str(out_dir)
     unit = "screens"
@@ -589,7 +597,14 @@ def scaffold_artifact(slug: str, name: str, concept: dict[str, Any], type: str =
 
 
 def _prototype_app_dir(p: dict[str, Any]) -> Path:
-    return (ROOT / p["path"]).resolve()
+    raw = Path(p["path"])
+    candidate = (raw if raw.is_absolute() else config.ROOT / raw).resolve()
+    if config.postgres_row_tenancy_enabled():
+        root = prototypes_dir().resolve()
+        if not candidate.is_relative_to(root):
+            raise PrototypeError(
+                "BAD_PATH", "prototype path must stay inside the active workspace partition")
+    return candidate
 
 
 def _prototype_concept(app_dir: Path) -> dict[str, Any]:
@@ -633,6 +648,12 @@ def register_artifact(slug: str, name: str, path: str, entry: str = "index.html"
                       notes: str = "", type: str = "prototype", tags: list[str] | None = None,
                       created_at: str | None = None, store: Store | None = None) -> dict[str, Any]:
     store = store or Store()
+    slug = _safe_artifact_slug(slug)
+    if config.postgres_row_tenancy_enabled() and (
+            run != "static" or str(run_cmd or "").strip()):
+        raise PrototypeError(
+            "UNSAFE_RUNNER",
+            "shared-Postgres workspaces may register static prototypes only (run_cmd must be empty)")
     from .services import stable_id
     now = created_at or utc_now_iso()
     tags = list(tags or [])
@@ -644,6 +665,9 @@ def register_artifact(slug: str, name: str, path: str, entry: str = "index.html"
                     kind="web", path=path, entry=entry, run=run, run_cmd=run_cmd, notes=notes,
                     created_at=(existing or {}).get("created_at", now),
                     fidelity=fidelity, type=type, tags=tags).to_dict()
+    # Registration is an operator escape hatch locally.  In shared tenancy it
+    # must not become a read/execute handle into another workspace or host path.
+    _prototype_app_dir(rec)
     store.upsert_prototype(rec)
     return rec
 
@@ -710,6 +734,14 @@ def _free_port() -> int:
 def run_prototype(prototype_id: str, store: Store | None = None) -> dict[str, Any]:
     store = store or Store()
     p = get_prototype(prototype_id, store=store)
+    # Redundant execution boundary for legacy/tampered rows that predate the
+    # registration check. Workspace-authored strings must never reach a shell on
+    # the shared Cloud host; local SQLite keeps the operator runner unchanged.
+    if config.postgres_row_tenancy_enabled() and (
+            p.get("run") != "static" or str(p.get("run_cmd") or "").strip()):
+        raise PrototypeError(
+            "UNSAFE_RUNNER",
+            "shared-Postgres workspaces may run static prototypes only (run_cmd must be empty)")
     refresh_prototype_design_system(p["id"], store=store)
     if p["id"] in _PROCS:
         return {"prototype_id": p["id"], "url": _PROCS[p["id"]]["url"], "pid": _PROCS[p["id"]]["proc"].pid,

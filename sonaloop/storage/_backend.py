@@ -125,8 +125,8 @@ class _PgConnection:
     rows. `execute`/`executemany` return a psycopg cursor (rowcount/fetch* as usual).
 
     When `pool` is set, `close()` returns the connection to the pool instead of
-    closing it — rollback + DISCARD ALL cleans session state so the next checkout
-    starts fresh (RLS GUCs are re-bound by `PostgresBackend._bind_scope`)."""
+    closing it. The pool's reset callback clears session-scoped RLS GUCs before
+    the connection can be checked out again; `_bind_scope` then re-binds them."""
 
     def __init__(self, raw: Any, tenant: bool = False, pool: Any = None) -> None:
         self._raw = raw
@@ -215,10 +215,25 @@ def _tenant_table_names() -> list[str]:
 
 
 # RLS: a row is READable when its workspace is in the request's accessible set, and
-# WRITEable only into the active workspace. Unset scope → both settings NULL → no rows
-# (fail-closed). FORCE makes it apply even to the table owner, so isolation is real.
+# WRITEable only into the active workspace. An unbound request is explicitly mapped to
+# workspace_ids={} / active_workspace="" → no rows and no writes (fail-closed). FORCE makes
+# it apply even to the table owner, so isolation is real.
 _RLS_USING = "workspace_id = ANY (current_setting('app.workspace_ids', true)::text[])"
 _RLS_CHECK = "workspace_id = current_setting('app.active_workspace', true)"
+
+
+def _set_pg_tenant_scope(raw: Any, accessible: tuple[str, ...] = (), active: str = "") -> None:
+    """Set both session-scoped RLS GUCs, using an explicit fail-closed neutral scope.
+
+    Custom Postgres GUCs survive COMMIT and pooled connection reuse.  Therefore an
+    unscoped checkout must write ``{}``/``""`` rather than merely leaving the previous
+    values untouched (or using RESET, whose empty custom-GUC value cannot be cast to
+    ``text[]`` by the RLS policy).
+    """
+    arr = "{" + ",".join(f'"{workspace_id}"' for workspace_id in accessible) + "}"
+    raw.execute("SELECT set_config('app.workspace_ids', %s, false)", (arr,))
+    raw.execute("SELECT set_config('app.active_workspace', %s, false)", (active,))
+    raw.commit()
 
 # Modules guard one-time schema init per (dsn, schema) so apply_schema isn't re-run (and the
 # tenancy ALTERs aren't re-introspected) on every Store() — and concurrent CREATEs don't race.
@@ -261,9 +276,21 @@ class PostgresBackend(StorageBackend):
 
         def _configure(conn: Any) -> None:
             conn.row_factory = dict_row
+            if self.tenant:
+                # New physical connections enter the pool fail-closed too. This also protects
+                # direct pool maintenance before PostgresBackend.connect() gets to re-bind.
+                _set_pg_tenant_scope(conn)
+
+        def _reset(conn: Any) -> None:
+            # psycopg_pool invokes this after rollback and requires it to leave the connection
+            # IDLE. A targeted reset preserves prepared state/search_path while preventing a
+            # returned connection from carrying one request's workspace scope into the next.
+            _set_pg_tenant_scope(conn)
 
         pool = ConnectionPool(conninfo=self.dsn, min_size=1, max_size=8,
-                              configure=_configure, open=False)
+                              configure=_configure,
+                              reset=_reset if self.tenant else None,
+                              open=False)
         pool.open(wait=True)
         self._pools[key] = pool
         return pool
@@ -275,10 +302,18 @@ class PostgresBackend(StorageBackend):
         pool = self._get_pool()
         if pool is not None:
             raw = pool.getconn()
-            if self.schema:
-                raw.execute(f'SET search_path TO "{self.schema}"')
-                raw.commit()
-            self._bind_scope(raw)
+            try:
+                if self.schema:
+                    # Keep pooled and direct connections at parity: isolated test/deployment
+                    # schemas may not exist on the first checkout yet.
+                    raw.execute(f'CREATE SCHEMA IF NOT EXISTS "{self.schema}"')
+                    raw.execute(f'SET search_path TO "{self.schema}"')
+                    raw.commit()
+                self._bind_scope(raw)
+            except Exception:
+                # A failed scope bind must not leak a checked-out connection/pool slot.
+                pool.putconn(raw)
+                raise
             return _PgConnection(raw, tenant=self.tenant, pool=pool)
         raw = psycopg.connect(self.dsn, autocommit=False, row_factory=dict_row)
         if self.schema:
@@ -290,19 +325,18 @@ class PostgresBackend(StorageBackend):
 
     def _bind_scope(self, raw: Any) -> None:
         """Push the request's tenant scope into RLS session vars. Session-level (is_local=
-        false) so it survives the Store's many commits on this one connection; a pooled
-        deployment re-binds per transaction instead (cloud-tenant-scope-flip)."""
+        false) so it survives the Store's many commits on this one connection. Every pooled
+        checkout is explicitly rebound; an unscoped checkout receives the neutral fail-closed
+        scope instead of inheriting the previous request's values."""
         if not self.tenant:
             return
         from ..config import request_tenant_scope
         scope = request_tenant_scope()
         if scope is None:
-            return
-        accessible, active = scope
-        arr = "{" + ",".join(f'"{a}"' for a in accessible) + "}"
-        raw.execute("SELECT set_config('app.workspace_ids', %s, false)", (arr,))
-        raw.execute("SELECT set_config('app.active_workspace', %s, false)", (active,))
-        raw.commit()
+            _set_pg_tenant_scope(raw)
+        else:
+            accessible, active = scope
+            _set_pg_tenant_scope(raw, accessible, active)
 
     def apply_schema(self, conn: _PgConnection) -> None:
         key = self._key()

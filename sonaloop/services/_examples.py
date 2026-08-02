@@ -350,7 +350,7 @@ def _attach_fixture_avatar(persona: dict[str, Any], raw: dict[str, Any], store: 
     if not data:
         return persona
     rel = f"data/avatars/{persona['slug']}.png"
-    dest = config.ROOT / rel
+    dest = config.partition_dir() / "avatars" / f"{persona['slug']}.png"
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_bytes(base64.b64decode(data))
     avatar = {

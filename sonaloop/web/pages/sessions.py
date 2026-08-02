@@ -182,17 +182,20 @@ def _subject_link(store: Store, subject: dict):
 
 
 def _screenshot_url(sess_id: str, shot: str) -> str | None:
-    """Resolve a stored screenshot reference to a servable URL — only for files that really exist
-    under the sessions dir (→ /sessions-files) or the data dir (→ /data). Mirrors the resolution
-    order of services._require_screenshots (session dir, then the sessions dir — the harness writes
-    <browser_session_id>/step-<n>.png relative to it — then the data dir); anything else renders as
-    the text screen instead."""
+    """Resolve a stored screenshot reference to a servable URL.
+
+    Shared row-tenancy deliberately exposes neither runtime-file route, so fail
+    before probing the filesystem. Local/single-tenant mode keeps the historical
+    resolution order and static URLs.
+    """
+    if _config.postgres_row_tenancy_enabled():
+        return None
     sessions_root = _config.sessions_dir().resolve()
-    data_root = Path(_config.DATA_DIR).resolve()
+    data_root = _config.partition_dir().resolve()
     p = Path(shot)
     candidates = ([p] if p.is_absolute() else
                   [_config.sessions_dir() / sess_id / p, _config.sessions_dir() / p,
-                   Path(_config.DATA_DIR) / p])
+                   _config.partition_dir() / p])
     for c in candidates:
         try:
             r = c.resolve()
@@ -683,16 +686,18 @@ def register_sessions(app) -> None:
             rail_sections=rail_sections,
             star=("session", session_id, title[:60], f"/sessions/{session_id}"))
 
-    @app.get("/sessions-files/{path:path}")
-    def session_file(path: str):
-        """Read-only screenshots from data/sessions/ (the avatar pattern, but with an explicit
-        resolve + containment check: a traversal that escapes the sessions dir is a 404, never a
-        file read)."""
-        base = _config.sessions_dir().resolve()
-        try:
-            target = (base / path).resolve()
-        except OSError:
-            return Response(status_code=404)
-        if not (target.is_relative_to(base) and target.is_file()):
-            return Response(status_code=404)
-        return FileResponse(target)
+    if not _config.postgres_row_tenancy_enabled():
+        @app.get("/sessions-files/{path:path}")
+        def session_file(path: str):
+            """Read-only screenshots from data/sessions/ (the avatar pattern, but with an
+            explicit resolve + containment check: a traversal that escapes the sessions dir is
+            a 404, never a file read). Shared row-tenancy deliberately registers no such route
+            until workspace-aware filesystem/object-storage authorization replaces it."""
+            base = _config.sessions_dir().resolve()
+            try:
+                target = (base / path).resolve()
+            except OSError:
+                return Response(status_code=404)
+            if not (target.is_relative_to(base) and target.is_file()):
+                return Response(status_code=404)
+            return FileResponse(target)

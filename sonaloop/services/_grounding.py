@@ -109,6 +109,11 @@ def ingest_corpus(content_or_path: str, source_type: str, title: str | None = No
         except OSError:
             src = None
     if src:
+        from .. import config
+        if config.postgres_row_tenancy_enabled() and not src.resolve().is_relative_to(
+                config.partition_dir().resolve()):
+            raise ValueError("corpus file path must stay inside the active workspace partition; "
+                             "send external material as inline content")
         if src.stat().st_size > MAX_CORPUS_BYTES:
             raise ValueError(f"Corpus exceeds the {MAX_CORPUS_BYTES // (1024 * 1024)}MB cap.")
         text, source = src.read_text(encoding="utf-8", errors="ignore"), str(src)

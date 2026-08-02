@@ -25,8 +25,13 @@ sonaloop asset-list <project_id>
 sonaloop asset-remove <project_id> <asset_id>
 ```
 
-Binaries land in the content-addressed store (`data/assets/<hash>.<ext>` — the
-web app serves it at `/data/assets/…`); the record lands on the project. Ids are
+Binaries land in the active partition's content-addressed store
+(`data/assets/<hash>.<ext>` in local SQLite; internally
+`data/workspaces/<workspace-id>/assets/…` in shared Postgres); the record lands
+on the project. The local inspector serves the store at `/data/assets/…`.
+Shared-Postgres/RLS deployments block raw `/data`, `/proto-files`, and
+`/sessions-files` delivery until an authenticated workspace-aware blob/download
+route exists; MCP `view_asset` remains the authorized evidence-read surface. Ids are
 content-addressed per project, so re-attaching the same bytes is an idempotent
 upsert. `kind` (image | screenshot | document | file) is inferred from the
 extension. Attaching emits the `asset.attached` lifecycle event
@@ -67,8 +72,11 @@ readable. `record_asset_supersession` is the service seam that writes it.
 
 ## Persistence
 
-- Assets appear read-only in the web inspector (thumbnails for images, served
-  from the static `/data` mount); every asset row deep-links to its detail page.
+- In local SQLite mode, assets appear read-only in the web inspector (image
+  thumbnails come from the static `/data` mount); every asset row deep-links to
+  its detail page. Shared-Postgres deployments currently suppress raw file
+  previews/downloads rather than risk cross-workspace disclosure.
 - `export-snapshot` now includes research projects and copies asset binaries to
-  `data/export/assets/`; `import-snapshot` restores both — the evidence survives
-  the portable round-trip.
+  the active partition's `export/assets/` directory (`data/export/assets/`
+  locally); `import-snapshot` restores both — the evidence survives the portable
+  round-trip.

@@ -488,9 +488,9 @@ _BRAND_LOGO_CSS = register_css(
 
 def _brand_logo_img(alt: str) -> str:
     """The customer-logo <img> for the sidebar lockup, or "" when none is set. A data:
-    URI is emitted as-is; a DATA_DIR path (validated by theming.validate_customer_theme)
-    is served through the /data static mount. Fail-soft: anything that no longer maps
-    into DATA_DIR falls back to the wordmark rather than a broken image."""
+    URI is emitted as-is. Local file logos use the single-tenant /data mount. Shared
+    row-tenancy has no raw runtime-file route, so its workspace branding must use a
+    data URI (or fall back to the wordmark)."""
     logo = brand_logo()
     if not logo:
         return ""
@@ -498,11 +498,14 @@ def _brand_logo_img(alt: str) -> str:
         src = logo
     else:
         from pathlib import Path
-        from ..config import DATA_DIR    # late: tests repoint config.DATA_DIR
+        from .. import config as _config
         try:
-            src = "/data/" + Path(logo).resolve().relative_to(DATA_DIR.resolve()).as_posix()
+            relative = Path(logo).resolve().relative_to(_config.partition_dir().resolve())
         except ValueError:
             return ""
+        if _config.postgres_row_tenancy_enabled():
+            return ""
+        src = "/data/" + relative.as_posix()
     return f'<img class="sl-logo__img" src="{_esc(src)}" alt="{_esc(alt)}">'
 
 

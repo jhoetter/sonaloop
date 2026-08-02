@@ -611,7 +611,7 @@ class _Resp:
     def __exit__(self, *exc): return False
 
 
-def test_fetch_sends_bearer_token_only_when_env_set(monkeypatch):
+def test_fetch_pins_bearer_to_catalog_origin_without_redirect_forwarding(monkeypatch):
     seen: list[urllib.request.Request] = []
     monkeypatch.setattr("urllib.request.urlopen",
                         lambda req, timeout=0: seen.append(req) or _Resp(b"{}"))
@@ -620,7 +620,14 @@ def test_fetch_sends_bearer_token_only_when_env_set(monkeypatch):
     assert not seen[0].has_header("Authorization")                       # anonymous == no header
     monkeypatch.setenv("SONALOOP_CATALOG_TOKEN", "tok-123")
     cat._fetch_bytes(cat._base_url() + "/manifest.json")
-    assert seen[1].get_header("Authorization") == "Bearer tok-123"       # every catalog request
+    assert seen[1].get_header("Authorization") == "Bearer tok-123"
+    assert "Authorization" not in seen[1].headers
+    assert seen[1].unredirected_hdrs["Authorization"] == "Bearer tok-123"
+
+    cat._fetch_bytes("https://cdn.example/avatars/persona.png")
+    assert not seen[2].has_header("Authorization")
+    cat._fetch_bytes("https://raw.githubusercontent.com/jhoetter/sonaloop-data/main/manifest.json")
+    assert not seen[3].has_header("Authorization")
 
 
 def test_fetch_auth_failures_are_typed_not_generic(monkeypatch):

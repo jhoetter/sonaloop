@@ -93,12 +93,20 @@ def purge_runtime_data(remove_files: bool = True, store: Store | None = None) ->
     deleted = store.purge_runtime_state()
     removed_files: list[str] = []
     if remove_files:
-        for root in [config.ROOT / "data" / "avatars", config.ROOT / "data" / "personas", config.ROOT / "personas"]:
+        part = config.partition_dir()
+        roots = [part / "avatars", part / "personas"]
+        # Preserve the historical checkout-only cleanup in local mode.  A shared
+        # tenant request must never touch this process-global legacy directory.
+        if not config.postgres_row_tenancy_enabled():
+            roots.append(config.ROOT / "personas")
+        for root in roots:
+            if config.postgres_row_tenancy_enabled() and not root.resolve().is_relative_to(part.resolve()):
+                raise ValueError(f"runtime purge path escapes active workspace partition: {root}")
             if root.exists():
                 for path in sorted(root.rglob("*"), reverse=True):
                     if path.is_file():
                         path.unlink()
-                        removed_files.append(str(path.relative_to(config.ROOT)))
+                        removed_files.append(runtime_path_ref(path))
                     elif path.is_dir():
                         try:
                             path.rmdir()

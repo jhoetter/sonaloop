@@ -18,9 +18,17 @@ def _avatar_src(p: dict) -> str | None:
     path = (p.get("avatar") or {}).get("path") or ""
     if not path:
         return None
-    from ..config import DATA_DIR
+    from .. import config
+    if config.postgres_row_tenancy_enabled():
+        # Shared row-tenancy intentionally exposes no raw /data mount until an
+        # authenticated workspace-file route exists; render initials, not a broken
+        # (or accidentally global) image URL.
+        return None
     rel = path[len("data/"):] if path.startswith("data/") else path
-    return f"/{path}" if (DATA_DIR / rel).is_file() else None
+    candidate = (config.partition_dir() / rel).resolve()
+    if not candidate.is_relative_to(config.partition_dir().resolve()):
+        return None
+    return f"/{path}" if candidate.is_file() else None
 
 
 def _avatar(p: dict, size: int = 36) -> str:

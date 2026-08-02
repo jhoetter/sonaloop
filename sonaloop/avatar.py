@@ -3,11 +3,13 @@ from __future__ import annotations
 import base64
 import json
 import os
+import re
 import urllib.request
 from pathlib import Path
 from typing import Any
 
-from .config import DATA_DIR, ROOT, load_env, utc_now_iso
+from . import config
+from .config import load_env, utc_now_iso
 from .services import stable_id
 from .storage import Store
 
@@ -86,16 +88,31 @@ def generate_persona_avatar(persona_id: str, style: str | None = None, store: St
     if not api_key:
         raise RuntimeError(AVATAR_DISABLED_NOTE)
     model = os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-1")
-    # Default to the writable per-user runtime (DATA_DIR/avatars == the web app's /data mount).
-    # In a source checkout DATA_DIR is ROOT/data, so this is the same data/avatars as before;
-    # installed (uvx/pipx), ROOT is site-packages and must never be written to.
+    # Default to the active workspace runtime.  Local mode's partition is DATA_DIR,
+    # preserving the historical data/avatars location exactly.
+    partition = config.partition_dir()
     env_dir = os.getenv("AVATAR_OUTPUT_DIR")
     if env_dir:
-        out_dir = Path(env_dir)
-        if not out_dir.is_absolute():
-            out_dir = ROOT / out_dir
+        configured = Path(env_dir)
+        if config.postgres_row_tenancy_enabled():
+            # A process-wide override must not collapse every workspace back into
+            # one directory.  Treat relative values as partition-relative (and
+            # accept the common virtual "data/..." spelling); absolute values must
+            # already name a location inside this active partition.
+            if not configured.is_absolute():
+                parts = configured.parts
+                if parts and parts[0] == "data":
+                    configured = Path(*parts[1:])
+                configured = partition / configured
+            out_dir = configured.resolve()
+            if not out_dir.is_relative_to(partition.resolve()):
+                raise ValueError("AVATAR_OUTPUT_DIR must stay inside the active workspace partition")
+        else:
+            out_dir = configured
+            if not out_dir.is_absolute():
+                out_dir = config.ROOT / out_dir
     else:
-        out_dir = DATA_DIR / "avatars"
+        out_dir = partition / "avatars"
     out_dir.mkdir(parents=True, exist_ok=True)
     prompt = build_avatar_prompt(persona, style)
     result = _post_json(
@@ -111,15 +128,18 @@ def generate_persona_avatar(persona_id: str, style: str | None = None, store: St
             img_bytes = resp.read()
     else:
         raise RuntimeError("No image payload returned by OpenAI image generation.")
-    filename = f"{persona['slug']}-{stable_id('avatar', persona['id'], prompt).split('_')[1]}.png"
+    slug = str(persona.get("slug") or "")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}", slug):
+        raise ValueError(f"unsafe persona slug for avatar filename: {slug!r}")
+    filename = f"{slug}-{stable_id('avatar', persona['id'], prompt).split('_')[1]}.png"
     out_path = out_dir / filename
     out_path.write_bytes(img_bytes)
-    # The stored path doubles as the web URL (src="/<path>"; the inspector mounts /data → DATA_DIR),
-    # so files under DATA_DIR persist as "data/...". Source checkouts keep the identical value.
-    if out_path.is_relative_to(DATA_DIR):
-        rel = "data/" + str(out_path.relative_to(DATA_DIR))
-    elif out_path.is_relative_to(ROOT):
-        rel = str(out_path.relative_to(ROOT))
+    # Persist a partition-VIRTUAL ref.  Each tenant's DB can keep the same
+    # ``data/avatars/<file>`` value while readers resolve it inside that tenant.
+    if out_path.resolve().is_relative_to(partition.resolve()):
+        rel = "data/" + str(out_path.resolve().relative_to(partition.resolve()))
+    elif out_path.is_relative_to(config.ROOT):
+        rel = str(out_path.relative_to(config.ROOT))
     else:
         rel = str(out_path)
     avatar = {

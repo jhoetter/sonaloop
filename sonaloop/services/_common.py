@@ -83,7 +83,23 @@ def persona_dir(persona: dict[str, Any]) -> Path:
     # Runtime working dir for rendered SOUL.md/MEMORY.md. Lives under data/ (all
     # generated state is under data/; gitignored). The portable, local-only copy
     # is data/export/ (see export_snapshot/import_snapshot).
-    return config.ROOT / "data" / "personas" / persona["slug"]
+    slug = str(persona.get("slug") or "")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}", slug):
+        raise ValueError(f"unsafe persona slug for runtime directory: {slug!r}")
+    return config.partition_dir() / "personas" / slug
+
+
+def runtime_path_ref(path: Path) -> str:
+    """Stable persisted/display path for a runtime file.
+
+    Source checkouts keep the historical ``data/...`` value.  Installed builds
+    whose writable data root lives outside the package store an absolute path;
+    ``Path(ROOT) / absolute`` remains compatible with older readers.
+    """
+    try:
+        return str(path.relative_to(config.ROOT))
+    except ValueError:
+        return str(path)
 
 
 
@@ -126,7 +142,13 @@ def _period_bounds(anchor: date, view: str) -> tuple[date, date]:
 
 def write_export(content: str, path: str | Path) -> str:
     out = Path(path)
-    if not out.is_absolute():
+    if config.postgres_row_tenancy_enabled():
+        part = config.partition_dir()
+        if not out.is_absolute():
+            out = part / "exports" / out
+        if not out.resolve().is_relative_to(part.resolve()):
+            raise ValueError(f"export path escapes the active workspace partition: {path!r}")
+    elif not out.is_absolute():
         out = config.ROOT / out
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(content, encoding="utf-8")
@@ -149,6 +171,9 @@ def write_export_bytes(data: bytes, path: str | Path) -> str:
     out = Path(path)
     if not out.is_absolute():
         out = partition_dir() / "exports" / out
+    if config.postgres_row_tenancy_enabled() and not out.resolve().is_relative_to(
+            partition_dir().resolve()):
+        raise ValueError(f"export path escapes the active workspace partition: {path!r}")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_bytes(data)
     return str(out)
@@ -161,7 +186,11 @@ def export_download_url(path: str | Path) -> str:
     caller chose) — a server filesystem path is NOT a hand-off to a remote user."""
     from .. import config
     try:
-        rel = Path(path).resolve().relative_to(Path(config.DATA_DIR).resolve())
+        resolved = Path(path).resolve()
+        if config.postgres_row_tenancy_enabled() and not resolved.is_relative_to(
+                config.partition_dir().resolve()):
+            return ""
+        rel = resolved.relative_to(Path(config.DATA_DIR).resolve())
     except ValueError:
         return ""
     return web_url("/data/" + rel.as_posix())
@@ -238,7 +267,7 @@ def _require_research_project(store: Store, project_id: str) -> dict[str, Any]:
 
 
 __all__ = [
-    "slugify", "stable_id", "persona_dir", "soul_path", "_parse_date", "_event_time",
+    "slugify", "stable_id", "persona_dir", "runtime_path_ref", "soul_path", "_parse_date", "_event_time",
     "_make_rng", "_period_bounds", "write_export", "_ANTI_STEERING", "memory_path",
     "_scope_bounds", "_require_persona", "CRITIC_THRESHOLD", "EDGE_TYPES", "OQ_STATUSES",
     "_require_research_project",

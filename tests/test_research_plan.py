@@ -40,6 +40,19 @@ def test_plan_roundtrips_through_store(store):
     assert v1["requires"]["min_inputs"] == 2 and v1["requires"]["gate_tag"] == "divergence_complete"
 
 
+def test_save_plan_refreshes_a_cached_miss(store):
+    """A write in the same web request must replace a previously cached no-plan result."""
+    token = P.begin_plan_cache()
+    try:
+        assert P.get_plan("proj1", store=store) is None
+        P.save_plan(_plan(), store=store)
+        got = P.get_plan("proj1", store=store)
+    finally:
+        P.end_plan_cache(token)
+    assert got is not None
+    assert [t["id"] for t in got["tasks"]] == ["frame1", "c1", "c2", "v1"]
+
+
 def test_ready_frontier_and_completion(store):
     p = _plan()
     ready = {t["id"] for t in P.ready_tasks(p)}

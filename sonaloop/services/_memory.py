@@ -184,7 +184,7 @@ def get_persona_memory(persona_id: str, store: Store | None = None) -> dict[str,
     path = memory_path(persona)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-    return {"path": str(path.relative_to(config.ROOT)), "content": content}
+    return {"path": runtime_path_ref(path), "content": content}
 
 
 # ---- Evaluation (§12.5) & embeddings/forgetting (§12.6) ------------------

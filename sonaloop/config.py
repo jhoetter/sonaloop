@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -63,8 +64,32 @@ def reset_request_partition(token: contextvars.Token) -> None:
 
 
 def partition_dir() -> Path:
-    """The active data root: the request-bound partition if set, else DATA_DIR."""
-    return _REQUEST_PARTITION.get() or DATA_DIR
+    """The active writable-file root.
+
+    An explicit legacy/SQLite partition wins.  In shared-Postgres row-tenancy the
+    active workspace from the request scope supplies the equivalent file partition;
+    a missing scope is quarantined and a malformed scope fails closed instead of
+    falling back to the process-global ``DATA_DIR``. Local single-user mode remains
+    exactly ``DATA_DIR``.
+    """
+    explicit = _REQUEST_PARTITION.get()
+    if explicit is not None:
+        return explicit
+    if postgres_row_tenancy_enabled():
+        scope = request_tenant_scope()
+        if scope is None or not scope[1]:
+            # Modules may resolve registry paths during process startup, before any
+            # request can bind a tenant.  Quarantine that state instead of crashing
+            # startup or (worse) falling back to the shared global runtime tree.
+            return DATA_DIR / "workspaces" / ".unbound"
+        active_id = str(scope[1])
+        # Workspace ids are generated as ws_<opaque>.  Keep the value human-auditable
+        # on disk while accepting only one conservative path component; never hash or
+        # normalize an unsafe value into a surprising shared location.
+        if not re.fullmatch(r"ws_[A-Za-z0-9][A-Za-z0-9_.-]{0,126}", active_id):
+            raise ValueError(f"unsafe active workspace id for file partition: {active_id!r}")
+        return DATA_DIR / "workspaces" / active_id
+    return DATA_DIR
 
 
 def request_partition() -> Path | None:
@@ -85,8 +110,8 @@ _REQUEST_TENANT_SCOPE: contextvars.ContextVar[tuple[tuple[str, ...], str] | None
 def set_request_tenant_scope(accessible_ids, active_id: str) -> contextvars.Token:
     """Bind the request's tenant scope: `accessible_ids` (every workspace the principal may
     READ) + `active_id` (the workspace new rows are WRITTEN to). A finally block must
-    reset_request_tenant_scope() — the scope must never leak across requests (with a pooled
-    connection that means SET LOCAL per transaction; see the Postgres backend)."""
+    reset_request_tenant_scope() — the scope must never leak across requests (the Postgres
+    backend explicitly clears and re-binds its session GUCs on pooled connections)."""
     return _REQUEST_TENANT_SCOPE.set((tuple(accessible_ids), active_id))
 
 
@@ -97,6 +122,18 @@ def reset_request_tenant_scope(token: contextvars.Token) -> None:
 def request_tenant_scope() -> tuple[tuple[str, ...], str] | None:
     """The active (accessible_ids, active_id) scope, or None (open-core / unscoped)."""
     return _REQUEST_TENANT_SCOPE.get()
+
+
+def postgres_row_tenancy_enabled() -> bool:
+    """Whether this process is the shared-Postgres, RLS-enforced cloud runtime.
+
+    Requiring both switches keeps local/SQLite behaviour unchanged even if a stray
+    ``SONALOOP_PG_TENANT=1`` is present. Web file delivery uses this boundary to avoid
+    exposing the process-global runtime tree in a row-tenanted deployment.
+    """
+    url = (os.getenv("DATABASE_URL") or "").lower()
+    return os.getenv("SONALOOP_PG_TENANT") == "1" and url.startswith(
+        ("postgres://", "postgresql://"))
 
 
 def load_env(path: Path | None = None) -> None:
@@ -172,7 +209,8 @@ def prototypes_dir() -> Path:
 
     Dev (source checkout): alongside the repo at ./prototypes (committed, runnable
     locally). Installed: under the per-user data dir so a read-only install still works."""
-    if _is_source_checkout() and _REQUEST_PARTITION.get() is None:
+    if (_is_source_checkout() and _REQUEST_PARTITION.get() is None
+            and not postgres_row_tenancy_enabled()):
         return ROOT / "prototypes"
     return partition_dir() / "prototypes"
 
@@ -269,7 +307,11 @@ def critic_sample_k() -> int:
 SUPPORTED_LANGUAGES = ("de", "en")
 DEFAULT_LANGUAGE = "en"
 
-_SETTINGS_PATH = DATA_DIR / "settings.json"
+def _settings_path() -> Path:
+    # Language preferences are authored content settings, so in Cloud they belong
+    # to the active workspace just like persona files.  Local mode still resolves
+    # to the historical DATA_DIR/settings.json.
+    return partition_dir() / "settings.json"
 
 # Common German function words / markers used for a cheap, dependency-free guess.
 _GERMAN_MARKERS = {
@@ -283,10 +325,11 @@ _GERMAN_MARKERS = {
 def _read_settings() -> dict[str, str]:
     import json
 
-    if not _SETTINGS_PATH.exists():
+    path = _settings_path()
+    if not path.exists():
         return {}
     try:
-        data = json.loads(_SETTINGS_PATH.read_text(encoding="utf-8"))
+        data = json.loads(path.read_text(encoding="utf-8"))
         return data if isinstance(data, dict) else {}
     except (ValueError, OSError):
         return {}
@@ -295,8 +338,9 @@ def _read_settings() -> dict[str, str]:
 def _write_settings(settings: dict[str, str]) -> None:
     import json
 
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    _SETTINGS_PATH.write_text(json.dumps(settings, indent=2, ensure_ascii=False), encoding="utf-8")
+    path = _settings_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(settings, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 def get_setting(key: str, default: str | None = None) -> str | None:
@@ -373,4 +417,3 @@ def language_instruction(language: str | None = None) -> str:
     if lang == "de":
         return "Write ALL generated content in German (Deutsch)."
     return "Write ALL generated content in English."
-

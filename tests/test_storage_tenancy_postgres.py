@@ -21,7 +21,7 @@ psycopg = pytest.importorskip("psycopg")
 
 from sonaloop import config, services
 from sonaloop.storage import Store
-from sonaloop.storage._backend import _tenant_tables
+from sonaloop.storage._backend import PostgresBackend, _tenant_tables
 
 _ADMIN = os.getenv("SONALOOP_TEST_PG_DSN")
 pytestmark = pytest.mark.skipif(not _ADMIN, reason="set SONALOOP_TEST_PG_DSN to run Postgres tenancy")
@@ -102,10 +102,58 @@ def test_unscoped_access_is_fail_closed(pg):
         services.start_project("Orphan", "x", store=Store())
 
 
+def test_pool_return_clears_session_scope_before_connection_reuse(pg):
+    """Security regression: session GUCs must not survive a pool return.
+
+    Force a one-connection pool so this proves the exact physical connection that served wsA
+    is neutral before reuse, then prove the normal unscoped checkout remains fail-closed.
+    """
+    backend = PostgresBackend(_app_dsn(), schema=pg, tenant=True)
+    pool = backend._get_pool()
+    assert pool is not None
+    pool.resize(1, 1)
+
+    token = config.set_request_tenant_scope(["wsA"], "wsA")
+    try:
+        scoped_store = Store(backend=backend)
+        backend_pid = scoped_store.conn._raw.info.backend_pid
+        scoped_store.conn.execute(
+            "INSERT INTO research_projects (id, workspace_id, slug, title, data, created_at, "
+            "updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            ("pool-a", "wsA", "alpha", "Alpha", "{}", "2026", "2026"))
+        scoped_store.conn.commit()
+        scoped_store.close()
+    finally:
+        config.reset_request_tenant_scope(token)
+
+    # Bypass PostgresBackend.connect() once to inspect the pool-reset state itself. With
+    # max_size=1 this is the same physical connection, not a freshly configured replacement.
+    raw = pool.getconn()
+    try:
+        assert raw.info.backend_pid == backend_pid
+        values = raw.execute(
+            "SELECT current_setting('app.workspace_ids', true) AS ids, "
+            "current_setting('app.active_workspace', true) AS active"
+        ).fetchone()
+        assert values == {"ids": "{}", "active": ""}
+    finally:
+        pool.putconn(raw)
+
+    with Store(backend=backend) as unscoped_store:
+        assert services.list_research_projects(store=unscoped_store) == []
+        with pytest.raises(Exception):
+            unscoped_store.conn.execute(
+                "INSERT INTO research_projects (id, workspace_id, slug, title, data, created_at, "
+                "updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                ("pool-orphan", "wsA", "orphan", "Orphan", "{}", "2026", "2026"))
+
+
 def test_same_slug_allowed_in_different_workspaces(pg):
     from conftest import create_persona
-    a = _scoped(["wsA"], "wsA", lambda: create_persona(Store(), "Dr. Reuter"))
-    b = _scoped(["wsB"], "wsB", lambda: create_persona(Store(), "Dr. Reuter"))
+    # Persona creation writes SOUL.md as well as a row; use production-shaped
+    # workspace ids so the filesystem-partition validation is exercised too.
+    a = _scoped(["ws_alpha"], "ws_alpha", lambda: create_persona(Store(), "Dr. Reuter"))
+    b = _scoped(["ws_beta"], "ws_beta", lambda: create_persona(Store(), "Dr. Reuter"))
     assert a and b                              # the shared slug did NOT collide across workspaces
 
 

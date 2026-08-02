@@ -58,6 +58,14 @@ PRINCIPLES = [
       "Bausteine, die sich verbinden (ein Report kann zur Evidenz für die nächste Studie werden).",
       "Personas, councils, prototypes and reports are nodes in *one* graph — reusable building blocks "
       "that connect (a report can become evidence for the next study).")),
+    ("network",
+     ("Workspace-isoliert", "Workspace-isolated"),
+     ("In Sonaloop Cloud bleibt jeder Datensatz in seinem Workspace. Mitglieder kommen über eine "
+      "adressierte, einmalige Einladung und eine verifizierte E-Mail-Identität hinein — nie automatisch "
+      "über eine ganze Domain. Passwörter verwaltet der konfigurierte Login-Anbieter, nicht Sonaloop.",
+      "In Sonaloop Cloud, every record stays inside its workspace. Members enter through an addressed, "
+      "single-use invitation and a verified email identity — never automatically through an entire "
+      "domain. Passwords are managed by the configured identity provider, not by Sonaloop.")),
     ("syntheses",
      ("Präsentationsreif", "Presentation-grade"),
      ("Jeder Report ist von Haus aus vorzeigbar und als **PDF** oder **PPTX** exportierbar — kein "
@@ -135,9 +143,11 @@ DOCS = [
              "and UI changes get a persona-grounded signal before they ship.")},
     {"art": "asset", "icon": "file", "name": "assets_h", "group": "evidence",
      "what": ("Eine echte Datei im Projekt: Screenshot, Dokument, Export oder erzeugtes Deliverable — mit "
-              "Herkunft, Richtung und Download.",
+              "Herkunft und Richtung. Lokal ist sie downloadbar; in der mandantenfähigen Cloud werden "
+              "keine ungeschützten Datei-Rohpfade ausgeliefert.",
               "A real file in the project: screenshot, document, export or generated deliverable — with "
-              "provenance, direction and download."),
+              "provenance and direction. It is downloadable locally; multi-tenant Cloud never exposes "
+              "unprotected raw file paths."),
      "why": ("Assets sind das Material für Evidence, Walkthrough-Screens und Deliverables. Sie sind Dateien, "
              "nicht Council-Referenzen.",
              "Assets are the material behind evidence, walkthrough screens and deliverables. They are files, not council references.")},

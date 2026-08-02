@@ -4,7 +4,7 @@ import contextvars  # noqa: F401  (public surface preserved)
 from datetime import date, timedelta  # noqa: F401  (public surface preserved)
 from pathlib import Path
 
-from ..config import DATA_DIR, load_env, set_ui_language
+from ..config import DATA_DIR, load_env, postgres_row_tenancy_enabled, set_ui_language
 from ..config import SUPPORTED_LANGUAGES, ui_language  # noqa: F401  (public surface preserved)
 from ._i18n import (  # noqa: F401  (public surface preserved)
     STRINGS, _UI_LANG, _lang, t, _resolve_request_language,
@@ -51,60 +51,81 @@ def create_app():
     load_env()
     try:
         from fastapi import FastAPI, HTTPException, Query  # noqa: F401
-        from fastapi.responses import FileResponse, HTMLResponse, JSONResponse  # noqa: F401
+        from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response  # noqa: F401
         from fastapi.staticfiles import StaticFiles
     except ImportError as exc:
         raise RuntimeError("Install web dependencies first: uv sync") from exc
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)   # cold start: create the whole chain on first touch
     app = FastAPI(title="Sonaloop")
-    # Absolute path (not cwd-relative "data"): downstream apps (sonaloop-cloud/-research)
-    # call create_app() from their own working directory, so the mount must not depend on cwd.
-    app.mount("/data", StaticFiles(directory=str(DATA_DIR)), name="data")
+    tenant_runtime_files_blocked = postgres_row_tenancy_enabled()
+
+    @app.middleware("http")
+    async def _tenant_runtime_file_guard(request, call_next):
+        """Never expose a process-global runtime path from the shared RLS deployment.
+
+        Database RLS cannot authorize files. Until cloud has a workspace-aware blob/download
+        route, fail closed for every runtime-file surface (404 avoids revealing existence).
+        Keep this guard even though the mounts below are omitted in tenant mode: it also protects
+        against a downstream extension accidentally registering one of these paths.
+        """
+        blocked_prefixes = ("/data", "/proto-files", "/sessions-files")
+        path = request.url.path
+        if tenant_runtime_files_blocked and any(
+                path == prefix or path.startswith(prefix + "/") for prefix in blocked_prefixes):
+            return Response(status_code=404, headers={"Cache-Control": "no-store"})
+        return await call_next(request)
+
+    if not tenant_runtime_files_blocked:
+        # Absolute path (not cwd-relative "data"): downstream apps
+        # call create_app() from their own working directory, so the mount must not depend on cwd.
+        app.mount("/data", StaticFiles(directory=str(DATA_DIR)), name="data")
     # Bundled inspector assets (methodology covers, etc.) are served as files instead
     # of being embedded into SSR HTML. Project/user assets keep using /data and /assets.
     _web_assets = Path(__file__).resolve().parent / "assets"
     app.mount("/web-assets", StaticFiles(directory=str(_web_assets)), name="web-assets")
-    # Serve prototype apps so they can be viewed directly in the inspector (read-only).
-    from ..config import prototypes_dir as _proto_dir
-    _pd = _proto_dir()
-    _pd.mkdir(parents=True, exist_ok=True)
+    if not tenant_runtime_files_blocked:
+        # Local/single-tenant prototype apps can be viewed directly in the inspector.
+        from ..config import prototypes_dir as _proto_dir
+        _pd = _proto_dir()
+        _pd.mkdir(parents=True, exist_ok=True)
 
-    @app.get("/proto-files/{slug}", response_class=FileResponse, include_in_schema=False)
-    def _prototype_entry_file(slug: str):
-        return _prototype_static_file(slug, "index.html")
+        @app.get("/proto-files/{slug}", response_class=FileResponse, include_in_schema=False)
+        def _prototype_entry_file(slug: str):
+            return _prototype_static_file(slug, "index.html")
 
-    @app.get("/proto-files/{slug}/{asset_path:path}", response_class=FileResponse, include_in_schema=False)
-    def _prototype_static_file(slug: str, asset_path: str):
-        from .. import services
-        from ..storage import Store
-        root = _pd.resolve()
-        target = (root / slug / (asset_path or "index.html")).resolve()
-        try:
-            target.relative_to(root)
-        except ValueError:
-            raise HTTPException(404, "prototype file not found") from None
-        store = Store()
-        try:
-            p = services.get_prototype_artifact(slug, store=store)
-        except Exception:
-            p = None
-        if p and (asset_path or "index.html") == p.get("entry", "index.html"):
-            try:
-                services.refresh_prototype_design_system(p["id"], store=store)
-            except Exception:
-                pass
-        if target.is_dir():
-            target = (target / "index.html").resolve()
+        @app.get("/proto-files/{slug}/{asset_path:path}", response_class=FileResponse,
+                 include_in_schema=False)
+        def _prototype_static_file(slug: str, asset_path: str):
+            from .. import services
+            from ..storage import Store
+            root = _pd.resolve()
+            target = (root / slug / (asset_path or "index.html")).resolve()
             try:
                 target.relative_to(root)
             except ValueError:
                 raise HTTPException(404, "prototype file not found") from None
-        if not target.exists() or not target.is_file():
-            raise HTTPException(404, "prototype file not found")
-        return FileResponse(str(target))
+            store = Store()
+            try:
+                p = services.get_prototype_artifact(slug, store=store)
+            except Exception:
+                p = None
+            if p and (asset_path or "index.html") == p.get("entry", "index.html"):
+                try:
+                    services.refresh_prototype_design_system(p["id"], store=store)
+                except Exception:
+                    pass
+            if target.is_dir():
+                target = (target / "index.html").resolve()
+                try:
+                    target.relative_to(root)
+                except ValueError:
+                    raise HTTPException(404, "prototype file not found") from None
+            if not target.exists() or not target.is_file():
+                raise HTTPException(404, "prototype file not found")
+            return FileResponse(str(target))
 
-    app.mount("/proto-files", StaticFiles(directory=str(_pd), html=True), name="proto-files")
+        app.mount("/proto-files", StaticFiles(directory=str(_pd), html=True), name="proto-files")
 
     from urllib.parse import urlencode
 
@@ -164,7 +185,8 @@ def create_app():
         rpath = request.url.path
         if rpath.startswith("/web-assets/"):
             response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
-        elif rpath.startswith("/data/") or rpath.startswith("/proto-files/"):
+        elif not tenant_runtime_files_blocked and (
+                rpath.startswith("/data/") or rpath.startswith("/proto-files/")):
             response.headers["Cache-Control"] = "public, max-age=3600"
         return response
 

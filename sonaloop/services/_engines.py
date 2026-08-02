@@ -462,7 +462,7 @@ def brief_prototype_session(persona_id, prototype_id, store: Store | None = None
     screens = []
     try:
         import json as _json
-        cpath = config.ROOT / proto["path"] / "concept.json"
+        cpath = _proto._prototype_app_dir(proto) / "concept.json"
         if cpath.exists():
             screens = [{"id": s["id"], "title": s.get("title", s["id"])}
                        for s in _json.loads(cpath.read_text(encoding="utf-8")).get("screens", [])]

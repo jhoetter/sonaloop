@@ -2,10 +2,12 @@
 (ticket attach-evidence-files-mcp — the generic multimodal Assets foundation the
 council-artifacts module points at).
 
-An asset is REAL MATERIAL on a project — stored once in the content-addressed
-binary store (ROOT/data/assets, the same dir the web app serves at
-/data/assets/…) and recorded on the project (`project["assets"]`, the same
-JSON-blob-per-row model artifacts use; no new table). Ids are stable
+An asset is REAL MATERIAL on a project — stored once in the active runtime
+partition's content-addressed `assets/` directory and recorded on the project
+(`project["assets"]`, the same JSON-blob-per-row model artifacts use; no new
+table). Local SQLite serves that tree at `/data/assets/…`; shared-Postgres RLS
+deployments deliberately do not expose raw runtime-file routes until an
+authenticated workspace-aware blob/download route exists. Ids are stable
 (content-addressed per project) so personas/councils can cite them and
 re-attaching the same bytes is idempotent.
 
@@ -48,19 +50,20 @@ _EXCERPT_CHARS = 4000
 
 def _assets_dir() -> Path:
     """The asset binary store of the ACTIVE data partition (DATA_DIR/assets for the
-    global store, <partition>/assets for a workspace) — always inside the tree the web
-    app serves at /data/…, so a record's `url` is real in every deployment. The old
-    ROOT-relative location only coincided with this in a source checkout; on an
-    installed package it landed in site-packages: unserved by the /data mount and
-    erased by the next reinstall."""
+    local store, DATA_DIR/workspaces/<ws>/assets for shared tenancy). The local
+    inspector serves DATA_DIR at /data; shared-Postgres web delivery is fail-closed,
+    while MCP `view_asset` resolves the active partition directly."""
     from ..config import partition_dir
     return partition_dir() / "assets"
 
 
 def _assets_url_base() -> str:
-    """The /data-mounted URL prefix of _assets_dir() — `/data/assets` for the global
-    store, `/data/workspaces/<ws>/assets` for a partition (the cloud's membership
-    guard already covers those paths)."""
+    """The logical `/data` URL prefix stored on records.
+
+    It is directly fetchable in local SQLite mode. In shared-Postgres mode raw
+    `/data` delivery is blocked; callers must use an authorized asset surface such
+    as MCP `view_asset` until tenant-aware blob downloads are implemented.
+    """
     from .. import config
     try:
         rel = _assets_dir().resolve().relative_to(Path(config.DATA_DIR).resolve())
@@ -94,7 +97,7 @@ def _text_excerpt(data: bytes, ext: str) -> str:
 
 def _write_asset_preview(data: bytes, ext: str, sha: str) -> str:
     """The first-page preview PNG beside the binary (ux-contract §10 W6): `<sha>.preview.png`
-    in the content-addressed store, served from the same /data mount. The CHOSEN SEAM is
+    in the content-addressed store (served from /data only in local mode). The CHOSEN SEAM is
     attach_asset itself — every path that creates a document asset (the deliverable export,
     an MCP attach, a seed) gets its preview in the one place asset records are born; a
     re-export carries new bytes → a new sha → a fresh preview beside the new binary.
@@ -164,6 +167,11 @@ def attach_asset(project_id: str, path: str | None = None, content_base64: str |
         src = Path(path).expanduser()
         if not src.is_file():
             raise FileNotFoundError(f"No such file: {path}")
+        from .. import config
+        if config.postgres_row_tenancy_enabled() and not src.resolve().is_relative_to(
+                config.partition_dir().resolve()):
+            raise ValueError("asset path must stay inside the active workspace partition; "
+                             "upload external material with content_base64")
         data = src.read_bytes()
         name = filename or src.name
         source = source or str(src)
@@ -226,7 +234,7 @@ def attach_prototype_shot(project_id: str, prototype_id: str, title: str = "",
     from .. import assets as _assets
     store = store or Store()
     shot = _assets.capture_prototype_shot(prototype_id, store=store)  # "assets/<hash>.png"
-    shot_file = _assets.ASSETS_DIR / Path(shot).name
+    shot_file = _assets.asset_store_dir() / Path(shot).name
     return attach_asset(project_id, path=str(shot_file), kind="screenshot",
                         title=title or f"Prototype shot: {prototype_id}",
                         notes=notes, source=f"prototype:{prototype_id}", store=store)

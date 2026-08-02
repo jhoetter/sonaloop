@@ -70,23 +70,43 @@ from ._common import *  # noqa: F401,F403  (shared helpers + constants)
 
 
 def _avatar_disk_path(stored_path: str) -> Path:
-    """Resolve a persona's stored avatar path ("data/avatars/<slug>.png") to its on-disk
-    location under the writable runtime — DATA_DIR, exactly as avatar.py writes it and
-    web/_avatar.py serves it. NOT config.ROOT: in an installed deployment (cloud/prod) ROOT is
-    site-packages and must never be written to/read from, so a ROOT-based avatar lands where
-    nothing serves it (the imported-persona "no portrait" bug). In a source checkout DATA_DIR ==
-    ROOT/data, so this is byte-for-byte the old path."""
+    """Resolve a partition-virtual avatar ref inside the active runtime root."""
     rel = stored_path[len("data/"):] if stored_path.startswith("data/") else stored_path
-    return config.DATA_DIR / rel
+    raw = Path(rel)
+    if raw.is_absolute():
+        candidate = raw
+    else:
+        candidate = config.partition_dir() / raw
+    if config.postgres_row_tenancy_enabled() and not candidate.resolve().is_relative_to(
+            config.partition_dir().resolve()):
+        raise ValueError(f"avatar path escapes the active workspace partition: {stored_path!r}")
+    return candidate
+
+
+def _snapshot_base(value: str | None, *, write: bool) -> Path:
+    """Resolve a snapshot directory without sharing tenant defaults.
+
+    Imports may intentionally read a catalog/operator snapshot outside the active
+    partition.  Exports are writes and therefore remain contained in it.
+    """
+    part = config.partition_dir()
+    if value is None:
+        return part / "export"
+    base = Path(value)
+    if config.postgres_row_tenancy_enabled():
+        if not base.is_absolute():
+            base = part / base
+        if write and not base.resolve().is_relative_to(part.resolve()):
+            raise ValueError(f"snapshot export path escapes the active workspace partition: {value!r}")
+        return base
+    return base if base.is_absolute() else config.ROOT / base
 
 
 def export_snapshot(out_dir: str | None = None, store: Store | None = None) -> dict[str, Any]:
     import shutil
 
     store = store or Store()
-    base = Path(out_dir) if out_dir else (config.ROOT / "data" / "export")
-    if not base.is_absolute():
-        base = config.ROOT / base
+    base = _snapshot_base(out_dir, write=True)
     personas = store.list_personas()
 
     def _w(path: Path, obj: Any) -> None:
@@ -97,6 +117,7 @@ def export_snapshot(out_dir: str | None = None, store: Store | None = None) -> d
     index = []
     for p in personas:
         pid = p["id"]
+        persona_dir(p)  # validate the persisted slug before joining it below
         pdir = base / "personas" / p["slug"]
         pdir.mkdir(parents=True, exist_ok=True)
         _w(pdir / "profile.json", p)
@@ -162,7 +183,7 @@ def export_snapshot(out_dir: str | None = None, store: Store | None = None) -> d
         "note": "Reproducible snapshot of generated state. Rebuild the DB by re-running the simulation loop; this is the portable, local-only artifact (the SQLite DB stays gitignored).",
     })
     store.commit()
-    return {"out_dir": str(base.relative_to(config.ROOT)), "counts": counts}
+    return {"out_dir": runtime_path_ref(base), "counts": counts}
 
 
 
@@ -178,9 +199,7 @@ def import_snapshot(in_dir: str | None = None, store: Store | None = None, embed
     import shutil
 
     store = store or Store()
-    base = Path(in_dir) if in_dir else (config.ROOT / "data" / "export")
-    if not base.is_absolute():
-        base = config.ROOT / base
+    base = _snapshot_base(in_dir, write=False)
     if not (base / "manifest.json").exists():
         raise FileNotFoundError(f"No snapshot manifest at {base}")
     pdirs = sorted((base / "personas").glob("*/")) if (base / "personas").exists() else []
@@ -188,9 +207,13 @@ def import_snapshot(in_dir: str | None = None, store: Store | None = None, embed
               "facts": 0, "threads": 0, "plans": 0, "digests": 0, "avatars": 0}
 
     def _load(path: Path, default):
+        if not path.resolve().is_relative_to(base.resolve()):
+            raise ValueError(f"snapshot file escapes its source directory: {path}")
         return json.loads(path.read_text(encoding="utf-8")) if path.exists() else default
 
     for pdir in pdirs:
+        if not pdir.resolve().is_relative_to(base.resolve()):
+            raise ValueError(f"snapshot persona directory escapes its source: {pdir}")
         persona = _load(pdir / "profile.json", None)
         if not persona:
             continue
@@ -201,12 +224,18 @@ def import_snapshot(in_dir: str | None = None, store: Store | None = None, embed
         avatar = persona.get("avatar")
         avatar_file = pdir / "avatar.png"
         if avatar and avatar_file.exists():
+            if not avatar_file.resolve().is_relative_to(base.resolve()):
+                raise ValueError(f"snapshot avatar escapes its source directory: {avatar_file}")
             avatar = dict(avatar)
             raw_path = str(avatar.get("path") or "").strip()
-            if raw_path.startswith("data/"):
+            raw_parts = Path(raw_path).parts
+            if (len(raw_parts) == 3 and raw_parts[:2] == ("data", "avatars")
+                    and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,191}", raw_parts[2])):
                 rel_path = raw_path
             else:
-                slug = persona.get("slug") or pdir.name
+                slug = str(persona.get("slug") or pdir.name)
+                if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}", slug):
+                    raise ValueError(f"unsafe persona slug in snapshot: {slug!r}")
                 rel_path = f"data/avatars/{slug}.png"
                 avatar["path"] = rel_path
                 persona["avatar"] = avatar
@@ -268,6 +297,8 @@ def import_snapshot(in_dir: str | None = None, store: Store | None = None, embed
         dest_dir = _assets_dir()
         dest_dir.mkdir(parents=True, exist_ok=True)
         for af in sorted(adir.glob("*")):
+            if not af.resolve().is_relative_to(adir.resolve()):
+                raise ValueError(f"snapshot asset escapes its source directory: {af}")
             shutil.copyfile(af, dest_dir / af.name)
             counts["assets"] = counts.get("assets", 0) + 1
     store.commit()
@@ -278,7 +309,7 @@ def import_snapshot(in_dir: str | None = None, store: Store | None = None, embed
             persona = _load(pdir / "profile.json", None)
             if persona:
                 embedded[persona["slug"]] = memory_mod.backfill_persona_embeddings(store, persona["id"])
-    return {"in_dir": str(base.relative_to(config.ROOT)), "counts": counts,
+    return {"in_dir": runtime_path_ref(base), "counts": counts,
             "embeddings": "skipped" if not embed else "re-derived"}
 
 

@@ -169,7 +169,7 @@ def write_soul(persona: dict[str, Any], store: Store | None = None) -> dict[str,
     path.parent.mkdir(parents=True, exist_ok=True)
     content = render_soul(persona, store)
     path.write_text(content, encoding="utf-8")
-    return {"path": str(path.relative_to(config.ROOT)), "updated_at": utc_now_iso()}
+    return {"path": runtime_path_ref(path), "updated_at": utc_now_iso()}
 
 
 
@@ -209,15 +209,14 @@ def ensure_persona_runtime_fields(persona: dict[str, Any], store: Store | None =
             "(identity_traits/tools/tool_ids). Re-author it via brief_persona -> "
             "record_persona to repair it."
         )
-    if "soul" not in persona or not persona.get("soul"):
-        persona["soul"] = write_soul(persona, store)
-        changed = True
-    else:
-        path = config.ROOT / persona["soul"]["path"]
-        if not path.exists():
-            persona["soul"] = write_soul(persona, store)
-            changed = True
-    if changed:
+    # Never follow the path carried in a row: an imported/stale record could point
+    # at another workspace's SOUL.  The canonical file is derived from the ACTIVE
+    # request partition + this persona's validated slug.
+    canonical_soul = soul_path(persona)
+    expected_ref = runtime_path_ref(canonical_soul)
+    soul = persona.get("soul") if isinstance(persona.get("soul"), dict) else {}
+    soul_needs_write = soul.get("path") != expected_ref or not canonical_soul.is_file()
+    if changed or soul_needs_write:
         persona["soul"] = write_soul(persona, store)
         persona["updated_at"] = utc_now_iso()
         (store or Store()).upsert_persona(persona, reason="ensure runtime fields")
@@ -467,11 +466,11 @@ def get_persona_soul(persona_id: str, store: Store | None = None) -> dict[str, A
     if not persona:
         raise KeyError(f"Unknown persona: {persona_id}")
     persona = ensure_persona_runtime_fields(persona, store)
-    path = config.ROOT / persona["soul"]["path"]
+    path = soul_path(persona)
     if not path.exists():
         persona["soul"] = write_soul(persona, store)
         store.upsert_persona(persona, reason="recreated SOUL.md")
-        path = config.ROOT / persona["soul"]["path"]
+        path = soul_path(persona)
     return {"persona_id": persona["id"], "path": persona["soul"]["path"], "content": path.read_text(encoding="utf-8")}
 
 
@@ -708,7 +707,7 @@ def delete_persona(persona_id: str, store: Store | None = None) -> dict[str, Any
         for path in sorted(d.rglob("*"), reverse=True):
             if path.is_file():
                 path.unlink()
-                removed.append(str(path.relative_to(config.ROOT)))
+                removed.append(runtime_path_ref(path))
         try:
             d.rmdir()
         except OSError:

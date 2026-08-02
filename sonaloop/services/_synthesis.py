@@ -632,8 +632,8 @@ def _share_inline_images(html_text: str, missing_label: str = "media unavailable
     import base64
     import html as _html_mod
     import mimetypes
-    from ..config import DATA_DIR
-    data_root = DATA_DIR.resolve()
+    from .. import config as _config
+    data_root = _config.partition_dir().resolve()
     note = f'<span class="share-missing">[{_html_mod.escape(missing_label)}]</span>'
 
     def _one(m: re.Match) -> str:
@@ -647,7 +647,18 @@ def _share_inline_images(html_text: str, missing_label: str = "media unavailable
             return tag                                  # already self-contained
         if not src.startswith("/data/"):
             return note                                 # external / unknown scheme / relative
-        fp = (DATA_DIR / src[len("/data/"):]).resolve()
+        rel = Path(src[len("/data/"):])
+        # Asset records created in a workspace carry their physical
+        # /data/workspaces/<id>/... URL; older/avatar refs are partition-virtual
+        # /data/avatars/... paths.  Resolve both, but only inside the active root.
+        try:
+            physical_prefix = data_root.relative_to(Path(_config.DATA_DIR).resolve())
+        except ValueError:
+            physical_prefix = Path()
+        if physical_prefix.parts and rel.parts[:len(physical_prefix.parts)] == physical_prefix.parts:
+            fp = (Path(_config.DATA_DIR) / rel).resolve()
+        else:
+            fp = (data_root / rel).resolve()
         if not fp.is_relative_to(data_root) or not fp.is_file():
             return note
         if fp.stat().st_size > _SHARE_INLINE_MAX_BYTES:
@@ -678,7 +689,7 @@ def export_synthesis_html(synthesis_id: str, out_dir: str | None = None,
     web/_report.render_report) minus all app chrome, every asset inlined (CSS, charts, figures,
     avatars), zero external requests, opens from file://. Host the directory anywhere (S3, Pages,
     an intranet share); the unguessable token directory name is the share secret. `out_dir`
-    overrides the parent directory but must stay inside DATA_DIR. `theme_overrides` (a
+    overrides the parent directory but must stay inside the active data partition. `theme_overrides` (a
     customer theme per theming.validate_customer_theme) re-skins the bundle — a research
     deliverable carries the customer's brand, not Sonaloop's."""
     theme_css = _theme_block(theme_overrides)        # validate before any work
@@ -691,7 +702,6 @@ def export_synthesis_html(synthesis_id: str, out_dir: str | None = None,
     from ..web._report import render_report
     from ..web._html import collect_css
     from ..web_assets import CSS
-    from ..config import DATA_DIR
     from .. import __version__
     from html import escape as _h_esc
 
@@ -730,8 +740,8 @@ def export_synthesis_html(synthesis_id: str, out_dir: str | None = None,
 
     token = uuid.uuid4().hex                  # unguessable slug — the path IS the share secret
     from ..config import partition_dir
-    data_root = DATA_DIR.resolve()            # escape check stays on the GLOBAL root: every
-    part = partition_dir()                    # partition lives inside it
+    part = partition_dir()
+    data_root = part.resolve()
     parent = Path(out_dir) if out_dir else part / "export" / "share"
     if not parent.is_absolute():
         parent = part / parent

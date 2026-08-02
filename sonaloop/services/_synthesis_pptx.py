@@ -328,7 +328,7 @@ def _figure_image(fig: dict, store: Store) -> tuple[str, str] | None:
     """An image figure (asset | prototype screenshot | avatar) → (local_file_path, caption), or None
     if it can't be embedded. Mirrors web/_report._resolve_figure but resolves to a FILE on disk so the
     PPTX can embed the actual bytes (the web/PDF load it by URL; a deck must carry it)."""
-    from ..config import DATA_DIR
+    from ..config import partition_dir
     kind = (fig or {}).get("kind"); cap = fig.get("caption", "")
     aid = None
     if kind == "asset" and fig.get("id"):
@@ -340,11 +340,12 @@ def _figure_image(fig: dict, store: Store) -> tuple[str, str] | None:
         p = store.get_persona(fig["id"]) or {}
         ap = (p.get("avatar") or {}).get("path")
         if ap:
-            path = config.ROOT / ap
+            from ._snapshots import _avatar_disk_path
+            path = _avatar_disk_path(ap)
             return (str(path), cap or p.get("display_name", "")) if path.exists() else None
         return None
     if aid:
-        path = DATA_DIR / aid
+        path = partition_dir() / aid
         if path.exists():
             return (str(path), cap)
     return None

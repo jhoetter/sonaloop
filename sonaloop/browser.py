@@ -17,8 +17,10 @@ from __future__ import annotations
 import queue
 import threading
 import time
+from pathlib import Path
 from typing import Any
 
+from . import config
 from . import walk_policy as _wp
 from .config import max_browser_sessions, sessions_dir
 
@@ -45,13 +47,18 @@ class _Session(threading.Thread):
     """Owns one headless page in its own thread; commands arrive on a queue."""
 
     def __init__(self, session_id: str, url: str, prototype_id: str | None, persona_id: str | None,
-                 policy: dict[str, Any] | None = None, credentials: dict[str, str] | None = None):
+                 policy: dict[str, Any] | None = None, credentials: dict[str, str] | None = None,
+                 *, runtime_namespace: str = "", screenshots_root: Path | None = None):
         super().__init__(daemon=True)
         self.session_id = session_id
         self.url = url
         self.prototype_id = prototype_id
         self.persona_id = persona_id
         self.policy = policy
+        # ContextVars do not flow into this dedicated worker thread. Capture both
+        # the access namespace and file root while still inside the request.
+        self.runtime_namespace = runtime_namespace
+        self.screenshots_root = screenshots_root or sessions_dir()
         self.credentials = credentials or {}
         self._secrets = [v for v in self.credentials.values() if v]   # redacted from ALL retained output
         self.refmap: dict[str, dict[str, str]] = {}
@@ -83,7 +90,7 @@ class _Session(threading.Thread):
                 self.log.append({"kind": "policy_block", "rule": "origin",
                                  "detail": f"open navigation landed off-origin: "
                                            f"{_wp.redact(self._page.url, self._secrets)}"})
-                _retain_log(self.session_id, self.log)
+                _retain_log(self.session_id, self.log, self.runtime_namespace)
                 self._ready.put(("err", "POLICY_BLOCKED: the opening navigation redirected outside "
                                         "policy.allowed_origins — session refused"))
                 self._teardown()
@@ -198,7 +205,7 @@ class _Session(threading.Thread):
         recorder/replay convention); fail-soft: a screenshot error never breaks the snapshot."""
         try:
             name = f"step-{self._shot_n}.png"
-            shot_dir = sessions_dir() / self.session_id
+            shot_dir = self.screenshots_root / self.session_id
             shot_dir.mkdir(parents=True, exist_ok=True)
             self._page.screenshot(path=str(shot_dir / name))
             self._shot_n += 1
@@ -374,10 +381,33 @@ _RETAINED_LOGS: dict[str, list[dict[str, Any]]] = {}
 _MAX_RETAINED = 128
 
 
-def _retain_log(session_id: str, log: list[dict[str, Any]]) -> None:
-    _RETAINED_LOGS[session_id] = list(log)[-400:]
-    while len(_RETAINED_LOGS) > _MAX_RETAINED:
-        _RETAINED_LOGS.pop(next(iter(_RETAINED_LOGS)))
+def _runtime_namespace() -> str:
+    """Opaque in-process namespace for browser state.
+
+    SQLite keeps the historical flat dictionary keys. Shared Postgres keys by
+    the active workspace file partition; the unbound startup quarantine is a
+    namespace too, never an alias for a real tenant.
+    """
+    return str(config.partition_dir().resolve()) if config.postgres_row_tenancy_enabled() else ""
+
+
+def _session_key(session_id: str, namespace: str | None = None) -> str:
+    ns = _runtime_namespace() if namespace is None else namespace
+    return f"{ns}\0{session_id}" if ns else session_id
+
+
+def _key_namespace(key: str) -> str:
+    return key.partition("\0")[0] if "\0" in key else ""
+
+
+def _retain_log(session_id: str, log: list[dict[str, Any]], namespace: str | None = None) -> None:
+    ns = _runtime_namespace() if namespace is None else namespace
+    key = _session_key(session_id, ns)
+    _RETAINED_LOGS[key] = list(log)[-400:]
+    same_namespace = [k for k in _RETAINED_LOGS if _key_namespace(k) == ns]
+    while len(same_namespace) > _MAX_RETAINED:
+        oldest = same_namespace.pop(0)
+        _RETAINED_LOGS.pop(oldest, None)
 
 
 def open_session(url: str, prototype_id: str | None = None, persona_id: str | None = None,
@@ -390,18 +420,20 @@ def open_session(url: str, prototype_id: str | None = None, persona_id: str | No
     if not available():
         raise HarnessError("PLAYWRIGHT_UNAVAILABLE",
                            "Playwright is not installed. Run `make playwright` (pip install playwright && playwright install chromium).")
+    namespace = _runtime_namespace()
     if len(_SESSIONS) >= max_browser_sessions():
         raise HarnessError("SESSION_CAP", f"too many live sessions (max {max_browser_sessions()}); close one first")
     from .services import stable_id
     sid = stable_id("psession", url, str(time.time()))
-    sess = _Session(sid, url, prototype_id, persona_id, policy=policy, credentials=credentials)
+    sess = _Session(sid, url, prototype_id, persona_id, policy=policy, credentials=credentials,
+                    runtime_namespace=namespace, screenshots_root=sessions_dir())
     snap = sess.start_and_wait()
-    _SESSIONS[sid] = sess
+    _SESSIONS[_session_key(sid, namespace)] = sess
     return {"session_id": sid, "snapshot": snap}
 
 
 def _require(session_id: str) -> _Session:
-    s = _SESSIONS.get(session_id)
+    s = _SESSIONS.get(_session_key(session_id))
     if not s:
         raise HarnessError("SESSION_NOT_FOUND",
                            f"no live session '{session_id}' — browser sessions live inside ONE process; "
@@ -419,10 +451,10 @@ def read(session_id: str) -> dict[str, Any]:
 
 
 def close(session_id: str) -> dict[str, Any]:
-    s = _SESSIONS.pop(session_id, None)
+    s = _SESSIONS.pop(_session_key(session_id), None)
     if not s:
         return {"closed": False}
-    _retain_log(session_id, s.log)   # keep the observed-states log so a later record_* still verifies
+    _retain_log(session_id, s.log, s.runtime_namespace)  # keep observed states past close
     try:
         s.send("close", timeout=10)
     except Exception:
@@ -431,12 +463,15 @@ def close(session_id: str) -> dict[str, Any]:
 
 
 def list_sessions() -> list[dict[str, Any]]:
+    namespace = _runtime_namespace()
     return [{"session_id": s.session_id, "url": s.url, "prototype_id": s.prototype_id,
-             "persona_id": s.persona_id, "steps": len(s.log)} for s in _SESSIONS.values()]
+             "persona_id": s.persona_id, "steps": len(s.log)} for s in _SESSIONS.values()
+            if s.runtime_namespace == namespace]
 
 
 def session_log(session_id: str) -> list[dict[str, Any]] | None:
-    s = _SESSIONS.get(session_id)
+    key = _session_key(session_id)
+    s = _SESSIONS.get(key)
     if s:
         return list(s.log)
-    return list(_RETAINED_LOGS[session_id]) if session_id in _RETAINED_LOGS else None
+    return list(_RETAINED_LOGS[key]) if key in _RETAINED_LOGS else None

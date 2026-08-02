@@ -47,8 +47,9 @@ Tiers (the free/premium catalog split): manifest persona entries MAY carry
 `tier: "free"|"premium"` — search/status surface it when present and treat its
 absence as free/unknown (pre-tier manifests keep working untouched). Premium
 persona files answer 401/403 to anonymous requests; SONALOOP_CATALOG_TOKEN (the
-catalog token from app.sonaloop.com's Workspace page) rides along as a Bearer
-header on every catalog request. Without a token, free personas stay 100%
+catalog token from app.sonaloop.com's Workspace page) rides as a Bearer only to
+the configured HTTPS catalog origin, never manifest-owned CDN URLs or redirects.
+Without a token, free personas stay 100%
 functional and a pull that hits premium personas skips them IN-BAND
 (`skipped_premium`, with the sign-in recipe) — never an error.
 """
@@ -59,6 +60,7 @@ import os
 import shutil
 import tempfile
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import Any
@@ -96,6 +98,26 @@ def _base_url() -> str:
     files next to the UI (sonaloop-data ui/scripts/publish-catalog.mjs). Override
     with SONALOOP_CATALOG_BASE_URL. Keep in lockstep with sonaloop_data.remote."""
     return os.environ.get("SONALOOP_CATALOG_BASE_URL", DEFAULT_BASE_URL).rstrip("/")
+
+
+def _origin(url: str) -> tuple[str, str, int | None]:
+    parts = urllib.parse.urlsplit(url)
+    scheme = parts.scheme.lower()
+    port = parts.port
+    if port is None:
+        port = 443 if scheme == "https" else 80 if scheme == "http" else None
+    return scheme, (parts.hostname or "").lower(), port
+
+
+def _catalog_credential_target(url: str) -> bool:
+    """Whether a URL may receive the premium catalog bearer.
+
+    Absolute avatar/CDN URLs are content from the catalog manifest, not part of
+    the authorization origin. Keep the bearer pinned to the configured HTTPS
+    catalog origin; explicit git refs and insecure overrides remain anonymous.
+    """
+    target = _origin(url)
+    return target == _origin(_base_url()) and target[0] == "https"
 
 # Mirror of sonaloop_data.remote.PERSONA_FILES (the per-persona snapshot files;
 # profile.json is required, the rest optional). Keep in lockstep.
@@ -148,13 +170,16 @@ def _local_root(pkg) -> Path | None:
 
 def _fetch_bytes(url: str) -> bytes | None:
     """stdlib fetcher mirroring sonaloop_data.remote._urllib_fetcher (None == 404).
-    SONALOOP_CATALOG_TOKEN (when set) rides along as `Authorization: Bearer` on
-    EVERY catalog request, so premium persona files resolve for signed-in users."""
+    SONALOOP_CATALOG_TOKEN rides only to the configured HTTPS catalog origin.
+    It is deliberately an unredirected header, so redirects and manifest-owned
+    avatar/CDN URLs cannot receive a workspace credential."""
     headers = {"User-Agent": "sonaloop"}
     token = _REQUEST_CATALOG_TOKEN.get() or os.environ.get(TOKEN_ENV)
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
     req = urllib.request.Request(url, headers=headers)
+    if token and _catalog_credential_target(url):
+        # `unredirected_hdrs` are sent on this request but Python's redirect
+        # handler intentionally does not copy them into the redirected Request.
+        req.add_unredirected_header("Authorization", f"Bearer {token}")
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310 — https only
             return resp.read()

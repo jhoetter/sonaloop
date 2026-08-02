@@ -405,11 +405,11 @@ def export_survey(survey_id: str, post_url: str | None = None, out: str | None =
              "__CONCEPT_JSON__": json.dumps(concept, ensure_ascii=False).replace("</", "<\\/")}
     html = re.sub(r"__(?:TITLE|SUMMARY|CONCEPT_JSON)__", lambda m: fills[m.group(0)], tpl)
     html = html.replace("</body>", _FORM_RUNTIME + "\n</body>")
-    from ..config import DATA_DIR
-    data_root = DATA_DIR.resolve()
-    target = Path(out) if out else DATA_DIR / "exports" / "surveys" / f"{survey['slug']}.html"
+    from ..config import partition_dir
+    data_root = partition_dir().resolve()
+    target = Path(out) if out else partition_dir() / "exports" / "surveys" / f"{survey['slug']}.html"
     if not target.is_absolute():
-        target = DATA_DIR / target
+        target = partition_dir() / target
     if not target.resolve().is_relative_to(data_root):
         raise ValueError(f"export path escapes the data dir ({data_root}): {out!r}")
     path = write_export(html, target)

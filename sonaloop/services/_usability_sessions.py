@@ -104,7 +104,7 @@ def _concept_screens(prototype_id: str, store: Store) -> tuple[dict[str, Any] | 
         return None, []
     screens: list[dict[str, Any]] = []
     try:
-        cpath = config.ROOT / proto["path"] / "concept.json"
+        cpath = _proto._prototype_app_dir(proto) / "concept.json"
         if cpath.exists():
             screens = [{"id": s["id"], "title": s.get("title", s["id"])}
                        for s in json.loads(cpath.read_text(encoding="utf-8")).get("screens", [])]
@@ -281,16 +281,16 @@ def _require_screenshots(steps: list[dict[str, Any]], sess_id: str) -> None:
     then the sessions dir — the harness writes <browser_session_id>/step-<n>.png relative to it —
     then the data dir). Paths that resolve OUTSIDE the data dir are rejected — the trace may only
     claim files the store actually owns."""
-    from ..config import DATA_DIR
+    from ..config import partition_dir
     base = sessions_dir() / sess_id
-    data_root = DATA_DIR.resolve()
+    data_root = partition_dir().resolve()
     missing = []
     for s in steps:
         shot = (s.get("state") or {}).get("screenshot")
         if not shot:
             continue
         p = Path(shot)
-        candidates = [p] if p.is_absolute() else [base / p, sessions_dir() / p, DATA_DIR / p]
+        candidates = [p] if p.is_absolute() else [base / p, sessions_dir() / p, partition_dir() / p]
         contained = [c for c in candidates if c.resolve().is_relative_to(data_root)]
         if not contained:
             raise ValueError(f"screenshot path escapes the data dir ({data_root}): {shot!r} "

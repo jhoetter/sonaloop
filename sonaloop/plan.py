@@ -188,6 +188,12 @@ def save_plan(plan: dict[str, Any], store: Store | None = None) -> dict[str, Any
     plan.setdefault("created_at", utc_now_iso())
     plan["updated_at"] = utc_now_iso()
     store.upsert_research_plan(plan)
+    cache = _PLAN_CACHE.get()
+    if cache is not None:
+        # A request may have cached the absence of a plan before installing one
+        # (the example loader does this while recording its evidence).  Keep the
+        # request-local read cache coherent with the write just persisted.
+        cache[(id(store), plan["project_id"])] = plan
     return plan
 
 

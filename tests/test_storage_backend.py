@@ -6,6 +6,8 @@ falling back to SQLite (a silent fallback once served the cloud app off the wron
 from __future__ import annotations
 
 import sqlite3
+import sys
+import types
 
 import pytest
 
@@ -35,6 +37,85 @@ def test_postgres_url_selects_the_postgres_backend(monkeypatch):
         monkeypatch.setenv("DATABASE_URL", url)
         b = make_backend()
         assert isinstance(b, PostgresBackend) and b.path is None and b.dsn == url
+
+
+class _FakePgRaw:
+    """Small psycopg stand-in for testing tenant GUC lifecycle without a PG service."""
+
+    def __init__(self):
+        self.calls = []
+        self.commits = 0
+        self.row_factory = None
+
+    def execute(self, sql, params=()):
+        self.calls.append((sql, params))
+        return self
+
+    def commit(self):
+        self.commits += 1
+
+
+def _scope_values(raw):
+    return [params[0] for sql, params in raw.calls if "set_config('app." in sql]
+
+
+def test_tenant_checkout_explicitly_clears_an_absent_request_scope():
+    """Regression: an unscoped checkout must not inherit a prior pooled request's GUCs."""
+    from sonaloop import config
+
+    backend = PostgresBackend("postgresql://unused/test", tenant=True)
+    raw = _FakePgRaw()
+    token = config.set_request_tenant_scope(["ws-a", "ws-b"], "ws-a")
+    try:
+        backend._bind_scope(raw)
+    finally:
+        config.reset_request_tenant_scope(token)
+    assert _scope_values(raw) == ['{"ws-a","ws-b"}', "ws-a"]
+
+    raw.calls.clear()
+    backend._bind_scope(raw)
+    assert _scope_values(raw) == ["{}", ""]
+    assert raw.commits == 2
+
+
+def test_tenant_pool_configure_and_return_reset_are_fail_closed(monkeypatch):
+    """The physical connection is neutral both on creation and after pool return."""
+    made = []
+
+    class FakePool:
+        def __init__(self, **kwargs):
+            self.configure = kwargs["configure"]
+            self.reset = kwargs["reset"]
+            made.append(self)
+
+        def open(self, *, wait):
+            assert wait is True
+
+    pool_module = types.ModuleType("psycopg_pool")
+    pool_module.ConnectionPool = FakePool
+    rows_module = types.ModuleType("psycopg.rows")
+    rows_module.dict_row = object()
+    psycopg_module = types.ModuleType("psycopg")
+    psycopg_module.rows = rows_module
+    monkeypatch.setitem(sys.modules, "psycopg_pool", pool_module)
+    monkeypatch.setitem(sys.modules, "psycopg", psycopg_module)
+    monkeypatch.setitem(sys.modules, "psycopg.rows", rows_module)
+
+    backend = PostgresBackend("postgresql://unused/pool-reset", tenant=True)
+    try:
+        pool = backend._get_pool()
+        raw = _FakePgRaw()
+        pool.configure(raw)
+        assert raw.row_factory is rows_module.dict_row
+        assert _scope_values(raw) == ["{}", ""]
+
+        raw.calls.clear()
+        pool.reset(raw)
+        assert _scope_values(raw) == ["{}", ""]
+        assert raw.commits == 2
+    finally:
+        PostgresBackend._pools.pop(backend._key(), None)
+    assert made == [pool]
 
 
 # --- pure dialect translation (no Postgres server needed) -----------------------------

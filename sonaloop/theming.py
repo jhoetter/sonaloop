@@ -742,9 +742,9 @@ def _asset_path_or_data(value: str, path: str) -> str:
         return value
     if value.startswith("//") or re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", value):
         raise ValueError(f"{path} must be a local asset or data:image URI")
-    from .config import DATA_DIR
-    data_root = DATA_DIR.resolve()
-    fp = Path(value) if Path(value).is_absolute() else DATA_DIR / value
+    from .config import partition_dir
+    data_root = partition_dir().resolve()
+    fp = Path(value) if Path(value).is_absolute() else partition_dir() / value
     if not fp.resolve().is_relative_to(data_root):
         raise ValueError(f"{path} path escapes the data dir ({data_root}): {value!r}")
     return str(fp)

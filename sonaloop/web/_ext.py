@@ -258,8 +258,9 @@ _RUNTIME_BRAND: contextvars.ContextVar[dict[str, str] | None] = contextvars.Cont
 def set_brand(name: str, logo: str | None = None) -> None:
     """Override the product wordmark (page <title> suffix + sidebar). No-op on empty.
     `logo` (optional) replaces the sidebar lockup with a customer image — pass a value
-    that passed theming.validate_customer_theme (a data: image URI or a DATA_DIR
-    path); _layout() renders it where the wordmark renders today."""
+    that passed theming.validate_customer_theme (a data: image URI or a local runtime
+    path); _layout() renders it where the wordmark renders today. Shared row-tenancy
+    accepts data URIs only because raw runtime-file routes are disabled."""
     global _BRAND, _BRAND_LOGO
     if name and name.strip():
         _BRAND = name.strip()
