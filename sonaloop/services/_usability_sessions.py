@@ -377,6 +377,10 @@ def record_usability_session(persona_id, subject, fidelity, date_value, steps, o
         id=sess_id, project_id=project_id or "", persona_id=persona_id, date=date_value,
         subject=subject, fidelity=fidelity, steps=norm_steps, outcome=norm_outcome,
         created_at=now, statements=norm_statements).to_dict()
+    if subject.get("kind") == "prototype":
+        proto = store.get_prototype(str(subject.get("id") or "")) or {}
+        # Snapshot at record time; an absent stamp on older rows means unknown, never "current".
+        sess["prototype_version"] = str(proto.get("version") or "unknown")
     persona = store.get_persona(persona_id)
     if persona:
         # The capability profile IN EFFECT at record time — sessions stay interpretable after

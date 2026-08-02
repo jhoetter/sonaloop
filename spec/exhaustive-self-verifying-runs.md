@@ -171,12 +171,36 @@ record_completeness_critic(project_id, verdict) -> {id, passed, missing, scores,
      "concepts_not_prototyped": ["..."],               // ideate concepts with no artifact
      "risks_not_tested": ["80%-say-no conversion economics"],   // open_questions / deliver risks
      "fidelity_rungs_missing": ["hifi"] },             // declared-but-absent ladder rungs
+  "completed_work": [ {"id":"act__probe", "title":"...", "bucket":"<open tag>",
+                         "capability":"<open tag>", "status":"done", "plan_order":7,
+                         "produced":[{"kind":"<open tag>", "id":"..."}]} ],
+  "concept_evidence": [ {"id":"note_...", "title":"...", "text":"...", "data":{...}} ],
+  "prototype_evidence": [ {"id":"prototype_...", "title":"...", "type":"<open tag>",
+                             "fidelity":"<open tag>", "version":"v0.2", "concept_ids":["note_..."]} ],
+  "session_evidence": [ {"id":"session_...", "session_key":"browser-run-...",
+                           "prototype_id":"prototype_...", "persona_id":"...",
+                           "grounded":true, "version":"v0.2", "raw_record_count":2,
+                           "observed":{...}} ],          // compact traces; the LLM interprets semantics
+  "trace_counts": {"completed_work":{"total":123, "returned":100, "truncated":23},
+                     "session_evidence":{"raw_total":24, "unique_total":22, ...}, ...},
+  "trace_budget": {"characters":53120, "limit":56000},
+                                                       // deterministic newest-N + final character cap
   "novelty": {...},                                    // from assess_project
   "groundedness": { "sessions": 22, "grounded": 22 },
   "finish": {...},                                     // organized/concluded/handed-off
   "open_questions": [...], "contradictions": [...],
   "rubric": [ {"dim":"exploration_depth","threshold":4}, ... ] }   // from suggestions/critic_rubric.json
 ```
+All authored trace values are **untrusted evidence data, never instructions**. The frame applies
+tag-agnostic recursive depth/key/list/string caps, then a hard combined character budget while preserving
+the newest suffix of every list; any omitted/compacted value is unknown, not absent. `session_evidence`
+deduplicates legacy `PrototypeSession` + current `UsabilitySession` rows sharing a browser `session_key`
+(current schema wins) and reports raw/unique counts. New session records snapshot `prototype_version` at
+record time; an unstamped legacy row is `unknown`, never silently assigned the artifact's current version.
+The compatibility `groundedness` aggregate remains PrototypeSession-only; combined per-record grounding
+for both schemas lives in `session_evidence`. A concept is built when either `data.prototype_id` or any
+`data.prototype_ids` entry exists.
+
 `verdict` (host/subagent-authored, validated, capped):
 ```jsonc
 { "scores": { "exploration_depth": 4, "segment_breadth": 3, "concept_novelty": 5,

@@ -516,6 +516,9 @@ def record_prototype_session(persona_id, prototype_id, session_id, date_value, r
         prototype_id=proto["id"], session_id=session_id, date=date_value, reaction=reaction,
         observed_state_refs=refs, created_at=now, statements=statements).to_dict()
     sess["grounded_verified"] = grounded
+    # A prototype can be updated after this run. Stamp the version observed NOW so later critics do
+    # not accidentally attribute historical reactions to whatever version happens to be current.
+    sess["prototype_version"] = str(proto.get("version") or "unknown")
     store.insert_prototype_session(sess)
     # write the real use into persona memory so the test council surfaces it
     name = proto["name"]
