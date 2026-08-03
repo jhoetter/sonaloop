@@ -14,6 +14,10 @@ The shared pill/size/source-chip/preview renderers live in web/_presence (the ho
 rows are ui.primitive_row, so the slide-over (§8.1) works from every surface."""
 from __future__ import annotations
 
+from urllib.parse import quote
+
+from fastapi.responses import Response
+
 from ._ctx import *  # noqa: F401,F403  (shared render toolkit)
 from .. import ui
 from .._presence import (
@@ -119,3 +123,68 @@ def register_assets(app) -> None:
             rail_sections=([("sec-excerpt", t("asset_excerpt_h"))] if excerpt else [])
                           + [("sec-provenance", t("provenance_h"))],
             star=("asset", a["id"], title[:60], f'/assets/{a["id"]}'))
+
+    def _asset_binary(asset_id: str, *, preview: bool) -> Response:
+        """Serve one opaque asset id from the ACTIVE workspace.
+
+        Cloud principals may belong to several workspaces, but each request is
+        bound to exactly one active RLS scope. Files do not carry RLS themselves:
+        narrow the database lookup and filesystem partition again before resolving
+        either. The outer Cloud principal middleware supplies authentication and
+        validates that the active id is one of the memberships.
+        """
+        from ... import config
+
+        tenant_token = None
+        if config.postgres_row_tenancy_enabled():
+            scope = config.request_tenant_scope()
+            if scope is None or not scope[1] or scope[1] not in scope[0]:
+                return Response(status_code=404, headers={"Cache-Control": "no-store"})
+            active_id = scope[1]
+            tenant_token = config.set_request_tenant_scope([active_id], active_id)
+
+        store = Store()
+        try:
+            project, asset = find_asset(store, asset_id)
+            if project is None or asset is None:
+                return Response(status_code=404, headers={"Cache-Control": "no-store"})
+            try:
+                if preview:
+                    data, record = services.get_asset_preview_content(
+                        project["id"], asset["id"], store=store)
+                    media_type = "image/png"
+                    filename = f'{asset.get("filename") or asset["id"]}.preview.png'
+                else:
+                    data, record = services.get_asset_content(
+                        project["id"], asset["id"], store=store)
+                    media_type = str(record.get("media_type") or "application/octet-stream")
+                    filename = str(record.get("filename") or record["id"])
+            except (FileNotFoundError, KeyError, ValueError):
+                # Do not reveal whether a record, preview or backing file was the
+                # missing piece across a tenant boundary.
+                return Response(status_code=404, headers={"Cache-Control": "no-store"})
+        finally:
+            store.close()
+            if tenant_token is not None:
+                config.reset_request_tenant_scope(tenant_token)
+
+        # Only inert raster formats render inline.  User-controlled SVG/HTML and
+        # arbitrary files download instead of becoming same-origin active content.
+        inline_types = {"image/png", "image/jpeg", "image/gif", "image/webp", "image/bmp"}
+        disposition = "inline" if preview or media_type.lower() in inline_types else "attachment"
+        headers = {
+            "Cache-Control": "private, no-store",
+            "Content-Disposition": f"{disposition}; filename*=UTF-8''{quote(filename, safe='')}",
+            "Content-Security-Policy": "default-src 'none'; sandbox",
+            "Cross-Origin-Resource-Policy": "same-origin",
+            "X-Content-Type-Options": "nosniff",
+        }
+        return Response(content=data, media_type=media_type, headers=headers)
+
+    @app.get("/assets/{asset_id}/content", response_class=Response, include_in_schema=False)
+    def asset_content(asset_id: str) -> Response:
+        return _asset_binary(asset_id, preview=False)
+
+    @app.get("/assets/{asset_id}/preview", response_class=Response, include_in_schema=False)
+    def asset_preview(asset_id: str) -> Response:
+        return _asset_binary(asset_id, preview=True)

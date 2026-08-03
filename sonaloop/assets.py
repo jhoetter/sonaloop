@@ -3,8 +3,8 @@
 
 Files live under the active partition's `assets/` directory. Local SQLite serves
 that tree at `/data/assets/…`; shared-Postgres deployments keep raw file delivery
-blocked pending a workspace-authorized blob route. An asset id is the content hash
-+ extension (`assets/<hash>.png`). `capture_prototype_shot` uses the Playwright
+blocked and use an active-workspace-authorized opaque-id route instead. An asset id
+is the content hash + extension (`assets/<hash>.png`). `capture_prototype_shot` uses the Playwright
 harness to screenshot a static prototype — the harness CAPTURES, it does not
 generate text, so the no-in-process-LLM invariant is preserved.
 """

@@ -6,8 +6,8 @@ An asset is REAL MATERIAL on a project — stored once in the active runtime
 partition's content-addressed `assets/` directory and recorded on the project
 (`project["assets"]`, the same JSON-blob-per-row model artifacts use; no new
 table). Local SQLite serves that tree at `/data/assets/…`; shared-Postgres RLS
-deployments deliberately do not expose raw runtime-file routes until an
-authenticated workspace-aware blob/download route exists. Ids are stable
+deployments keep raw runtime-file routes blocked and expose assets through an
+authenticated, active-workspace-only opaque-id route. Ids are stable
 (content-addressed per project) so personas/councils can cite them and
 re-attaching the same bytes is idempotent.
 
@@ -51,8 +51,8 @@ _EXCERPT_CHARS = 4000
 def _assets_dir() -> Path:
     """The asset binary store of the ACTIVE data partition (DATA_DIR/assets for the
     local store, DATA_DIR/workspaces/<ws>/assets for shared tenancy). The local
-    inspector serves DATA_DIR at /data; shared-Postgres web delivery is fail-closed,
-    while MCP `view_asset` resolves the active partition directly."""
+    inspector serves DATA_DIR at /data; shared-Postgres browser delivery uses the
+    authenticated asset route, while MCP `view_asset` resolves the active partition directly."""
     from ..config import partition_dir
     return partition_dir() / "assets"
 
@@ -61,8 +61,8 @@ def _assets_url_base() -> str:
     """The logical `/data` URL prefix stored on records.
 
     It is directly fetchable in local SQLite mode. In shared-Postgres mode raw
-    `/data` delivery is blocked; callers must use an authorized asset surface such
-    as MCP `view_asset` until tenant-aware blob downloads are implemented.
+    `/data` delivery is blocked; browser renderers replace it with the authorized
+    opaque-id route and MCP callers use `view_asset`.
     """
     from .. import config
     try:
@@ -295,6 +295,26 @@ def get_asset_content(project_id: str, asset_id: str,
         raise ValueError(f"Asset path escapes the asset store: {ap}")
     if not target.exists():
         raise FileNotFoundError(f"Asset binary missing: {record['asset_path']} (re-attach or import-snapshot)")
+    return target.read_bytes(), record
+
+
+def get_asset_preview_content(project_id: str, asset_id: str,
+                              store: Store | None = None) -> tuple[bytes, dict[str, Any]]:
+    """The generated PNG preview for a document asset, contained to its active
+    workspace store.  This mirrors :func:`get_asset_content` for the authenticated
+    web delivery route; callers cannot supply a filename or filesystem path."""
+    record = get_asset(project_id, asset_id, store=store)
+    if not record.get("preview_url"):
+        raise FileNotFoundError(f"Asset has no preview: {record['id']}")
+    ap = record["asset_path"]
+    if ap != f"data/assets/{Path(ap).name}":
+        raise ValueError(f"Asset path escapes the asset store: {ap}")
+    sha = Path(ap).stem
+    target = (_assets_dir() / f"{sha}.preview.png").resolve()
+    if not target.is_relative_to(_assets_dir().resolve()):
+        raise ValueError(f"Asset preview path escapes the asset store: {ap}")
+    if not target.exists():
+        raise FileNotFoundError(f"Asset preview binary missing: {record['id']}")
     return target.read_bytes(), record
 
 

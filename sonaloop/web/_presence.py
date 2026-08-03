@@ -321,19 +321,41 @@ register_css(".assetprev{margin:6px 0 18px}"
              ".assetprev img{max-width:100%;border:1px solid var(--line);border-radius:var(--radius);display:block}")
 
 
+def asset_content_url(asset: dict, *, preview: bool = False) -> str:
+    """Return the browser URL for an asset binary.
+
+    Local SQLite keeps the historical ``/data`` mount.  A shared Postgres
+    deployment must never put a workspace path in an ``img``/download URL: that
+    mount is intentionally blocked because filesystem paths have no RLS.  Its
+    authenticated asset route resolves the opaque asset id inside the active
+    workspace instead.  Deriving this at render time also repairs records that
+    predate that route without a data migration.
+    """
+    from urllib.parse import quote
+
+    from .. import config
+
+    if config.postgres_row_tenancy_enabled() and asset.get("id"):
+        variant = "preview" if preview else "content"
+        return f'/assets/{quote(str(asset["id"]), safe="")}/{variant}'
+    return str(asset.get("preview_url") if preview else asset.get("url") or "")
+
+
 def asset_preview_html(asset: dict) -> str:
     """The detail page's content lead (UX U8): image assets render a full-width preview from the
     static /data mount; documents with a first-page render (W6 `preview_url`) show their title
     page the same way (no link — the file card below is the ONE download affordance, V9); other
     kinds render nothing here (the file card carries the download)."""
     if asset.get("kind") in ("image", "screenshot") and asset.get("url"):
+        url = asset_content_url(asset)
         return h("div", {"class_": "assetprev"},
-                 h("a", {"href": asset["url"], "target": "_blank", "rel": "noopener"},
-                   h("img", {"src": asset["url"], "alt": asset.get("title") or asset.get("filename", ""),
+                 h("a", {"href": url, "target": "_blank", "rel": "noopener"},
+                   h("img", {"src": url, "alt": asset.get("title") or asset.get("filename", ""),
                              "loading": "lazy"})))
     if asset.get("preview_url"):
+        preview_url = asset_content_url(asset, preview=True)
         return h("div", {"class_": "assetprev"},
-                 h("img", {"src": asset["preview_url"],
+                 h("img", {"src": preview_url,
                            "alt": asset.get("title") or asset.get("filename", ""), "loading": "lazy"}))
     return ""
 
@@ -390,8 +412,8 @@ def file_stage(asset: dict, *, thumb: bool = True) -> str:
     """The card's identity stage: the image thumbnail when the asset IS an image (and the
     caller wants it), the first-page render for documents that carry one (W6 `preview_url` —
     the PPTX card shows its title slide), else the extension badge on the quiet stage."""
-    src = (asset.get("url") if asset.get("kind") in ("image", "screenshot")
-           else asset.get("preview_url"))
+    src = (asset_content_url(asset) if asset.get("kind") in ("image", "screenshot")
+           else asset_content_url(asset, preview=True) if asset.get("preview_url") else "")
     if thumb and src:
         return h("span", {"class_": "sl-file__stage"},
                  h("img", {"class_": "sl-file__thumb", "src": src, "alt": "",
@@ -402,7 +424,7 @@ def file_stage(asset: dict, *, thumb: bool = True) -> str:
 def _file_action(asset: dict) -> str:
     """The ONE trailing affordance (V9 — never duplicated): download for deliverables,
     open-in-tab for evidence. '' when the binary has no URL."""
-    url = asset.get("url")
+    url = asset_content_url(asset)
     if not url:
         return ""
     is_out = asset_direction(asset) == "out"
@@ -453,8 +475,9 @@ def asset_file_card(asset: dict, *, stage: bool = True) -> str:
     when the real preview (image / first-page render) already leads the page above the card
     (J2: no empty PPTX stage right under the rendered title slide)."""
     is_out = asset_direction(asset) == "out"
-    link = ({"href": asset.get("url", "#"), "download": asset.get("filename", "")} if is_out
-            else {"href": asset.get("url", "#"), "target": "_blank", "rel": "noopener"})
+    url = asset_content_url(asset) or "#"
+    link = ({"href": url, "download": asset.get("filename", "")} if is_out
+            else {"href": url, "target": "_blank", "rel": "noopener"})
     meta = " · ".join(x for x in (asset_size(asset), asset.get("media_type", "")) if x)
     return h("a", {"class_": "sl-file", **link},
              raw(file_stage(asset, thumb=False)) if stage else None,
@@ -478,11 +501,12 @@ def asset_rows(assets: list, store=None) -> str:
         is_img = a.get("kind") in ("image", "screenshot")
         is_out = asset_direction(a) == "out"
         detail = f'/assets/{a.get("id", "")}'
-        link = {"href": a.get("url", "#"), "target": "_blank", "rel": "noopener"}
+        url = asset_content_url(a) or "#"
+        link = {"href": url, "target": "_blank", "rel": "noopener"}
         if is_out:  # a deliverable file: hand it to the user, don't render it in a tab
-            link = {"href": a.get("url", "#"), "download": a.get("filename", "")}
+            link = {"href": url, "download": a.get("filename", "")}
         thumb = (h("a", dict(link),
-                   h("img", {"src": a.get("url", ""), "alt": a.get("title", ""), "loading": "lazy",
+                   h("img", {"src": url, "alt": a.get("title", ""), "loading": "lazy",
                              "style": "max-height:64px;max-width:120px;border-radius:6px;display:block"}))
                  if is_img else raw(_icon("download" if is_out else "file")))
         rows.append(h("div", {"class_": "strow"},

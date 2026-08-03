@@ -143,11 +143,12 @@ DOCS = [
              "and UI changes get a persona-grounded signal before they ship.")},
     {"art": "asset", "icon": "file", "name": "assets_h", "group": "evidence",
      "what": ("Eine echte Datei im Projekt: Screenshot, Dokument, Export oder erzeugtes Deliverable — mit "
-              "Herkunft und Richtung. Lokal ist sie downloadbar; in der mandantenfähigen Cloud werden "
-              "keine ungeschützten Datei-Rohpfade ausgeliefert.",
+              "Herkunft und Richtung. In der mandantenfähigen Cloud laufen Vorschau und Download "
+              "über eine authentifizierte Route des aktiven Workspace; ungeschützte Datei-Rohpfade "
+              "bleiben gesperrt.",
               "A real file in the project: screenshot, document, export or generated deliverable — with "
-              "provenance and direction. It is downloadable locally; multi-tenant Cloud never exposes "
-              "unprotected raw file paths."),
+              "provenance and direction. In multi-tenant Cloud its preview and download use an "
+              "authenticated active-workspace route; unprotected raw file paths remain blocked."),
      "why": ("Assets sind das Material für Evidence, Walkthrough-Screens und Deliverables. Sie sind Dateien, "
              "nicht Council-Referenzen.",
              "Assets are the material behind evidence, walkthrough screens and deliverables. They are files, not council references.")},

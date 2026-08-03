@@ -30,12 +30,16 @@ Binaries land in the active partition's content-addressed store
 `data/workspaces/<workspace-id>/assets/…` in shared Postgres); the record lands
 on the project. The local inspector serves the store at `/data/assets/…`.
 Shared-Postgres/RLS deployments block raw `/data`, `/proto-files`, and
-`/sessions-files` delivery until an authenticated workspace-aware blob/download
-route exists; MCP `view_asset` remains the authorized evidence-read surface. Ids are
-content-addressed per project, so re-attaching the same bytes is an idempotent
-upsert. `kind` (image | screenshot | document | file) is inferred from the
-extension. Attaching emits the `asset.attached` lifecycle event
-(docs/lifecycle-hooks.md).
+`/sessions-files` delivery. Browser previews and downloads instead use
+`/assets/{asset-id}/content` (and `/preview` for generated document previews):
+the authenticated route resolves the opaque id only inside the active workspace,
+then reads that workspace's partition. Existing records are rewritten to that URL
+at render time, so no binary or database migration is needed. Unsafe active formats
+(for example SVG/HTML) are download-only and every response is private/no-store.
+MCP `view_asset` remains the agent evidence-read surface. Ids are content-addressed
+per project, so re-attaching the same bytes is an idempotent upsert. `kind` (image |
+screenshot | document | file) is inferred from the extension. Attaching emits the
+`asset.attached` lifecycle event (docs/lifecycle-hooks.md).
 
 ## The multimodal contract
 
@@ -74,8 +78,9 @@ readable. `record_asset_supersession` is the service seam that writes it.
 
 - In local SQLite mode, assets appear read-only in the web inspector (image
   thumbnails come from the static `/data` mount); every asset row deep-links to
-  its detail page. Shared-Postgres deployments currently suppress raw file
-  previews/downloads rather than risk cross-workspace disclosure.
+  its detail page. Shared-Postgres deployments serve the same previews/downloads
+  through the authenticated, active-workspace-only asset route; the raw file tree
+  remains unreachable.
 - `export-snapshot` now includes research projects and copies asset binaries to
   the active partition's `export/assets/` directory (`data/export/assets/`
   locally); `import-snapshot` restores both — the evidence survives the portable
