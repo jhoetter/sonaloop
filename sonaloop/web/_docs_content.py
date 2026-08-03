@@ -62,10 +62,14 @@ PRINCIPLES = [
      ("Workspace-isoliert", "Workspace-isolated"),
      ("In Sonaloop Cloud bleibt jeder Datensatz in seinem Workspace. Mitglieder kommen über eine "
       "adressierte, einmalige Einladung und eine verifizierte E-Mail-Identität hinein — nie automatisch "
-      "über eine ganze Domain. Passwörter verwaltet der konfigurierte Login-Anbieter, nicht Sonaloop.",
+      "über eine ganze Domain. Admins können den aktiven Workspace vorübergehend mit den Rechten eines "
+      "regulären Mitglieds ansehen; ihre dauerhafte Rolle bleibt dabei unverändert. Passwörter verwaltet "
+      "der konfigurierte Login-Anbieter, nicht Sonaloop.",
       "In Sonaloop Cloud, every record stays inside its workspace. Members enter through an addressed, "
       "single-use invitation and a verified email identity — never automatically through an entire "
-      "domain. Passwords are managed by the configured identity provider, not by Sonaloop.")),
+      "domain. Admins can temporarily inspect the active workspace with a regular member's permissions; "
+      "their persistent role remains unchanged. Passwords are managed by the configured identity provider, "
+      "not by Sonaloop.")),
     ("syntheses",
      ("Präsentationsreif", "Presentation-grade"),
      ("Jeder Report ist von Haus aus vorzeigbar und als **PDF** oder **PPTX** exportierbar — kein "
