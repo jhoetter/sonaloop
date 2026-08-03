@@ -9,6 +9,7 @@ from urllib.parse import quote as _urlquote
 from .._icons import icon as _persona_icon, hifi as _persona_hifi, HIFI_ANIM_CSS as _ICON_ANIM_CSS
 from .._shell import SHELL_JS  # app-shell behaviour (resize/collapse/user-menu) — vendored from sonaloop-design
 
+from .. import config as _config
 from .. import services
 from .. import presentation as _pres
 from ..storage import Store
@@ -159,7 +160,7 @@ APP_JS = """
     document.querySelectorAll('.doc-main [id]').forEach(function(s){ obs.observe(s); });
   }
   // ---- favorites / stars (client-side, localStorage) ----
-  var SK='pc-stars', ICN=__FAV_ICONS__;
+  var SK=__FAV_STORAGE_KEY__, ICN=__FAV_ICONS__;
   function readStars(){ try{return JSON.parse(localStorage.getItem(SK)||'{}');}catch(e){return {};} }
   function writeStars(m){ try{localStorage.setItem(SK,JSON.stringify(m));}catch(e){} }
   function renderStars(){
@@ -480,6 +481,30 @@ _FAV_ICONS_JSON = json.dumps({
 })
 
 
+def _favorites_storage_key() -> str:
+    """Return the browser-local favorites bucket for the current data boundary.
+
+    Open-core/SQLite keeps the historical ``pc-stars`` key unchanged.  In shared
+    Postgres, the shell is rendered inside an authenticated, request-bound tenant
+    scope; using the active workspace id keeps an owner's personal favorites out of
+    customer-preview workspaces.  Never fall back to the legacy key in row-tenancy:
+    a missing or malformed scope is a boundary error and must fail closed.
+    """
+    if not _config.postgres_row_tenancy_enabled():
+        return "pc-stars"
+
+    scope = _config.request_tenant_scope()
+    if scope is None:
+        raise RuntimeError("row-tenanted favorites require a request tenant scope")
+    accessible_ids, active_id = scope
+    active = str(active_id or "")
+    if active not in {str(workspace_id) for workspace_id in accessible_ids}:
+        raise PermissionError("active favorites workspace is outside the request tenant scope")
+    if not re.fullmatch(r"ws_[A-Za-z0-9][A-Za-z0-9_.-]{0,126}", active):
+        raise ValueError(f"unsafe active workspace id for favorites: {active!r}")
+    return f"pc-stars:{active}"
+
+
 # Customer brand logo (customer-theme contract): height-capped so any aspect ratio sits
 # in the lockup row; the wordmark treatment stays untouched when no logo is set.
 _BRAND_LOGO_CSS = register_css(
@@ -538,7 +563,8 @@ def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
     crumbs = crumbs or [(title, None)]
     # Inject per-request translations into the static JS (client renders need them
     # too — same __PLACEHOLDER__ -> t() pattern used for the voices chart).
-    app_js = (APP_JS.replace("__FAV_ICONS__", _FAV_ICONS_JSON)
+    app_js = (APP_JS.replace("__FAV_STORAGE_KEY__", json.dumps(_favorites_storage_key()))
+              .replace("__FAV_ICONS__", _FAV_ICONS_JSON)
               .replace("__UNSTAR__", json.dumps(t("unstar"))))
     # Brand lockup: the wordmark sets the "loop" of "Sona·loop" in Sona Pixel (the shared
     # .sl-logo treatment). For a product brand ("Sonaloop Cloud" / "Sonaloop Research") the

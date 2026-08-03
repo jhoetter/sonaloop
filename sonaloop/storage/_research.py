@@ -126,6 +126,20 @@ class ResearchMixin:
             return {}
         pid = p["id"]
         deleted: dict[str, int] = {}
+        # Capture exact child ids before deleting their rows. Current lifecycle events carry
+        # project_id, but older synthesis events did not; entity ids let the cascade remove
+        # those legacy Activity links without broad label/URL matching.
+        event_entities: dict[str, list[str]] = {
+            "project": [pid],
+            "asset": [str(a["id"]) for a in p.get("assets", []) if a.get("id")],
+        }
+        for table, entity_type in (("council_sessions", "council"),
+                                   ("syntheses", "synthesis")):
+            rows = self.conn.execute(
+                f"SELECT id FROM {table} WHERE json_extract(data, '$.project_id')=?", (pid,)).fetchall()
+            event_entities[entity_type] = [str(r["id"]) for r in rows]
+        run_rows = self.conn.execute("SELECT run_id FROM runs WHERE project_id=?", (pid,)).fetchall()
+        event_entities["run"] = [str(r["run_id"]) for r in run_rows]
         # Delete prototype sessions before prototypes; prototype_sessions has no project_id.
         proto_rows = self.conn.execute("SELECT id FROM prototypes WHERE project_id=?", (pid,)).fetchall()
         proto_ids = [r["id"] for r in proto_rows]
@@ -147,6 +161,7 @@ class ResearchMixin:
             "methodology_judgments",
             "research_plans",
             "runs",
+            "prediction_outcomes",
             "prototypes",
             "surveys",
             "hypotheses",
@@ -159,6 +174,19 @@ class ResearchMixin:
             cur = self.conn.execute(
                 f"DELETE FROM {table} WHERE json_extract(data, '$.project_id')=?", (pid,))
             deleted[table] = cur.rowcount
+        # The lifecycle bus is a bounded live-view cache, not durable audit history.
+        # Exact project_id is the normal path; exact typed entity ids cover legacy rows
+        # that predate project_id propagation (notably synthesis.recorded).
+        cur = self.conn.execute("DELETE FROM events WHERE project_id=?", (pid,))
+        deleted["events"] = cur.rowcount
+        for entity_type, entity_ids in event_entities.items():
+            if not entity_ids:
+                continue
+            qmarks = ",".join("?" for _ in entity_ids)
+            cur = self.conn.execute(
+                f"DELETE FROM events WHERE entity_type=? AND entity_id IN ({qmarks})",
+                (entity_type, *entity_ids))
+            deleted["events"] += cur.rowcount
         cur = self.conn.execute("DELETE FROM research_projects WHERE id=?", (pid,))
         deleted["research_projects"] = cur.rowcount
         self.conn.commit()

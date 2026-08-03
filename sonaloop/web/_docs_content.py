@@ -436,10 +436,12 @@ INSPECTOR_SECTIONS = [
      ("Jede Inspector-Seite ist live verbunden: nimmt dein Agent etwas auf (ein Council, eine Persona, "
       "einen Report), erscheint ein kleiner **Toast** mit Link — und die offene Seite lädt sich selbst "
       "neu, wenn es sie betrifft. Der **Activity**-Feed (`g` `a`) listet alles Zuletzt-Passierte "
-      "chronologisch. Du schaust zu, während die Studie entsteht — kein manuelles Neuladen.",
+      "chronologisch. Beim Löschen eines Projekts verschwinden auch dessen veraltete Activity-Links. "
+      "Du schaust zu, während die Studie entsteht — kein manuelles Neuladen.",
       "Every inspector page is live: when your agent records something (a council, a persona, a report) "
       "a small **toast** appears with a link — and the page you're on reloads itself when it's "
-      "affected. The **Activity** feed (`g` `a`) lists everything recent in order. You watch the study "
+      "affected. The **Activity** feed (`g` `a`) lists everything recent in order. Deleting a project "
+      "also removes its stale Activity links. You watch the study "
       "come together — no manual refreshing.")),
     ("runs", "play",
      ("Laufende Runs", "Runs"),

@@ -157,6 +157,55 @@ def test_same_slug_allowed_in_different_workspaces(pg):
     assert a and b                              # the shared slug did NOT collide across workspaces
 
 
+def test_project_delete_cascade_is_scoped_to_the_active_workspace(pg):
+    """A copied project id may exist in two tenants; deleting one must not touch the other."""
+    project_id = "rproject_shared_delete"
+
+    def _seed(workspace_id: str, title: str):
+        def _write():
+            with Store() as st:
+                st.upsert_research_project({
+                    "id": project_id, "slug": "shared-delete", "title": title,
+                    "goal": "tenant-safe deletion", "study_ids": [], "edges": [],
+                    "created_at": "2026-06-16T12:00:00+00:00",
+                    "updated_at": "2026-06-16T12:00:00+00:00",
+                })
+                st.insert_prediction_outcome({
+                    "id": "pbout-shared-delete", "project_id": project_id,
+                    "created_at": "2026-06-16T12:01:00+00:00", "observed": 1.0,
+                })
+                st.append_event(
+                    "2026-06-16T12:02:00+00:00", "project.updated", "project",
+                    project_id, project_id, {"url": f"/jobs/{project_id}"})
+
+        _scoped([workspace_id], workspace_id, _write)
+
+    def _state(workspace_id: str) -> dict:
+        def _read():
+            with Store() as st:
+                return {
+                    "project": st.get_research_project(project_id) is not None,
+                    "outcomes": len(st.list_prediction_outcomes(project_id)),
+                    "events": len([e for e in st.list_events_after(0)
+                                   if e.get("project_id") == project_id]),
+                }
+
+        return _scoped([workspace_id], workspace_id, _read)
+
+    _seed("ws_alpha", "Alpha copy")
+    _seed("ws_beta", "Beta copy")
+
+    def _delete_alpha():
+        with Store() as st:
+            return services.delete_research_project(project_id, store=st)
+
+    deleted = _scoped(["ws_alpha"], "ws_alpha", _delete_alpha)
+    assert deleted["deleted"]["prediction_outcomes"] == 1
+    assert deleted["deleted"]["events"] == 1
+    assert _state("ws_alpha") == {"project": False, "outcomes": 0, "events": 0}
+    assert _state("ws_beta") == {"project": True, "outcomes": 1, "events": 1}
+
+
 def test_importer_folds_a_sqlite_partition_into_a_workspace(pg, tmp_path):
     """The cutover tool: a single-tenant SQLite partition's rows land in Postgres under the
     target workspace, ids preserved, visible only to that workspace's scope."""

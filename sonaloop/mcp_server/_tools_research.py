@@ -116,7 +116,7 @@ def register_research(mcp):
     # are research-artifact deletions (project/synthesis/council/persona), not prototype tools. -----
     @mcp.tool()
     def delete_research_project(project_id: str) -> dict[str, Any]:
-        """Delete a project container + its edges/open-questions. Syntheses (incl. reports) are kept."""
+        """Delete a project and its project-scoped outputs; personas and their memory remain."""
         t = time.perf_counter()
         return _env("delete_research_project", services.delete_research_project(project_id), t)
 

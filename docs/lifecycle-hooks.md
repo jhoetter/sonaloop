@@ -104,7 +104,9 @@ layer loads — i.e. in whichever process records data) appends every emitted ev
 to a durable `events` table: monotonic id, timestamp, event name, the primary
 entity (+ owning project), and a short label + inspector URL. The table is capped
 to the newest ~1000 rows on append; like every subscriber, the append is
-best-effort and never breaks the recording operation.
+best-effort and never breaks the recording operation. These rows are a transient
+live-view cache, not audit history: deleting a project also removes bus rows whose
+exact `project_id` matches it, while workspace-level/persona events remain.
 
 The web app tails that table:
 

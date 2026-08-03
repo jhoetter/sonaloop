@@ -130,8 +130,8 @@ def test_delete_research_project_cascades_project_scoped_outputs(store):
                                       statements=[{"persona_id": persona_id, "text": "Risky.",
                                                    "stance": {"value": -1}}],
                                       store=store)
-    services.record_synthesis("Cascade report", "trace", [council["id"]], project_id=pid,
-                              key="cascade-report", store=store)
+    synthesis = services.record_synthesis("Cascade report", "trace", [council["id"]], project_id=pid,
+                                          key="cascade-report", store=store)
     services.record_survey(pid, "Cascade survey",
                            [{"id": "q1", "kind": "single", "text": "Pick", "options": ["A", "B"]}],
                            key="cascade-survey", store=store)
@@ -151,9 +151,27 @@ def test_delete_research_project_cascades_project_scoped_outputs(store):
           "verdict": {"would_continue": True, "reason": "clear"}}],
         {"completed": True, "summary": "done", "predicted_behaviors": []},
         project_id=pid, key="cascade-usession", store=store)
+    store.insert_prediction_outcome({
+        "id": "pbout-cascade", "project_id": pid,
+        "created_at": "2026-06-16T12:00:00+00:00", "observed": 1.0,
+    })
+    # A project delete must clear its transient Activity/SSE rows without touching
+    # workspace-level persona activity.
+    global_event_id = store.append_event(
+        "2026-06-16T12:01:00+00:00", "persona.updated", "persona", persona_id,
+        None, {"url": f"/personas/{persona_id}"})
+    legacy_synthesis_event_id = store.append_event(
+        "2026-06-16T12:02:00+00:00", "synthesis.recorded", "synthesis", synthesis["id"],
+        None, {"url": f"/syntheses/{synthesis['id']}"})
+    project_events_before = [e for e in store.list_recent_events() if e.get("project_id") == pid]
+    assert project_events_before
+    assert any(e["event"] == "synthesis.recorded" and e["entity_id"] == synthesis["id"]
+               for e in project_events_before)
 
     out = services.delete_research_project(pid, store=store)
     assert out["deleted"]["research_projects"] == 1
+    assert out["deleted"]["prediction_outcomes"] == 1
+    assert out["deleted"]["events"] == len(project_events_before) + 1
     assert services.list_research_projects(store=store) == []
     assert [c for c in store.list_council_sessions() if c.get("project_id") == pid] == []
     assert [s for s in store.list_syntheses() if s.get("project_id") == pid] == []
@@ -162,6 +180,11 @@ def test_delete_research_project_cascades_project_scoped_outputs(store):
     assert store.list_decisions(pid) == []
     assert store.list_prototypes(pid) == []
     assert store.list_usability_sessions(project_id=pid) == []
+    assert store.list_prediction_outcomes(pid) == []
+    remaining_events = store.list_recent_events()
+    assert all(e.get("project_id") != pid for e in remaining_events)
+    assert all(e["id"] != legacy_synthesis_event_id for e in remaining_events)
+    assert any(e["id"] == global_event_id for e in remaining_events)
 
 
 def test_delete_persona(store):

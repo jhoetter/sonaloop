@@ -27,6 +27,13 @@ The `POST …/new` routes remain registered (CSRF + access-guard gated) so hosts
 automations keep a stable HTTP surface, but their GET forms are gone and nothing in
 the UI links them.
 
+Project deletion removes the project container and its project-scoped outputs,
+including councils/reports, calibration outcomes and transient Activity/SSE rows.
+Personas and their memory remain available to the workspace. Content-addressed
+asset/preview files and generated prototype/session/icon/export files are not garbage-
+collected by this database cascade; operators may prune unreferenced runtime files
+separately after a verified backup.
+
 The one browser-side persona addition affordance is **catalog import**:
 `/personas/catalog` searches the curated sonaloop-data catalog and posts a selected
 slug to `catalog_pull`. When a local `sonaloop-data` checkout is available, the page
