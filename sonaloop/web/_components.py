@@ -161,8 +161,8 @@ APP_JS = """
   }
   // ---- favorites / stars (client-side, localStorage) ----
   var SK=__FAV_STORAGE_KEY__, ICN=__FAV_ICONS__;
-  function readStars(){ try{return JSON.parse(localStorage.getItem(SK)||'{}');}catch(e){return {};} }
-  function writeStars(m){ try{localStorage.setItem(SK,JSON.stringify(m));}catch(e){} }
+  function readStars(){ if(!SK) return {}; try{return JSON.parse(localStorage.getItem(SK)||'{}');}catch(e){return {};} }
+  function writeStars(m){ if(!SK) return; try{localStorage.setItem(SK,JSON.stringify(m));}catch(e){} }
   function renderStars(){
     var m=readStars();
     document.querySelectorAll('[data-star]').forEach(function(b){ b.classList.toggle('on', !!m[b.getAttribute('data-star')]); });
@@ -183,7 +183,7 @@ APP_JS = """
   document.addEventListener('click',function(e){
     var ux=e.target.closest && e.target.closest('[data-unstar]');
     if(ux){ e.preventDefault(); e.stopPropagation(); var mm=readStars(); delete mm[ux.getAttribute('data-unstar')]; writeStars(mm); renderStars(); return; }
-    var b=e.target.closest && e.target.closest('[data-star]'); if(!b) return;
+    var b=e.target.closest && e.target.closest('[data-star]'); if(!b||!SK) return;
     e.preventDefault(); e.stopPropagation();
     var m=readStars(), k=b.getAttribute('data-star');
     if(m[k]) delete m[k]; else m[k]={href:b.getAttribute('data-href'),label:b.getAttribute('data-label'),type:b.getAttribute('data-type')};
@@ -481,14 +481,17 @@ _FAV_ICONS_JSON = json.dumps({
 })
 
 
-def _favorites_storage_key() -> str:
+def _favorites_storage_key() -> str | None:
     """Return the browser-local favorites bucket for the current data boundary.
 
     Open-core/SQLite keeps the historical ``pc-stars`` key unchanged.  In shared
     Postgres, the shell is rendered inside an authenticated, request-bound tenant
     scope; using the active workspace id keeps an owner's personal favorites out of
-    customer-preview workspaces.  Never fall back to the legacy key in row-tenancy:
-    a missing or malformed scope is a boundary error and must fail closed.
+    customer-preview workspaces.  A correctly bound principal with no membership has
+    the explicit empty scope ``((), "")``; favorites are disabled for that state so
+    no account-independent localStorage bucket can expose metadata across sign-ins.
+    Never fall back to the legacy key in row-tenancy: a missing or malformed scope is
+    a boundary error and must fail closed.
     """
     if not _config.postgres_row_tenancy_enabled():
         return "pc-stars"
@@ -498,7 +501,10 @@ def _favorites_storage_key() -> str:
         raise RuntimeError("row-tenanted favorites require a request tenant scope")
     accessible_ids, active_id = scope
     active = str(active_id or "")
-    if active not in {str(workspace_id) for workspace_id in accessible_ids}:
+    accessible = {str(workspace_id) for workspace_id in accessible_ids}
+    if not active and not accessible:
+        return None
+    if not active or active not in accessible:
         raise PermissionError("active favorites workspace is outside the request tenant scope")
     if not re.fullmatch(r"ws_[A-Za-z0-9][A-Za-z0-9_.-]{0,126}", active):
         raise ValueError(f"unsafe active workspace id for favorites: {active!r}")

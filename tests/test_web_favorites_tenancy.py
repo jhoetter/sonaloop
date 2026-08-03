@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import pytest
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
+from fastapi.testclient import TestClient
 
 from sonaloop import config
 from sonaloop.web._components import _layout
@@ -37,6 +40,48 @@ def test_row_tenancy_renders_a_distinct_favorites_key_per_active_workspace(
     assert 'var SK="pc-stars",' not in customer
 
 
+def test_async_middleware_scope_reaches_a_sync_page_renderer(store, monkeypatch):
+    """Starlette copies request context into its sync-endpoint worker thread.
+
+    This guards the production middleware shape, rather than only calling the
+    renderer directly: a valid active scope must survive ``call_next`` and the
+    async-to-sync boundary intact.
+    """
+    _enable_row_tenancy(monkeypatch)
+    app = FastAPI()
+
+    @app.middleware("http")
+    async def bind_workspace(_request, call_next):
+        token = config.set_request_tenant_scope(["ws_threaded"], "ws_threaded")
+        try:
+            return await call_next(_request)
+        finally:
+            config.reset_request_tenant_scope(token)
+
+    @app.get("/")
+    def sync_page():
+        return HTMLResponse(_layout("Favorites", "<p>body</p>", store))
+
+    response = TestClient(app).get("/")
+
+    assert response.status_code == 200
+    assert 'var SK="pc-stars:ws_threaded"' in response.text
+
+
+def test_row_tenant_without_a_workspace_disables_favorites(store, monkeypatch):
+    """A valid unaffiliated session is empty data scope, not a server error."""
+    _enable_row_tenancy(monkeypatch)
+    token = config.set_request_tenant_scope([], "")
+    try:
+        page = _layout("Favorites", "<p>body</p>", store)
+    finally:
+        config.reset_request_tenant_scope(token)
+
+    assert "var SK=null" in page
+    assert "function readStars(){ if(!SK) return {};" in page
+    assert "localStorage.getItem(null)" not in page
+
+
 def test_local_sqlite_mode_preserves_the_legacy_favorites_key(store):
     # Even an incidental request scope is ignored outside shared-Postgres mode.
     token = config.set_request_tenant_scope(["ws_ignored"], "ws_ignored")
@@ -53,6 +98,8 @@ def test_local_sqlite_mode_preserves_the_legacy_favorites_key(store):
     ("accessible", "active", "error"),
     [
         (["ws_allowed"], "ws_other", PermissionError),
+        (["ws_allowed"], "", PermissionError),
+        ([], "ws_other", PermissionError),
         (["ws_bad</script>"], "ws_bad</script>", ValueError),
     ],
 )
