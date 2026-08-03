@@ -1,6 +1,8 @@
 """Persona pages: list, detail, memory, activity (spec/roadmap.md R2)."""
 from __future__ import annotations
 
+from urllib.parse import quote
+
 from fastapi import Request
 from fastapi.responses import Response
 
@@ -401,6 +403,48 @@ def register_personas(app) -> None:
         skipped = (out.get("skipped_premium") or out.get("skipped_locally_modified") or [])
         msg = skipped[0].get("reason") if skipped else out.get("note") or t("catalog_pull_noop")
         return see_other("/personas/catalog?" + urlencode({"q": slug, "status": msg}))
+
+    @app.get("/personas/{persona_id}/avatar", response_class=Response, include_in_schema=False)
+    def persona_avatar(persona_id: str) -> Response:
+        """Serve one portrait through the request's exact active workspace.
+
+        Persona ids are stable across catalog pulls, while each workspace may own a
+        different local revision.  Therefore the response is deliberately never cached
+        and the record plus backing file are both resolved again inside the active scope.
+        """
+        from ... import config
+
+        tenant_token = None
+        if config.postgres_row_tenancy_enabled():
+            scope = config.request_tenant_scope()
+            if scope is None or not scope[1] or scope[1] not in scope[0]:
+                return Response(status_code=404, headers={"Cache-Control": "no-store"})
+            active_id = scope[1]
+            tenant_token = config.set_request_tenant_scope([active_id], active_id)
+
+        store = Store()
+        try:
+            try:
+                from ...avatar import get_persona_avatar_content
+                data, persona = get_persona_avatar_content(persona_id, store=store)
+            except (FileNotFoundError, KeyError, ValueError):
+                # Collapse absent record, absent file and rejected path into one answer;
+                # tenant boundaries must not become an existence oracle.
+                return Response(status_code=404, headers={"Cache-Control": "no-store"})
+        finally:
+            store.close()
+            if tenant_token is not None:
+                config.reset_request_tenant_scope(tenant_token)
+
+        filename = f'{persona.get("slug") or persona["id"]}.png'
+        headers = {
+            "Cache-Control": "private, no-store",
+            "Content-Disposition": f"inline; filename*=UTF-8''{quote(filename, safe='')}",
+            "Content-Security-Policy": "default-src 'none'; sandbox",
+            "Cross-Origin-Resource-Policy": "same-origin",
+            "X-Content-Type-Options": "nosniff",
+        }
+        return Response(content=data, media_type="image/png", headers=headers)
 
     @app.get("/personas/{persona_id}", response_class=HTMLResponse)
     def persona_detail(persona_id: str, date_value: str | None = Query(default=None, alias="date"), view: str = Query(default="month")) -> str:

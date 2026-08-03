@@ -44,6 +44,12 @@ otherwise return the service's `skipped_premium` explanation in-band. This path 
 not create or edit profile prose in the browser; it pulls an existing, validated
 catalog snapshot through the same service used by MCP/CLI.
 
+Imported avatar binaries stay in the active runtime partition. Local SQLite serves
+their historical `/data/...` path; shared Postgres renders the opaque
+`/personas/<persona-id>/avatar` route instead. That route resolves the persona through
+the active RLS workspace, contains the recorded PNG inside that workspace's avatar
+directory and returns `private, no-store`; the raw `/data` mount remains unavailable.
+
 Everything in the ✅ columns goes through the **existing service layer**
 (`sonaloop.services`) — the web routes never touch the `Store` for writes, so
 lifecycle events, hooks, the event bus (SSE/activity feed) and cloud guards all

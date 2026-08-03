@@ -221,6 +221,33 @@ def test_project_asset_is_inlined_for_html_and_pdf(store, tmp_path, monkeypatch,
         config.reset_request_partition(partition_token)
 
 
+def test_postgres_persona_avatar_route_is_inlined_without_project_context(
+        store, tmp_path, monkeypatch):
+    from sonaloop import config
+    from sonaloop.services import _synthesis as S
+
+    _data_dir(tmp_path, monkeypatch)
+    pid = create_persona(store, "Cloud Avatar")
+    persona = store.get_persona(pid)
+    target = tmp_path / "avatars" / "cloud-avatar.png"
+    target.parent.mkdir(parents=True)
+    target.write_bytes(_PNG_1X1)
+    persona["avatar"] = {"path": "data/avatars/cloud-avatar.png"}
+    store.upsert_persona(persona)
+
+    partition_token = config.set_request_partition(tmp_path)
+    monkeypatch.setattr(config, "postgres_row_tenancy_enabled", lambda: True)
+    try:
+        tag = f'<img src="/personas/{pid}/avatar">'
+        html = S._share_inline_images(tag, store=store)
+        assert 'src="data:image/png;base64,' in html
+        assert f"/personas/{pid}/avatar" not in html
+        assert "share-missing" in S._share_inline_images(
+            '<img src="/personas/../../secret/avatar">', store=store)
+    finally:
+        config.reset_request_partition(partition_token)
+
+
 def test_missing_media_drops_instead_of_shipping_broken_refs(store, tmp_path, monkeypatch):
     _data_dir(tmp_path, monkeypatch)
     store.upsert_synthesis({

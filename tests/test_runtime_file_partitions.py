@@ -161,6 +161,32 @@ def test_identical_avatar_ref_resolves_to_each_workspace(monkeypatch):
     assert beta_path.read_bytes() == b"beta avatar"
 
 
+def test_avatar_content_reads_only_the_active_workspace(monkeypatch):
+    _enable_row_tenancy(monkeypatch)
+    persona = _minimal_persona()
+    persona["avatar"] = {"path": "data/avatars/shared.png"}
+    store = _PersonaStore(persona)
+    payloads = {
+        "ws_alpha": b"\x89PNG\r\n\x1a\nalpha",
+        "ws_beta": b"\x89PNG\r\n\x1a\nbeta",
+    }
+    for workspace_id, payload in payloads.items():
+        with _tenant(workspace_id):
+            target = config.partition_dir() / "avatars" / "shared.png"
+            target.parent.mkdir(parents=True)
+            target.write_bytes(payload)
+
+    for workspace_id, payload in payloads.items():
+        with _tenant(workspace_id):
+            data, record = avatar.get_persona_avatar_content(persona["id"], store=store)
+            assert data == payload
+            assert record["id"] == persona["id"]
+
+    store.persona["avatar"] = {"path": "data/avatars/../shared.png"}
+    with _tenant("ws_alpha"), pytest.raises(ValueError, match="unsafe tenant avatar path"):
+        avatar.get_persona_avatar_content(persona["id"], store=store)
+
+
 class _PrototypeStore:
     def __init__(self):
         self.rows: dict[str, dict] = {}

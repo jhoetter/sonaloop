@@ -628,16 +628,16 @@ def _share_inline_images(html_text: str, missing_label: str = "media unavailable
     """Local media become data: URIs so an export opens from ``file://`` with zero requests.
 
     SQLite's historical ``/data/…`` refs resolve only inside the active data partition.  A
-    shared-Postgres report instead renders ``/assets/<opaque-id>/content``; those refs are
-    resolved through :func:`get_asset_content` against the report's exact project and current
-    RLS-bound store.  DENY BY DEFAULT: an opaque route without that project context, malformed
-    route, missing record, external URL or escaping filesystem path becomes a visible note.
-    ``src`` values are HTML-attribute-escaped by the renderer, so they are unescaped first.
+    shared-Postgres report instead renders opaque ``/assets/<id>/content`` and
+    ``/personas/<id>/avatar`` refs.  Assets resolve against the report's exact project;
+    portraits resolve through the current RLS-bound persona store.  DENY BY DEFAULT: an
+    opaque route without its required context, malformed route, missing record, external URL
+    or escaping filesystem path becomes a visible note. ``src`` values are
+    HTML-attribute-escaped by the renderer, so they are unescaped first.
     """
     import base64
     import html as _html_mod
     import mimetypes
-    from urllib.parse import unquote
     from .. import config as _config
     data_root = _config.partition_dir().resolve()
     note = f'<span class="share-missing">[{_html_mod.escape(missing_label)}]</span>'
@@ -673,22 +673,13 @@ def _share_inline_images(html_text: str, missing_label: str = "media unavailable
             data = fp.read_bytes()
             mime = mimetypes.guess_type(fp.name)[0] or "application/octet-stream"
         else:
-            route = re.fullmatch(r"/assets/([^/?#]+)/content", src)
-            if route is None or store is None or not project_id:
-                return note                             # external / unknown / unscoped opaque route
-            asset_id = unquote(route.group(1))
-            if not asset_id or "/" in asset_id or "\\" in asset_id:
+            from ..export_media import resolve_export_image
+            resolved = resolve_export_image(src, store=store, project_id=project_id)
+            if resolved is None:
                 return note
-            try:
-                from ._project_assets import get_asset_content
-                data, record = get_asset_content(project_id, asset_id, store=store)
-            except (FileNotFoundError, KeyError, ValueError):
-                return note
+            data, mime = resolved
             if len(data) > _SHARE_INLINE_MAX_BYTES:
                 return note
-            mime = (str(record.get("media_type") or "").strip()
-                    or mimetypes.guess_type(str(record.get("filename") or ""))[0]
-                    or "application/octet-stream")
         uri = f"data:{mime};base64,{base64.b64encode(data).decode('ascii')}"
         return tag[:sm.start(g)] + uri + tag[sm.end(g):]
     return _SHARE_IMG_TAG.sub(_one, html_text)

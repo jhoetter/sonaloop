@@ -219,11 +219,11 @@ SCHEMAS = {
     "persona": {
         "holds": (["**SOUL** — die autoritative Identität (Rolle, Firmen-Kontext, Werte, Eigenheiten)",
                    "Ziele, Constraints und Pain-Points",
-                   "Avatar-Pfad + Provenienz (woraus die Persona abgeleitet wurde)",
+                   "Avatar-Pfad + Provenienz; in der Cloud wird das Bild nur über die aktive Workspace-Grenze ausgeliefert",
                    "Das **Gedächtnis** liegt in eigenen, zeit-indizierten Records (s. u.)"],
                   ["**SOUL** — the authoritative identity (role, company context, values, quirks)",
                    "Goals, constraints and pain points",
-                   "Avatar path + provenance (what the persona was derived from)",
+                   "Avatar path + provenance; Cloud serves the image only through the active workspace boundary",
                    "**Memory** lives in separate, time-indexed records (see below)"]),
         "made": (),
         "made_note": ("Eine Persona ist ein Graph-**Node**. Ihr Gedächtnis sind eigene Records — "

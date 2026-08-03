@@ -5,6 +5,10 @@ Split out of web/_components.py (LOC bar); re-exported there so every existing
 """
 from __future__ import annotations
 
+import re
+from pathlib import Path
+from urllib.parse import quote
+
 from ._html import h
 
 _AV_COLORS = ["#3d7b5f", "#2f6f9f", "#a66b1f", "#7a5ea6", "#b3493f", "#4a7d7d", "#5a6b8a"]
@@ -20,15 +24,28 @@ def _avatar_src(p: dict) -> str | None:
         return None
     from .. import config
     if config.postgres_row_tenancy_enabled():
-        # Shared row-tenancy intentionally exposes no raw /data mount until an
-        # authenticated workspace-file route exists; render initials, not a broken
-        # (or accidentally global) image URL.
+        parts = Path(path).parts
+        if (len(parts) != 3 or parts[:2] != ("data", "avatars")
+                or not re.fullmatch(
+                    r"[A-Za-z0-9][A-Za-z0-9_.-]{0,191}\.png",
+                    parts[2],
+                    re.IGNORECASE,
+                )):
+            return None
+    rel = path.removeprefix("data/")
+    partition = config.partition_dir().resolve()
+    candidate = (partition / Path(rel)).resolve()
+    if not candidate.is_relative_to(partition) or not candidate.is_file():
         return None
-    rel = path[len("data/"):] if path.startswith("data/") else path
-    candidate = (config.partition_dir() / rel).resolve()
-    if not candidate.is_relative_to(config.partition_dir().resolve()):
-        return None
-    return f"/{path}" if candidate.is_file() else None
+    if config.postgres_row_tenancy_enabled():
+        # The raw /data tree remains process-globally blocked in Cloud.  Resolve the
+        # portrait through the authenticated, RLS-backed route instead; the opaque
+        # persona id is looked up again inside the active workspace before bytes are
+        # served.  The backing-file check above preserves the initials fallback when
+        # a portable snapshot carries metadata but not the optional image binary.
+        persona_id = str(p.get("id") or "")
+        return f"/personas/{quote(persona_id, safe='')}/avatar" if persona_id else None
+    return f"/{path}"
 
 
 def _avatar(p: dict, size: int = 36) -> str:

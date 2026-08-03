@@ -78,6 +78,53 @@ def build_avatar_prompt(persona: dict[str, Any], style: str | None = None) -> st
     )
 
 
+def get_persona_avatar_content(
+        persona_id: str, store: Store | None = None) -> tuple[bytes, dict[str, Any]]:
+    """Return one persona's PNG portrait from the ACTIVE runtime partition.
+
+    The persona record is resolved through the current Store/RLS scope first. Its
+    portable ``data/avatars/<file>.png`` reference is then contained inside the active
+    workspace's filesystem partition, so a stable catalog persona id never becomes a
+    cross-workspace file capability.
+    """
+    store = store or Store()
+    persona = store.get_persona(persona_id)
+    if not persona:
+        raise KeyError(f"Unknown persona: {persona_id}")
+    stored_path = str((persona.get("avatar") or {}).get("path") or "").strip()
+    if not stored_path:
+        raise FileNotFoundError(f"Persona has no avatar: {persona_id}")
+
+    raw = Path(stored_path)
+    tenant_mode = config.postgres_row_tenancy_enabled()
+    if tenant_mode:
+        # Shared deployments accept only the virtual path written by generation and
+        # snapshot import. Absolute paths and nested/traversal spellings fail closed.
+        parts = raw.parts
+        if (len(parts) != 3 or parts[:2] != ("data", "avatars")
+                or not re.fullmatch(
+                    r"[A-Za-z0-9][A-Za-z0-9_.-]{0,191}\.png",
+                    parts[2],
+                    re.IGNORECASE,
+                )):
+            raise ValueError(f"unsafe tenant avatar path: {stored_path!r}")
+
+    rel = stored_path.removeprefix("data/")
+    partition = config.partition_dir().resolve()
+    candidate = (partition / rel).resolve()
+    allowed_root = (partition / "avatars").resolve() if tenant_mode else partition
+    if not candidate.is_relative_to(allowed_root) or candidate.suffix.lower() != ".png":
+        raise ValueError(f"avatar path escapes the active partition: {stored_path!r}")
+    if not candidate.is_file():
+        raise FileNotFoundError(candidate)
+    if candidate.stat().st_size > 8 * 1024 * 1024:
+        raise ValueError(f"avatar exceeds the 8 MiB delivery limit: {stored_path!r}")
+    data = candidate.read_bytes()
+    if not data.startswith(b"\x89PNG\r\n\x1a\n"):
+        raise ValueError(f"avatar is not a PNG: {stored_path!r}")
+    return data, persona
+
+
 def generate_persona_avatar(persona_id: str, style: str | None = None, store: Store | None = None) -> dict[str, Any]:
     load_env()
     store = store or Store()

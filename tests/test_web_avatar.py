@@ -25,3 +25,30 @@ def test_avatar_handles_missing_none_and_dict(tmp_path, monkeypatch):
     (tmp_path / "avatars" / "x.png").write_bytes(b"\x89PNG")
     html = _avatar(rec)
     assert "<img" in html and "x.png" in html
+
+
+def test_postgres_avatar_uses_opaque_tenant_route(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "DATA_DIR", tmp_path)
+    monkeypatch.setenv("DATABASE_URL", "postgresql://unused/avatar-route")
+    monkeypatch.setenv("SONALOOP_PG_TENANT", "1")
+    token = config.set_request_tenant_scope(["ws_alpha"], "ws_alpha")
+    try:
+        target = config.partition_dir() / "avatars" / "shared.png"
+        target.parent.mkdir(parents=True)
+        target.write_bytes(b"\x89PNG\r\n\x1a\nportrait")
+        rec = {
+            "display_name": "Cloud Persona",
+            "id": "persona_shared",
+            "avatar": {"path": "data/avatars/shared.png"},
+        }
+        html = _avatar(rec)
+        assert "<img" in html
+        assert 'src="/personas/persona_shared/avatar"' in html
+        assert "/data/" not in html
+
+        # A stored traversal spelling never produces a broken or file-capability img.
+        rec["avatar"] = {"path": "data/avatars/../shared.png"}
+        html = _avatar(rec)
+        assert "<img" not in html and "CP" in html
+    finally:
+        config.reset_request_tenant_scope(token)
