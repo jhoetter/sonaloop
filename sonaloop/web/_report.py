@@ -53,12 +53,30 @@ def _ref_titler(report, store):
 _FIG = re.compile(r"!\[\[fig:(\d+)\]\]")
 
 
-def _resolve_figure(f: dict, store) -> dict | None:
+def _resolve_figure(f: dict, store, *, project_id: str = "") -> dict | None:
     """A figure ref → {url, caption} (or None if it can't be shown). Web is read-only: a prototype that
-    was never screenshotted simply doesn't render (capture happens via an explicit MCP/CLI action)."""
+    was never screenshotted simply doesn't render (capture happens via an explicit MCP/CLI action).
+
+    Project-asset records resolve through the canonical browser URL helper in both modes (their
+    stored ``url`` locally, the opaque route in shared Postgres).  RLS scopes the project lookup
+    to the active workspace; the explicit project membership additionally prevents a report from
+    smuggling in another project's asset id.  If no project record exists, local SQLite retains
+    the historical content-addressed ``/data/<asset-id>`` fallback while Postgres fails closed.
+    """
+    if not isinstance(f, dict):
+        return None
     kind = f.get("kind")
     cap = f.get("caption", "")
     if kind == "asset" and f.get("id"):
+        from .. import config
+        project = store.get_research_project(project_id) if isinstance(project_id, str) and project_id else None
+        asset = next((a for a in (project or {}).get("assets") or []
+                      if a.get("id") == f["id"]), None)
+        if asset:
+            from ._presence import asset_content_url
+            return {"url": asset_content_url(asset), "caption": cap}
+        if config.postgres_row_tenancy_enabled():
+            return None
         return {"url": asset_url(f["id"]), "caption": cap}
     if kind == "prototype" and f.get("id"):
         p = store.get_prototype(f["id"])
@@ -208,7 +226,8 @@ def render_report(report: dict, store, *, with_toc: bool = False):
 
     secs = []
     for i, sec in enumerate(sections, 1):
-        figs = [rf for rf in (_resolve_figure(f, store) for f in (sec.get("figures") or [])) if rf]
+        figs = [rf for rf in (_resolve_figure(f, store, project_id=report.get("project_id") or "")
+                              for f in (sec.get("figures") or [])) if rf]
         body_html = (_body(sec["markdown"], figs) if sec.get("markdown")
                      # plain <em>, not markdown syntax — this string is never md-rendered
                      else h("p", {"class_": "muted"},

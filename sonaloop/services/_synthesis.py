@@ -623,16 +623,21 @@ def _share_rewrite_links(html_text: str) -> str:
     return _SHARE_A_TAG.sub(_one, html_text)
 
 
-def _share_inline_images(html_text: str, missing_label: str = "media unavailable") -> str:
-    """Local media (`/data/…` figures, prototype screenshots, avatars — charts are already inline
-    SVG/CSS) become data: URIs so the bundle opens from file:// with zero requests. DENY BY
-    DEFAULT: anything that is not already a data: URI and does not resolve to a real file inside
-    DATA_DIR (external URLs included) is replaced with a visible note — never an empty husk,
-    never a live request. src values are HTML-attribute-escaped by the renderer, so they are
-    unescaped before touching the filesystem (a&amp;b.png is a&b.png on disk)."""
+def _share_inline_images(html_text: str, missing_label: str = "media unavailable", *,
+                         store: Store | None = None, project_id: str = "") -> str:
+    """Local media become data: URIs so an export opens from ``file://`` with zero requests.
+
+    SQLite's historical ``/data/…`` refs resolve only inside the active data partition.  A
+    shared-Postgres report instead renders ``/assets/<opaque-id>/content``; those refs are
+    resolved through :func:`get_asset_content` against the report's exact project and current
+    RLS-bound store.  DENY BY DEFAULT: an opaque route without that project context, malformed
+    route, missing record, external URL or escaping filesystem path becomes a visible note.
+    ``src`` values are HTML-attribute-escaped by the renderer, so they are unescaped first.
+    """
     import base64
     import html as _html_mod
     import mimetypes
+    from urllib.parse import unquote
     from .. import config as _config
     data_root = _config.partition_dir().resolve()
     note = f'<span class="share-missing">[{_html_mod.escape(missing_label)}]</span>'
@@ -646,26 +651,45 @@ def _share_inline_images(html_text: str, missing_label: str = "media unavailable
         src = _html_mod.unescape(sm.group(g))
         if src.startswith("data:"):
             return tag                                  # already self-contained
-        if not src.startswith("/data/"):
-            return note                                 # external / unknown scheme / relative
-        rel = Path(src[len("/data/"):])
-        # Asset records created in a workspace carry their physical
-        # /data/workspaces/<id>/... URL; older/avatar refs are partition-virtual
-        # /data/avatars/... paths.  Resolve both, but only inside the active root.
-        try:
-            physical_prefix = data_root.relative_to(Path(_config.DATA_DIR).resolve())
-        except ValueError:
-            physical_prefix = Path()
-        if physical_prefix.parts and rel.parts[:len(physical_prefix.parts)] == physical_prefix.parts:
-            fp = (Path(_config.DATA_DIR) / rel).resolve()
+        data: bytes
+        mime: str
+        if src.startswith("/data/"):
+            rel = Path(src[len("/data/"):])
+            # Asset records created in a workspace carry their physical
+            # /data/workspaces/<id>/... URL; older/avatar refs are partition-virtual
+            # /data/avatars/... paths.  Resolve both, but only inside the active root.
+            try:
+                physical_prefix = data_root.relative_to(Path(_config.DATA_DIR).resolve())
+            except ValueError:
+                physical_prefix = Path()
+            if physical_prefix.parts and rel.parts[:len(physical_prefix.parts)] == physical_prefix.parts:
+                fp = (Path(_config.DATA_DIR) / rel).resolve()
+            else:
+                fp = (data_root / rel).resolve()
+            if not fp.is_relative_to(data_root) or not fp.is_file():
+                return note
+            if fp.stat().st_size > _SHARE_INLINE_MAX_BYTES:
+                return note
+            data = fp.read_bytes()
+            mime = mimetypes.guess_type(fp.name)[0] or "application/octet-stream"
         else:
-            fp = (data_root / rel).resolve()
-        if not fp.is_relative_to(data_root) or not fp.is_file():
-            return note
-        if fp.stat().st_size > _SHARE_INLINE_MAX_BYTES:
-            return note
-        mime = mimetypes.guess_type(fp.name)[0] or "application/octet-stream"
-        uri = f"data:{mime};base64,{base64.b64encode(fp.read_bytes()).decode('ascii')}"
+            route = re.fullmatch(r"/assets/([^/?#]+)/content", src)
+            if route is None or store is None or not project_id:
+                return note                             # external / unknown / unscoped opaque route
+            asset_id = unquote(route.group(1))
+            if not asset_id or "/" in asset_id or "\\" in asset_id:
+                return note
+            try:
+                from ._project_assets import get_asset_content
+                data, record = get_asset_content(project_id, asset_id, store=store)
+            except (FileNotFoundError, KeyError, ValueError):
+                return note
+            if len(data) > _SHARE_INLINE_MAX_BYTES:
+                return note
+            mime = (str(record.get("media_type") or "").strip()
+                    or mimetypes.guess_type(str(record.get("filename") or ""))[0]
+                    or "application/octet-stream")
+        uri = f"data:{mime};base64,{base64.b64encode(data).decode('ascii')}"
         return tag[:sm.start(g)] + uri + tag[sm.end(g):]
     return _SHARE_IMG_TAG.sub(_one, html_text)
 
@@ -708,7 +732,8 @@ def export_synthesis_html(synthesis_id: str, out_dir: str | None = None,
 
     L0 = _SHARE_LABELS.get(content_language(), _SHARE_LABELS["en"])
     body = _share_inline_images(_share_rewrite_links(str(render_report(syn, store))),
-                                missing_label=L0["missing"])
+                                missing_label=L0["missing"], store=store,
+                                project_id=str(syn.get("project_id") or ""))
 
     # Footer stamp: project · generated date · sonaloop version — reproducible provenance.
     # Project resolution mirrors the inspector page, plus the cited councils as a fallback
@@ -781,7 +806,10 @@ def export_synthesis_pdf(synthesis_id: str, store: Store | None = None,
     from ..web._html import collect_css
     from ..web_assets import CSS
     from html import escape as _h_esc
-    body = render_report(syn, store)
+    # There is no live app origin while Chromium prints this temporary file.  Resolve local
+    # /data refs and shared-Postgres opaque routes before printing so the PDF is self-contained.
+    body = _share_inline_images(str(render_report(syn, store)), store=store,
+                                project_id=str(syn.get("project_id") or ""))
     doc = (f'<!doctype html><html lang="{content_language()}"><head><meta charset="utf-8">'
            f'{_PDF_FONTS}<style>{CSS}{collect_css()}</style>{theme_css}</head>'
            f'<body><main class="content"><div class="page">{body}</div></main></body></html>')

@@ -241,6 +241,47 @@ _PNG_1X1 = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==")
 
 
+def test_report_asset_figure_is_project_bound_in_shared_postgres(store, monkeypatch):
+    """The live cloud report uses the authenticated opaque route, never the blocked global
+    /data mount.  A ref from another project (or a legacy path-shaped ref) fails closed."""
+    from sonaloop import config, services
+
+    project = services.create_research_project("Current", goal="g", store=store)
+    other = services.create_research_project("Other", goal="g", store=store)
+    own = services.attach_asset(
+        project["id"], content_base64=base64.b64encode(_PNG_1X1).decode(),
+        filename="own.png", store=store)
+    foreign = services.attach_asset(
+        other["id"], content_base64=base64.b64encode(_PNG_1X1 + b"other").decode(),
+        filename="foreign.png", store=store)
+    report = _report_with_figures([
+        {"kind": "asset", "id": own["id"], "caption": "Own"},
+        {"kind": "asset", "id": foreign["id"], "caption": "Foreign"},
+        {"kind": "asset", "id": "assets/legacy.png", "caption": "Legacy"},
+        {"kind": "asset", "id": "../../data/assets/secret.png", "caption": "Malformed"},
+    ])
+    report["project_id"] = project["id"]
+
+    # A current project asset uses its real stored URL locally; legacy content-addressed refs
+    # without a project record retain the historical /data fallback.
+    local = str(render_report(report, store))
+    assert f'src="{own["url"]}"' in local
+    assert f'src="/data/{foreign["id"]}"' in local
+    assert 'src="/data/assets/legacy.png"' in local
+
+    monkeypatch.setattr(config, "postgres_row_tenancy_enabled", lambda: True)
+    cloud = str(render_report(report, store))
+    assert f'src="/assets/{own["id"]}/content"' in cloud
+    assert foreign["id"] not in cloud
+    assert "legacy.png" not in cloud
+    assert "secret.png" not in cloud
+    assert "/data/" not in cloud
+    assert cloud.count("<img") == 1
+
+    unscoped = str(render_report({**report, "project_id": ""}, store))
+    assert own["id"] not in unscoped and "/data/" not in unscoped
+
+
 def test_pptx_embeds_image_figure(tmp_path):
     """Prototype screenshots / image assets must travel in the deck (the PDF loads them by URL; a PPTX
     has to carry the bytes). An image slide embeds the picture."""

@@ -138,6 +138,89 @@ def test_project_report_bundle_keeps_internal_anchors_and_inlines_figures(store,
         assert marker not in _body(html)
 
 
+@pytest.mark.parametrize("tenant", [False, True], ids=["sqlite-data-url", "postgres-opaque-url"])
+def test_project_asset_is_inlined_for_html_and_pdf(store, tmp_path, monkeypatch, tenant):
+    """Both browser URL modes are resolved to bytes before either file:// export is handed off."""
+    from pathlib import Path
+    from urllib.parse import unquote, urlparse
+
+    from sonaloop import browser, config
+    from sonaloop.services import _synthesis as S
+
+    _data_dir(tmp_path, monkeypatch)
+    project = services.create_research_project("Tenant report", goal="g", store=store)
+    asset = services.attach_asset(
+        project["id"], content_base64=base64.b64encode(_PNG_1X1).decode(),
+        filename="shot.png", store=store)
+    store.upsert_synthesis({
+        "id": "tenant-rep", "title": "Tenant — Report", "scope": "project",
+        "project_id": project["id"], "created_at": "2026-06-08T00:00:00+00:00",
+        "lead": "", "council_ids": [], "findings": [], "statements": [], "prompts": [],
+        "graph_snapshot": None,
+        "sections": [{"id": "s1", "heading": "H", "markdown": "Body.", "citations": [],
+                      "source_study_ids": [],
+                      "figures": [{"kind": "asset", "id": asset["id"], "caption": "Shot"}]}],
+    })
+
+    # Keep the file partition hermetic while toggling only the browser-URL strategy.
+    partition_token = config.set_request_partition(config.DATA_DIR)
+    monkeypatch.setattr(config, "postgres_row_tenancy_enabled", lambda: tenant)
+    try:
+        out = services.export_synthesis_html("tenant-rep", store=store)
+        html = Path(out["path"]).read_text(encoding="utf-8")
+        _assert_self_contained(html)
+        assert 'src="data:image/png;base64,' in html
+        assert f"/assets/{asset['id']}/content" not in html
+
+        # An opaque route is denied without the exact project context.
+        tag = f'<img src="/assets/{asset["id"]}/content">'
+        assert "share-missing" in S._share_inline_images(tag, store=store)
+        other = services.create_research_project("Other", goal="g", store=store)
+        assert "share-missing" in S._share_inline_images(
+            tag, store=store, project_id=other["id"])
+
+        rendered_pdf_html = {}
+
+        class _Page:
+            def goto(self, url, **_kwargs):
+                rendered_pdf_html["value"] = Path(unquote(urlparse(url).path)).read_text(
+                    encoding="utf-8")
+
+            def emulate_media(self, **_kwargs):
+                pass
+
+            def wait_for_timeout(self, _milliseconds):
+                pass
+
+            def pdf(self, **_kwargs):
+                return b"%PDF-tenant"
+
+        class _Browser:
+            def new_page(self):
+                return _Page()
+
+            def close(self):
+                pass
+
+        class _Playwright:
+            chromium = type("Chromium", (), {"launch": staticmethod(lambda: _Browser())})()
+
+        class _PlaywrightContext:
+            def __enter__(self):
+                return _Playwright()
+
+            def __exit__(self, *_args):
+                pass
+
+        monkeypatch.setattr(browser, "available", lambda: True)
+        monkeypatch.setattr("playwright.sync_api.sync_playwright", lambda: _PlaywrightContext())
+        assert services.export_synthesis_pdf("tenant-rep", store=store) == b"%PDF-tenant"
+        assert 'src="data:image/png;base64,' in rendered_pdf_html["value"]
+        assert f"/assets/{asset['id']}/content" not in rendered_pdf_html["value"]
+    finally:
+        config.reset_request_partition(partition_token)
+
+
 def test_missing_media_drops_instead_of_shipping_broken_refs(store, tmp_path, monkeypatch):
     _data_dir(tmp_path, monkeypatch)
     store.upsert_synthesis({
