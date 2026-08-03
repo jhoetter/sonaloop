@@ -272,7 +272,8 @@ def test_derive_sections_and_scaffold_synthesis_finish_by_construction(store):
     assert services.assess_project(pid, store=store)["finish"]["organized"] is False
     out = services.derive_sections(pid, store=store)
     assert "Discover" in out["created"] and "Deliver — Conclusion" in out["created"]
-    services.scaffold_synthesis(pid, store=store)
+    report = services.scaffold_synthesis(pid, store=store)
+    assert report["lead"] and "Auto-seeded outline" not in report["lead"]
     f = services.assess_project(pid, store=store)["finish"]
     assert f["organized"] is True and f["handed_off"] is True
     # idempotent: re-deriving doesn't duplicate
@@ -280,6 +281,17 @@ def test_derive_sections_and_scaffold_synthesis_finish_by_construction(store):
     services.derive_sections(pid, store=store)
     assert len(services.list_sections(pid, store=store)) == n1
     assert services.scaffold_synthesis(pid, store=store)["id"]  # returns existing, no error
+
+    # Existing ESV reports from before the copy fix are repaired in place; customer-authored
+    # leads keep winning and graph/run references remain stable.
+    legacy = store.get_synthesis(report["id"])
+    legacy["lead"] = "Auto-seeded outline for ESV1."
+    store.upsert_synthesis(legacy)
+    repaired = services.scaffold_synthesis(pid, store=store)
+    assert repaired["id"] == report["id"] and "Auto-seeded outline" not in repaired["lead"]
+    repaired["lead"] = "Authored customer lead."
+    store.upsert_synthesis(repaired)
+    assert services.scaffold_synthesis(pid, store=store)["lead"] == "Authored customer lead."
 
 
 def test_notes_are_one_entity_built_notes_carry_prototype(store):

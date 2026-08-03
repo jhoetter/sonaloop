@@ -659,7 +659,21 @@ def scaffold_synthesis(project_id: str, store: Store | None = None) -> dict[str,
     store = store or Store()
     existing = store.list_reports(project_id)
     if existing:
-        return existing[0]
+        report = existing[0]
+        # ESV originally exposed its internal scaffolding note as the customer-facing cover
+        # lead ("Auto-seeded outline for …"). Repair only that exact legacy placeholder;
+        # authored leads are never overwritten and the report keeps its stable id/trace links.
+        if str(report.get("lead") or "").startswith("Auto-seeded outline for "):
+            report["lead"] = (
+                "Dieser Bericht führt die Evidenz entlang der Forschungsphasen von der "
+                "Ausgangsfrage bis zu den priorisierten Schlussfolgerungen zusammen."
+                if content_language() == "de"
+                else "This report traces the evidence through the research phases from the "
+                "initial question to the prioritized conclusions."
+            )
+            report["updated_at"] = utc_now_iso()
+            store.upsert_synthesis(report)
+        return report
     graph = get_project_graph(project_id, store=store)
     nodes = graph["nodes"]
     steps = (graph.get("methodology_state") or {}).get("steps") or []
@@ -678,7 +692,12 @@ def scaffold_synthesis(project_id: str, store: Store | None = None) -> dict[str,
     if not sections:                                  # freeform / no methodology: one catch-all section
         sections = [{"heading": "Findings", "intent": "Author the project's findings + conclusion.",
                      "theme_tags": [], "source_study_ids": graph.get("build_order", [])}]
-    outline = {"build_order_narrative": f"Auto-seeded outline for {graph['project'].get('title','')}.",
+    outline = {"build_order_narrative": (
+                   "Dieser Bericht führt die Evidenz entlang der Forschungsphasen von der "
+                   "Ausgangsfrage bis zu den priorisierten Schlussfolgerungen zusammen."
+                   if content_language() == "de"
+                   else "This report traces the evidence through the research phases from the "
+                        "initial question to the prioritized conclusions."),
                "sections": sections}
     return record_synthesis_outline(project_id, outline, store=store)
 
