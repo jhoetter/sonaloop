@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from fastapi import Request
 
-from .. import services
+from .. import config, services
 from ..storage import Store
 from ._i18n import t
 from ._components import _icon, _avatar, _label, _star, _list_page, _layout
@@ -51,6 +51,9 @@ def _first_steps_html() -> str:
     # One-click example projects (ticket loadable-example-projects): POST + 303 via the
     # _forms kit — load lands on the populated project page; removable via remove_example.
     from ._forms import csrf_field
+    examples = services.list_examples()
+    if not config.product_tour_enabled():
+        examples = [e for e in examples if e["slug"] != "onboarding-showcase"]
     example_rows = fragment(*(
         h("form", {"class_": "fsrow fsex", "method": "post",
                    "action": f'/examples/{e["slug"]}/load'},
@@ -60,9 +63,12 @@ def _first_steps_html() -> str:
             h("span", {"class_": "muted"}, e["tagline"])),
           h("button", {"class_": "sl-btn sl-btn--primary", "type": "submit"},
             t("load_example_btn")))
-        for e in services.list_examples()))
-    # "Take the tour" sits beside the load-example card — prominent on the empty DB.
-    from ._tour import tour_link
+        for e in examples))
+    # "Take the tour" sits beside the load-example card in local/single-user mode.
+    tour = ""
+    if config.product_tour_enabled():
+        from ._tour import tour_link
+        tour = tour_link("sl-btn")
     return h("div", {"class_": "page"},
              h("h1", {"class_": "h1"}, t("first_steps_h")),
              h("p", {"class_": "lead"}, t("first_steps_lead")),
@@ -74,7 +80,7 @@ def _first_steps_html() -> str:
                h("a", {"class_": "sl-btn", "href": DOCS_GETTING_STARTED_URL,
                        "target": "_blank", "rel": "noopener"},
                  raw(_icon("external")), " ", t("fs_docs_link")),
-               " ", raw(tour_link("sl-btn"))))
+               " ", raw(tour)))
 
 
 def _projects_page(page: int = 1, q: str = "") -> str:
@@ -177,6 +183,11 @@ def register_lists(app) -> None:
     async def example_load(slug: str, request: Request):
         """One-click example load (the empty-DB home affordance): POST + CSRF gate +
         303 to the freshly populated project page. Idempotent like the service call."""
+        # The tour's bundled showcase is deliberately unreachable in shared Cloud,
+        # including by a stale page or a hand-crafted direct request.  Reject before
+        # parsing CSRF or opening a Store so this branch cannot mutate tenant data.
+        if slug == "onboarding-showcase" and not config.product_tour_enabled():
+            return not_found()
         form = await request.form()
         if (gate := write_gate(form, "load_example", {"slug": slug})) is not None:
             return gate

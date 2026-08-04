@@ -3,17 +3,88 @@ i18n'd copy, and THE CANARY — every artifact-tour selector must keep existing 
 the page it claims to explain."""
 from __future__ import annotations
 
+import html as html_lib
+import json
 import re
 
 from starlette.testclient import TestClient
 
-from sonaloop import services, web
+from sonaloop import config, services, web
 from sonaloop.web._i18n import STRINGS, _UI_LANG
 from sonaloop.web._tour import SHOWCASE_SLUG, tour_steps
 
 
 def _client():
     return TestClient(web.create_app())
+
+
+def _post(client, url: str, **data):
+    payload = {"csrf_token": client.cookies.get("sl_csrf"), **data}
+    return client.post(url, data=payload, follow_redirects=False)
+
+
+def test_product_tour_policy_defaults_local_and_fails_closed_in_shared_cloud(monkeypatch):
+    monkeypatch.delenv("SONALOOP_PRODUCT_TOUR_ENABLED", raising=False)
+    monkeypatch.setattr(config, "postgres_row_tenancy_enabled", lambda: False)
+    assert config.product_tour_enabled() is True
+
+    monkeypatch.setattr(config, "postgres_row_tenancy_enabled", lambda: True)
+    assert config.product_tour_enabled() is False
+
+    # An explicit deployment override wins in either direction.
+    monkeypatch.setenv("SONALOOP_PRODUCT_TOUR_ENABLED", "1")
+    assert config.product_tour_enabled() is True
+    monkeypatch.setattr(config, "postgres_row_tenancy_enabled", lambda: False)
+    monkeypatch.setenv("SONALOOP_PRODUCT_TOUR_ENABLED", "0")
+    assert config.product_tour_enabled() is False
+
+
+def test_disabled_tour_has_no_ui_or_showcase_mutation_but_keeps_other_examples(
+        store, monkeypatch):
+    monkeypatch.setenv("SONALOOP_PRODUCT_TOUR_ENABLED", "0")
+    client = _client()
+
+    for path in ("/?lang=en", "/personas", "/documentation"):
+        page = client.get(path)
+        assert page.status_code == 200
+        visible_markup = re.sub(r"<script\b.*?</script>", "", page.text,
+                                flags=re.DOTALL | re.IGNORECASE)
+        assert "data-tour-start" not in visible_markup
+        assert 'id="tourov"' not in page.text
+        assert 'id="tour-cfg"' not in page.text
+        cfg_match = re.search(
+            r'id="cmdk-cfg"[^>]*>(.*?)</script>', page.text, flags=re.DOTALL)
+        assert cfg_match
+        palette = json.loads(html_lib.unescape(cfg_match.group(1)))
+        assert "tour" not in {action.get("act") for action in palette["actions"]}
+
+    home = client.get("/?lang=en").text
+    assert 'action="/examples/onboarding-showcase/load"' not in home
+    assert "Pausenschutz im Schichtalltag" not in home
+    assert 'action="/examples/premium-pricing-study/load"' in home
+    assert 'action="/examples/positioning-council/load"' in home
+
+    # The dedicated showcase route fails before the write/CSRF path and leaves no
+    # project, persona, or lifecycle event behind.
+    blocked = client.post(
+        "/examples/onboarding-showcase/load",
+        data={"csrf_token": "forged"},
+        follow_redirects=False,
+    )
+    assert blocked.status_code == 404
+    assert _post(client, "/examples/onboarding-showcase/load").status_code == 404
+    assert store.list_research_projects() == []
+    assert store.list_personas() == []
+    assert not any(
+        event["event"] == "example.loaded"
+        for event in store.list_recent_events(limit=100)
+    )
+
+    # Disabling the product tour is deliberately narrower than disabling the
+    # general example-project facility.
+    loaded = _post(client, "/examples/premium-pricing-study/load")
+    assert loaded.status_code == 303
+    assert loaded.headers["location"].startswith("/jobs/rproject_")
 
 
 def test_tour_chrome_is_injected_on_every_page(store):

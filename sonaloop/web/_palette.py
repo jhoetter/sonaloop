@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import json
 
+from .. import config
 from .._icons import icon as _picon       # direct import avoids a cycle (_components imports _palette)
 from ._i18n import t
 from ._html import h, raw
@@ -75,16 +76,22 @@ def palette_markup() -> str:
     """Per-request overlay markup (localised). The structured Navigate model (with the
     Library children), the actions, group labels, per-type icons and the grouping order
     are all seeded as JSON FROM the coverage registry — nothing is hand-copied here."""
+    actions = [
+        {"title": t("cmdk_theme"), "url": "#", "act": "theme", "ico": _picon("moon")},
+    ]
+    if config.product_tour_enabled():
+        actions.append(
+            {"title": t("tour_take"), "url": "#", "act": "tour", "ico": _picon("compass")}
+        )
+    actions.append(
+        {"title": t("feedback_h"), "url": "#", "act": "feedback", "ico": _picon("chat")}
+    )
     cfg = json.dumps({
         "nav": [{**it, "ico": _picon(it["icon"])} if "children" not in it
                 else {**it, "ico": _picon(it["icon"]),
                       "children": [{**c, "ico": _picon(c["icon"])} for c in it["children"]]}
                 for it in palette_nav()],
-        "actions": [
-            {"title": t("cmdk_theme"), "url": "#", "act": "theme", "ico": _picon("moon")},
-            {"title": t("tour_take"), "url": "#", "act": "tour", "ico": _picon("compass")},
-            {"title": t("feedback_h"), "url": "#", "act": "feedback", "ico": _picon("chat")},
-        ],
+        "actions": actions,
         "labels": {"recent": t("cmdk_recent"), "go": t("cmdk_navigate"), "actions": t("cmdk_actions"),
                    "closest": t("cmdk_closest"), "empty": t("cmdk_empty"), "teach": t("cmdk_teach"),
                    **{tp: src.label() for tp, src in SEARCH_SOURCES.items()}},

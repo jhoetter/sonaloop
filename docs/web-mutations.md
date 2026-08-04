@@ -27,6 +27,16 @@ The `POST …/new` routes remain registered (CSRF + access-guard gated) so hosts
 automations keep a stable HTTP surface, but their GET forms are gone and nothing in
 the UI links them.
 
+### Product-tour and showcase boundary
+
+The optional product tour is a local/single-user Core onboarding surface. In that
+mode it is enabled by default and may load the bundled `onboarding-showcase` through
+the inspector. When shared Postgres row tenancy is active, the default flips off:
+tour affordances and markup are absent, and the browser's
+`POST /examples/onboarding-showcase/load` path is rejected before it can mutate the
+customer workspace. `SONALOOP_PRODUCT_TOUR_ENABLED` is the explicit operator
+override. MCP/CLI example services remain separate host-controlled paths.
+
 Project deletion removes the project container and its project-scoped outputs,
 including councils/reports, calibration outcomes and transient Activity/SSE rows.
 Personas and their memory remain available to the workspace. Content-addressed

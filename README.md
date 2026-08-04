@@ -47,8 +47,10 @@ That's it — no data dir, no `.env`, no setup step. The server bootstraps itsel
 first tool call on a fresh database returns the first steps (project → personas → council).
 Complete **example projects** ship with the install, including an onboarding showcase:
 ask your agent to call
-`load_example`, or click **Load example** in the inspector. `sonaloop info` checks the
-wiring; `sonaloop setup` adds the optional headless browser for prototype testing.
+`load_example`, or click **Load example** in the local/single-user inspector. Shared,
+Postgres row-tenanted Cloud deployments keep the product tour and its onboarding-showcase
+browser loader disabled by default. `sonaloop info` checks the wiring; `sonaloop setup`
+adds the optional headless browser for prototype testing.
 
 <details>
 <summary><b>No setup knowledge? Paste this to your AI agent instead.</b></summary>
@@ -110,7 +112,9 @@ A Linear/Notion-grade web app (`sonaloop-web`, <http://localhost:8787>) that upd
 panel. ⌘K command palette, `?` keyboard cheat sheet, an opt-in product tour, structural
 editing (projects, personas, notes — [authored prose stays
 host-only](https://jhoetter.github.io/sonaloop-docs/web-editing/)), built-in feedback,
-dark mode, bilingual (de/en).
+dark mode, bilingual (de/en). The tour is available by default in local/single-user Core;
+shared Postgres row-tenanted Cloud disables it by default so customer workspaces open on
+their prepared data instead of demo content.
 
 | Synthesis as a report | Persona memory page |
 | --- | --- |

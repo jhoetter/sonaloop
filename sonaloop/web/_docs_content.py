@@ -422,14 +422,18 @@ INSPECTOR_SECTIONS = [
      ("Beispielprojekte", "Example projects"),
      ("Fertige Demo-Studien liegen bei — darunter ein Onboarding-Showcase, eine B2B-Positioning-Studie "
       "und eine B2C-Pricing-Studie "
-      "(mit Preis-Leiter und Head-to-Head). Auf einer leeren Datenbank zeigt die Startseite je einen "
-      "**„Beispiel laden“**-Button; dein Agent kann sie auch per `load_example` laden, `sonaloop "
-      "load-example` ebenso. Laden ist idempotent (kein Duplizieren beim erneuten Laden), und "
+      "(mit Preis-Leiter und Head-to-Head). Im lokalen/single-user Inspector zeigt eine leere "
+      "Datenbank je einen **„Beispiel laden“**-Button; dein Agent kann sie auch per `load_example` "
+      "laden, `sonaloop load-example` ebenso. In der geteilten, Postgres-row-tenanted Cloud ist "
+      "der Browser-Loader des Onboarding-Showcases standardmäßig deaktiviert. Laden ist "
+      "idempotent (kein Duplizieren beim erneuten Laden), und "
       "`remove_example` entfernt **nur** die Daten des Beispiels — nie deine eigenen.",
       "Finished demo studies ship with Sonaloop — including an onboarding showcase, a B2B positioning study and a B2C pricing study "
-      "(with a willingness-to-pay ladder and a head-to-head). On an empty database the home page shows "
-      "a **“Load example”** button for each; your agent can load them via `load_example`, or "
-      "`sonaloop load-example` from the CLI. Loading is idempotent (re-loading never duplicates), and "
+      "(with a willingness-to-pay ladder and a head-to-head). In the local/single-user inspector, "
+      "an empty database shows a **“Load example”** button for each; your agent can load them via "
+      "`load_example`, or `sonaloop load-example` from the CLI. Shared, Postgres row-tenanted Cloud "
+      "disables the onboarding showcase's browser loader by default. Loading is idempotent "
+      "(re-loading never duplicates), and "
       "`remove_example` removes **only** the example's data — never yours.")),
     ("live", "zap",
      ("Live-Aktivität", "Live activity"),
@@ -476,16 +480,22 @@ INSPECTOR_SECTIONS = [
       "panel. On detail pages `[`/`]` step to the sibling record. Everything is disabled while you type in a field.")),
     ("tour", "compass",
      ("Produkt-Tour", "Product tour"),
-     ("Die optionale Tour startet **nie von selbst**. Wenn du **„Tour starten“** wählst, lädt sie bei "
+     ("Die optionale Tour startet **nie von selbst** und ist im lokalen/single-user Core "
+      "standardmäßig verfügbar. Wenn du **„Tour starten“** wählst, lädt sie bei "
       "Bedarf das Showcase-Beispielprojekt und führt dann im Projektkontext durch echte Primitives: "
       "offene Frage, Referenz, Council, Survey, Report, Prototype, Session, Hypothese, "
       "Entscheidung, Notes, Assets und Formate. "
-      "`Esc` beendet sie jederzeit.",
-      "The optional tour **never auto-starts**. When you choose **“Take the tour”**, it loads the "
+      "`Esc` beendet sie jederzeit. In einer geteilten, Postgres-row-tenanted Cloud sind Tour und "
+      "Onboarding-Showcase-Browser-Loader standardmäßig aus; "
+      "`SONALOOP_PRODUCT_TOUR_ENABLED` kann diese Voreinstellung explizit überschreiben.",
+      "The optional tour **never auto-starts** and is available by default in local/single-user "
+      "Core. When you choose **“Take the tour”**, it loads the "
       "showcase example project if needed, then walks real primitives in project context: open "
       "question, reference, council, survey, report, prototype, session, hypothesis, decision, "
       "notes, assets, and Formats. `Esc` "
-      "ends it any time.")),
+      "ends it any time. In shared, Postgres row-tenanted Cloud, the tour and onboarding-showcase "
+      "browser loader are off by default; `SONALOOP_PRODUCT_TOUR_ENABLED` explicitly overrides "
+      "that default.")),
     ("editing", "pencil",
      ("Was du bearbeiten kannst", "What you can edit"),
      ("Der Inspector ist eine Lese-Oberfläche mit einer klaren Grenze: **ansehen und bearbeiten, "

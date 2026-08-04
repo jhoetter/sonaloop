@@ -421,12 +421,19 @@ def _user_menu() -> str:
         account_sec = h("div", {"class_": "sl-um-account"},
                         _identity_avatar(ident, who),
                         h("div", {"class_": "sl-um-account-main"}, *account_bits))
-    link_sec = h("div", {"class_": "sl-um-group"},
-                 _user_menu_row(t("activity_h"), "activity", href="/activity"),
-                 _user_menu_row(t("documentation"), "overview", href="/documentation"),
-                 _user_menu_row(t("feedback_h"), "chat", attrs={"data-fb-open": True}),
-                 _user_menu_row(t("tour_take"), "compass", attrs={"data-tour-start": True}),
-                 _user_menu_row(t("kbd_cheatsheet_h"), "command", attrs={"data-km-open": True}))
+    link_rows = [
+        _user_menu_row(t("activity_h"), "activity", href="/activity"),
+        _user_menu_row(t("documentation"), "overview", href="/documentation"),
+        _user_menu_row(t("feedback_h"), "chat", attrs={"data-fb-open": True}),
+    ]
+    if _config.product_tour_enabled():
+        link_rows.append(
+            _user_menu_row(t("tour_take"), "compass", attrs={"data-tour-start": True})
+        )
+    link_rows.append(
+        _user_menu_row(t("kbd_cheatsheet_h"), "command", attrs={"data-km-open": True})
+    )
+    link_sec = h("div", {"class_": "sl-um-group"}, *link_rows)
     controls_sec = h("div", {"class_": "sl-um-group"},
                      _user_menu_control(t("theme"), "sun",
                                         h("div", {"class_": "sl-um-switch"}, theme_opts)),

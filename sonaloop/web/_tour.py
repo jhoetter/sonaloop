@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import json
 
-from .. import services
+from .. import config, services
 from .._icons import icon as _icon
 from ..storage import Store
 from ._i18n import t
@@ -66,12 +66,16 @@ def tour_steps() -> list[dict]:
 
 def tour_link(extra_class: str = "") -> str:
     """A 'Take the tour' trigger link (home page; prominent variant on the empty DB)."""
+    if not config.product_tour_enabled():
+        return ""
     return h("a", {"class_": ("tour-take " + extra_class).strip(), "href": "#tour",
                    "data-tour-start": True}, t("tour_take"))
 
 
 def tour_footer_entry() -> str:
     """Compatibility footer entry helper. The core shell now renders the tour from the user menu."""
+    if not config.product_tour_enabled():
+        return ""
     return h("button", {"type": "button", "class_": "pi-hover", "data-tour-start": True},
              raw(_icon("compass", animate=True)), h("span", {}, t("tour_take")))
 
@@ -79,6 +83,8 @@ def tour_footer_entry() -> str:
 def tour_markup(store: Store | None = None) -> str:
     """Per-request overlay skeleton (hidden) and the localized step/label config as
     JSON — the same seeding pattern as the palette."""
+    if not config.product_tour_enabled():
+        return ""
     store = store or Store()
     sc = _showcase()
     loaded = store.get_research_project(sc["project_id"]) is not None
@@ -267,5 +273,12 @@ resume();
 })();</script>"""
 
 
+def _tour_chrome(store: Store | None = None) -> str:
+    """Return the complete tour payload, or nothing when the feature is disabled."""
+    if not config.product_tour_enabled():
+        return ""
+    return tour_markup(store) + TOUR_JS
+
+
 # Injected on every page through the public body_end slot (no _layout edit needed).
-register_slot("body_end", lambda store: tour_markup(store) + TOUR_JS)
+register_slot("body_end", _tour_chrome)

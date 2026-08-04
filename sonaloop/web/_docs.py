@@ -207,8 +207,10 @@ def _doc_overview() -> str:
          ("Der Weg von der Frage zur Antwort — und was jeden Schritt belastbar hält.",
           "The path from question to answer — and what keeps every step trustworthy.")),
         ("/documentation/inspector", "activity", ("Live arbeiten", "Working live"),
-         ("Beispielprojekte, Live-Aktivität, Runs, Tastatur, Tour, Bearbeitungs-Grenze, Feedback.",
-          "Example projects, live activity, runs, keyboard, tour, the editing boundary, feedback.")),
+         ("Beispielprojekte, Live-Aktivität, Runs, Tastatur, lokale Tour, "
+          "Bearbeitungs-Grenze, Feedback.",
+          "Example projects, live activity, runs, keyboard, the local tour, "
+          "the editing boundary, feedback.")),
         ("/documentation/methodology", "target", ("Methodik", "Methodology"),
          ("Eine Studie fährt eine austauschbare Methodik. Double Diamond ist nur eine davon.",
           "A study runs a swappable methodology. Double Diamond is just one of them.")),

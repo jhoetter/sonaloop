@@ -136,6 +136,20 @@ def postgres_row_tenancy_enabled() -> bool:
         ("postgres://", "postgresql://"))
 
 
+def product_tour_enabled() -> bool:
+    """Whether the optional browser product tour is available.
+
+    Local/single-user installs keep the tour as an onboarding aid.  Shared Cloud
+    deployments default it off so a customer workspace cannot accidentally load
+    the bundled onboarding showcase.  Operators can explicitly override either
+    default with ``SONALOOP_PRODUCT_TOUR_ENABLED``.
+    """
+    raw = os.getenv("SONALOOP_PRODUCT_TOUR_ENABLED")
+    if raw is None or not raw.strip():
+        return not postgres_row_tenancy_enabled()
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def load_env(path: Path | None = None) -> None:
     """Load a simple .env file without requiring python-dotenv at import time.
 
