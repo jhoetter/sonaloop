@@ -176,6 +176,13 @@ The status is one of `pass`, `needs_deepening`, `needs_reselection`, or `overrid
   visible as `overridden`, and is copied into project/report `sonaloop.report_limitation.v1` records
   and exports. A passing cohort cannot be overridden.
 
+Sonaloop Cloud audit schema v3 freezes this exact server-owned status before its normal result
+summary is redacted. PostHog receives `sonaloop_outcome` only for a technically successful
+`record_cohort_preflight` receipt with the matching contract version. The four values above plus the
+fixed fallback `unknown` are the entire telemetry vocabulary; arbitrary result statuses, rationale
+text and malformed contract versions are omitted. This structural projection never enables content
+capture, and older receipts without it remain absent rather than being reinterpreted.
+
 Example CLI sequence for a governed dispatch:
 
 ```bash
@@ -237,6 +244,14 @@ after explicitly opening **Technical diagnostics** in that chip or in `/runs`. R
 unknowns explicit: Core cannot prove that an external host disconnected, cannot inspect an external
 provider's hidden prompt/reasoning/retry loop, and cannot project the Cloud audit ledger. Cloud may
 join the returned project/run/operation query to its tenant-bound local replay API.
+
+At that Cloud boundary, a valid W3C `traceparent` is preserved and a unique tool span is returned in
+the response. Without propagated context, each request remains its own honest PostHog interaction
+trace; the governed run groups those traces as `$ai_session_id`, and run/project correlation is also
+the MCP conversation rather than a fabricated protocol session. Exported identifiers are
+workspace-HMAC scoped, so Sonaloop spans nest without exposing raw ids, but independently ingested
+raw OpenTelemetry spans do not automatically join them. None of this expands visibility into the
+external model host.
 
 `resume_project_run(project_id, run_id, operation_id?)` accepts one explicit active run. It returns
 the existing journal's `run_step(run_id)` continuation and cannot create, reopen, or finish a run.
