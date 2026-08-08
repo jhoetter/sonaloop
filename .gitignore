@@ -98,6 +98,10 @@ spec/persona-source-prompts.md
 exports/
 # Stray generated avatar that `git add -A` keeps sweeping in (a local artifact, never shipped).
 avatar.png
+# The onboarding fixture is an intentional offline snapshot. Keep its four
+# downscaled portraits in the wheel so a clean checkout never depends on a
+# sibling sonaloop-data repository or the network.
+!sonaloop/examples/_catalog/personas/*/avatar.png
 # Local Claude Code skill symlinks (created by `make skills`) — not committed;
 # the real skills live in claude-skills/.
 .claude/
