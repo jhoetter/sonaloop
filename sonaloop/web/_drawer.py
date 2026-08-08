@@ -30,6 +30,10 @@ SPA_JS = """
 (function(){
   var main=document.getElementById('main');
   if(!main || !window.history || !window.history.pushState || !window.fetch) return;
+  // This value describes the CSS/JS in THIS live document.  Every SPA response carries
+  // the server's current value; a deploy mismatch must become a full navigation before
+  // any new markup enters an old shell.
+  var shellVersion=document.body.getAttribute('data-sonaloop-shell')||'';
   window.__slBg=(function(){ var p=new URLSearchParams(location.search); p.delete('d');
     var q=p.toString(); return location.pathname+(q?'?'+q:''); })();
   function runScripts(root){            // importNode'd <script>s don't execute — recreate them so they do
@@ -75,6 +79,10 @@ SPA_JS = """
   }
   function swap(html, url, push){
     var doc=new DOMParser().parseFromString(html, 'text/html');
+    var nextShell=doc.body && doc.body.getAttribute('data-sonaloop-shell');
+    if(!shellVersion || !nextShell || nextShell!==shellVersion){
+      window.location.assign(url); return;                 // release changed -> honest full load
+    }
     var nm=doc.getElementById('main');
     if(!nm){ location.href=url; return; }                 // unexpected shape -> full load
     var nextSection=nm.querySelector('section'), currentSection=main.querySelector('section');
@@ -95,9 +103,10 @@ SPA_JS = """
   }
   function navigate(url, push){
     document.body.classList.add('spa-loading');
-    fetch(url, {headers:{'X-Requested-With':'spa'}, credentials:'same-origin'}).then(function(r){
+    fetch(url, {headers:{'X-Requested-With':'spa','X-Sonaloop-Shell':shellVersion}, credentials:'same-origin'}).then(function(r){
       var ct=r.headers.get('content-type')||'';
-      if(!r.ok || ct.indexOf('text/html')<0){ location.href=url; return; }
+      var responseShell=r.headers.get('X-Sonaloop-Shell')||'';
+      if(!r.ok || responseShell!==shellVersion || ct.indexOf('text/html')<0){ location.href=url; return; }
       return r.text().then(function(t){ swap(t, url, push); });
     }).catch(function(){ location.href=url; })
       .then(function(){ document.body.classList.remove('spa-loading'); });
@@ -184,6 +193,7 @@ DRAWER_JS = """
 (function(){
   var wrap=document.getElementById('drawer'); if(!wrap || !window.fetch) return;
   var body=wrap.querySelector('.sl-drawer__body'), titleEl=wrap.querySelector('.sl-drawer__title'), lastFocus=null;
+  var shellVersion=document.body.getAttribute('data-sonaloop-shell')||'';
   var pushed=false, curUrl='';                 // pushed: we own ONE history entry (the ?d= context URL)
   function bgUrl(){ var p=new URLSearchParams(location.search); p.delete('d');
     var q=p.toString(); return location.pathname+(q?'?'+q:''); }
@@ -215,18 +225,27 @@ DRAWER_JS = """
   }
   function load(url, title){
     curUrl=url; titleEl.textContent=title||'';
-    body.innerHTML='<p class="muted small">\\u2026</p>';
+    var loading=document.createElement('p'); loading.className='muted small'; loading.textContent='\\u2026';
+    body.replaceChildren(loading);                  // local placeholder only; no server markup yet
+    body.setAttribute('aria-busy','true');
     wrap.classList.add('is-open');
     var fu=url+(url.indexOf('?')<0?'?':'&')+'slide=1';     // the fragment variant of the SAME route
-    fetch(fu, {headers:{'X-Requested-With':'drawer'}, credentials:'same-origin'}).then(function(r){
-      if(!r.ok) throw 0; return r.text();
+    fetch(fu, {headers:{'X-Requested-With':'drawer','X-Sonaloop-Shell':shellVersion}, credentials:'same-origin'}).then(function(r){
+      var ct=r.headers.get('content-type')||'', responseShell=r.headers.get('X-Sonaloop-Shell')||'';
+      if(!r.ok || ct.indexOf('text/html')<0 || responseShell!==shellVersion){ location.href=url; return null; }
+      return r.text();
     }).then(function(html){
+      if(html===null) return;
       var doc=new DOMParser().parseFromString(html, 'text/html');
       // ?slide=1 answers a bare .sl-slide fragment; a page without the variant peeks its #main section
       var frag=doc.querySelector('.sl-slide') || doc.querySelector('#main section')
                || doc.getElementById('main') || doc.body.firstElementChild;
+      var marker=frag && frag.querySelector('[data-sonaloop-shell]');
+      var fragmentShell=marker && marker.getAttribute('data-sonaloop-shell');
+      if(!frag || fragmentShell!==shellVersion){ location.href=url; return; }
       body.innerHTML='';
-      if(frag){ body.appendChild(document.importNode(frag, true)); runScripts(body); }
+      body.removeAttribute('aria-busy');
+      body.appendChild(document.importNode(frag, true)); runScripts(body);
       hoistActions();
       if(!titleEl.textContent){ var h1=body.querySelector('h1');
         if(h1) titleEl.textContent=(h1.textContent||'').trim(); }

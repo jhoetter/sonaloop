@@ -23,7 +23,7 @@ from typing import Any, Callable
 
 from ._ctx import *  # noqa: F401,F403  (shared render toolkit)
 from .._html import register_css
-from .._runs_widget import collect_run_states, resume_html
+from .._runs_widget import collect_run_states, run_diagnostics_html
 
 # ---------------------------------------------------------------- extension seam
 
@@ -52,32 +52,29 @@ def _extension_sections(store) -> str:
 # ---------------------------------------------------------------- core rendering
 
 def _meta_line(r: dict) -> str:
-    """`Last activity · timestamp` plus the next-ready step pills (when known)."""
-    ready = fragment(*(h("span", {"class_": "pill"}, step) for step in r["next_ready"][:4]))
+    """Human-readable primary metadata; internal task keys live in diagnostics."""
     return h("div", {"class_": "run-meta"},
              h("span", {"class_": "muted small"},
-               f'{t("run_last_activity")}: {ui.fmt_ts(r["last_activity"])}'),
-             fragment(h("span", {"class_": "muted small"}, f' · {t("run_next_ready")}: '), ready)
-             if r["next_ready"] else None)
+               f'{t("run_last_activity")}: {ui.fmt_ts(r["last_activity"])}'))
 
 
 def _run_row(r: dict, *, stalled: bool = False, unverified: bool = False) -> str:
     state_label = (t("runs_unverified_h") if unverified else
                    t("stalled") if stalled else t("runs_active_h"))
     state_color = "var(--red)" if unverified else "var(--amber)" if stalled else "var(--green)"
-    unmet = (r.get("unmet_invariant") or {}).get("message")
-    support = (r.get("trace") or {}).get("support_ref")
+    attention = (
+        t("health_attention_unverified") if unverified
+        else t("health_attention_stalled") if stalled else ""
+    )
     return h("div", {"class_": "runrow" + (" runrow-stalled" if stalled else "")
                      + (" runrow-unverified" if unverified else ""),
-                     "role": "status", "aria-label": f"{state_label}. {unmet or ''}"},
+                     "role": "status", "aria-label": state_label},
              h("div", {"class_": "runrow-head"},
                h("a", {"href": r["url"]}, raw(_icon("projects")), " ", h("b", {}, r["title"])),
                _label(state_label, state_color)),
              _meta_line(r),
-             h("p", {"class_": "muted small"}, unmet) if unmet else None,
-             raw(resume_html(r["note"])) if (stalled or unverified) and r.get("note") else None,
-             h("p", {"class_": "muted small"}, f'{t("health_trace")}: ', h("code", {}, support))
-             if support else None,
+             h("p", {"class_": "sl-run-attention"}, attention) if attention else None,
+             raw(run_diagnostics_html(r)),
              # Explicitly announce that unverified is not engine-finished. The
              # text also keeps older screen-reader/search workflows truthful.
              h("span", {"class_": "sl-sr-only"}, t("run_engine_finished_no")) if unverified else None)
@@ -121,7 +118,8 @@ def register_runs(app) -> None:
         finished = [h("div", {"class_": "runrow"},
                       h("div", {"class_": "runrow-head"},
                         h("a", {"href": r["url"]}, raw(_icon("projects")), " ", h("b", {}, r["title"])),
-                        h("span", {"class_": "muted small"}, ui.fmt_ts(r["last_activity"]))))
+                        h("span", {"class_": "muted small"}, ui.fmt_ts(r["last_activity"]))),
+                      raw(run_diagnostics_html(r)))
                     for r in states["finished"]]
         if not (stalled or active or unverified or finished):
             core = h("div", {"class_": "sl-empty"},

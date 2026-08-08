@@ -21,6 +21,7 @@ from ._slide import slide_mode, spa_mode
 from ._live import LIVE_CSS, LIVE_JS, live_markup
 from ._runs_widget import RUNS_WIDGET_CSS, RUNS_WIDGET_JS, runs_widget_markup
 from ._keymap import KEYMAP_CSS, KEYMAP_JS, keymap_markup
+from ._shell_version import make_shell_token as _make_shell_token, publish_shell_token
 from ._ext import (  # noqa: F401  (extension seams; public surface re-exported by web/__init__)
     register_nav_section, register_nav_item, resolve_label, nav_model,
     render_slot, theme_override_css, brand_name, brand_logo, title_brand,
@@ -527,12 +528,12 @@ _BRAND_LOGO_CSS = register_css(
     ".sl-logo__img{display:block;height:20px;max-width:150px;object-fit:contain}")
 
 
-def _brand_logo_img(alt: str) -> str:
+def _brand_logo_img(alt: str, logo_value: str | None = None) -> str:
     """The customer-logo <img> for the sidebar lockup, or "" when none is set. A data:
     URI is emitted as-is. Local file logos use the single-tenant /data mount. Shared
     row-tenancy has no raw runtime-file route, so its workspace branding must use a
     data URI (or fall back to the wordmark)."""
-    logo = brand_logo()
+    logo = brand_logo() if logo_value is None else logo_value
     if not logo:
         return ""
     if logo.startswith("data:"):
@@ -552,23 +553,57 @@ def _brand_logo_img(alt: str) -> str:
 
 def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
             active: str = "", actions: str = "") -> str:
+    # Render every context-dependent shell value exactly once.  Besides avoiding slot
+    # side effects, this makes the token describe the precise language/workspace/theme
+    # chrome that an SPA navigation would otherwise keep alive.
+    shell_language = _lang()
+    favorites_key = _favorites_storage_key()
+    shell_brand = brand_name()
+    shell_brand_logo = str(brand_logo() or "")
+    shell_theme_css = theme_override_css()
+    shell_head_extra = render_slot("head_extra", store)
+    shell_body_end = render_slot("body_end", store)
+    shell_sidebar_extra = render_slot("sidebar_extra", store)
+    shell_sidebar_footer = _sidebar_footer(store)
+    shell_user_menu = _user_menu()
+    # Active-route styling changes on every navigation and is synchronized by the SPA
+    # client, so hash a deliberately inactive rendering. Extension nav/palette entries
+    # are otherwise persistent browser chrome and must rotate the context token.
+    shell_nav_contract = _nav("\0shell-contract", store)
+    shell_palette = palette_markup()
+    shell_token = _make_shell_token(
+        language=shell_language,
+        favorites_key=favorites_key,
+        brand=shell_brand,
+        brand_logo_value=shell_brand_logo,
+        theme_css=shell_theme_css,
+        head_extra=shell_head_extra,
+        body_end=shell_body_end,
+        sidebar_extra=shell_sidebar_extra,
+        sidebar_footer=shell_sidebar_footer,
+        user_menu=shell_user_menu,
+        nav_contract=shell_nav_contract,
+        palette_contract=shell_palette,
+    )
+    publish_shell_token(shell_token)
     # The `?slide=1` fragment variant (§8.1, web/_slide.py): the SAME page, content only — the
-    # slide-over fetches this while pushState makes the address the canonical URL. The host
-    # document already carries the full CSS/JS environment; the drawer re-executes embedded
-    # scripts. The page's header ACTIONS (the V10 "…" overflow + its dialogs, the star) ride
-    # along hidden — web/_drawer's DRAWER_JS hoists [data-slide-actions] into the panel header
-    # (next to expand/close), so edit/delete stay reachable from the peek too.
+    # slide-over fetches this while pushState makes the address the canonical URL. Its hidden
+    # full-token marker lets DRAWER_JS reject a context/release race before importing markup.
+    # The page's header ACTIONS (the V10 "…" overflow + its dialogs, the star) ride along hidden
+    # and are hoisted into the panel header after the token check.
     if slide_mode():
         acts = (h("span", {"class_": "sl-tb-actions", "data-slide-actions": True,
                            "hidden": True}, raw(actions))
                 if actions else "")
-        return h("div", {"class_": "sl-slide"}, raw(acts), raw(body))
+        marker = h("span", {"data-sonaloop-shell": shell_token, "hidden": True,
+                             "aria-hidden": "true"})
+        return h("div", {"class_": "sl-slide"}, marker, raw(acts), raw(body))
     # SPA fragment: the router fetches with `X-Requested-With: spa` and extracts `#main`
     # via DOMParser. Return only the main content — skip the 465 KB shell (CSS/JS/sidebar).
     if spa_mode():
         return (
             f'<!doctype html><html><head><title>{_esc(title)}</title></head>'
-            f'<body><div class="sl-main" id="main">'
+            f'<body data-sonaloop-shell="{shell_token}"><div class="sl-main" id="main">'
             f'<header class="sl-topbar"><button class="sl-iconbtn sl-iconbtn--ghost" id="sbt" '
             f'data-sidebar-toggle title="{t("sidebar")} ([)" aria-label="{t("sidebar")}" '
             f'aria-expanded="true">{_icon("panel")}</button>'
@@ -580,7 +615,7 @@ def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
     crumbs = crumbs or [(title, None)]
     # Inject per-request translations into the static JS (client renders need them
     # too — same __PLACEHOLDER__ -> t() pattern used for the voices chart).
-    app_js = (APP_JS.replace("__FAV_STORAGE_KEY__", json.dumps(_favorites_storage_key()))
+    app_js = (APP_JS.replace("__FAV_STORAGE_KEY__", json.dumps(favorites_key))
               .replace("__FAV_ICONS__", _FAV_ICONS_JSON)
               .replace("__UNSTAR__", json.dumps(t("unstar"))))
     # Brand lockup: the wordmark sets the "loop" of "Sona·loop" in Sona Pixel (the shared
@@ -589,8 +624,8 @@ def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
     # product apps (data/tracker/design); the bare core ("Sonaloop") renders just the wordmark.
     # A customer logo (theming.validate_customer_theme brand.logo, set via set_brand)
     # replaces mark + wordmark entirely — the customer's identity, not a co-brand.
-    _bn = brand_name()
-    _lockup = _brand_logo_img(_bn)
+    _bn = shell_brand
+    _lockup = _brand_logo_img(_bn, shell_brand_logo)
     if not _lockup:
         _i = _bn.lower().find("loop")
         if _i != -1:
@@ -604,19 +639,19 @@ def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
             _brand_word += f'<span class="sl-logo__sub">{_esc(_sub)}</span>'
         _lockup = f'<span class="sl-logo__mark">{_icon("sonaloop")}</span>{_brand_word}'
     return f"""<!doctype html>
-<html lang="{_lang()}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="{shell_language}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{_esc(title_brand() + (" · " + title if title and title.strip() else ""))}</title>
 <link rel="icon" type="image/svg+xml" href="{_FAVICON_HREF}">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-{HEAD_JS}<style>{_minify_css(CSS)}{_minify_css(PALETTE_CSS)}{_minify_css(LIVE_CSS)}{_minify_css(RUNS_WIDGET_CSS)}{_minify_css(KEYMAP_CSS)}{collect_css()}</style>{theme_override_css()}{render_slot("head_extra", store)}</head>
-<body><div class="sl-app-shell" id="app">
+{HEAD_JS}<style>{_minify_css(CSS)}{_minify_css(PALETTE_CSS)}{_minify_css(LIVE_CSS)}{_minify_css(RUNS_WIDGET_CSS)}{_minify_css(KEYMAP_CSS)}{collect_css()}</style>{shell_theme_css}{shell_head_extra}</head>
+<body data-sonaloop-shell="{shell_token}"><div class="sl-app-shell" id="app">
   <aside class="sl-sidebar">
     <div class="sl-brand"><a class="sl-logo" href="/">{_lockup}</a><button class="sl-sidebar-close sl-iconbtn sl-iconbtn--ghost" type="button" data-sidebar-close aria-label="{t("cmdk_close")}" title="{t("cmdk_close")}">{_CLOSE_SVG}</button></div>
     <div class="sl-sb-search"><button type="button" class="sl-cmdk-trigger" data-cmdk-open aria-label="{t("search")}">{_icon("search")}<span>{t("search")}</span><kbd class="sl-kbd">⌘K</kbd></button></div>
-    <div class="sl-sb-scroll">{_nav(active, store)}{render_slot("sidebar_extra", store)}</div>
-    {_sidebar_footer(store)}
-    {_user_menu()}
+    <div class="sl-sb-scroll">{_nav(active, store)}{shell_sidebar_extra}</div>
+    {shell_sidebar_footer}
+    {shell_user_menu}
   </aside>
   <button class="sl-sidebar-backdrop" type="button" data-sidebar-close aria-label="{t("cmdk_close")}"></button>
   <div class="sl-resize" id="rz" role="separator" aria-orientation="vertical" aria-label="{t("sidebar")}"></div>
@@ -625,7 +660,7 @@ def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
       {_crumbs_html(crumbs)}<span class="sl-spacer"></span>{runs_widget_markup(store)}<span class="sl-tb-actions">{actions}</span></header>
     <section>{body}</section>
   </div>
-</div>{drawer_markup(t("cmdk_close"), t("drawer_expand"))}{palette_markup()}{PALETTE_JS}{keymap_markup()}{KEYMAP_JS}{live_markup()}{LIVE_JS}{RUNS_WIDGET_JS}{SHELL_JS}{app_js}{SPA_JS}{DRAWER_JS}{render_slot("body_end", store)}</body></html>"""
+</div>{drawer_markup(t("cmdk_close"), t("drawer_expand"))}{shell_palette}{PALETTE_JS}{keymap_markup()}{KEYMAP_JS}{live_markup()}{LIVE_JS}{RUNS_WIDGET_JS}{SHELL_JS}{app_js}{SPA_JS}{DRAWER_JS}{shell_body_end}</body></html>"""
 
 
 # First component on the new builder (spec C3): markup via h() (auto-escaped), CSS co-located here.

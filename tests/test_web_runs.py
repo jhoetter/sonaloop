@@ -28,11 +28,18 @@ def test_runs_page_groups_active_stalled_finished(store):
     # all three projects show, each linking to its project page
     for pid, title in ((sid, "Stalled Proj"), (aid, "Active Proj"), (fid, "Finished Proj")):
         assert title in html and f'href="/jobs/{pid}"' in html
-    # the stalled lane is flagged and carries the copyable resume affordance
+    # The primary row stays human-readable. Exact recovery instructions remain
+    # available only behind an intentionally closed diagnostics disclosure.
     assert web.STRINGS["en"]["runs_stalled_h"] in html
     assert "start_run(" in html and f"data-copy=" in html and sid in html
-    # next-ready steps surface for the stalled project
-    assert "frame__discover" in html
+    assert web.STRINGS["en"]["health_attention_stalled"] in html
+    diag_tag = html[html.index("data-run-diagnostics") - 80:html.index("data-run-diagnostics") + 80]
+    assert "<details" in diag_tag and " open" not in diag_tag
+    assert html.index(web.STRINGS["en"]["health_attention_stalled"]) \
+        < html.index("data-run-diagnostics") < html.index("start_run(")
+    # Internal next-ready task keys remain support-visible, but only after the
+    # intentionally closed diagnostics disclosure.
+    assert html.index("data-run-diagnostics") < html.index("frame__discover")
     # finished plans collapse
     assert "<details" in html and web.STRINGS["en"]["runs_finished_h"] in html
 
@@ -85,26 +92,45 @@ def test_topbar_widget_hidden_at_zero_runs(store):
     assert ">1 run stalled</span>" in html.split('id="runsw-count"')[1][:60]
 
 
-def test_project_head_run_chip_with_popover(store):
+def test_project_head_run_chip_with_progressive_diagnostics(store):
     """Runs left the nav. The global runs widget owns the topbar; a project with a
     plan carries its run-state chip in the project head, with state, last activity,
-    the copyable resume hint (stalled) and the /runs journal link."""
+    a human-readable hint and the /runs journal link. Raw invariants, recovery
+    calls and trace ids are available only inside the closed diagnostics detail."""
     sid = _planned(store, "Stalled Proj")                      # open work, nobody driving
     html = _client().get(f"/jobs/{sid}?lang=en").text
     assert 'class="sl-toolbtn runchip runchip--stalled"' in html          # the rendered chip, not the chrome CSS/JS
     assert f'{web.STRINGS["en"]["run_chip"]} · {web.STRINGS["en"]["runs_stalled_h"]}' in html
+    toggle_at = html.index("data-runchip-toggle")
+    toggle_tag = html[html.rindex("<button", 0, toggle_at):html.index(">", toggle_at) + 1]
+    assert 'aria-haspopup="dialog"' in toggle_tag
+    assert 'aria-controls="runchip-fly"' in toggle_tag
+    assert 'aria-expanded="false"' in toggle_tag
     topbar_actions = html.split('<span class="sl-tb-actions">', 1)[1].split('</span></header>', 1)[0]
     assert 'id="runchip"' not in topbar_actions
     assert 'class="sl-toolbtn sl-tour-plan-chip"' in topbar_actions
     project_head = html.split('class="proj-head"', 1)[1].split('class="outlinecard', 1)[0]
     assert 'id="runchip"' in project_head
-    pop = html.split('id="runchip-fly"')[1][:2500]
+    pop = html.split('id="runchip-fly"')[1][:6000]
+    fly_tag = html[html.rindex("<div", 0, html.index('id="runchip-fly"')):
+                   html.index(">", html.index('id="runchip-fly"')) + 1]
+    assert 'role="dialog"' in fly_tag
+    assert 'aria-labelledby="runchip-fly-title"' in fly_tag
     # the popover LEADS with the concept (§9 V8): what a run is, before this run's state
     assert web.STRINGS["en"]["runs_lead"] in pop
     assert pop.index(web.STRINGS["en"]["runs_lead"]) < pop.index(web.STRINGS["en"]["run_last_activity"])
     assert web.STRINGS["en"]["run_last_activity"] in pop
-    assert "start_run(" in pop                                        # copyable resume hint
+    assert web.STRINGS["en"]["health_attention_stalled"] in pop
+    assert "data-run-diagnostics" in pop
+    details_tag = pop[pop.index("<details"):pop.index(">", pop.index("<details")) + 1]
+    assert " open" not in details_tag
+    invariant = S.project_health(sid, store=store)["unmet_invariant"]["message"]
+    assert pop.index(web.STRINGS["en"]["health_attention_stalled"]) \
+        < pop.index("data-run-diagnostics") < pop.index(invariant) < pop.index("start_run(")
+    assert pop.index("data-run-diagnostics") < pop.index("frame__discover")
     assert 'data-copy=' in html and 'href="/runs"' in html            # journal link
+    # The old full-width engineering card no longer interrupts the project canvas.
+    assert 'class="sl-job-health' not in html and 'id="job-health"' not in html
     # an active run flips the chip state
     aid = _planned(store, "Active Proj")
     S.start_run(aid, store=store)
@@ -116,6 +142,37 @@ def test_project_head_run_chip_with_popover(store):
     bare = S.create_research_project("No plan", goal="g", store=store)
     bare_html = _client().get(f'/jobs/{bare["id"]}?lang=en').text
     assert 'class="sl-toolbtn runchip runchip--stalled"' in bare_html
+
+
+def test_runs_page_support_trace_is_only_inside_closed_diagnostics(store):
+    pid = _planned(store, "Support trace disclosure")
+    run = S.start_run(pid, store=store)
+    run["updated_at"] = "2020-01-01T00:00:00+00:00"
+    store.upsert_run(run)
+    health = S.project_health(pid, store=store)
+    support_ref = health["trace"]["support_ref"]
+    invariant = health["unmet_invariant"]["message"]
+
+    html = _client().get("/runs?lang=en").text
+    details_at = html.index("data-run-diagnostics")
+    details_tag = html[html.rindex("<details", 0, details_at):html.index(">", details_at) + 1]
+    assert " open" not in details_tag
+    summary_at = html.index("<summary", details_at)
+    summary_tag = html[summary_at:html.index(">", summary_at) + 1]
+    assert f'aria-label="Technical diagnostics for Support trace disclosure"' in summary_tag
+    assert html.index(web.STRINGS["en"]["health_attention_stalled"]) < details_at
+    assert details_at < html.index(invariant) < html.index(support_ref)
+
+
+def test_run_popovers_keep_aria_state_and_focus_in_sync():
+    from sonaloop.web._runs_widget import RUNS_WIDGET_JS
+
+    assert "function closePopover(btn,fly,restore)" in RUNS_WIDGET_JS
+    assert "btn.setAttribute('aria-expanded','false')" in RUNS_WIDGET_JS
+    assert "var ownedFocus=fly.contains(document.activeElement)" in RUNS_WIDGET_JS
+    assert "if((restore||ownedFocus)&&btn) btn.focus()" in RUNS_WIDGET_JS
+    assert "closePopover(document.querySelector('[data-runchip-toggle]'),cfly,false)" in RUNS_WIDGET_JS
+    assert "closePopover(document.querySelector('[data-runchip-toggle]'),cfly,true)" in RUNS_WIDGET_JS
 
 
 def test_api_runs_returns_grouped_states(store):

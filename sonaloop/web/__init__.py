@@ -129,6 +129,7 @@ def create_app():
 
     from urllib.parse import urlencode
 
+    from ._shell_version import SHELL_RESPONSE_STATE, ensure_no_store, shell_digest
     from ._slide import _REQ_PATH, _SLIDE, _SPA, _SSR_DRAWER, fetch_slide_fragment, valid_detail_path
 
     @app.middleware("http")
@@ -152,20 +153,48 @@ def create_app():
         path_token = _REQ_PATH.set(request.url.path)   # the recents-beacon seam (UX V6)
         slide = request.query_params.get("slide") in ("1", "true")
         slide_token = _SLIDE.set(slide)
-        spa = request.headers.get("x-requested-with", "").lower() == "spa"
+        requested_with = request.headers.get("x-requested-with", "").lower()
+        spa = requested_with == "spa"
+        protected_fragment = requested_with in {"spa", "drawer"}
         spa_token = _SPA.set(spa)
+        server_release = shell_digest() if protected_fragment else ""
+        request_shell = request.headers.get("x-sonaloop-shell", "")
+        request_release = request_shell.partition(".")[0]
+        shell_mismatch = protected_fragment and request_release != server_release
+        shell_state: dict[str, str] = {}
+        shell_state_token = SHELL_RESPONSE_STATE.set(shell_state)
         ssr_token = None
         d = request.query_params.get("d")
-        if d and not slide and request.method == "GET" and valid_detail_path(d):
+        if d and not shell_mismatch and not slide and request.method == "GET" and valid_detail_path(d):
+            # Forms middleware is outermost and may have minted a CSRF token for this
+            # first request before its Set-Cookie can reach the browser. Carry that exact
+            # token into the in-process slide render; otherwise the nested middleware
+            # mints a second token and freshly shared ?d= links contain invalid forms.
+            from ._forms import CSRF_COOKIE, current_csrf_token
+            fragment_cookie = request.headers.get("cookie", "")
+            csrf_token = current_csrf_token()
+            if csrf_token and request.cookies.get(CSRF_COOKIE) != csrf_token:
+                fragment_cookie += ("; " if fragment_cookie else "") + f"{CSRF_COOKIE}={csrf_token}"
             frag_html = await fetch_slide_fragment(
-                request.app, d, request.headers.get("cookie", ""))
+                request.app, d, fragment_cookie)
             if frag_html is not None:
                 # the no-JS scrim/close target: this URL with ?d= dropped (param order kept)
                 rest = [(k, v) for k, v in request.query_params.multi_items() if k != "d"]
                 close_href = request.url.path + (f"?{urlencode(rest)}" if rest else "")
                 ssr_token = _SSR_DRAWER.set((d, frag_html, close_href))
         try:
-            response = await call_next(request)
+            if shell_mismatch:
+                # Reject clients from before the handshake shipped as well as stale
+                # current clients. Both SPA and drawer clients already turn a non-2xx
+                # fragment response into an honest full navigation, so no mismatched
+                # markup reaches the DOM.
+                response = Response(
+                    "browser shell changed; reload required",
+                    status_code=409,
+                    media_type="text/plain",
+                )
+            else:
+                response = await call_next(request)
         finally:
             _research_services.end_project_graph_cache(graph_cache_token)
             end_plan_cache(plan_cache_token)
@@ -174,6 +203,7 @@ def create_app():
             _REQ_PATH.reset(path_token)
             _SLIDE.reset(slide_token)
             _SPA.reset(spa_token)
+            SHELL_RESPONSE_STATE.reset(shell_state_token)
             if ssr_token is not None:
                 _SSR_DRAWER.reset(ssr_token)
         if persist:
@@ -188,6 +218,27 @@ def create_app():
         elif not tenant_runtime_files_blocked and (
                 rpath.startswith("/data/") or rpath.startswith("/proto-files/")):
             response.headers["Cache-Control"] = "public, max-age=3600"
+        is_html = response.headers.get("content-type", "").lower().startswith("text/html")
+        if protected_fragment:
+            # Never let a proxy replay a fragment across releases. The response token
+            # also catches a transition between request routing and DOM parsing.
+            response.headers["X-Sonaloop-Shell"] = shell_state.get("token", server_release)
+        if protected_fragment or is_html:
+            # A full reload must not resurrect an old document from browser/proxy storage;
+            # keep any stricter existing directives and add the non-storage invariant.
+            response.headers["Cache-Control"] = ensure_no_store(
+                response.headers.get("Cache-Control", ""))
+            # Full documents and fragments share URLs but never cache representations.
+            # Preserve middleware/proxy additions (notably Accept-Encoding) while making
+            # both request dimensions explicit and case-insensitively deduplicated.
+            vary = [item.strip() for item in response.headers.get("Vary", "").split(",")
+                    if item.strip()]
+            seen = {item.lower() for item in vary}
+            for item in ("X-Requested-With", "X-Sonaloop-Shell"):
+                if item.lower() not in seen:
+                    vary.append(item)
+                    seen.add(item.lower())
+            response.headers["Vary"] = ", ".join(vary)
         return response
 
     # Write-path support (web CRUD): the double-submit CSRF cookie middleware. The

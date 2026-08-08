@@ -81,6 +81,16 @@ def csrf_field() -> str:
     return h("input", {"type": "hidden", "name": "csrf_token", "value": _CSRF.get()})
 
 
+def current_csrf_token() -> str:
+    """Return the request token for trusted in-process subrequests.
+
+    The SSR drawer renders a detail route through the same ASGI app before the outer
+    response has had a chance to set a freshly issued cookie. Propagating this value
+    into that subrequest keeps every embedded form on the outer request's token.
+    """
+    return _CSRF.get()
+
+
 def csrf_ok(form) -> bool:
     """Double-submit check: the posted hidden field must equal the request cookie."""
     cookie, field = _CSRF.get(), str(form.get("csrf_token") or "")

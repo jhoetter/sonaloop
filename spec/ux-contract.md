@@ -263,9 +263,11 @@ shrinks to what is genuinely app-specific (outline visuals, graph SVG, keymap).
    coin-flip the user has to learn. A generic default peek (row header · clamped body · ref chips ·
    "Open ↗") covers every kind; kind-specific extras (survey stance strip, asset preview, session
    verdict) are added only where the renderer already exists.
-4. **Runs: header chip with popover** (state · last activity · resume hint · link to journal).
-   `/runs` stays as the minimal off-nav journal page the popover links to — no extra styling
-   investment; it is telemetry.
+4. **Runs: header chip with popover** (state · last activity · human-readable recovery hint ·
+   link to journal). Support-grade invariant text, operation calls and trace ids use progressive
+   disclosure inside that existing popover and `/runs`; they never become a full-width project
+   card. `/runs` stays as the minimal off-nav journal page the popover links to — it is telemetry,
+   not a second project canvas.
 5. **Goldens are committed in-repo.** Deterministic seed, fixed viewport, ~12 screens × light+dark
    (~3-5 MB). Exact, reviewable diffs in PRs beat lighter-but-weaker on-demand baselines — and
    committing generated artifacts with a freshness gate is already house culture.
@@ -316,6 +318,17 @@ data-layer follow-up.
    for dense outline / list / touch), a vertical-rhythm scale for gaps between rows, sections and
    page regions, and normalization of existing `.sl-*` rules onto that scale (no off-scale px
    values). Documented as its own docs-site page; the inspector consumes it via the vendored CSS.
+8. **Fragment shell coherence across releases.** A full document and every content-only SPA or
+   slide-over response carry a content-derived `release.context` shell token covering
+   CSS/JavaScript plus the persistent static shell-markup contract. SPA and drawer requests send
+   the token they are currently running. A missing
+   or different **release** segment (including a tab opened before this protocol shipped) receives
+   `409`, `no-store`, and no fragment; even the pre-protocol client already turns that non-2xx into
+   a full navigation. A matching release with a different **context** (language, workspace,
+   branding/theme or persistent extension chrome) receives a normal `200` tokened fragment; the
+   client detects the full-token mismatch, refuses the DOM swap, and full-navigates. Full HTML is
+   itself `no-store`, so that recovery cannot reload a cached stale shell. New markup therefore
+   never enters a document whose retained shell cannot render or operate it.
 
 ## 9. Round 3 (2026-06-12, second screenshot review) — CRAFT
 

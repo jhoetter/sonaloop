@@ -8,6 +8,8 @@ only, generated prose never editable) is documented in docs/web-mutations.md; th
 absence of any text-edit route for councils/syntheses/SOUL is asserted here too."""
 from __future__ import annotations
 
+import re
+
 import pytest
 
 from sonaloop import services, web
@@ -43,6 +45,35 @@ def test_csrf_cookie_is_issued_and_forms_embed_it(store):
     assert token
     html = client.get(f'/jobs/{proj["id"]}/edit?lang=en').text
     assert f'name="csrf_token" value="{token}"' in html
+
+
+def test_fresh_ssr_drawer_reuses_outer_csrf_and_shell_context(store):
+    """A first-ever shared ``?d=`` request must not mint a second token inside
+    its in-process slide render. The embedded dialog forms must work immediately."""
+    from starlette.testclient import TestClient
+
+    proj = services.create_research_project("Fresh shared drawer", store=store)
+    client = TestClient(web.create_app())
+    response = client.get(
+        f'/jobs/{proj["id"]}?d=/jobs/{proj["id"]}&lang=en'
+    )
+
+    assert response.status_code == 200
+    cookie = client.cookies.get("sl_csrf")
+    assert cookie
+    form_tokens = re.findall(r'name="csrf_token" value="([^"]+)"', response.text)
+    shell_tokens = re.findall(
+        r'data-sonaloop-shell="([0-9a-f]{64}\.[0-9a-f]{64})"', response.text
+    )
+    assert len(form_tokens) >= 2 and set(form_tokens) == {cookie}
+    assert len(shell_tokens) >= 2 and len(set(shell_tokens)) == 1
+
+    edited = client.post(
+        f'/jobs/{proj["id"]}/edit',
+        data={"csrf_token": cookie, "title": "Fresh drawer edited"},
+        follow_redirects=False,
+    )
+    assert edited.status_code == 303
 
 
 def test_csrf_cookie_is_secure_behind_public_https_proxy(monkeypatch):

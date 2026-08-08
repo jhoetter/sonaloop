@@ -231,7 +231,9 @@ evidence references. It never treats long prose, a provider label, or a generic 
 
 The projection distinguishes `running`, `stalled`, engine-`finished`, and `unverified` output. It
 also names the first unmet invariant, the last successful operation, every repairable integrity
-finding, a safe next action and a redacted `sltrace_*` support reference. Recovery signals keep
+finding, a safe next action and a redacted `sltrace_*` support reference. The normal project canvas
+keeps the established run chip and a human-readable state; these support-grade values appear only
+after explicitly opening **Technical diagnostics** in that chip or in `/runs`. Recovery signals keep
 unknowns explicit: Core cannot prove that an external host disconnected, cannot inspect an external
 provider's hidden prompt/reasoning/retry loop, and cannot project the Cloud audit ledger. Cloud may
 join the returned project/run/operation query to its tenant-bound local replay API.

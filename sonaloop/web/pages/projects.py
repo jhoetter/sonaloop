@@ -19,7 +19,6 @@ from .._cohort_integrity_view import render_cohort_integrity
 register_css(r"""
 .sl-pu-card{border:1px solid var(--line);border-left:3px solid var(--green);border-radius:var(--radius);background:var(--panel);padding:12px 14px;margin:14px 0}.sl-pu-card--missing{border-left-color:var(--red)}
 .sl-pu-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.sl-pu-head strong{display:flex;align-items:center;gap:7px}.sl-pu-meta{color:var(--muted);font-size:var(--t-sm);margin-top:4px}.sl-pu-caps{margin:9px 0 0;padding-left:18px;font-size:var(--t-sm)}
-.sl-job-health{border:1px solid var(--line);border-left:3px solid var(--muted);border-radius:var(--radius);background:var(--panel);padding:12px 14px;margin:14px 0}.sl-job-health--running,.sl-job-health--finished{border-left-color:var(--green)}.sl-job-health--stalled{border-left-color:var(--amber)}.sl-job-health--unverified{border-left-color:var(--red)}.sl-job-health-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.sl-job-health-grid{display:grid;grid-template-columns:minmax(130px,.34fr) 1fr;gap:7px 14px;margin-top:10px;font-size:var(--t-sm)}.sl-job-health-grid dt{color:var(--muted)}.sl-job-health-grid dd{margin:0;min-width:0}.sl-job-health code{overflow-wrap:anywhere}.sl-job-health-issues{margin:8px 0 0;padding-left:18px}.sl-job-health-issues a{color:var(--accent)}.sl-job-health-copy{border:1px solid var(--line);background:var(--panel-2);color:var(--muted);border-radius:var(--radius-sm);font-size:var(--t-xs);padding:2px 8px;cursor:pointer}@media(max-width:640px){.sl-job-health-grid{grid-template-columns:1fr}.sl-job-health-grid dd{margin-bottom:5px}}
 """)
 
 
@@ -88,57 +87,6 @@ def _product_understanding_html(project: dict, store=None) -> str:
                (raw(_label(t("pu_conflicts_n", n=conflicts), "var(--red)")) if conflicts else None)),
              h("div", {"class_": "sl-pu-meta"}, meta),
              h("ul", {"class_": "sl-pu-caps"}, fragment(*cap_rows)))
-
-
-def _project_health_html(project_id: str, store) -> str:
-    """Render only the canonical service projection; never infer trust in HTML."""
-    try:
-        health = services.project_health(project_id, store=store)
-    except Exception:
-        return ""
-    state = str(health.get("state") or "stalled")
-    labels = {
-        "running": t("health_running"), "stalled": t("health_stalled"),
-        "finished": t("health_finished"), "unverified": t("health_unverified"),
-        "archived": t("health_archived"), "superseded": t("health_superseded"),
-    }
-    colors = {"running": "var(--green)", "stalled": "var(--amber)",
-              "finished": "var(--green)", "unverified": "var(--red)",
-              "archived": "var(--muted)", "superseded": "var(--muted)"}
-    unmet = health.get("unmet_invariant") or {}
-    last = health.get("last_successful_operation") or {}
-    action = health.get("safe_next_action") or {}
-    arguments = action.get("arguments") or {}
-    args = ", ".join(f"{key}={value!r}" for key, value in arguments.items() if value != "")
-    call = f"{action.get('tool')}({args})" if action.get("tool") else ""
-    issues = []
-    for row in health.get("integrity_findings") or []:
-        content = h("a", {"href": row["target"]}, row["message"]) if row.get("target") else row["message"]
-        issues.append(h("li", {"data-integrity-code": row.get("code", "")}, content))
-    support_ref = str((health.get("trace") or {}).get("support_ref") or "")
-    limitation = str((health.get("trace") or {}).get("limitation") or "")
-    aria = f'{t("health_h")}: {labels.get(state, state)}. ' + (
-        str(unmet.get("message")) if unmet else t("health_no_issues"))
-    return h("section", {"class_": f"sl-job-health sl-job-health--{state}",
-                         "id": "job-health", "role": "status", "aria-label": aria},
-             h("div", {"class_": "sl-job-health-head"},
-               h("strong", {}, raw(_icon("activity")), " ", t("health_h")),
-               raw(_label(labels.get(state, state), colors.get(state, "var(--muted)")))),
-             h("dl", {"class_": "sl-job-health-grid"},
-               h("dt", {}, t("health_unmet")),
-               h("dd", {}, unmet.get("message") if unmet else t("health_no_issues")),
-               h("dt", {}, t("health_last_success")),
-               h("dd", {}, h("code", {}, last.get("key") or last.get("kind") or "—"),
-                 (f' · {last.get("summary")}' if last.get("summary") else "")),
-               h("dt", {}, t("health_safe_next")),
-               h("dd", {}, h("code", {}, call) if call else action.get("reason", "—"),
-                 (h("button", {"type": "button", "class_": "sl-job-health-copy", "data-copy": call,
-                               "data-copied": t("copied"), "aria-label": t("copy_btn")}, t("copy_btn"))
-                  if call else None)),
-               h("dt", {}, t("health_trace")),
-               h("dd", {}, h("code", {}, support_ref), h("br"),
-                 h("span", {"class_": "muted"}, t("health_external_limit"), ": ", limitation))),
-               h("ul", {"class_": "sl-job-health-issues"}, fragment(*issues)) if issues else None)
 
 
 def _project_lineage_html(project: dict, store) -> str:
@@ -290,7 +238,6 @@ def register_projects(app) -> None:
                    bar),
                  raw(_product_understanding_html(proj, store)),
                  raw(render_cohort_integrity(proj, store)),
-                 raw(_project_health_html(proj["id"], store)),
                  raw(_project_lineage_html(proj, store)),
                  main_view) + raw(project_icon_edit_script())
         # Write affordances (web CRUD, V10 §9): the ONE visible "…" overflow — Edit opens the

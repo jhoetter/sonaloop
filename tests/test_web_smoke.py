@@ -1,5 +1,7 @@
 """Q characterization: the app builds and key render helpers produce non-empty output after the
 web-asset extraction (web_assets.py). Locks behaviour against refactor regressions."""
+import re
+
 from sonaloop import web
 
 
@@ -18,6 +20,256 @@ def test_spa_navigation_sets_url_before_running_page_scripts():
     from sonaloop.web._drawer import SPA_JS
 
     assert SPA_JS.index("history.pushState({spa:1}, '', url);") < SPA_JS.index("runScripts(main);")
+
+
+def test_shell_digest_is_content_addressed_not_build_metadata(monkeypatch):
+    """The release handshake must still move when production has no build SHA."""
+    from sonaloop.web import _components, _shell_version
+
+    baseline = _shell_version.shell_digest()
+    assert re.fullmatch(r"[0-9a-f]{64}", baseline)
+    assert _shell_version.shell_digest() == baseline
+
+    monkeypatch.setenv("SONALOOP_BUILD_COMMIT", "a-build-label-that-is-not-shell-content")
+    assert _shell_version.shell_digest() == baseline
+    monkeypatch.setattr(_components, "CSS", _components.CSS + "\n.shell-release-probe{}")
+    assert _shell_version.shell_digest() != baseline
+
+
+def test_shell_release_digest_covers_static_markup_contracts(monkeypatch):
+    from sonaloop.web import _shell_version
+
+    contracts = _shell_version._shell_markup_contract_parts()
+    joined = "\n".join(contracts)
+    assert "def _layout" in joined
+    assert "def _nav" in joined
+    assert "def drawer_markup" in joined
+    assert "def palette_markup" in joined
+    assert "def live_markup" in joined
+    assert "def runs_widget_markup" in joined
+
+    baseline = _shell_version.shell_digest()
+    monkeypatch.setattr(
+        _shell_version,
+        "_shell_markup_contract_parts",
+        lambda: contracts + ("shell-contract-changed",),
+    )
+    assert _shell_version.shell_digest() != baseline
+
+
+def test_no_store_preserves_stricter_existing_cache_directives():
+    from sonaloop.web._shell_version import ensure_no_store
+
+    assert ensure_no_store("") == "no-store"
+    assert ensure_no_store("private, no-cache") == "private, no-cache, no-store"
+    assert ensure_no_store("private, NO-STORE") == "private, NO-STORE"
+
+
+def test_shell_context_token_covers_kept_chrome():
+    from sonaloop.web import _shell_version
+
+    values = {
+        "language": "en",
+        "favorites_key": "pc-stars:ws_a",
+        "brand": "Sonaloop Cloud",
+        "brand_logo_value": "data:image/png;base64,abc",
+        "theme_css": "<style>:root{--accent:#123}</style>",
+        "head_extra": "<style id=workspace-fonts></style>",
+        "body_end": "<script>window.cloudShell=1</script>",
+        "sidebar_extra": "<aside>workspace-brand</aside>",
+        "sidebar_footer": "<nav>trial</nav>",
+        "user_menu": "<div>identity-plan</div>",
+        "nav_contract": "<nav>extension links</nav>",
+        "palette_contract": "<div>extension commands</div>",
+    }
+    baseline = _shell_version.make_shell_token(**values)
+    assert re.fullmatch(r"[0-9a-f]{64}\.[0-9a-f]{64}", baseline)
+    for key in values:
+        changed = dict(values)
+        changed[key] = str(changed[key]) + "-changed"
+        assert _shell_version.make_shell_token(**changed) != baseline, key
+
+
+def test_shell_context_tracks_extension_nav_and_palette_but_not_active_route(monkeypatch):
+    from starlette.testclient import TestClient
+    from sonaloop.web import _ext
+
+    # Isolate the process-global extension registries from the rest of the suite.
+    monkeypatch.setattr(_ext, "_NAV_ITEMS", [dict(row) for row in _ext._NAV_ITEMS])
+    monkeypatch.setattr(_ext, "_PALETTE_ITEMS", [dict(row) for row in _ext._PALETTE_ITEMS])
+
+    client = TestClient(web.create_app())
+
+    def token(path: str) -> str:
+        match = re.search(
+            r'data-sonaloop-shell="([0-9a-f]{64}\.[0-9a-f]{64})"',
+            client.get(path).text,
+        )
+        assert match
+        return match.group(1)
+
+    baseline = token("/jobs?lang=en")
+    assert token("/methodologies?lang=en") == baseline
+
+    _ext.register_nav_item(
+        "workspace", "/extension-probe", "extension_probe", "projects",
+        "Extension probe", order=999,
+    )
+    nav_changed = token("/jobs?lang=en")
+    assert nav_changed.split(".", 1)[0] == baseline.split(".", 1)[0]
+    assert nav_changed != baseline
+
+    _ext.register_palette_item("Palette probe", "/palette-probe", order=999)
+    palette_changed = token("/jobs?lang=en")
+    assert palette_changed.split(".", 1)[0] == baseline.split(".", 1)[0]
+    assert palette_changed != nav_changed
+
+
+def test_spa_shell_handshake_repairs_legacy_and_stale_documents():
+    """Missing/stale request tokens never receive markup that an old shell could swap."""
+    from starlette.testclient import TestClient
+
+    client = TestClient(web.create_app())
+    full = client.get("/jobs?lang=en")
+    assert full.status_code == 200
+    assert "no-store" in full.headers["cache-control"].lower()
+    assert {part.strip().lower() for part in full.headers["vary"].split(",")} >= {
+        "x-requested-with", "x-sonaloop-shell",
+    }
+    match = re.search(r'data-sonaloop-shell="([0-9a-f]{64}\.[0-9a-f]{64})"', full.text)
+    assert match
+    shell = match.group(1)
+    release = shell.split(".", 1)[0]
+
+    legacy = client.get("/jobs?lang=en", headers={"X-Requested-With": "spa"})
+    assert legacy.status_code == 409
+    assert legacy.headers["x-sonaloop-shell"] == release
+    assert legacy.headers["cache-control"] == "no-store"
+    assert {part.strip().lower() for part in legacy.headers["vary"].split(",")} >= {
+        "x-requested-with", "x-sonaloop-shell",
+    }
+    assert 'id="main"' not in legacy.text
+
+    stale = client.get("/jobs?lang=en", headers={
+        "X-Requested-With": "spa",
+        "X-Sonaloop-Shell": "0" * 64,
+    })
+    assert stale.status_code == 409
+    assert stale.headers["x-sonaloop-shell"] == release
+    assert stale.headers["cache-control"] == "no-store"
+
+    current = client.get("/jobs?lang=en", headers={
+        "X-Requested-With": "spa",
+        "X-Sonaloop-Shell": shell,
+    })
+    assert current.status_code == 200
+    assert current.headers["x-sonaloop-shell"] == shell
+    assert current.headers["cache-control"] == "no-store"
+    assert {part.strip().lower() for part in current.headers["vary"].split(",")} >= {
+        "x-requested-with", "x-sonaloop-shell",
+    }
+    assert f'data-sonaloop-shell="{shell}"' in current.text
+    assert 'id="main"' in current.text
+
+    stale_context = client.get("/jobs?lang=en", headers={
+        "X-Requested-With": "spa",
+        "X-Sonaloop-Shell": release + "." + "0" * 64,
+    })
+    assert stale_context.status_code == 200
+    assert stale_context.headers["x-sonaloop-shell"] == shell
+    assert f'data-sonaloop-shell="{shell}"' in stale_context.text
+
+    different_language = client.get("/jobs?lang=de", headers={
+        "X-Requested-With": "spa",
+        "X-Sonaloop-Shell": shell,
+    })
+    assert different_language.status_code == 200
+    assert different_language.headers["x-sonaloop-shell"].split(".", 1)[0] == release
+    assert different_language.headers["x-sonaloop-shell"] != shell
+
+
+def test_spa_checks_shell_version_before_any_dom_swap():
+    from sonaloop.web._drawer import SPA_JS
+
+    fetch = "'X-Sonaloop-Shell':shellVersion"
+    compare = "nextShell!==shellVersion"
+    first_mutation = "currentSection.replaceWith"
+    assert fetch in SPA_JS
+    assert SPA_JS.index(compare) < SPA_JS.index(first_mutation)
+    assert "window.location.assign(url)" in SPA_JS
+
+
+def test_drawer_shell_handshake_repairs_legacy_release_and_context_mismatches():
+    """Drawer fragments obey the same release gate and full-token race check as SPA."""
+    from starlette.testclient import TestClient
+
+    client = TestClient(web.create_app())
+    full = client.get("/jobs?lang=en")
+    match = re.search(r'data-sonaloop-shell="([0-9a-f]{64}\.[0-9a-f]{64})"', full.text)
+    assert match
+    shell = match.group(1)
+    release = shell.split(".", 1)[0]
+    url = "/jobs?slide=1&lang=en"
+
+    legacy = client.get(url, headers={"X-Requested-With": "drawer"})
+    assert legacy.status_code == 409
+    assert legacy.headers["x-sonaloop-shell"] == release
+    assert legacy.headers["cache-control"] == "no-store"
+    assert 'class="sl-slide"' not in legacy.text
+
+    stale_release = client.get(url, headers={
+        "X-Requested-With": "drawer",
+        "X-Sonaloop-Shell": "0" * 64,
+    })
+    assert stale_release.status_code == 409
+    assert stale_release.headers["x-sonaloop-shell"] == release
+    assert 'class="sl-slide"' not in stale_release.text
+
+    current = client.get(url, headers={
+        "X-Requested-With": "drawer",
+        "X-Sonaloop-Shell": shell,
+    })
+    assert current.status_code == 200
+    assert current.headers["x-sonaloop-shell"] == shell
+    assert current.headers["cache-control"] == "no-store"
+    assert current.text.startswith('<div class="sl-slide">')
+    assert f'data-sonaloop-shell="{shell}"' in current.text
+    assert {part.strip().lower() for part in current.headers["vary"].split(",")} >= {
+        "x-requested-with", "x-sonaloop-shell",
+    }
+
+    stale_context = client.get(url, headers={
+        "X-Requested-With": "drawer",
+        "X-Sonaloop-Shell": release + "." + "0" * 64,
+    })
+    assert stale_context.status_code == 200
+    assert stale_context.headers["x-sonaloop-shell"] == shell
+    assert f'data-sonaloop-shell="{shell}"' in stale_context.text
+
+    different_language = client.get("/jobs?slide=1&lang=de", headers={
+        "X-Requested-With": "drawer",
+        "X-Sonaloop-Shell": shell,
+    })
+    assert different_language.status_code == 200
+    assert different_language.headers["x-sonaloop-shell"].split(".", 1)[0] == release
+    assert different_language.headers["x-sonaloop-shell"] != shell
+
+
+def test_drawer_checks_response_and_fragment_tokens_before_dom_mutation():
+    from sonaloop.web._drawer import DRAWER_JS
+
+    assert "'X-Sonaloop-Shell':shellVersion" in DRAWER_JS
+    header_guard = "responseShell!==shellVersion"
+    fragment_guard = "fragmentShell!==shellVersion"
+    mutation = "body.innerHTML='';"
+    import_node = "body.appendChild(document.importNode(frag, true))"
+    placeholder = "body.replaceChildren(loading)"
+    fetch = "fetch(fu,"
+    assert DRAWER_JS.index(placeholder) < DRAWER_JS.index(fetch)
+    assert DRAWER_JS.index(header_guard) < DRAWER_JS.index(fragment_guard)
+    assert DRAWER_JS.index(fragment_guard) < DRAWER_JS.index(mutation)
+    assert DRAWER_JS.index(mutation) < DRAWER_JS.index(import_node)
+    assert "body.innerHTML='<p" not in DRAWER_JS
 
 
 def test_sidebar_is_exactly_four_workspace_items():
