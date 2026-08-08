@@ -73,6 +73,17 @@ def _deepen(store, persona_id: str, *, prefix: str) -> None:
     })
 
 
+def _countervoice_event(store, persona_id: str, *, event_id: str, timestamp: str,
+                        key_quotes: list[str] | None = None,
+                        persona_thought: str = "") -> None:
+    store.insert_experience_event({
+        "id": event_id, "persona_id": persona_id, "timestamp": timestamp,
+        "event_type": "ordinary_work",
+        "summary": "Handled a routine handoff with the existing workflow.",
+        "key_quotes": key_quotes or [], "persona_thought": persona_thought,
+    })
+
+
 def _product_preflight(store, project_id: str, run_id: str) -> dict:
     dispatch = services.run_step(run_id, store=store)
     assert dispatch["step_id"] == "preflight__product_understanding"
@@ -196,6 +207,95 @@ def test_deep_independent_cohort_passes_and_retains_disconfirming_sources(store)
     refreshed = store.get_research_project(project["id"])
     from sonaloop.cohort_integrity import preflight_satisfies_project
     assert preflight_satisfies_project(refreshed, store) is True
+
+
+@pytest.mark.parametrize(
+    ("field", "basis_quote"),
+    [
+        ("key_quotes", "I would keep the manual review because it already catches the risky cases."),
+        ("persona_thought", "Another tool would add upkeep without changing this ordinary handoff."),
+    ],
+)
+def test_countervoice_event_quote_fields_ground_the_exact_pre_project_owned_event(
+        store, field: str, basis_quote: str):
+    p1 = _persona(store, f"Synthetic Event Target {field}",
+                  "Coordinates ordinary supplier schedules")
+    p2 = _persona(store, f"Synthetic Event Skeptic {field}",
+                  "Reviews routine service queues")
+    _deepen(store, p1, prefix=f"event_target_{field}")
+    _deepen(store, p2, prefix=f"event_skeptic_{field}")
+    event_id = f"event_countervoice_{field}"
+    _countervoice_event(
+        store, p2, event_id=event_id, timestamp="2026-01-10T09:00:00Z",
+        key_quotes=[basis_quote] if field == "key_quotes" else None,
+        persona_thought=basis_quote if field == "persona_thought" else "",
+    )
+    project, _run, dispatch, _ref = _start(store, f"event-{field}", [p1, p2])
+
+    result = services.record_cohort_preflight(
+        project["id"], representation=[
+            {"persona_id": p1, "posture": "target",
+             "rationale": "owns an adjacent operational workflow"},
+            {"persona_id": p2, "posture": "skeptical",
+             "rationale": "independent event records a concrete reason to reject the premise",
+             "basis_quote": basis_quote,
+             "evidence_refs": [{"kind": "event", "id": event_id}]},
+        ], dispatch_token=dispatch["dispatch_token"], store=store)
+
+    declaration = next(row for row in result["representation"]["declarations"]
+                       if row["persona_id"] == p2)
+    assert result["status"] == "pass"
+    assert declaration["grounding_status"] == "grounded_context"
+    assert declaration["quote_matched_ref"] == {"kind": "event", "id": event_id}
+
+
+def test_countervoice_event_quotes_still_reject_post_project_and_cross_persona_refs(store):
+    p1 = _persona(store, "Synthetic Event Owner", "Coordinates ordinary calendar handoffs")
+    p2 = _persona(store, "Synthetic Cross Persona", "Reviews routine support queues")
+    p3 = _persona(store, "Synthetic Future Event", "Maintains weekly supplier schedules")
+    for persona_id, prefix in ((p1, "event_owner"), (p2, "event_cross"),
+                               (p3, "event_future")):
+        _deepen(store, persona_id, prefix=prefix)
+    owner_quote = "This belongs to the first persona and cannot ground somebody else's stance."
+    future_quote = "This thought was recorded after the project began and is not independent."
+    _countervoice_event(
+        store, p1, event_id="event_owned_by_other_persona",
+        timestamp="2026-01-10T09:00:00Z", key_quotes=[owner_quote])
+    _countervoice_event(
+        store, p3, event_id="event_after_project_creation",
+        timestamp="2099-01-10T09:00:00Z", persona_thought=future_quote)
+    project, _run, dispatch, _ref = _start(store, "event-boundaries", [p1, p2, p3])
+
+    result = services.record_cohort_preflight(
+        project["id"], representation=[
+            {"persona_id": p1, "posture": "target",
+             "rationale": "owns an adjacent operational workflow"},
+            {"persona_id": p2, "posture": "skeptical",
+             "rationale": "attempts to cite another persona's event",
+             "basis_quote": owner_quote,
+             "evidence_refs": [{"kind": "event", "id": "event_owned_by_other_persona"}]},
+            {"persona_id": p3, "posture": "indifferent",
+             "rationale": "attempts to cite context created after the project",
+             "basis_quote": future_quote,
+             "evidence_refs": [{"kind": "event", "id": "event_after_project_creation"}]},
+        ], dispatch_token=dispatch["dispatch_token"], store=store)
+
+    declarations = {row["persona_id"]: row
+                    for row in result["representation"]["declarations"]}
+    assert result["status"] == "needs_reselection"
+    assert result["representation"]["countervoice_persona_ids"] == []
+    assert set(result["representation"]["unverified_countervoice_persona_ids"]) == {p2, p3}
+    for persona_id in (p2, p3):
+        declaration = declarations[persona_id]
+        assert declaration["grounding_status"] == "unverified"
+        assert declaration["evidence_refs"] == []
+        assert declaration["rejected_evidence_refs"] == [
+            {"kind": "event", "id": (
+                "event_owned_by_other_persona" if persona_id == p2
+                else "event_after_project_creation")}
+        ]
+    assert any(row["code"] == "COUNTERVOICE_UNVERIFIED"
+               for row in result["required_work"])
 
 
 def test_final_gate_binds_frame_hypotheses_and_later_change_fails_closed(store):

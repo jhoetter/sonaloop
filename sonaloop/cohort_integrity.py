@@ -27,7 +27,7 @@ from .storage import Store
 COHORT_PREFLIGHT_SCHEMA = "sonaloop.cohort_integrity.v1"
 COHORT_FEATURE_SCHEMA = "sonaloop.cohort_integrity.features.v1"
 SEMANTIC_OVERLAP_SCHEMA = "sonaloop.semantic_overlap.v1"
-COHORT_POLICY_VERSION = "2026-08-08.1"
+COHORT_POLICY_VERSION = "2026-08-08.2"
 COHORT_GATE_STATUSES = frozenset({
     "pass", "needs_deepening", "needs_reselection", "overridden",
 })
@@ -283,8 +283,20 @@ def _context_index(persona_id: str, project: dict[str, Any], store: Store) -> di
             index[("fact", str(row.get("id") or ""))] = str(row.get("fact") or "")
     for row in store.list_experience_events(persona_id):
         if _before_or_equal(row.get("timestamp"), cutoff):
-            index[("event", str(row.get("id") or ""))] = " ".join(str(row.get(key) or "")
-                for key in ("summary", "what_happened", "internal_thought"))
+            # ExperienceEvent exposes both authored/simulated quotes and the persona's
+            # internal perspective.  Keep the legacy ``internal_thought`` field readable,
+            # but index the canonical model fields returned by get_persona as well.
+            # Deliberately do not index the whole event object: metadata and another
+            # participant's conversation must not accidentally ground a countervoice.
+            values = [
+                row.get(key)
+                for key in ("summary", "what_happened", "internal_thought", "persona_thought")
+            ]
+            key_quotes = row.get("key_quotes")
+            values.extend(key_quotes if isinstance(key_quotes, list) else [key_quotes])
+            index[("event", str(row.get("id") or ""))] = " ".join(
+                str(value) for value in values if str(value or "").strip()
+            )
     for row in store.list_evidence(persona_id):
         if _before_or_equal(row.get("created_at"), cutoff):
             index[("evidence", str(row.get("id") or ""))] = " ".join(str(row.get(key) or "")
