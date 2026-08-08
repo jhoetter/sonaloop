@@ -3,6 +3,21 @@
   "name": "Continuous Discovery",
   "description": "Teresa Torres' continuous discovery: weekly customer touchpoints feed an Opportunity Solution Tree (outcome -> opportunities -> solutions -> assumption tests). A repeating Interview (fan) -> Map opportunities (waist) -> Ideate (fan) -> Test assumptions (waist) loop that keeps a product team anchored to a desired outcome.",
   "when_to_use": "When discovery should be an ongoing habit, not a one-off project: you have a product outcome to move and want a steady cadence of small interviews and assumption tests rather than a single big study.",
+  "routing": {
+    "aliases": ["continuous product discovery", "continuous-discovery"],
+    "threshold": 5,
+    "ambiguity_margin": 2,
+    "signals": [
+      {"phrase": "continuous discovery", "weight": 8},
+      {"phrase": "kontinuierliche discovery", "weight": 8},
+      {"phrase": "weekly customer", "weight": 6},
+      {"phrase": "wochentlich", "weight": 5},
+      {"phrase": "jede woche", "weight": 5},
+      {"phrase": "ongoing discovery", "weight": 6},
+      {"phrase": "discovery cadence", "weight": 6},
+      {"phrase": "opportunity solution tree", "weight": 8}
+    ]
+  },
   "presentation": {
     "icon": "continuousDiscovery",
     "image": "continuous-discovery.jpg",

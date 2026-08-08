@@ -106,13 +106,17 @@ def register_methodologies(mcp):
 
     @mcp.tool()
     def record_judgment(project_id: str, task_id: str, gate_tag: str, decided: bool, rationale: str,
-                        evidence_refs: list[str] | None = None) -> dict[str, Any]:
+                        evidence_refs: list[str] | None = None,
+                        dispatch_token: str | None = None) -> dict[str, Any]:
         """Record an evidence-backed LLM gate judgment on a plan TASK (usually a verify task). `gate_tag`
         is a FREE tag (e.g. divergence_complete, or whatever the verify task requires). The engine
-        requires its presence to complete the verify but never dictates its content or a number."""
+        requires its presence to complete the verify but never dictates its content or a number.
+        Pass run_step's dispatch_token in a governed run; this finalizes and checkpoints the verify
+        task when every evidence/claim gate is satisfied."""
         t = time.perf_counter()
         return _env("record_judgment",
-                    services.record_judgment(project_id, task_id, gate_tag, decided, rationale, evidence_refs), t)
+                    services.record_judgment(project_id, task_id, gate_tag, decided, rationale,
+                                             evidence_refs, dispatch_token=dispatch_token), t)
 
     @mcp.tool()
     def park_evidence(project_id: str, refs: list[Any], reason: str,

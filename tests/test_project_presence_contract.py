@@ -161,7 +161,7 @@ def test_freeform_project_outline_uses_its_plan_not_fake_lanes(store):
     html = _client().get(f"/jobs/{pid}?lang=en").text
     assert 'class="ol-flat"' not in html
     topbar_actions = html.split('<span class="sl-tb-actions">', 1)[1].split('</span></header>', 1)[0]
-    assert 'class="sl-toolbtn tour-plan-chip"' in topbar_actions
+    assert 'class="sl-toolbtn sl-tour-plan-chip"' in topbar_actions
     assert "freeform</a>" in topbar_actions
     assert "Methodology · freeform" not in html
     assert services.get_plan(pid, store=store)["tasks"][0]["id"] == "frame__root"
@@ -177,11 +177,11 @@ def test_project_header_surfaces_applied_methodology(store):
     client = _client()
     html = client.get(f'/jobs/{free["id"]}?lang=en').text
     topbar_actions = html.split('<span class="sl-tb-actions">', 1)[1].split('</span></header>', 1)[0]
-    assert 'class="sl-toolbtn tour-plan-chip"' in topbar_actions
+    assert 'class="sl-toolbtn sl-tour-plan-chip"' in topbar_actions
     assert "freeform</a>" in topbar_actions
     html = client.get(f'/jobs/{dd["id"]}?lang=en').text
     topbar_actions = html.split('<span class="sl-tb-actions">', 1)[1].split('</span></header>', 1)[0]
-    assert 'class="sl-toolbtn tour-plan-chip"' in topbar_actions
+    assert 'class="sl-toolbtn sl-tour-plan-chip"' in topbar_actions
     assert "Double Diamond</a>" in topbar_actions
     assert "Methodology · Double Diamond" not in html
 

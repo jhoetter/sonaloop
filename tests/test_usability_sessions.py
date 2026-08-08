@@ -90,13 +90,23 @@ def test_deterministic_key_is_idempotent_upsert(store):
 
 
 def test_list_filters_by_persona_project_and_subject(store):
-    _record(store, _FLOW, "artifact", project_id="proj-a")
+    legacy = _record(store, _FLOW, "artifact", project_id="proj-a")
     _record(store, _PROTO, "prototype", project_id="proj-b")
+    assert legacy["usability_session"]["dispatch_provenance"] == {
+        "state": "outside_run", "project_reference": "unbound"}
+    assert legacy["dispatch"]["state"] == "outside_run"
     assert len(services.list_usability_sessions(store=store)) == 2
     assert len(services.list_usability_sessions(project_id="proj-a", store=store)) == 1
     assert len(services.list_usability_sessions(subject={"kind": "prototype"}, store=store)) == 1
     assert len(services.list_usability_sessions(subject="flow-signup", store=store)) == 1
     assert services.list_usability_sessions(persona_id="nobody", store=store) == []
+
+
+def test_unbound_legacy_project_cannot_bypass_dispatch_validation(store):
+    with pytest.raises(services.PlanError) as exc:
+        _record(store, _FLOW, "artifact", project_id="missing-project",
+                dispatch_token="dispatch_missing")
+    assert exc.value.code == "UNKNOWN_PROJECT"
 
 
 def test_project_session_listing_uses_created_index(store):

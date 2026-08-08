@@ -30,13 +30,17 @@ def _project_flows(project: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def define_flow(project_id: str, title: str, steps: list[dict[str, Any]],
-                key: str | None = None, store: Store | None = None) -> dict[str, Any]:
+                key: str | None = None, store: Store | None = None,
+                dispatch_token: str | None = None) -> dict[str, Any]:
     """Define an ordered flow from the project's evidence assets. Each step is
     {asset_id, caption?} — the asset must exist on the project (attach screenshots
     first via attach_asset / attach_prototype_shot). Stored on the project like
     artifacts/assets; a stable `key` makes re-definition an idempotent upsert."""
     store = store or Store()
     project = _require_research_project(store, project_id)  # noqa: F821 (bound)
+    dispatch_ctx = prepare_dispatch_write(  # noqa: F821 (bound)
+        project["id"], dispatch_token, key, "flow", store,
+        allowed_buckets={"analyze", "act", "verify"})
     if not (title or "").strip():
         raise ValueError("flow title is required")
     if not steps:
@@ -56,19 +60,30 @@ def define_flow(project_id: str, title: str, steps: list[dict[str, Any]],
         out_steps.append({"index": i, "asset_id": aid,
                           "caption": str((raw or {}).get("caption") or asset.get("title") or ""),
                           "url": asset.get("url", "")})
-    fid = stable_id("flow", key) if key else stable_id("flow", project["id"], title, utc_now_iso())  # noqa: F821 (bound)
+    effective_key = str(dispatch_ctx.get("primitive_key") or key or "") or None
+    fid = (stable_id("flow", effective_key) if effective_key
+           else stable_id("flow", project["id"], title, utc_now_iso()))  # noqa: F821 (bound)
     flows = _project_flows(project)
     existing = next((f for f in flows if f["id"] == fid), None)
     record = {"id": fid, "title": title.strip(), "steps": out_steps,
               "created_at": (existing or {}).get("created_at") or utc_now_iso(),
-              "updated_at": utc_now_iso()}
+              "updated_at": utc_now_iso(),
+              "dispatch_provenance": {
+                  "state": dispatch_ctx.get("state", "outside_run"),
+                  **({"dispatch_token": dispatch_ctx["dispatch_token"],
+                      "run_id": dispatch_ctx["run_id"], "task_id": dispatch_ctx["task_id"]}
+                     if dispatch_ctx.get("dispatch_token") else {}),
+              }}
     if existing:
         flows[flows.index(existing)] = record
     else:
         flows.append(record)
     project["updated_at"] = utc_now_iso()
     store.upsert_research_project(project)
-    return record
+    dispatch = bind_dispatch_output(  # noqa: F821 (bound)
+        dispatch_ctx, {"kind": "flow", "id": fid}, "defined supporting stimulus flow", store,
+        complete=False)
+    return {**record, "dispatch": dispatch}
 
 
 def list_flows(project_id: str, store: Store | None = None) -> list[dict[str, Any]]:

@@ -15,16 +15,20 @@ def register_council(mcp):
     # ================= Artifacts (bring a REAL artifact into a council) =================
     @mcp.tool()
     def add_artifact(project_id: str, url: str, kind: str = "url", title: str = "",
-                     label: str | None = None, capture: bool = True, key: str | None = None) -> dict[str, Any]:
+                     label: str | None = None, capture: bool = True, key: str | None = None,
+                     dispatch_token: str | None = None) -> dict[str, Any]:
         """Bring a REAL artifact into a project's council pool so personas react to what is ACTUALLY
         there — a live URL/website, a prototype link (kind='prototype', e.g. Figma), or one side of an
         A/B comparison (kind='variant'). The page is CAPTURED to a grounded text snapshot (title,
         meta, headings, visible copy) + a captured-at timestamp + content hash, so the run is
         reproducible. Capture degrades gracefully (a dead link still stores the ref). Add TWO+ variants
         to compare them in one council (the head_to_head plumbing). Then run brief_council with
-        artifact_ids=[...] (or omit it to include all). Pass `capture=False` to store the ref only."""
+        artifact_ids=[...] (or omit it to include all). Pass `capture=False` to store the ref only.
+        During a governed run pass the exact dispatch_token so the artifact is linked automatically."""
         t = time.perf_counter()
-        return _env("add_artifact", services.add_artifact(project_id, url, kind, title, label, capture, key), t)
+        return _env("add_artifact", services.add_artifact(
+            project_id, url, kind, title, label, capture, key,
+            dispatch_token=dispatch_token), t)
 
     @mcp.tool()
     def list_artifacts(project_id: str) -> dict[str, Any]:
@@ -90,7 +94,7 @@ def register_council(mcp):
         return _env("brief_ask", services.brief_ask(persona_id, question, context), t)
 
     @mcp.tool()
-    def record_council(project_id: str, prompt: str, persona_ids: list[str], statements: list[dict[str, Any]] | None = None, votes: list[dict[str, Any]] | None = None, proposal: str = "", summary: str = "", exec_summary: str = "", selection_reason: str = "", questions: list[str] | None = None, key: str | None = None, findings: list[dict[str, Any]] | None = None, prompts: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+    def record_council(project_id: str, prompt: str, persona_ids: list[str], statements: list[dict[str, Any]] | None = None, votes: list[dict[str, Any]] | None = None, proposal: str = "", summary: str = "", exec_summary: str = "", selection_reason: str = "", questions: list[str] | None = None, key: str | None = None, findings: list[dict[str, Any]] | None = None, prompts: list[dict[str, Any]] | None = None, claims: list[dict[str, Any]] | None = None, dispatch_token: str | None = None) -> dict[str, Any]:
         """Persist a host-authored council. Shape it by what you pass (the UI derives the mode):
         DISCOVERY = `questions` (open user-research questions), NO proposal/votes; EVALUATION =
         `proposal` (a concept reacted to) + stances; DECISION = `proposal` + `votes`.
@@ -102,9 +106,17 @@ def register_council(mcp):
         statement's about.id to the question it answers ('q0','q1',…) so the page renders a moderated
         Q→A transcript. `findings` is the optional analysis ({text, kind, score, refs}); `prompts` are
         derived from questions/proposal when omitted. A council MUST belong to a research project.
-        Pass a stable `key` for a deterministic id (idempotent upsert → resumable runs)."""
+        `claims` covers every factual assertion in summary/exec_summary as
+        {text, posture: observed|memory_grounded|inferred|simulated|unsupported, refs}. Reaction
+        Tests reject observed-behavior claims without a grounded session step and remain an
+        unverified draft while prose is uncovered. In a governed run pass run_step's dispatch_token;
+        the council is written, linked and checkpointed atomically when all gates pass. Pass a stable
+        `key` outside a run for a deterministic id."""
         t = time.perf_counter()
-        return _env("record_council", services.record_council(project_id, prompt, persona_ids, statements, votes, proposal, summary, exec_summary, selection_reason, questions, key, findings, prompts), t)
+        return _env("record_council", services.record_council(
+            project_id, prompt, persona_ids, statements, votes, proposal, summary,
+            exec_summary, selection_reason, questions, key, findings, prompts,
+            claims=claims, dispatch_token=dispatch_token), t)
 
     @mcp.tool()
     def get_council(session_id: str) -> dict[str, Any]:
@@ -132,7 +144,9 @@ def register_council(mcp):
                             persona_ids: list[str] | None = None, statements: list[dict[str, Any]] | None = None,
                             summary: str = "", exec_summary: str = "", selection_reason: str = "",
                             findings: list[dict[str, Any]] | None = None, key: str | None = None,
-                            variant_meta: dict[str, Any] | None = None) -> dict[str, Any]:
+                            variant_meta: dict[str, Any] | None = None,
+                            claims: list[dict[str, Any]] | None = None,
+                            dispatch_token: str | None = None) -> dict[str, Any]:
         """Persist a host-authored HEAD-TO-HEAD (stored as a CouncilSession with a `head_to_head` block).
         Pass the labelled `options`, each persona's `preferences` ([{persona_id, choice (an option label
         'A'|'B'|…), intensity?, reason}]), the authored `statements` (one per persona+option, stance:{value -2..2,
@@ -147,7 +161,10 @@ def register_council(mcp):
         result — queryable via get_head_to_head. Returns the session incl. head_to_head.result.
         Pass a stable `key` for a deterministic id (idempotent upsert)."""
         t = time.perf_counter()
-        return _env("record_head_to_head", services.record_head_to_head(project_id, prompt, options, preferences, persona_ids, statements, summary, exec_summary, selection_reason, findings, key, variant_meta), t)
+        return _env("record_head_to_head", services.record_head_to_head(
+            project_id, prompt, options, preferences, persona_ids, statements, summary,
+            exec_summary, selection_reason, findings, key, variant_meta,
+            claims=claims, dispatch_token=dispatch_token), t)
 
     @mcp.tool()
     def get_head_to_head(session_id: str) -> dict[str, Any]:
@@ -177,7 +194,9 @@ def register_council(mcp):
                             responses: list[dict[str, Any]] | None = None,
                             persona_ids: list[str] | None = None, statements: list[dict[str, Any]] | None = None,
                             summary: str = "", exec_summary: str = "", selection_reason: str = "",
-                            findings: list[dict[str, Any]] | None = None, key: str | None = None) -> dict[str, Any]:
+                            findings: list[dict[str, Any]] | None = None, key: str | None = None,
+                            claims: list[dict[str, Any]] | None = None,
+                            dispatch_token: str | None = None) -> dict[str, Any]:
         """Persist a host-authored PRICE LADDER (stored as a CouncilSession with a `price_ladder` block).
         `responses` is the structured willingness-to-pay payload — one row per persona per rung:
         {persona_id, price (rung label or amount), band (too_cheap|bargain|getting_expensive|too_expensive
@@ -187,7 +206,10 @@ def register_council(mcp):
         story in exec_summary/summary. Tier comparisons reuse record_head_to_head with price as
         variant_meta. Pass a stable `key` for a deterministic id (idempotent upsert)."""
         t = time.perf_counter()
-        return _env("record_price_ladder", services.record_price_ladder(project_id, prompt, price_points, responses, persona_ids, statements, summary, exec_summary, selection_reason, findings, key), t)
+        return _env("record_price_ladder", services.record_price_ladder(
+            project_id, prompt, price_points, responses, persona_ids, statements,
+            summary, exec_summary, selection_reason, findings, key,
+            claims=claims, dispatch_token=dispatch_token), t)
 
     @mcp.tool()
     def get_price_ladder(session_id: str) -> dict[str, Any]:
@@ -229,7 +251,9 @@ def register_council(mcp):
                         endorsements: list[dict[str, Any]] | None = None, stance: str = "against",
                         persona_ids: list[str] | None = None, statements: list[dict[str, Any]] | None = None,
                         summary: str = "", exec_summary: str = "", selection_reason: str = "",
-                        findings: list[dict[str, Any]] | None = None, key: str | None = None) -> dict[str, Any]:
+                        findings: list[dict[str, Any]] | None = None, key: str | None = None,
+                        claims: list[dict[str, Any]] | None = None,
+                        dispatch_token: str | None = None) -> dict[str, Any]:
         """Persist a host-authored RED-TEAM (stored as a CouncilSession with a `red_team` block). Pass the
         per-persona `objections` ([{persona_id, theme (a short blocker label), text (the objection in voice),
         severity 'low'|'medium'|'high'|'critical'}]) — the case AGAINST — plus the authored `statements`
@@ -243,7 +267,10 @@ def register_council(mcp):
         session incl. red_team.case_against, plus `hints` when the case looks fragmented (mostly
         single-persona themes). Pass a stable `key` for a deterministic id (idempotent upsert)."""
         t = time.perf_counter()
-        return _env("record_red_team", services.record_red_team(project_id, prompt, objections, endorsements, stance, persona_ids, statements, summary, exec_summary, selection_reason, findings, key), t)
+        return _env("record_red_team", services.record_red_team(
+            project_id, prompt, objections, endorsements, stance, persona_ids,
+            statements, summary, exec_summary, selection_reason, findings, key,
+            claims=claims, dispatch_token=dispatch_token), t)
 
     @mcp.tool()
     def get_red_team(session_id: str) -> dict[str, Any]:
@@ -284,15 +311,19 @@ def register_council(mcp):
         return _env("brief_synthesis", services.brief_synthesis(council_ids, title, start_input, goal), t)
 
     @mcp.tool()
-    def record_synthesis(title: str, start_input: str, council_ids: list[str] | None = None, payload: dict[str, Any] | None = None, goal: str = "", synthesis_id: str | None = None, key: str | None = None, project_id: str = "") -> dict[str, Any]:
+    def record_synthesis(title: str, start_input: str, council_ids: list[str] | None = None, payload: dict[str, Any] | None = None, goal: str = "", synthesis_id: str | None = None, key: str | None = None, project_id: str = "", dispatch_token: str | None = None) -> dict[str, Any]:
         """Persist/UPDATE a host-authored synthesis. A synthesis is DECOUPLED from councils:
         `council_ids` is OPTIONAL (may be empty — affinity over notes, a synthesis over syntheses, or
         a standalone analysis); councils are cited evidence, not sub-parts. Pass `project_id` when the
         synthesis answers one project's inquiry so it lists on that project's page. Pass the same
         synthesis_id (or a stable `key`) to update in place / make a long run resumable. Link it to
-        its verify task with link_evidence."""
+        its verify task with link_evidence. In a governed run pass run_step's dispatch_token; the
+        report is auto-linked, and remains linked-but-open until the verify judgment passes. Reaction
+        Test payloads must include `claims` with explicit posture+refs for report prose."""
         t = time.perf_counter()
-        return _env("record_synthesis", services.record_synthesis(title, start_input, council_ids, payload, goal, synthesis_id, key, project_id=project_id), t)
+        return _env("record_synthesis", services.record_synthesis(
+            title, start_input, council_ids, payload, goal, synthesis_id, key,
+            project_id=project_id, dispatch_token=dispatch_token), t)
 
     @mcp.tool()
     def get_synthesis(synthesis_id: str) -> dict[str, Any]:
@@ -365,20 +396,23 @@ def register_council(mcp):
             "   (list_personas; if thin, build via the simulate-cohort skill: brief_day/brief_period →\n"
             "   record_day / record_month_bundle). Councils are only as deep as the lives behind them.\n"
             "\n"
-            "1. START. start_project(title, goal=<How-Might-We>, methodology='double_diamond_deep',\n"
-            "   persona_ids=[...]) seeds the analyze->act->verify plan. Then start_run(project_id,\n"
-            "   budget=<steps>) creates the resumable run object.\n"
+            "1. START. If begin_research_job is exposed, call that ONE cloud front door with the full\n"
+            "   request, methodology=auto|freeform|exact name and one stable operation_id; repeat the\n"
+            "   exact call on retry and never also call start_project/start_run. Otherwise use\n"
+            "   start_project(... stable operation_id) then start_run(... stable operation_id).\n"
             "\n"
             "2. LOOP (you are the thin host over the engine). Repeat:\n"
             "     s = run_step(run_id)\n"
             "     - s.kind == 'done'   -> stop (status finished|capped|stopped).\n"
             "     - s.kind == 'critic' -> spawn an INDEPENDENT critic on s.brief; it authors the verdict,\n"
             "       calls record_completeness_critic + record_critic_round. (Loops until exhaustive.)\n"
-            "     - else (analyze|act|verify) -> author ONE step grounded in s.next_action, keyed by\n"
-            "       s.key; then checkpoint_step(run_id, {...}). Resumable: re-run start_run(run_id=...).\n"
+            "     - else (analyze|act|verify) -> author ONE step grounded in s.next_action and pass\n"
+            "       s.dispatch_token to its recorder. Token-aware recorders auto-link + checkpoint;\n"
+            "       do not checkpoint twice. Resumable: re-run start_run(run_id=...).\n"
             "\n"
             "3. AUTHOR a step:\n"
-            "   - analyze (frame): read cited memory -> record_frame (research questions).\n"
+            "   - analyze: Product Understanding preflight when requested; otherwise read cited memory\n"
+            "       -> record_frame. Reaction Tests cannot bypass real stimulus/revision/capability refs.\n"
             "   - act: run a COUNCIL or build+test a PROTOTYPE.\n"
             "       COUNCIL has three shapes (derived; the UI branches): pass `questions=[...]` for\n"
             "       open DISCOVERY ('Welche Versicherungen hast du? Wie sparst du gerade?') with NO\n"

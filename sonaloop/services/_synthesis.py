@@ -9,7 +9,6 @@ import csv
 import hashlib
 import json
 import random
-import re
 import uuid
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
@@ -40,6 +39,7 @@ from ..storage import Store
 from ..taxonomy import GENERIC_TOOLS, normalized_tool_ids, normalized_tools
 from .. import memory as memory_mod
 from .. import evaluation as evaluation_mod
+from ..research_integrity import apply_claim_postures, claim_posture_markdown
 from ..llm_simulation import (
     build_cohort_critic_prompt,
     build_consolidation_prompt,
@@ -65,9 +65,26 @@ from ..llm_simulation import (
     validate_profile_payload,
     validate_synthesis_payload,
 )
+from ._synthesis_share import (
+    PDF_FONTS as _PDF_FONTS,
+    SHARE_LABELS as _SHARE_LABELS,
+    share_inline_images as _share_inline_images_impl,
+    share_rewrite_links as _share_rewrite_links,
+    theme_block as _theme_block,
+)
 
 
 from ._common import *  # noqa: F401,F403  (shared helpers + constants)
+
+
+_SHARE_INLINE_MAX_BYTES = 8 * 1024 * 1024
+
+
+def _share_inline_images(html_text: str, missing_label: str = "media unavailable", *,
+                         store: Store | None = None, project_id: str = "") -> str:
+    """Compatibility seam retaining the historically monkeypatchable size budget."""
+    return _share_inline_images_impl(html_text, missing_label, store=store, project_id=project_id,
+                                     max_bytes=_SHARE_INLINE_MAX_BYTES)
 
 
 
@@ -142,7 +159,8 @@ def record_synthesis(title: str, start_input: str, council_ids: list[str] | None
                      payload: dict[str, Any] | None = None,
                      goal: str = "", synthesis_id: str | None = None, key: str | None = None,
                      predictions: list | None = None, project_id: str = "",
-                     created_at: str | None = None, store: Store | None = None) -> dict[str, Any]:
+                     created_at: str | None = None, store: Store | None = None,
+                     dispatch_token: str | None = None) -> dict[str, Any]:
     """Persist a host-authored synthesis. A synthesis is a FIRST-CLASS answer/report node and is
     DECOUPLED from councils: `council_ids` is an OPTIONAL list of referenced evidence and may be
     empty — e.g. an affinity-clustering synthesis over observations, a synthesis over other
@@ -156,10 +174,27 @@ def record_synthesis(title: str, start_input: str, council_ids: list[str] | None
     """
     store = store or Store()
     council_ids = list(council_ids or [])
+    if dispatch_token and not project_id:
+        owners = {str((store.get_council_session(cid) or {}).get("project_id") or "")
+                  for cid in council_ids}
+        owners.discard("")
+        if len(owners) == 1:
+            project_id = owners.pop()
     if project_id:                       # validated ownership, never a dangling ref
         project_id = _require_research_project(store, project_id)["id"]
-    if key and not synthesis_id:        # deterministic id → idempotent resumable upsert (HX6)
-        synthesis_id = stable_id("synthesis", key)
+    payload_fingerprint = canonical_payload_fingerprint({  # noqa: F821 (bound)
+        "title": title, "start_input": start_input, "council_ids": council_ids,
+        "payload": payload or {}, "goal": goal, "synthesis_id": synthesis_id or "",
+        "predictions": predictions or [], "project_id": project_id,
+        "created_at": created_at or "",
+    })
+    dispatch_ctx = (prepare_dispatch_write(  # noqa: F821 (bound)
+        project_id, dispatch_token, key, "synthesis", store,
+        allowed_buckets={"act", "verify"}, payload_fingerprint=payload_fingerprint) if project_id else
+        {"state": "outside_run", "operation_id": str(key or ""), "key": str(key or "")})
+    effective_key = str(dispatch_ctx.get("primitive_key") or key or "") or None
+    if effective_key and not synthesis_id:  # deterministic id → idempotent resumable upsert (HX6)
+        synthesis_id = stable_id("synthesis", effective_key)
     data = validate_synthesis_payload(payload or {})
     _pl = payload or {}
     # Primitives-only authoring (spec/unified-artifact-schema): the host authors findings/statements/
@@ -171,7 +206,28 @@ def record_synthesis(title: str, start_input: str, council_ids: list[str] | None
     _A.assign_part_ids(findings, "f")
     _A.assign_part_ids(statements, "st")
     _A.assign_part_ids(prompts, "p")
+    posture: dict[str, Any] = {}
+    if project_id:
+        statements, findings, posture = apply_claim_postures(
+            project_id, statements, findings, _pl.get("claims") or [], store,
+            prose_present=bool(str(data.get("arc_narrative") or "").strip()
+                               or str(data.get("gesamtbild") or "").strip()
+                               or str(data.get("positionierung") or "").strip()),
+        )
     existing = store.get_synthesis(synthesis_id) if synthesis_id else None
+    existing_fingerprint = str(((existing or {}).get("dispatch_provenance") or {}).get(
+        "payload_fingerprint") or "")
+    if (project_id and dispatch_ctx.get("dispatch_token") and existing
+            and existing_fingerprint == payload_fingerprint):
+        dispatch_result = bind_dispatch_output(  # noqa: F821 (bound)
+            dispatch_ctx, {"kind": "synthesis", "id": existing["id"]},
+            "recorded synthesis evidence", store)
+        return {
+            **existing, "idempotent_replay": True,
+            "url": web_url(f"/syntheses/{existing['id']}"),  # noqa: F821 (bound)
+            "project_url": web_url(f"/jobs/{project_id}"),  # noqa: F821 (bound)
+            "dispatch": dispatch_result,
+        }
     # honor an explicit/keyed synthesis_id even on first create (so a keyed run is idempotent)
     sid = (existing or {}).get("id") or synthesis_id or stable_id("synthesis", title or "synthesis", utc_now_iso())
     created = (existing or {}).get("created_at") or created_at or utc_now_iso()
@@ -199,8 +255,24 @@ def record_synthesis(title: str, start_input: str, council_ids: list[str] | None
     predictions_out = [_A.validate_predicted_behavior(pb) for pb in (predictions or [])]
     _A.assign_part_ids(predictions_out, "pb")
     rec["predictions"] = predictions_out or prev.get("predictions", [])
+    if posture:
+        rec["claim_posture"] = posture
+    if project_id:
+        rec["dispatch_provenance"] = {
+            "state": dispatch_ctx.get("state", "outside_run"),
+            **({"dispatch_token": dispatch_ctx["dispatch_token"],
+                "run_id": dispatch_ctx["run_id"], "task_id": dispatch_ctx["task_id"],
+                "operation_id": dispatch_ctx["operation_id"]}
+               if dispatch_ctx.get("dispatch_token") else {}),
+            **({"payload_fingerprint": payload_fingerprint,
+                "payload_revision": int(dispatch_ctx.get("payload_revision") or 1)}
+               if dispatch_ctx.get("dispatch_token") else {}),
+        }
     rec["updated_at"] = utc_now_iso()
     store.upsert_synthesis(rec)
+    dispatch_result = (bind_dispatch_output(  # noqa: F821 (bound)
+        dispatch_ctx, {"kind": "synthesis", "id": sid}, "recorded synthesis evidence", store)
+        if project_id else {"state": "outside_run", "checkpointed": False})
     emit_lifecycle_event("synthesis.recorded", {"synthesis_id": sid, "title": title,  # noqa: F821 (bound)
                                                 "status": rec["status"], "council_ids": council_ids,
                                                 "project_id": rec.get("project_id") or ""}, store)
@@ -210,9 +282,15 @@ def record_synthesis(title: str, start_input: str, council_ids: list[str] | None
     out["url"] = web_url(f"/syntheses/{sid}")  # noqa: F821 (bound) — the report's own page to hand the user
     if rec.get("project_id"):
         out["project_url"] = web_url(f"/jobs/{rec['project_id']}")  # noqa: F821 (bound)
+    out["dispatch"] = dispatch_result
     has_substance = any([rec["gesamtbild"].strip(), rec["positionierung"].strip(), rec["arc_narrative"].strip(),
                          rec["findings"], rec["statements"]])
     warnings: list[str] = []
+    if posture and not posture.get("verified"):
+        warnings.append(
+            "UNVERIFIED_HYPOTHESIS_DRAFT: prose/claims are not fully evidence-postured; a Reaction "
+            "Test cannot pass its terminal gate until unsupported/uncovered claims are repaired"
+        )
     if not has_substance:
         warnings.append("SYNTHESIS_THIN: this synthesis persisted with no prose (gesamtbild/"
                         "positionierung) and no structured blocks (clusters/key_problems/ranking/"
@@ -319,6 +397,8 @@ def export_synthesis(synthesis_id: str, format: str = "md", store: Store | None 
     L = _SYNTHESIS_EXPORT_LABELS[content_language()]
     lines = [f"# {L['report_title']}: {syn['title']}", "",
              f"*{L['arc_line'].format(n=len(syn['council_ids']), status=status, date=syn['created_at'])}*", ""]
+    lines += claim_posture_markdown(syn.get("claim_posture"),
+                                    de=content_language() == "de")
     if syn.get("goal"):
         lines += [f"## {L['goal']}", syn["goal"], ""]
     if status == "in_progress" and syn.get("next_council_question"):
@@ -466,6 +546,7 @@ def record_synthesis_outline(project_id: str, outline: dict[str, Any], store: St
         created_at=now, scope="project", project_id=project["id"], lead=data["build_order_narrative"],
         sections=sections, graph_snapshot=get_project_graph(project["id"], store=store),
     ).to_dict()
+    report["limitations"] = list(project.get("research_limitations") or [])
     store.upsert_synthesis(report)
     return report
 
@@ -550,6 +631,16 @@ def export_report(project_id: str, report_id: str | None = None, format: str = "
              f"*{'Report' if de else 'Report'} · {len(secs)} "
              f"{'Abschnitte' if de else 'sections'} · {n_studies} "
              f"{'Studien' if de else 'studies'} · {report['created_at'][:10]}*", ""]
+    lines += claim_posture_markdown(report.get("claim_posture"), de=de)
+    if report.get("limitations"):
+        lines += [f"## {'Limitationen' if de else 'Limitations'}"]
+        for limitation in report.get("limitations") or []:
+            original = str(limitation.get("original_status") or "")
+            rationale = str(limitation.get("rationale") or "")
+            lines.append(
+                f"- `cohort_integrity_override` · {original}: {rationale}"
+            )
+        lines.append("")
     if report.get("lead"):
         lines += [f"## {'Wie dieses Verständnis entstand' if de else 'How this understanding was built'}",
                   report["lead"], ""]
@@ -584,118 +675,6 @@ def export_report(project_id: str, report_id: str | None = None, format: str = "
 # directory under an unguessable token: data/export/share/<token>/.      #
 # No auth, no server — the token-in-path is the share secret.            #
 # ===================================================================== #
-
-_SHARE_LABELS = {
-    "de": {"project": "Projekt", "generated": "erzeugt", "footer": "Schreibgeschützter Report",
-           "missing": "Medium nicht verfügbar"},
-    "en": {"project": "Project", "generated": "generated", "footer": "Read-only report",
-           "missing": "media unavailable"},
-}
-
-# Case-insensitive, single- or double-quoted: the post-processors are the ENFORCEMENT layer for
-# the zero-requests invariant, so they must not be foolable by markup the regex didn't expect.
-_SHARE_A_TAG = re.compile(r"<a\b([^>]*)>(.*?)</a>", re.DOTALL | re.IGNORECASE)
-_SHARE_HREF_ATTR = re.compile(r"""\bhref=(?:"([^"]*)"|'([^']*)')""", re.IGNORECASE)
-_SHARE_CLASS_ATTR = re.compile(r"""\bclass=(?:"([^"]*)"|'([^']*)')""", re.IGNORECASE)
-_SHARE_IMG_TAG = re.compile(r"<img\b[^>]*>", re.IGNORECASE)
-_SHARE_SRC_ATTR = re.compile(r"""\bsrc=(?:"([^"]*)"|'([^']*)')""", re.IGNORECASE)
-
-# Per-file inlining budget: past this a base64'd capture balloons the bundle into an index.html
-# browsers choke on (a 30 MB screenshot alone makes a 42 MB document) — drop with a note instead.
-_SHARE_INLINE_MAX_BYTES = 8 * 1024 * 1024
-
-
-def _share_rewrite_links(html_text: str) -> str:
-    """Links into live inspector routes (and any other URL) become plain text — the recipient has
-    no inspector and the bundle must trigger zero requests. Internal #anchors (TOC, citations,
-    part deep-links) keep working. The anchor's class rides over onto the span (plus
-    share-unlinked) so styled rows (.ref-row, .prow) keep their layout."""
-    def _one(m: re.Match) -> str:
-        attrs, inner = m.group(1), m.group(2)
-        hm = _SHARE_HREF_ATTR.search(attrs)
-        href = (hm.group(1) if hm and hm.group(1) is not None else (hm.group(2) if hm else "")) or ""
-        if href.startswith("#"):
-            return m.group(0)
-        cm = _SHARE_CLASS_ATTR.search(attrs)
-        cls = (cm.group(1) if cm and cm.group(1) is not None else (cm.group(2) if cm else "")) or ""
-        classes = f"{cls} share-unlinked".strip()
-        return f'<span class="{classes}">{inner}</span>'
-    return _SHARE_A_TAG.sub(_one, html_text)
-
-
-def _share_inline_images(html_text: str, missing_label: str = "media unavailable", *,
-                         store: Store | None = None, project_id: str = "") -> str:
-    """Local media become data: URIs so an export opens from ``file://`` with zero requests.
-
-    SQLite's historical ``/data/…`` refs resolve only inside the active data partition.  A
-    shared-Postgres report instead renders opaque ``/assets/<id>/content`` and
-    ``/personas/<id>/avatar`` refs.  Assets resolve against the report's exact project;
-    portraits resolve through the current RLS-bound persona store.  DENY BY DEFAULT: an
-    opaque route without its required context, malformed route, missing record, external URL
-    or escaping filesystem path becomes a visible note. ``src`` values are
-    HTML-attribute-escaped by the renderer, so they are unescaped first.
-    """
-    import base64
-    import html as _html_mod
-    import mimetypes
-    from .. import config as _config
-    data_root = _config.partition_dir().resolve()
-    note = f'<span class="share-missing">[{_html_mod.escape(missing_label)}]</span>'
-
-    def _one(m: re.Match) -> str:
-        tag = m.group(0)
-        sm = _SHARE_SRC_ATTR.search(tag)
-        if not sm:
-            return note
-        g = 1 if sm.group(1) is not None else 2
-        src = _html_mod.unescape(sm.group(g))
-        if src.startswith("data:"):
-            return tag                                  # already self-contained
-        data: bytes
-        mime: str
-        if src.startswith("/data/"):
-            rel = Path(src[len("/data/"):])
-            # Asset records created in a workspace carry their physical
-            # /data/workspaces/<id>/... URL; older/avatar refs are partition-virtual
-            # /data/avatars/... paths.  Resolve both, but only inside the active root.
-            try:
-                physical_prefix = data_root.relative_to(Path(_config.DATA_DIR).resolve())
-            except ValueError:
-                physical_prefix = Path()
-            if physical_prefix.parts and rel.parts[:len(physical_prefix.parts)] == physical_prefix.parts:
-                fp = (Path(_config.DATA_DIR) / rel).resolve()
-            else:
-                fp = (data_root / rel).resolve()
-            if not fp.is_relative_to(data_root) or not fp.is_file():
-                return note
-            if fp.stat().st_size > _SHARE_INLINE_MAX_BYTES:
-                return note
-            data = fp.read_bytes()
-            mime = mimetypes.guess_type(fp.name)[0] or "application/octet-stream"
-        else:
-            from ..export_media import resolve_export_image
-            resolved = resolve_export_image(src, store=store, project_id=project_id)
-            if resolved is None:
-                return note
-            data, mime = resolved
-            if len(data) > _SHARE_INLINE_MAX_BYTES:
-                return note
-        uri = f"data:{mime};base64,{base64.b64encode(data).decode('ascii')}"
-        return tag[:sm.start(g)] + uri + tag[sm.end(g):]
-    return _SHARE_IMG_TAG.sub(_one, html_text)
-
-
-def _theme_block(theme_overrides: dict[str, Any] | None) -> str:
-    """The customer-theme `<style>` override for an export, or "". Validated against the
-    canonical contract (theming.validate_customer_theme — bad input raises, it never
-    ships a half-themed deliverable) and injected AFTER the base CSS so it wins by
-    cascade order — the same contract as the live web._ext seam. The PPTX deck export
-    is the known gap: the vendored _deck.py PALETTE is not parametrized (follow-up)."""
-    if not theme_overrides:
-        return ""
-    from ..theming import customer_theme_css, validate_customer_theme
-    return customer_theme_css(validate_customer_theme(theme_overrides))
-
 
 def export_synthesis_html(synthesis_id: str, out_dir: str | None = None,
                           store: Store | None = None,
@@ -768,14 +747,6 @@ def export_synthesis_html(synthesis_id: str, out_dir: str | None = None,
     return {"synthesis_id": syn["id"], "token": token, "dir": str(parent / token), "path": path,
             "url": export_download_url(path),  # noqa: F821 (bound) — the served /data link
             "title": syn.get("title", "")}
-
-
-# Google-Fonts links (same as the live inspector head) so a standalone PDF renders in Geist, not a
-# system fallback — keeps the PDF pixel-faithful to the web report.
-_PDF_FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
-              '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
-              '<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700'
-              '&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">')
 
 
 def export_synthesis_pdf(synthesis_id: str, store: Store | None = None,

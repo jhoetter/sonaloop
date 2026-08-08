@@ -91,6 +91,21 @@ A **freeform project** = a plan with no template: just a root `frame` task; the 
 ---
 
 ## 4. The decoupled, heterogeneous evidence graph
+
+### 4.1 Integrity-bound methodology roots and outputs
+
+A methodology may persist an `integrity` contract next to its open-tag plan. Reaction Test
+requires Product Understanding, stimulus, cohort-integrity and claim-posture contracts. Seeding
+orders Product Understanding → initial evidence-grounded frame → final cohort gate before Act
+work. Only the matching validated, versioned records discharge those tasks; a generic frame cannot
+bypass either preflight. Its two data-declared Council work items then make comprehension and
+trust/action-readiness explicit rather than asking a weaker host to invent the fan.
+
+Act/verify completion evaluates the stored evidence, not host prose. Reaction evidence must cite an
+admitted project stimulus and carry a verified `sonaloop.claim_posture.v1` envelope. Unsupported
+claims or prose outside the explicit claim inventory remain visible but block the gate. `observed`
+behavior is a special strict posture: only a grounded verified session with an exact step anchor can
+support it. The full contract is in `docs/research-integrity.md`.
 - Graph **nodes become heterogeneous**: `kind ∈ {council, synthesis, artifact, frame}` (open tag),
   each rendered **from data** (presentation-from-data: label/color/glyph per kind in suggestions).
   Councils are first-class nodes now — visible, sequential — not buried inside a synthesis.
@@ -114,7 +129,9 @@ A **freeform project** = a plan with no template: just a root `frame` task; the 
 
 ## 6. Tool surface (MCP/CLI)
 New / changed (old names kept as aliases where sensible):
-- `start_project(title, goal, methodology?=, persona_ids)` → project + seeded plan. *(extends
+- `start_project(title, goal, methodology?=, persona_ids, operation_id?=)` → project + seeded plan.
+  Methodology keys/display names normalize and validate before mutation; `operation_id` makes
+  transport retries return the same project and rejects conflicting reuse. *(Extends
   `start_methodology_project`; methodology optional → freeform.)*
 - `brief_next(project_id)` → plan frontier (bucket/capability/unmet/instructions). *(reframed.)*
 - `add_task(project_id, bucket, capability, title, intent, consumes?, requires?, step?)` → orchestrator

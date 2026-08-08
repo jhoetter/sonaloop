@@ -183,12 +183,17 @@ def get_study_result(project_id: str, store: Store | None = None) -> dict[str, A
     except Exception:
         run_state = None
     try:
+        health = project_health(project["id"], store=store)  # noqa: F821 (bound)
+    except Exception:
+        health = None
+    try:
         predictions = aggregate_predictions(project["id"], store=store)  # noqa: F821 (bound)
     except Exception:
         predictions = None
     return {"substrate_version": SUBSTRATE_VERSION,
             "project": _project_row(project),
             "run_state": run_state,
+            "project_health": health,
             "councils": councils,
             "syntheses": syntheses,
             "predictions": predictions,

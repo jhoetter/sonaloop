@@ -39,47 +39,40 @@ def run_state(project_id: str, plan: dict[str, Any], store: Store) -> dict[str, 
 
 def project_run_state(project_id: str, store: Store | None = None,
                       stale_hours: int = 6) -> dict[str, Any] | None:
-    """One project's DRIVER status, computed on read (no background jobs): is anyone actually
-    driving the plan? `active` = an open run checkpointed recently; `stalled` = open work with no
-    active run (abandoned mid-plan — the silent failure mode), or an open run quiet for
-    `stale_hours`; `finished` = plan complete. None for projects without a plan. The stalled note
-    carries the concrete resume affordance (the stalled Codex project sat invisible for hours —
-    ready frame__ideate, no run, and nothing anywhere said so)."""
-    from datetime import datetime, timedelta, timezone
+    """Compatibility view over the canonical :func:`project_health` projector.
+
+    Historically this function promoted a completed plan to ``finished`` even
+    when no governed run had passed the finish/critic/handoff contract.  That
+    created two conflicting truths in list/substrate responses.  Keep the
+    legacy shape for callers, but never recompute lifecycle truth here.
+    """
     from . import plan as _p
     store = store or Store()
     plan = _p.get_plan(project_id, store=store)
     if plan is None:
         return None
-    try:
-        runs = store.list_runs(project_id)
-    except Exception:
-        runs = []
-    last_activity = max([plan.get("updated_at", "")] + [r.get("updated_at", "") for r in runs])
-    if _p.is_complete(plan):
-        from . import result_outcomes as _result_outcomes
-        contract = _result_outcomes.project_result_contract_state(store, project_id)
-        if not contract.get("satisfied", True):
-            return {"state": "stalled", "last_activity": last_activity, "next_ready": ["__job_outcomes__"],
-                    "note": "plan complete but expected job outcome schemas are still missing"}
-        return {"state": "finished", "last_activity": last_activity}
-    ready = [t["id"] for t in _p.ready_tasks(plan)]
-    open_runs = [r for r in runs if r.get("status") == "active"]
-    if open_runs:
-        newest = max(r.get("updated_at", "") for r in open_runs)
-        try:
-            quiet = datetime.now(timezone.utc) - datetime.fromisoformat(newest) > timedelta(hours=stale_hours)
-        except Exception:
-            quiet = False
-        if not quiet:
-            return {"state": "active", "last_activity": last_activity, "next_ready": ready}
-        rid = open_runs[0].get("run_id", "")
-        return {"state": "stalled", "last_activity": last_activity, "next_ready": ready,
-                "note": (f"open run quiet since {newest[:16]} — resume with "
-                         f"start_run('{project_id}', run_id='{rid}')")}
-    return {"state": "stalled", "last_activity": last_activity, "next_ready": ready,
-            "note": (f"ready step {', '.join(ready[:2]) if ready else '(blocked)'} waiting since "
-                     f"{last_activity[:16]}; no active run — resume with start_run('{project_id}')")}
+    from .services._recovery import project_health
+    health = project_health(project_id, store=store, stale_hours=stale_hours)
+    state = "active" if health["state"] == "running" else health["state"]
+    out = {
+        "state": state,
+        "last_activity": health["last_activity"],
+        "next_ready": list((health.get("tasks") or {}).get("next_ready") or []),
+        "canonical_schema": health["schema"],
+        "engine_finished": health["engine_finished"],
+    }
+    reason = str((health.get("safe_next_action") or {}).get("reason") or "")
+    tool = str((health.get("safe_next_action") or {}).get("tool") or "")
+    if tool and tool not in reason:
+        args = dict((health.get("safe_next_action") or {}).get("arguments") or {})
+        rendered = ", ".join(f"{key}={value!r}" for key, value in sorted(args.items()))
+        reason = f"{reason} Call {tool}({rendered}).".strip()
+    finding = health.get("unmet_invariant") or {}
+    if finding.get("message"):
+        reason = f"{finding['message']} {reason}".strip()
+    if reason:
+        out["note"] = reason
+    return out
 
 
 def assess_project(project_id: str, store: Store | None = None) -> dict[str, Any]:
@@ -225,9 +218,12 @@ def assess_project(project_id: str, store: Store | None = None) -> dict[str, Any
             if substantial and not store.list_reports(project_id):
                 finish_gaps.append("no REPORT — author the project narrative/handover (scaffold_synthesis)")
         except Exception:
-            pass
+            finish_gaps.append("REPORT state unavailable — retry the read before completion")
     except Exception:
-        finish_gaps = []
+        # Unknown evidence is never evidence of completion.  This path is read-only,
+        # so surface a stable gap rather than swallowing a storage/decoder failure
+        # into `finished=true`.
+        finish_gaps = ["finish evidence unavailable — retry project/synthesis reads before completion"]
     if finish_gaps:
         gaps.extend(finish_gaps)
     finish = {"organized": not any("organized" in g for g in finish_gaps),

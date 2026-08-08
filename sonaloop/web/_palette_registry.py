@@ -338,6 +338,8 @@ NON_SEARCHABLE_ROUTES: dict[str, str] = {
                    "calendar; far too granular for a global jump target",
     "/documentation": "the curated docs hub — the nav-derived 'Documentation' jump command covers "
                       "it; full-text doc search is not entity search",
+    "/proto-files": "static passthrough for a prototype entry file, not a searchable entity; "
+                    "the owning prototype is searchable under /prototypes",
     "/sessions-files": "static passthrough for recorded session assets (screenshots), not an entity",
 }
 

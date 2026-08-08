@@ -441,7 +441,7 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         lead = (raw(it["lead"]) if it.get("lead")           # session/asset rows: avatar / thumb lead
                 else h("span", {"class_": "ol-ico", "style": f'color:{it["color"]}',
                                 "title": it.get("kind") or None}, raw(_icon(ic)))
-                if ic else h("span", {"class_": "ol-dot", "style": f'background:{it["color"]}'}))
+                if ic else h("span", {"class_": "sl-rel-dot", "style": f'background:{it["color"]}'}))
         # The icon carries the row kind; the row text stays about the artifact itself. Status,
         # trace state, forms and counts are available in the FilterBar/detail aside instead of
         # competing as same-looking pills in the timeline.

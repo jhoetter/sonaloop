@@ -6,6 +6,7 @@ Cross-module function references are bound at import time by services/__init__.p
 from __future__ import annotations
 
 import csv
+import copy
 import hashlib
 import json
 import random
@@ -602,7 +603,8 @@ def brief_completeness_critic(project_id: str, store: Store | None = None) -> di
         "reports truncated > 0, treat omitted or compacted material as UNKNOWN, never as absent. "
         "kind ∈ {segment, angle, concept, risk, fidelity_rung, finish}. Be a skeptic: default to passed=false "
         "if ANY segment/angle/concept/risk is unexplored or the project isn't organized+concluded+handed-off. "
-        "Then call record_completeness_critic(project_id, verdict). You CANNOT pass with non-empty missing.")
+        "Then call record_completeness_critic(project_id, verdict, run_id, operation_id) using the "
+        "deterministic critic-dispatch identifiers. You CANNOT pass with non-empty missing.")
     return {"project_id": project_id, "schema": "completeness_critic", "frame": frame, "instructions": instructions}
 
 
@@ -632,20 +634,60 @@ def validate_completeness_verdict(verdict: dict[str, Any]) -> dict[str, Any]:
             "rubric_ok": rubric_ok}
 
 
-def record_completeness_critic(project_id: str, verdict: dict[str, Any], store: Store | None = None) -> dict[str, Any]:
+def record_completeness_critic(
+    project_id: str,
+    verdict: dict[str, Any],
+    run_id: str,
+    operation_id: str,
+    store: Store | None = None,
+) -> dict[str, Any]:
     """Persist an INDEPENDENT critic verdict. Honesty gate: a verdict cannot be `passed` while it still
-    lists `missing` work OR while a rubric dimension is below threshold."""
+    lists `missing` work OR while a rubric dimension is below threshold.
+
+    ``operation_id`` is the deterministic critic-dispatch key returned by
+    ``run_step``. Replaying one logical verdict returns the original report;
+    conflicting content under that key fails closed. ``run_id`` binds the report
+    to exactly one governed run so it cannot be counted twice across runs.
+    """
     store = store or Store()
     project = _require_research_project(store, project_id)           # noqa: F821
+    run = store.get_run(str(run_id))
+    if not run or str(run.get("project_id") or "") != str(project_id):
+        raise ValueError("critic run_id must name a run for this project")
+    operation_id = str(operation_id or "").strip()
+    if not operation_id or len(operation_id) > 200 or not operation_id.isprintable():
+        raise ValueError("critic operation_id must be 1..200 printable characters")
     v = validate_completeness_verdict(verdict)
     if verdict.get("passed") and (v["missing"] or not v["rubric_ok"]):
         raise ValueError("completeness verdict cannot be passed=true while `missing` is non-empty or a "
                          "rubric dimension is below threshold (honesty: you can't pass with open gaps)")
-    now = utc_now_iso()
-    rec = {"id": stable_id("completeness", project["id"], now), "project_id": project["id"],  # noqa: F821
-           "scores": v["scores"], "passed": v["passed"], "missing": v["missing"],
-           "rationale": v["rationale"], "evidence_refs": v["evidence_refs"], "created_at": now}
-    project.setdefault("critic_reports", []).append(rec)
-    project["updated_at"] = now
-    store.upsert_research_project(project)
-    return rec
+    fingerprint = hashlib.sha256(json.dumps(
+        v, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")).hexdigest()
+    report_id = stable_id("completeness_operation", project["id"], run_id, operation_id)  # noqa: F821
+    for _attempt in range(16):
+        current = _require_research_project(store, project_id)       # noqa: F821
+        existing = next((report for report in (current.get("critic_reports") or [])
+                         if str(report.get("id") or "") == report_id), None)
+        if existing is not None:
+            if str(existing.get("operation_fingerprint") or "") != fingerprint:
+                raise PlanError(  # noqa: F821 (bound by services package)
+                    "CRITIC_OPERATION_CONFLICT",
+                    "CRITIC_OPERATION_CONFLICT: critic operation_id was reused with a different verdict",
+                )
+            return {**existing, "deduplicated": True}
+        now = utc_now_iso()
+        rec = {"id": report_id, "project_id": current["id"],
+               "run_id": run_id, "operation_id": operation_id,
+               "operation_fingerprint": fingerprint,
+               "scores": v["scores"], "passed": v["passed"], "missing": v["missing"],
+               "rationale": v["rationale"], "evidence_refs": v["evidence_refs"], "created_at": now}
+        updated = copy.deepcopy(current)
+        updated.setdefault("critic_reports", []).append(rec)
+        updated["updated_at"] = now
+        if store.compare_and_swap_research_project(current, updated):
+            return {**rec, "deduplicated": False}
+    raise PlanError(  # noqa: F821 (bound by services package)
+        "CRITIC_OPERATION_CONTENTION",
+        "CRITIC_OPERATION_CONTENTION: project critics changed repeatedly; retry the same operation_id",
+    )

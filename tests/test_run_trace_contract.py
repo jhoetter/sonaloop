@@ -47,7 +47,8 @@ def test_run_step_dispatch_exposes_trace_inputs_for_act_task(store):
     assert first["must_link_before_complete"] is False
 
     services.record_frame(pid, "frame__root", ["Which moment matters most?"],
-                          memory_refs=["memory:p1:handover"], store=store)
+                          memory_refs=["memory:p1:handover"],
+                          dispatch_token=first["dispatch_token"], store=store)
     act = services.add_task(pid, "act", "explore", "Explore handover moments",
                             consumes=["frame__root"], store=store)
 
@@ -60,6 +61,14 @@ def test_run_step_dispatch_exposes_trace_inputs_for_act_task(store):
     assert second["open_questions"] == ["Which moment matters most?"]
     assert second["expected_output_kind"] == "explore"
     assert second["must_link_before_complete"] is True
+    persisted = next(
+        row for row in store.get_run(run["run_id"])["dispatches"]
+        if row["dispatch_token"] == second["dispatch_token"])
+    assert persisted["dispatch_cursor"] == 1
+    assert persisted["workspace_id"] == "local"
+    assert len(persisted["input_fingerprint"]) == 64
+    assert persisted["expected_output_kind"] == "explore"
+    assert persisted["output_contract"]["max_primary_outputs"] == 1
 
 
 def test_complete_task_without_trace_link_returns_nudge(store):

@@ -27,6 +27,7 @@ from typing import Any
 from ..config import utc_now_iso, ensure_content_language, language_instruction
 from ..storage import Store
 from .. import artifacts as _artifacts
+from ..research_integrity import stamp_derived_finding
 
 from ._common import *  # noqa: F401,F403  (stable_id, _require_research_project, list_personas, …)
 
@@ -310,7 +311,9 @@ def record_head_to_head(project_id: str, prompt: str, options: list[Any],
                         summary: str = "", exec_summary: str = "", selection_reason: str = "",
                         findings: list | None = None, key: str | None = None,
                         variant_meta: dict[str, Any] | None = None,
-                        created_at: str | None = None, store: Store | None = None) -> dict[str, Any]:
+                        created_at: str | None = None, store: Store | None = None,
+                        claims: list[dict[str, Any]] | None = None,
+                        dispatch_token: str | None = None) -> dict[str, Any]:
     """Persist a host-authored HEAD-TO-HEAD as a CouncilSession carrying a `head_to_head` block. The host
     passes the labelled `options`, each persona's `preferences` ([{persona_id, choice (a label),
     intensity?, reason}]), and the authored `statements` (per-option stances) + exec_summary/summary (the
@@ -342,7 +345,7 @@ def record_head_to_head(project_id: str, prompt: str, options: list[Any],
     ht_finding = _artifacts.finding(verdict, kind="head_to_head",
                                     score={"margin": aggregate["margin"], "voters": aggregate["voters"]},
                                     meta={"aggregate": aggregate})
-    findings_in = list(findings or []) + [ht_finding]
+    findings_in = list(findings or []) + [stamp_derived_finding(ht_finding, statements)]
 
     # The labelled options become the council prompts (id 'opt:<label>') so each per-option statement's
     # about-ref resolves and the discovery-style Q→A grouping renders one card-group per option.
@@ -354,7 +357,8 @@ def record_head_to_head(project_id: str, prompt: str, options: list[Any],
         project["id"], prompt, pids, statements=statements, proposal="",
         summary=summary, exec_summary=exec_summary,
         selection_reason=selection_reason or "head-to-head panel",
-        prompts=option_prompts, findings=findings_in, key=key, created_at=created_at, store=store)
+        prompts=option_prompts, findings=findings_in, key=key, created_at=created_at, store=store,
+        claims=claims, dispatch_token=dispatch_token)
 
     session["head_to_head"] = {
         "options": public_options,

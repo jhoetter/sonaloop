@@ -8,6 +8,22 @@ from ..config import utc_now_iso
 
 class ResearchMixin:
     # ---- Research graph: projects / edges / open questions / reports ----
+    def insert_research_project_if_absent(self, project: dict[str, Any]) -> bool:
+        """Atomically claim a deterministic project id without overwriting its owner.
+
+        Used by retry-safe ``start_project(operation_id=...)``. The explicit conflict target is
+        tenant-expanded by the Postgres backend, while SQLite uses the same statement verbatim.
+        """
+        cur = self.conn.execute(
+            "INSERT INTO research_projects (id, slug, title, data, created_at, updated_at) "
+            "VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING",
+            (project["id"], project["slug"], project["title"],
+             json.dumps(project, ensure_ascii=False), project["created_at"],
+             project.get("updated_at", project["created_at"])),
+        )
+        self.conn.commit()
+        return cur.rowcount == 1
+
     def upsert_research_project(self, project: dict[str, Any]) -> None:
         self.conn.execute(
             "INSERT INTO research_projects (id, slug, title, data, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?) "
@@ -16,6 +32,22 @@ class ResearchMixin:
              project["created_at"], project.get("updated_at", project["created_at"])),
         )
         self.conn.commit()
+
+    def compare_and_swap_research_project(
+        self, expected: dict[str, Any], project: dict[str, Any]
+    ) -> bool:
+        """Replace one project only when its persisted JSON has not changed."""
+        cur = self.conn.execute(
+            "UPDATE research_projects SET slug=?, title=?, data=?, updated_at=? "
+            "WHERE id=? AND data=?",
+            (
+                project["slug"], project["title"], json.dumps(project, ensure_ascii=False),
+                project.get("updated_at", project["created_at"]), project["id"],
+                json.dumps(expected, ensure_ascii=False),
+            ),
+        )
+        self.conn.commit()
+        return cur.rowcount == 1
 
     def get_research_project(self, project_id: str) -> dict[str, Any] | None:
         row = self.conn.execute(
@@ -52,6 +84,20 @@ class ResearchMixin:
         return sorted(rep, key=lambda s: s.get("created_at", ""), reverse=True)
 
     # ---- ESV: the resumable run object ----
+    def insert_run_if_absent(self, run: dict[str, Any]) -> bool:
+        """Atomically claim a caller-addressable run id without overwriting it."""
+        cur = self.conn.execute(
+            "INSERT INTO runs (run_id, project_id, status, cursor, data, created_at, updated_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(run_id) DO NOTHING",
+            (
+                run["run_id"], run["project_id"], run.get("status", "active"),
+                int(run.get("cursor", 0)), json.dumps(run, ensure_ascii=False),
+                run["created_at"], run.get("updated_at", run["created_at"]),
+            ),
+        )
+        self.conn.commit()
+        return cur.rowcount == 1
+
     def upsert_run(self, run: dict[str, Any]) -> None:
         self.conn.execute(
             "INSERT OR REPLACE INTO runs (run_id, project_id, status, cursor, data, created_at, updated_at) "
@@ -59,6 +105,27 @@ class ResearchMixin:
             (run["run_id"], run["project_id"], run.get("status", "active"), int(run.get("cursor", 0)),
              json.dumps(run, ensure_ascii=False), run["created_at"], run.get("updated_at", run["created_at"])))
         self.conn.commit()
+
+    def compare_and_swap_run(self, expected: dict[str, Any], run: dict[str, Any]) -> bool:
+        """Replace one run only when its complete persisted JSON is unchanged.
+
+        Runs currently store their journal as one JSON document.  This CAS gives
+        checkpoint/critic writers an atomic retry primitive on both SQLite and the
+        tenant-expanded Postgres backend, preventing concurrent read-modify-write
+        calls from silently dropping one another.
+        """
+        previous_data = json.dumps(expected, ensure_ascii=False)
+        next_data = json.dumps(run, ensure_ascii=False)
+        cur = self.conn.execute(
+            "UPDATE runs SET project_id=?, status=?, cursor=?, data=?, updated_at=? "
+            "WHERE run_id=? AND data=?",
+            (
+                run["project_id"], run.get("status", "active"), int(run.get("cursor", 0)),
+                next_data, run.get("updated_at", run["created_at"]), run["run_id"], previous_data,
+            ),
+        )
+        self.conn.commit()
+        return cur.rowcount == 1
 
     def get_run(self, run_id: str) -> dict[str, Any] | None:
         row = self.conn.execute("SELECT data FROM runs WHERE run_id=?", (run_id,)).fetchone()

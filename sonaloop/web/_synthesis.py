@@ -66,8 +66,8 @@ register_css(r"""
 .block{margin:40px 0 0;padding-top:24px;border-top:1px solid var(--line)}
 .block>.bh{font-size:var(--t-sm);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;margin:0 0 16px;display:flex;align-items:center;gap:8px}
 .block>.bh .cnt{color:var(--accent);background:var(--accent-weak);border-radius:var(--radius-sm);padding:1px 9px;font-size:var(--t-xs)}details.block>summary.bh{cursor:pointer;margin-bottom:0}details.block[open]>summary.bh{margin-bottom:16px}
-.syn-main section{padding:0;overflow:visible}
-.syn-main .block{margin-top:40px;padding-top:24px}
+.sl-syn-main section{padding:0;overflow:visible}
+.sl-syn-main .block{margin-top:40px;padding-top:24px}
 .cgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .ref-list{display:flex;flex-direction:column;gap:6px}
 .ref-row{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);text-decoration:none;color:var(--ink)}
@@ -93,7 +93,7 @@ register_css(r"""
 .cc-es h3{font-size:var(--t-sm);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:10px 0 4px}
 .cc-es p{margin:0 0 7px}.cc-es ul{margin:0 0 7px;padding-left:18px}
 .cc-jump{font-weight:600;color:var(--accent);font-size:var(--t-body)}
-.syn-main [id]{scroll-margin-top:26px}
+.sl-syn-main [id]{scroll-margin-top:26px}
 /* verdict/POV card — the structural opener of every report (ux-contract §3.6a). The card
    carries the LEAD layer of the §11 T3 hierarchy: headline finding at t-lg/600, the opening
    sentences at the t-prose reading voice, wrapped at the prose measure. */
@@ -564,4 +564,4 @@ def _synthesis_html(store: Store, syn: dict, *, embed: bool = False):
     # Unified detail shell: the caller wraps this content in _doc (content column + Properties/Relations
     # aside) and renders the section minimap via _page_rail(toc) — same as every other detail page.
     toc = [(sid, lbl) for sid, lbl, _ in sec]
-    return h("div", {"class_": "syn-main"}, raw(main)), toc
+    return h("div", {"class_": "sl-syn-main"}, raw(main)), toc

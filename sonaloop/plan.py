@@ -14,6 +14,14 @@ import contextvars
 from typing import Any
 
 from .config import utc_now_iso
+from .plan_dispatch import diverse_participants as _diverse_participants
+from .plan_gates import (
+    effective_minimum as _eff_min,
+    fan_evidence as _fan_evidence,
+    fan_tasks as _fan_tasks,
+    grounding_verifiable as _grounding_verifiable,
+    verify_unmet,
+)
 from .storage import Store
 
 
@@ -41,6 +49,7 @@ def _norm_task(raw: dict[str, Any]) -> dict[str, Any]:
         "plan_note": raw.get("plan_note", ""),
         "bucket": raw.get("bucket", ""),            # analyze | act | verify (free tag)
         "capability": raw.get("capability", ""),    # frame | explore | cluster | decide | … (free tag)
+        "expected_output_kind": raw.get("expected_output_kind", ""),
         "step": raw.get("step", ""),                # optional grouping under a constellation step
         "consumes": [str(c) for c in (raw.get("consumes") or [])],
         "status": raw.get("status", "todo"),        # todo | active | done | blocked
@@ -123,7 +132,12 @@ def seed_plan_from_methodology(project_id: str, goal: str, spec: dict[str, Any])
     def map_target(step_id: str) -> str:
         return fan_frame.get(step_id) or decide_verify.get(step_id) or ""
 
-    tasks: list[dict[str, Any]] = []
+    integrity = dict(spec.get("integrity") or {})
+    root_frame_ids = [fan_frame[s["id"]] for s in steps
+                      if not M._is_decide(s) and not (s.get("consumes") or [])]
+    from .plan_preflight import seed_preflight_tasks, seed_work_item_tasks
+    tasks, product_preflight, cohort_preflight, product_preflight_id, cohort_preflight_id = \
+        seed_preflight_tasks(integrity, root_frame_ids)
     for s in steps:
         sid = s["id"]
         cap = s["tags"][0] if s.get("tags") else ""
@@ -132,6 +146,17 @@ def seed_plan_from_methodology(project_id: str, goal: str, spec: dict[str, Any])
         # gate stays honest: frame tasks only ever produce `frame` refs and verify siblings are
         # excluded by bucket, so neither counts as act evidence in verify_unmet/_fan_tasks.
         cons = [map_target(c) for c in s["consumes"]]
+        current_id = decide_verify[sid] if M._is_decide(s) else fan_frame[sid]
+        if current_id in root_frame_ids:
+            # Product truth must exist before the frame authors test hypotheses.
+            if product_preflight and product_preflight_id not in cons:
+                cons.append(product_preflight_id)
+        else:
+            # Everything downstream of the initial frame waits for the final cohort gate.
+            preflight_barrier = (cohort_preflight_id if cohort_preflight else
+                                 product_preflight_id if product_preflight else "")
+            if preflight_barrier and preflight_barrier not in cons:
+                cons.append(preflight_barrier)
         if M._is_decide(s):
             tasks.append({
                 "id": decide_verify[sid], "title": f"Decide · {s['name']}", "bucket": "verify",
@@ -153,7 +178,12 @@ def seed_plan_from_methodology(project_id: str, goal: str, spec: dict[str, Any])
                           f"surface on the act lane once this frame is recorded.",
                 "phase_intent": s["intent"],
                 "produces": [], "presentation": s.get("presentation") or {}})
-    return new_plan(project_id, goal, spec["key"], tasks)
+            barrier = cohort_preflight_id if cohort_preflight else ""
+            tasks.extend(seed_work_item_tasks(s, fan_frame[sid], barrier))
+    plan = new_plan(project_id, goal, spec["key"], tasks)
+    if integrity:
+        plan["integrity"] = integrity
+    return plan
 
 
 _PLAN_CACHE: contextvars.ContextVar[dict[tuple[int, str], dict[str, Any] | None] | None] = \
@@ -255,6 +285,18 @@ def record_frame(project_id: str, task_id: str, questions: list[str], hypotheses
         raise PlanError("BAD_FRAME", f"unknown task '{task_id}'")
     if t["bucket"] != "analyze":
         raise PlanError("BAD_FRAME", f"record_frame targets an analyze task (got bucket '{t['bucket']}')")
+    if t.get("capability") == "product_understanding":
+        raise PlanError(
+            "PRODUCT_UNDERSTANDING_REQUIRED",
+            "this analyze task can only be discharged by record_product_understanding with cited "
+            "product evidence; a generic frame cannot bypass the preflight",
+        )
+    if t.get("capability") == "cohort_integrity":
+        raise PlanError(
+            "COHORT_PREFLIGHT_REQUIRED",
+            "this analyze task can only be discharged by record_cohort_preflight; a generic frame "
+            "cannot turn a thin or circular cohort warning into a pass",
+        )
     qs = [str(q).strip() for q in (questions or []) if str(q).strip()]
     refs = [str(r).strip() for r in (memory_refs or []) if str(r).strip()]
     if not qs:
@@ -292,7 +334,8 @@ def link_evidence(project_id: str, task_id: str, ref: dict[str, Any],
 
 
 def record_judgment(project_id: str, task_id: str, gate_tag: str, decided: bool, rationale: str,
-                    evidence_refs: list[str] | None = None, store: Store | None = None) -> dict[str, Any]:
+                    evidence_refs: list[str] | None = None, store: Store | None = None,
+                    operation_id: str = "") -> dict[str, Any]:
     """Record an evidence-backed gate judgment against a task (the fan or the verify). gate_tag is a
     FREE tag; a decided judgment needs a rationale + >=1 evidence_ref."""
     store = store or Store()
@@ -308,8 +351,22 @@ def record_judgment(project_id: str, task_id: str, gate_tag: str, decided: bool,
         raise PlanError("BAD_JUDGMENT", "a decided judgment needs a rationale")
     if decided and not refs:
         raise PlanError("BAD_JUDGMENT", "a decided gate judgment needs >= 1 evidence_ref")
-    j = {"task_id": task_id, "gate_tag": gate_tag, "decided": bool(decided),
-         "rationale": rationale.strip(), "evidence_refs": refs, "created_at": utc_now_iso()}
+    operation_id = str(operation_id or "").strip()
+    payload = {"task_id": task_id, "gate_tag": gate_tag, "decided": bool(decided),
+               "rationale": rationale.strip(), "evidence_refs": refs}
+    if operation_id:
+        existing = next((row for row in plan.get("judgments", [])
+                         if str(row.get("operation_id") or "") == operation_id), None)
+        if existing:
+            if any(existing.get(k) != v for k, v in payload.items()):
+                raise PlanError(
+                    "JUDGMENT_OPERATION_CONFLICT",
+                    "judgment operation_id was already committed with a different payload",
+                )
+            return existing
+    j = {**payload, "created_at": utc_now_iso()}
+    if operation_id:
+        j["operation_id"] = operation_id
     plan.setdefault("judgments", []).append(j)
     save_plan(plan, store=store)
     return j
@@ -352,73 +409,6 @@ def park_evidence(project_id: str, refs: list[Any], reason: str, task_id: str = 
     return rec
 
 
-def _fan_tasks(plan: dict[str, Any], vtask: dict[str, Any]) -> list[dict[str, Any]]:
-    """The act 'fan' a verify task consolidates: sibling tasks sharing one of its consumed frames."""
-    frames = set(vtask["consumes"])
-    return [t for t in plan["tasks"]
-            if t["id"] != vtask["id"] and (set(t["consumes"]) & frames) and t["bucket"] != "verify"]
-
-
-def _fan_evidence(plan: dict[str, Any], vtask: dict[str, Any]) -> list[dict[str, str]]:
-    out: list[dict[str, str]] = []
-    for t in _fan_tasks(plan, vtask):
-        for r in t["produces"]:
-            if r["kind"] != "frame":
-                out.append(r)
-    return out
-
-
-def _eff_min(vtask: dict[str, Any]) -> int:
-    mi = vtask["requires"]["min_inputs"]
-    return mi if mi is not None else 2
-
-
-def verify_unmet(plan: dict[str, Any], vtask: dict[str, Any], store: Store) -> list[str]:
-    """Non-raising: what a verify task still needs before it can complete."""
-    from . import methodology as M
-    pid = plan["project_id"]
-    req = vtask["requires"]
-    unmet: list[str] = []
-    # Breadth = distinct ACT tasks (angles) that produced evidence — NOT raw evidence refs. Counting
-    # refs let one prototype's (artifact + N sessions) masquerade as "enough exploration", so a phase
-    # could converge on a single angle. Distinct tasks force genuine breadth (≥ min_inputs angles).
-    fan_tasks = [t for t in _fan_tasks(plan, vtask) if any(r.get("kind") != "frame" for r in t.get("produces", []))]
-    eff = _eff_min(vtask)
-    if len(fan_tasks) < eff:
-        unmet.append(f"need >= {eff} act tasks (distinct angles) with evidence in the fan (have {len(fan_tasks)})")
-    if req["gate_tag"]:
-        scope = {vtask["id"], *vtask["consumes"], *[t["id"] for t in _fan_tasks(plan, vtask)]}
-        ok = any(j.get("decided") and j["gate_tag"] == req["gate_tag"] and j["task_id"] in scope
-                 for j in plan.get("judgments", []))
-        if not ok:
-            unmet.append(f"a decided `{req['gate_tag']}` judgment must exist")
-    for tg in req["artifact_tags"]:
-        if not M._project_artifacts_with(store, pid, tg):
-            unmet.append(f"need >= 1 artifact tagged `{tg}`")
-    for tg in req["session_of_tags"]:
-        sess = M._sessions_of(store, pid, tg)
-        if not sess:
-            unmet.append(f"need >= 1 recorded session of an artifact tagged `{tg}`")
-        elif _grounding_verifiable() and not any(s.get("grounded_verified") for s in sess):
-            # GAP-5: when the harness CAN verify, an unverified session is not real-usage evidence —
-            # a converge can't pass its proband-test gate on it. Degrades gracefully where Playwright
-            # is unavailable (then any recorded session counts, as before).
-            unmet.append(f"need >= 1 GROUNDED session of `{tg}` — {len(sess)} recorded but none verified "
-                         f"against real observed usage; drive the prototype (proto_open/proto_act) and "
-                         f"cite states you actually saw, then record")
-    return unmet
-
-
-def _grounding_verifiable() -> bool:
-    """True when the Playwright harness is available, so an ungrounded proband session is a real gap
-    (not just a degraded-environment artefact). Lazy import avoids a hard browser dependency."""
-    try:
-        from . import browser as _browser
-        return bool(_browser.available())
-    except Exception:
-        return False
-
-
 def complete_task(project_id: str, task_id: str, store: Store | None = None) -> dict[str, Any]:
     """Mark a ready task done. Verify tasks are gate-checked (breadth + gate judgment + artifacts/
     sessions) and rejected until satisfied. Completion never loops: a task's `loop_back` is honored
@@ -433,6 +423,45 @@ def complete_task(project_id: str, task_id: str, store: Store | None = None) -> 
     ready = {x["id"] for x in ready_tasks(plan)}
     if task_id not in ready:
         raise PlanError("TASK_NOT_READY", f"task '{task_id}' is not on the ready frontier")
+    if t.get("capability") == "product_understanding":
+        pu = [r for r in t.get("produces") or [] if r.get("kind") == "product_understanding"]
+        if not pu:
+            raise PlanError(
+                "PRODUCT_UNDERSTANDING_REQUIRED",
+                "product-understanding preflight is incomplete; call record_product_understanding "
+                "with the run_step dispatch token",
+            )
+    if t.get("capability") == "cohort_integrity":
+        from .cohort_integrity import current_cohort_preflight, preflight_satisfies_project
+        project = store.get_research_project(project_id) or {}
+        gate = current_cohort_preflight(project)
+        refs = [r for r in t.get("produces") or [] if r.get("kind") == "cohort_preflight"]
+        if not gate or not any(str(r.get("id") or "") == str(gate.get("id") or "") for r in refs):
+            raise PlanError(
+                "COHORT_PREFLIGHT_REQUIRED",
+                "cohort-integrity preflight is incomplete; call record_cohort_preflight with the "
+                "run_step dispatch token",
+            )
+        if gate.get("status") in {"pass", "overridden"} and not preflight_satisfies_project(
+                project, store):
+            raise PlanError(
+                "COHORT_PREFLIGHT_STALE",
+                "cohort-integrity preflight no longer matches the current cohort, Product "
+                "Understanding, or framed hypotheses",
+            )
+        if gate.get("status") in {"needs_deepening", "needs_reselection"}:
+            remediation_id = str(gate.get("remediation_task_id") or "")
+            if not remediation_id or not task(plan, remediation_id):
+                raise PlanError(
+                    "COHORT_REMEDIATION_REQUIRED",
+                    "a failed cohort gate may complete only after its required remediation task is injected",
+                )
+    if t["bucket"] == "act":
+        from .research_integrity import reaction_task_gaps
+        integrity_unmet = reaction_task_gaps(project_id, t, plan, store)
+        if integrity_unmet:
+            raise PlanError("REACTION_EVIDENCE_UNMET",
+                            f"Reaction Test task '{task_id}' blocked: {integrity_unmet}")
     if t["bucket"] == "verify":
         unmet = verify_unmet(plan, t, store)
         if unmet:
@@ -531,8 +560,22 @@ def brief_next(project_id: str, store: Store | None = None) -> dict[str, Any]:
     primary = sorted(ready, key=lambda t: (pref.get(t["bucket"], 3), plan["tasks"].index(t)))[0]
     unmet: list[str] = []
     if primary["bucket"] == "analyze":
-        instr = (f"ANALYZE/{primary['capability']}: {primary['intent']} → record_frame(questions, "
-                 f"hypotheses, memory_refs citing persona memory). Understand before concluding.")
+        if primary["capability"] == "product_understanding":
+            instr = (f"ANALYZE/product_understanding: {primary['intent']} → "
+                     "brief_product_understanding, inspect the cited stimulus, then "
+                     "record_product_understanding(dispatch_token=<run_step token>). Do not call "
+                     "record_frame for this task.")
+            unmet.append("record_product_understanding with target/revision/routes/flows/states/capabilities")
+        elif primary["capability"] == "cohort_integrity":
+            instr = (f"ANALYZE/cohort_integrity: {primary['intent']} → brief_cohort_preflight, "
+                     "declare countervoice representation, then record_cohort_preflight("
+                     "dispatch_token=<run_step token>). Execute structured required_work and repeat "
+                     "on the injected remediation dispatch when status is needs_deepening or "
+                     "needs_reselection; do not call record_frame for this task.")
+            unmet.append("record_cohort_preflight with depth/leakage/representation gate")
+        else:
+            instr = (f"ANALYZE/{primary['capability']}: {primary['intent']} → record_frame(questions, "
+                     f"hypotheses, memory_refs citing persona memory). Understand before concluding.")
         if primary["capability"] == "frame":
             unmet.append("record_frame (>=1 question + >=1 memory ref)")
     elif primary["bucket"] == "verify":
@@ -586,28 +629,6 @@ def _ideation_lenses() -> list[dict[str, Any]]:
         return []
 
 
-def _diverse_participants(store: Store, persona_ids: list[str], k: int = 6) -> list[str]:
-    """Pick up to k personas SPREAD across a segment axis (attitude/life-stage), so a council gets
-    real diversity rather than keyword-matched look-alikes (anti-steering)."""
-    buckets: dict[str, list[str]] = {}
-    for pid in persona_ids:
-        p = store.get_persona(pid)
-        if not p:
-            continue
-        seg = p.get("segment") or {}
-        key = str(seg.get("einstellung") or seg.get("lebensphase") or seg.get("kanal") or p.get("slug"))
-        buckets.setdefault(key, []).append(p["slug"])
-    pools = list(buckets.values())
-    out: list[str] = []
-    i = 0
-    while len(out) < k and any(pools) and i < 500:
-        pool = pools[i % len(pools)]
-        if pool:
-            out.append(pool.pop(0))
-        i += 1
-    return out[:k]
-
-
 def next_action(project_id: str, store: Store | None = None) -> dict[str, Any]:
     """Lean orchestration step (spec/harness-evaluation-and-autonomy.md HX2): the ready task FULLY
     loaded, so a long autonomous run is one `next_action` → author (subagent) → persist per
@@ -629,6 +650,40 @@ def next_action(project_id: str, store: Store | None = None) -> dict[str, Any]:
                            "unmet": b.get("unmet", []), "instructions": b["instructions"],
                            "must_link_before_complete": b["bucket"] in ("act", "verify")}
     if b["bucket"] == "analyze":
+        if b["capability"] == "product_understanding":
+            from .research_integrity import admitted_stimuli, current_product_understanding
+            out["product_understanding"] = {
+                "schema": "sonaloop.product_understanding.v1",
+                "current": current_product_understanding(project),
+                "admitted_stimuli": admitted_stimuli(project_id, store),
+                "required": {
+                    "target": "identity/name/url",
+                    "revision": "explicit revision or 'unknown'",
+                    "observed_at": "ISO-8601 timestamp",
+                    "inventory": "at least one route, flow or state",
+                    "capability_statuses": ["observed_present", "observed_absent", "inferred", "unknown"],
+                    "absence": "observed_absent requires evidence + verification_attempt",
+                },
+                "guidance": ("Call brief_product_understanding, inspect every cited asset/state, then "
+                             "record_product_understanding with this dispatch token. Unknown beats a "
+                             "guessed absence; later observations append lineage."),
+            }
+        elif b["capability"] == "cohort_integrity":
+            from .cohort_integrity import current_cohort_preflight
+            try:
+                from .services._cohort_integrity import brief_cohort_preflight
+                preview = brief_cohort_preflight(project_id, store=store)
+            except Exception as exc:
+                preview = {"error": str(exc)}
+            out["cohort_integrity"] = {
+                "schema": "sonaloop.cohort_integrity.v1",
+                "current": current_cohort_preflight(project),
+                "brief": preview,
+                "guidance": (
+                    "Use the versioned server result, not a model judgment. Deepen/reselect exactly "
+                    "as required_work says; a rationale-bearing override remains a report limitation."
+                ),
+            }
         try:
             oqs = [o["text"] for o in store.list_open_questions(project_id) if o.get("status") == "open"]
         except Exception:

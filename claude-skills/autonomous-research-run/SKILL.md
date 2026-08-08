@@ -18,7 +18,8 @@ You almost never read a full council/synthesis yourself — you steer from `asse
    if not). Reuse an existing cohort when present.
 2. **Project**: `start_project "<title>" "<HMW>" --methodology <key> --persona …` (double_diamond /
    double_diamond_deep / d.school / lean_jtbd, or freeform). The plan seeds analyze/act/verify.
-3. **Run object**: `run = start_run(project_id, budget=<steps>)`. Resume an interrupted run with
+3. **Run object**: `run = start_run(project_id, budget=<steps>, operation_id=<stable create key>)`; reuse
+   that key if the initial response is ambiguous. Resume an interrupted run with
    `start_run(project_id, run_id=run.run_id)` — it replays the journal, no lost work.
 
 ## The lean loop — YOU ARE THE THIN HOST OVER THE DETERMINISTIC ENGINE (ESV)
@@ -28,13 +29,14 @@ run ending at "a good starting point": the engine does the deterministic finish 
 meta-report outline + critic-gap injection) itself, and only the independent **critic** — not your
 own judgment — ends the run.
 ```
-run = start_run(project_id, budget=50)
+run = start_run(project_id, budget=50, operation_id=<stable run-create key>)
 while True:
     s = run_step(run.run_id)                 # the brain: assess + next_action + finish + critic gate
     if s.kind == "done": break               # status: finished | capped | stopped — the run is over
     if s.kind == "critic":
         spawn ONE INDEPENDENT critic subagent on s.brief → it authors the verdict, calls
-        record_completeness_critic(project_id, verdict) then record_critic_round(run_id, passed, len(missing))
+        record_completeness_critic(project_id, verdict, run_id, operation_id=dispatch.operation_id),
+        then record_critic_round(run_id, critic_report_id=returned.id, key=dispatch.key)
         continue                             # the engine injects each `missing` gap as real work next loop
     # else s.kind ∈ {analyze, act, verify}: author ONE step (below), grounded in s.next_action, keyed by s.key
     spawn ONE subagent to author s → it persists via MCP and returns ONLY ids + 1 line
@@ -44,10 +46,12 @@ while True:
 Authoring per dispatch (always a SUBAGENT, grounded in `s.next_action`):
 - **analyze (frame)** → subagent reads cited persona memory + prior syntheses (from `n.grounding`),
   authors research questions, calls `record_frame`. Returns the frame id.
-- **act** → for each ANGLE in `n.act.framed_questions`, subagent runs a REAL multi-persona council
-  (`n.act.suggested_participants` — segment-diverse, NOT keyword) via the run-council flow, or
-  `scaffold_artifact` + a grounded Playwright proband session; then `add_task`+`link_evidence`+
-  `complete_task`. Breadth = angles × persona diversity, **never one council per persona**.
+- **act** → execute the already-dispatched Act task and pass its `dispatch_token` to the matching
+  recorder; do **not** add a duplicate task when the methodology supplied a `work_item` (Reaction
+  Test already supplies both Council angles). Only when a verify dispatch explicitly reports an
+  incomplete, unseeded fan should the host add a new angle task. Run a REAL multi-persona council
+  (`n.act.suggested_participants` — segment-diverse, NOT keyword) or `scaffold_artifact` + a grounded
+  Playwright session. Breadth = angles × persona diversity, **never one council per persona**.
   **Council shape (Q1/Q2):** councils are PRIMITIVES-ONLY — `record_council(project_id, prompt,
   persona_ids, statements=[…], votes=…, proposal=…, questions=…, findings=…)` (no `turns` param).
   Each statement is `{persona_id, text, stance:{value -2..2}, about:{kind:'prompt', id}, refs}` — the

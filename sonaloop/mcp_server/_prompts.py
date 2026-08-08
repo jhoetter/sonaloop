@@ -27,6 +27,12 @@ knowledge, even if it arrives as a bare one-line prompt. Your brainstorm is a hy
 personas' grounded reactions are the product. For the cohort, check the curated catalog FIRST \
 (300+ ready-made personas with lived memory: catalog_search / catalog_recommend -> catalog_pull); \
 author new personas only for what the catalog lacks.
+- CLOUD FRONT DOOR (feature-detect): if this host exposes `begin_research_job`, use exactly that ONE
+external call to create the cloud job + governed run. Pass the user's full initial request, one stable
+non-sensitive `operation_id`, and `methodology` (`auto`, `freeform`, or an exact methodology name/key).
+On timeout/transport failure repeat the exact same `begin_research_job` call with the exact same inputs;
+never recover by calling start_project/start_run separately or by minting another operation_id. Only
+when `begin_research_job` is absent use the core start_project -> start_run fallback below.
 - YOU (the agent) author ALL text. Sonaloop never calls a text LLM. Each generative step follows one \
 contract: call a `brief_*` tool to gather context -> you author the JSON -> call the matching \
 `record_*`/`put_*` tool to validate + persist. OPENAI_API_KEY (optional) is used only for avatar \
@@ -40,12 +46,33 @@ valid outcomes.
 A persona's statement text stays in that persona's natural voice (it is a quote).
 - Generated content follows the language the user writes in (auto-detected, then persisted).
 - Multi-step projects run on the GOVERNED loop, never on your own sense of "enough": \
-start_project -> start_run(project_id) -> loop run_step(run_id) -> execute each dispatch -> \
-checkpoint_step, until run_step returns kind=='done'. Gates passed != finished — a project is DONE \
-only when `assess_project.finish.finished` is true and the completeness critic passes. Never stop \
+start_project(operation_id=<stable create-intent key; reuse on retries>) -> \
+start_run(project_id, operation_id=<stable run-create key; reuse on retries>) \
+-> loop run_step(run_id) -> execute each dispatch with its exact `dispatch_token` -> persist through
+the token-aware recorder, which auto-links + auto-checkpoints. Do NOT manually checkpoint again when
+the recorder reports dispatch.checkpointed=true. Continue until run_step returns kind=='done'. Gates
+passed != finished — a project is DONE \
+only when `assess_project.finish.finished` is true and the required completeness critics pass. Never stop \
 silently at a phase boundary ("Discover and Define are complete" is the START of the second \
 diamond, not an ending). If your session must end mid-run, say so explicitly and hand off the \
 resume call: start_run(project_id, run_id=<open run>) replays the journal with no lost work.
+- REACTION TEST integrity: before any persona reaction, inspect real target material and complete the
+Product Understanding preflight (target + explicit revision/time + routes/flows/states + capability
+postures observed_present|observed_absent|inferred|unknown + exact project evidence refs). Unknown is
+better than a guessed absence; observed_absent additionally needs a documented verification attempt.
+Next author the initial evidence-grounded research frame; its real questions and hypotheses are
+server-bound inputs to the structured Cohort Integrity preflight that follows. The server separates independent target
+context (persona facts/events/evidence predating the project) from product stimulus, reports versioned
+depth/source/age and lexical-overlap features, and may accept an optional provider-neutral semantic
+feature. A thin/circular cohort injects required deepening/reselection work. Declare at least one
+skeptical, indifferent or non-target countervoice with an exact basis quote and cited independent
+pre-project persona fact/event/evidence; an unverified host label fails closed. The council must
+include that persona and an explicit matching non-positive structured stance. Never reinterpret a failed status from prose;
+an override needs an explicit rationale and remains visible in report limitations.
+Councils/reports must inventory factual claims with posture observed|memory_grounded|inferred|simulated|
+unsupported and refs. A screenshot proves product state, never observed user behavior; `observed`
+behavior requires an exact step anchor in a grounded verified session. Uncovered prose/unsupported
+claims stay visible as a hypothesis draft and cannot close the gate.
 - Ready playbooks are exposed as MCP prompts: run_council, synthesize, design_thinking, \
 compose_research_plan, autonomous_research_run (resume). Browse every tool via the \
 `sonaloop://guide/catalogue` resource.
@@ -108,7 +135,11 @@ energy is spent (never loop unbounded).
 
 Then (host): author proposal, votes (the same stance-scale terms: support|conditional|neutral|skeptical|oppose),
 a short summary, and a rich
-Markdown exec_summary, and persist with record_council(...). brief_council(prompt) returns candidate
+Markdown exec_summary, and persist with record_council(...). For a Reaction Test first complete the
+Product Understanding, initial research frame, and final Cohort Integrity preflight; include a declared countervoice in the council,
+cite its independent basis in the preflight, express its matching structured stance, cite the admitted stimulus, and pass a `claims` inventory whose every
+summary assertion declares observed|memory_grounded|inferred|simulated|unsupported + refs. Synthetic
+persona reactions are `simulated`; a screenshot never proves observed behavior. brief_council(prompt) returns candidate
 personas; brief_council(prompt, persona_ids) returns each one's loaded context to author against.
 Modes: DISCOVERY (questions + one statement per persona*question), EVALUATION (proposal + stances),
 DECISION (+ votes). Point the user to the web inspector to read the result.
@@ -142,11 +173,14 @@ answer the user reads.
         return f"""\
 Run a Double-Diamond design-thinking project on: {how_might_we}
 
-Use the plan engine as the spine, on the GOVERNED loop: start_project(title, goal=the HMW,
-methodology="double_diamond") (or freeform), then start_run(project_id) and loop run_step(run_id) —
-execute each dispatch (analyze|act|verify: author the step grounded in its next_action, record it via
-record_frame / record output primitive + link_evidence / record_judgment -> complete_task, then checkpoint_step
-with consume_refs + produced_refs + downstream_refs; critic: author
+Use the plan engine as the spine, on the GOVERNED loop. If the host exposes begin_research_job, call
+that ONE cloud front door with the full HMW, methodology="double_diamond", and one stable operation_id;
+repeat the exact call on transport retry and do not separately call start_project/start_run. Otherwise:
+start_project(... same stable operation_id) -> start_run(... stable run operation_id). Then loop
+run_step(run_id). Execute each analyze|act|verify dispatch with its exact dispatch_token: author the
+step grounded in next_action and persist via the token-aware recorder (automatic evidence link + task
+checkpoint; do not checkpoint it again when dispatch.checkpointed=true). Verify also records its gate
+judgment with the same token. For critic dispatches author
 the completeness verdict via record_completeness_critic + record_critic_round) until run_step returns
 kind=='done'. The engine — not your judgment — ends the run: gates passed != finished, and "Discover
 and Define are complete" is the midpoint, not an ending. assess_project is the pulse along the way.
@@ -174,11 +208,14 @@ request: {request}
 1. Design the plan yourself: decide which methods to stitch together (councils, prototypes, affinity
    clustering, proband sessions, syntheses, sections) and in what analyze -> act -> verify shape. Fit it
    to the request; do not force a fixed template.
-2. Seed it: start_project(title, goal=request, methodology=... or freeform) and add_task as needed.
-3. Run it to a documented result on the GOVERNED loop: start_run(project_id), then loop
+2. Seed it: when `begin_research_job` is exposed, call that ONE cloud front door with the full request,
+   methodology=auto|freeform|exact name and one stable operation_id; repeat that exact call on a retry
+   and never also call start_project/start_run. Otherwise use start_project(title, goal=request,
+   methodology=..., operation_id=<stable key>) and start_run(... stable run key). Add tasks as needed.
+3. Run it to a documented result on the GOVERNED loop, then loop
    run_step(run_id) -> execute each dispatch (author the step grounded in cited persona memory + prior
-   syntheses -> record the output primitive -> link_evidence before complete_task -> checkpoint_step
-   with consume_refs + produced_refs + downstream_refs; critic dispatches author the
+   syntheses -> pass its exact dispatch_token to the output recorder; linking/completion/checkpoint are
+   automatic when dispatch.checkpointed=true; critic dispatches author the
    completeness verdict) until run_step returns kind=='done'. Do NOT freestyle next_action and stop
    when it feels answered: gates passed != finished — done means `assess_project.finish.finished` is
    true and the critic passed. Organize with sections; conclude with a synthesis/report. If the
@@ -195,17 +232,18 @@ same sequentially.
 Resume/continue the autonomous run of project {project_id} until the ENGINE says done.
 
 1. Orient: assess_project({project_id}) — the recommendation, open gates, gaps and finish state.
-2. Attach the governed loop: start_run({project_id}) — if the project has an open run it is resumed
+2. Attach the governed loop: start_run({project_id}, operation_id=<stable run-create key>) — if the
+   initial response is ambiguous, reuse that key; a known open run is resumed with run_id
    (journal replay, no lost work); otherwise a fresh run object is created.
 3. Loop: s = run_step(run_id)
    - s.kind == 'done'   -> the run is over (finished | capped | stopped). Only THIS ends the run.
    - s.kind == 'critic' -> author the completeness verdict from s.brief (independent judgment) ->
      record_completeness_critic + record_critic_round; the engine injects each missing gap as work.
-   - else (analyze|act|verify) -> author ONE step grounded in s.next_action. Analyze: record_frame.
-     Act/verify: record the output primitive, link_evidence every produced ref to s.step_id (or
-     park_evidence with a reason), then complete_task. Verify also records the gate judgment. Finally
-     checkpoint_step(run_id, {{consume_refs:s.consume_refs, produced_refs:[...], downstream_refs:[...],
-     open_questions:s.open_questions, parked_refs:[...]}}).
+   - else (analyze|act|verify) -> author ONE step grounded in s.next_action and pass s.dispatch_token
+     into every write. Analyze: record_frame (or record_product_understanding when requested).
+     Act/verify: persist the output primitive; token-aware recorders link it and checkpoint automatically.
+     Verify records the gate judgment with the same token. Only call checkpoint_step manually when the
+     recorder explicitly reports checkpointed=false after all required writes are present.
 4. Gates passed != finished: keep looping until `assess_project.finish.finished` is true (organized
    sections + a substantial terminal synthesis + the meta-report) AND the critic passes.
 

@@ -30,7 +30,8 @@ def register_usability(mcp):
                                  steps: list[dict[str, Any]], outcome: dict[str, Any],
                                  statements: list[dict[str, Any]] | None = None,
                                  project_id: str | None = None, session_id: str | None = None,
-                                 key: str | None = None) -> dict[str, Any]:
+                                 key: str | None = None,
+                                 dispatch_token: str | None = None) -> dict[str, Any]:
         """Persist a host-authored usability session — the durable, REPLAYABLE trace (the session is
         the deliverable). `steps` is the ordered dual timeline: {index (contiguous from 0),
         action:{type: look|click|type|select|scroll|key|navigate|back|wait|give_up, target, detail},
@@ -41,11 +42,13 @@ def register_usability(mcp):
         primitives; session refs ({kind:'session', id?, anchor:'step:<index>'}) must point at
         existing steps. With fidelity prototype/live and a browser `session_id`, claimed states are
         verified against the harness session log. Pass a stable `key` for a deterministic id
-        (idempotent upsert → resumable runs)."""
+        (idempotent upsert → resumable runs). In a governed run pass run_step's dispatch_token;
+        the verified session is linked and the task is checkpointed automatically."""
         t = time.perf_counter()
         return _env("record_usability_session",
                     services.record_usability_session(persona_id, subject, fidelity, date, steps,
-                                                      outcome, statements, project_id, session_id, key), t)
+                                                      outcome, statements, project_id, session_id, key,
+                                                      dispatch_token=dispatch_token), t)
 
     @mcp.tool()
     def get_usability_session(session_id: str) -> dict[str, Any]:

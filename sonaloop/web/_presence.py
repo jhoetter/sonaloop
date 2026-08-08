@@ -88,9 +88,13 @@ LIST_SOURCES: dict[str, str | NotAnArtifact] = {
     # the services surface
     "list_artifacts": "url_artifact",
     "list_assets": "asset",
+    "list_council_sessions": "council",
     "list_decisions": "decision",
     "list_flows": NotAnArtifact(
         "session test-script definition, not a product artifact — surfaced through the sessions that use it"),
+    "list_flow_manifests": NotAnArtifact(
+        "immutable stimulus-binding metadata, not an independent graph output — its exact "
+        "id/version/digest is surfaced by the Product Understanding card that freezes it"),
     "list_hypotheses": "hypothesis",
     # ideas ARE note records (kind 'idea' on the note primitive — services/_ideation.py);
     # list_ideas is a filtered view over list_notes, so their presence rides the note kind.
@@ -98,6 +102,7 @@ LIST_SOURCES: dict[str, str | NotAnArtifact] = {
     "list_notes": "note",
     "list_prototypes_artifacts": "prototype",
     "list_sections": "section",
+    "list_syntheses": "synthesis",
     "list_surveys": "survey",
     "list_usability_sessions": "session",
     # the storage-only surface

@@ -126,12 +126,15 @@ def register_eval(mcp):
         return _env("brief_completeness_critic", services.brief_completeness_critic(project_id), t)
 
     @mcp.tool()
-    def record_completeness_critic(project_id: str, verdict: dict[str, Any]) -> dict[str, Any]:
+    def record_completeness_critic(project_id: str, verdict: dict[str, Any],
+                                   run_id: str, operation_id: str) -> dict[str, Any]:
         """Persist the independent critic verdict {scores, passed, missing[{kind,what,why,
-        suggested_action}], rationale, evidence_refs}. Honesty gate: cannot be passed=true while
-        `missing` is non-empty or a rubric dimension is below threshold."""
+        suggested_action}], rationale, evidence_refs}. Bind it to the run and reuse the deterministic
+        operation_id returned by the critic dispatch on retries. Honesty gate: cannot be passed=true
+        while `missing` is non-empty or a rubric dimension is below threshold."""
         t = time.perf_counter()
-        return _env("record_completeness_critic", services.record_completeness_critic(project_id, verdict), t)
+        return _env("record_completeness_critic", services.record_completeness_critic(
+            project_id, verdict, run_id, operation_id), t)
 
     # ----- ESV §D: memory depth + the eval (quality) harness -----
     @mcp.tool()

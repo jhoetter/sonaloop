@@ -3,6 +3,21 @@
   "name": "Design Sprint",
   "description": "Jake Knapp / GV five-act sprint compressed into one run: Map the problem (fan) -> Sketch competing solutions (fan) -> Decide on one concept and storyboard it (waist) -> Prototype a realistic facade (build) -> Test with users (waist). A timeboxed way to go from a hard question to a tested concept fast.",
   "when_to_use": "When you have a high-stakes question and want a tested answer quickly: align on the problem, generate competing concepts, pick one, prototype just enough to test, and get real reactions — all in one tight cycle.",
+  "routing": {
+    "aliases": ["GV sprint", "five-day sprint"],
+    "threshold": 5,
+    "ambiguity_margin": 2,
+    "signals": [
+      {"phrase": "design sprint", "weight": 8},
+      {"phrase": "gv sprint", "weight": 8},
+      {"phrase": "five day sprint", "weight": 7},
+      {"phrase": "funf tage sprint", "weight": 7},
+      {"phrase": "in einer woche testen", "weight": 6},
+      {"phrase": "timeboxed", "weight": 5},
+      {"phrase": "storyboard", "weight": 4},
+      {"phrase": "sprint question", "weight": 4}
+    ]
+  },
   "presentation": {
     "icon": "zap",
     "image": "design-sprint.jpg",

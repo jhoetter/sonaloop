@@ -106,7 +106,8 @@ def catalogue_md() -> str:
         f"_{total} tools across {ndomains} domains — auto-generated from the live modules._",
         "",
         "Start with the **`sonaloop://guide/research`** resource for the canonical path "
-        "(personas → start_project → start_run → loop run_step → finish). This is the full browsable "
+        "(cloud: begin_research_job when exposed; core fallback: personas → start_project → "
+        "start_run → loop run_step with dispatch_token → finish). This is the full browsable "
         "index; every tool's response also carries a `next_recommended_tool` hint.",
         "",
     ]

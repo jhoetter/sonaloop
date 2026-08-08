@@ -6,8 +6,9 @@ from __future__ import annotations
 
 from ._ctx import *  # noqa: F401,F403  (shared render toolkit)
 from .._keymap import sibling_attrs, sibling_urls
-from .._render import _refs_line
+from .._render import _refs_line, render_claim_posture_notice
 from .._report import render_report
+from .._cohort_integrity_view import render_cohort_integrity
 
 
 def _informed_decisions_html(synthesis_id: str, store) -> str:
@@ -46,6 +47,10 @@ def register_syntheses(app) -> None:
         is_project = syn.get("scope") == "project"
         proj = (store.get_research_project(syn.get("project_id")) if (is_project and syn.get("project_id"))
                 else services.parent_project_of_synthesis(synthesis_id, store))
+        if proj:
+            # Reverse lookup returns lean breadcrumb metadata; evidence-health
+            # needs the tenant-authorized full Product Understanding versions.
+            proj = store.get_research_project(proj["id"]) or proj
         short_title = _display_title(syn["title"])
         crumbs = [(t("projects"), "/jobs")]
         if proj:
@@ -54,7 +59,10 @@ def register_syntheses(app) -> None:
         # One renderer, plus the section list → the right-edge scrollspy rail (§3.6c): the
         # report's structure stays navigable even when the clamped prose sections are short.
         report_html, toc = render_report(syn, store, with_toc=True)
-        body = fragment(raw(report_html),
+        from .projects import _product_understanding_html
+        body = fragment(raw(render_claim_posture_notice(syn, store)),
+                        raw(_product_understanding_html(proj or {}, store)),
+                        raw(render_cohort_integrity(proj or {}, store)), raw(report_html),
                         raw(_informed_decisions_html(synthesis_id, store)),
                         # server-provided prev/next sibling URLs for the keymap's [ / ] bindings
                         raw(sibling_attrs(*sibling_urls(

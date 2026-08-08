@@ -334,7 +334,8 @@ def _verify_states_against_log(steps: list[dict[str, Any]], log: list[dict[str, 
 
 def record_usability_session(persona_id, subject, fidelity, date_value, steps, outcome,
                              statements=None, project_id=None, session_id=None,
-                             key: str | None = None, store: Store | None = None):
+                             key: str | None = None, store: Store | None = None,
+                             dispatch_token: str | None = None):
     """Persist a host-authored usability session — the durable, REPLAYABLE trace. Validates: step
     indices ordered & contiguous from 0, each step's action type + state.screen + friction level
     (data-driven vocabulary, aliases resolve) + verdict shape, the outcome shape (dropoff_step must
@@ -346,6 +347,27 @@ def record_usability_session(persona_id, subject, fidelity, date_value, steps, o
     `capabilities_snapshot` so traces stay interpretable after the persona evolves. Pass a stable
     `key` for a deterministic id (idempotent upsert → resumable runs)."""
     store = store or Store()
+    # Historical usability-session rows were allowed to carry an arbitrary project label even
+    # when no research-project record existed. Keep that read/filter compatibility, but never
+    # present such a row as governed: only a real project can enter the dispatch validator and an
+    # unbound reference is explicitly stamped as outside-run. Conversely, a supplied token always
+    # goes through the validator (including when project_id is empty/unknown), so it cannot be
+    # laundered into this compatibility path.
+    known_project = bool(project_id and store.get_research_project(str(project_id)))
+    if dispatch_token or known_project:
+        dispatch_ctx = prepare_dispatch_write(  # noqa: F821 (bound)
+            str(project_id or ""), dispatch_token, key, "session", store,
+            allowed_buckets={"act", "verify"})
+    else:
+        dispatch_ctx = {
+            "state": "outside_run",
+            "project_id": str(project_id or ""),
+            "output_kind": "session",
+            "operation_id": str(key or ""),
+            "key": str(key or ""),
+            **({"project_reference": "unbound"} if project_id else {}),
+        }
+    effective_key = str(dispatch_ctx.get("primitive_key") or key or "") or None
     subject = _validate_subject(subject)
     _require_fidelity(fidelity)
     if not isinstance(steps, list) or not steps:
@@ -353,7 +375,7 @@ def record_usability_session(persona_id, subject, fidelity, date_value, steps, o
     norm_steps = [_validate_step(s, i) for i, s in enumerate(steps)]
     norm_outcome = _validate_outcome(outcome, len(norm_steps))
     now = utc_now_iso()
-    sess_id = (stable_id("usession", key) if key
+    sess_id = (stable_id("usession", effective_key) if effective_key
                else stable_id("usession", persona_id, _subject_key(subject), now))
     norm_statements = _validate_statements(statements, sess_id, len(norm_steps), store)
     _require_screenshots(norm_steps, sess_id)
@@ -390,8 +412,22 @@ def record_usability_session(persona_id, subject, fidelity, date_value, steps, o
         sess["session_id"] = session_id          # the browser session the trace was verified against
     if grounded is not None:
         sess["grounded_verified"] = grounded
+    if project_id:
+        sess["dispatch_provenance"] = {
+            "state": dispatch_ctx.get("state", "outside_run"),
+            **({"project_reference": dispatch_ctx["project_reference"]}
+               if dispatch_ctx.get("project_reference") else {}),
+            **({"dispatch_token": dispatch_ctx["dispatch_token"],
+                "run_id": dispatch_ctx["run_id"], "task_id": dispatch_ctx["task_id"],
+                "operation_id": dispatch_ctx["operation_id"]}
+               if dispatch_ctx.get("dispatch_token") else {}),
+        }
     store.insert_usability_session(sess)
     out: dict[str, Any] = {"usability_session": sess}
+    if project_id:
+        out["dispatch"] = bind_dispatch_output(  # noqa: F821 (bound)
+            dispatch_ctx, {"kind": "session", "id": sess_id},
+            "recorded replayable usability session", store)
     if grounded is not None:
         out["grounded_verified"] = grounded
     if warnings:

@@ -3,6 +3,22 @@
   "name": "JTBD Switch Interviews",
   "description": "Bob Moesta & Chris Spiek's Switch interview with Klement's four forces: Switch interviews (fan) -> Map the forces (waist) -> Shape the hire (fan) -> Validate the switch (waist). Reconstruct the timeline of a real recent switch and the push, pull, anxiety and habit around it to name the job a customer hires for.",
   "when_to_use": "When you want the causal story behind a purchase or switch: why people fired the old way and hired a new one, so you can design something that wins the switch.",
+  "routing": {
+    "aliases": ["switch interviews", "four forces interview"],
+    "threshold": 5,
+    "ambiguity_margin": 2,
+    "signals": [
+      {"phrase": "switch interview", "weight": 8},
+      {"phrase": "wechselinterview", "weight": 8},
+      {"phrase": "four forces", "weight": 7},
+      {"phrase": "vier krafte", "weight": 7},
+      {"phrase": "warum gewechselt", "weight": 6},
+      {"phrase": "wechselentscheidung", "weight": 6},
+      {"phrase": "push pull anxiety habit", "weight": 8},
+      {"phrase": "fired the old", "weight": 5},
+      {"phrase": "alte losung verlassen", "weight": 5}
+    ]
+  },
   "presentation": {
     "icon": "exchange",
     "image": "jtbd-switch.jpg",

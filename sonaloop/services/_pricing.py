@@ -26,6 +26,7 @@ from typing import Any
 from ..config import utc_now_iso, ensure_content_language, language_instruction
 from ..storage import Store
 from .. import artifacts as _artifacts
+from ..research_integrity import stamp_derived_finding
 
 from ._common import *  # noqa: F401,F403  (stable_id, _require_research_project, list_personas, …)
 
@@ -205,7 +206,9 @@ def record_price_ladder(project_id: str, prompt: str, price_points: list[Any],
                         persona_ids: list[str] | None = None, statements: list | None = None,
                         summary: str = "", exec_summary: str = "", selection_reason: str = "",
                         findings: list | None = None, key: str | None = None,
-                        created_at: str | None = None, store: Store | None = None) -> dict[str, Any]:
+                        created_at: str | None = None, store: Store | None = None,
+                        claims: list[dict[str, Any]] | None = None,
+                        dispatch_token: str | None = None) -> dict[str, Any]:
     """Persist a host-authored PRICE LADDER as a CouncilSession carrying a `price_ladder` block
     (the pricing Job's structured willingness-to-pay data). `responses` is the structured payload —
     one row per persona per rung: {persona_id, price (rung label or amount), band (closed
@@ -251,7 +254,7 @@ def record_price_ladder(project_id: str, prompt: str, price_points: list[Any],
     pl_finding = _artifacts.finding(verdict, kind="price_ladder",
                                     score={"respondents": result["overall"]["respondents"]},
                                     meta={"result": result})
-    findings_in = list(findings or []) + [pl_finding]
+    findings_in = list(findings or []) + [stamp_derived_finding(pl_finding, statements)]
     # Each rung becomes a council prompt (id 'price:<label>') so per-rung statements resolve and
     # the inspector renders one card-group per price point (same trick as head_to_head's options).
     rung_prompts = [_artifacts.prompt(p["label"], kind="question", id=f"price:{p['label']}")
@@ -261,7 +264,8 @@ def record_price_ladder(project_id: str, prompt: str, price_points: list[Any],
         project["id"], prompt, pids, statements=statements, proposal="",
         summary=summary, exec_summary=exec_summary,
         selection_reason=selection_reason or "price-ladder panel",
-        prompts=rung_prompts, findings=findings_in, key=key, created_at=created_at, store=store)
+        prompts=rung_prompts, findings=findings_in, key=key, created_at=created_at, store=store,
+        claims=claims, dispatch_token=dispatch_token)
 
     session["price_ladder"] = {
         "price_points": points,

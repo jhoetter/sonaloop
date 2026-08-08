@@ -201,7 +201,7 @@ def _export_item(value: dict[str, Any], store: Store | None = None, project_id: 
         h("div", {"class_": "schema-export-main"},
           h("div", {"class_": "schema-export-title"}, str(title)),
           h("div", {"class_": "schema-export-meta"}, meta) if meta else None),
-        h("span", {"class_": "schema-badge"}, fmt or "file"),
+        h("span", {"class_": "schema-badge"}, fmt or t("asset_kind_file")),
     )
     if href:
         return h("a", {"class_": "schema-export", "href": href}, content)

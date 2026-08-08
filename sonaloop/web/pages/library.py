@@ -22,6 +22,11 @@ from .._html import register_css
 from .._filterbar import filter_bar, filter_url, parse_multi
 from .._forms import overflow_delete
 from .edit import note_actions, section_actions
+from ._library_trace import (
+    annotate_library_trace as _annotate_library_trace,
+    entry_trace_keys as _entry_trace_keys,
+    library_trace_lookup as _library_trace_lookup,
+)
 from .._presence import asset_direction, record_status, status_filter_label
 from .._primitive_taxonomy import (
     FAMILIES, family_icon, family_label, primitive_family, primitive_purpose, primitive_subtypes,
@@ -151,93 +156,6 @@ def _tab_entries(key: str, store: Store, sessions: list | None = None) -> list[d
         pairs.sort(key=lambda x: x[0].get("created_at", ""), reverse=True)
         return [e("asset", a, f'/assets/{a["id"]}', project_id=pid) for a, pid in pairs]
     return []
-
-
-def _entry_trace_keys(x: dict) -> set[str]:
-    rec = x.get("rec") or {}
-    kind = str(x.get("kind") or "")
-    rid = str(rec.get("id") or "")
-    if not kind or not rid:
-        return set()
-    keys = {rid, f"{kind}:{rid}"}
-    if kind == ("synth" + "esis"):
-        keys.update((f"report:{rid}",))
-    if kind == "url_artifact":
-        keys.update((f"artifact:{rid}",))
-    return keys
-
-
-def _library_trace_lookup(store: Store, project_ids: set[str]) -> dict[str, dict[str, str]]:
-    """Project outline trace states, keyed for Library rows.
-
-    The Library is cross-project, but trace is project-local. Compute it from the same
-    augmented graph the project outline/detail pages use, then only project it onto the flat
-    Library rows. This keeps the Library from inventing a second relationship model.
-    """
-    if not project_ids:
-        return {}
-    from .._graph_outline_sessions import outline_session_groups
-    from .._project_graph_view import augment_project_graph
-    from ...project_trace import trace_node_health
-
-    out: dict[str, dict[str, str]] = {}
-    for pid in project_ids:
-        try:
-            graph = services.get_project_graph(pid, store=store)
-        except KeyError:
-            # Rows recorded before project deletion cascaded can still carry a
-            # now-missing project_id. Keep the global Library browsable and skip
-            # project-local trace annotation for those orphan rows.
-            continue
-        proto_ids = {p.get("id") for p in graph.get("prototypes") or []}
-        prototype_sessions = [
-            s for s in store.list_prototype_sessions()
-            if s.get("prototype_id") in proto_ids
-        ]
-        sessions = outline_session_groups(
-            services.list_usability_sessions(project_id=pid, store=store),
-            store, prototype_sessions=prototype_sessions,
-        )
-        full_graph = augment_project_graph(
-            graph, sessions=sessions,
-            decisions=services.list_decisions(pid, store=store),
-            hypotheses=services.list_hypotheses(pid, store=store),
-            surveys=services.list_surveys(project_id=pid, store=store),
-            assets=services.list_assets(pid, store=store),
-        )
-        health = trace_node_health(full_graph["nodes"], full_graph["edges"], graph.get("plan"))
-        by_key: dict[str, str] = {}
-        for node in full_graph["nodes"]:
-            sid = str(node.get("study_id") or "")
-            if not sid:
-                continue
-            state = health.get(sid, "")
-            if not state:
-                continue
-            by_key[sid] = state
-            kind, rid = sid.split(":", 1) if ":" in sid else ("", sid)
-            by_key.setdefault(rid, state)
-            if kind == "report":
-                by_key.setdefault(f"synthesis:{rid}", state)
-            if kind == "url_artifact":
-                by_key.setdefault(f"artifact:{rid}", state)
-        out[pid] = by_key
-    return out
-
-
-def _annotate_library_trace(entries: list[dict], store: Store) -> list[dict]:
-    lookup = _library_trace_lookup(store, {x["project_id"] for x in entries if x.get("project_id")})
-    out = []
-    for x in entries:
-        state = next((lookup.get(x.get("project_id", ""), {}).get(k)
-                      for k in _entry_trace_keys(x)
-                      if lookup.get(x.get("project_id", ""), {}).get(k)), "")
-        if not state:
-            out.append(x)
-            continue
-        rec = {**(x.get("rec") or {}), "trace_health": state}
-        out.append({**x, "rec": rec, "trace_health": state})
-    return out
 
 
 def _find_open_question(store: Store, question_id: str) -> tuple[dict | None, dict | None]:

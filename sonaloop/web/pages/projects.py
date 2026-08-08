@@ -10,9 +10,160 @@ from .._graph_outline_sessions import outline_session_groups
 from .._job_outcomes import render_schema_outcomes
 from .._project_graph_view import augment_project_graph
 from .._project_icons import project_icon_edit_script, project_icon_html
+from .._html import register_css
+from .._cohort_integrity_view import render_cohort_integrity
 # Presence contract (tracker: sonaloop/project-presence-contract) + UX P2 (spec/ux-contract.md
 # §3.4): EVERY project-scoped kind is an outline row in its phase context — decisions, surveys,
 # hypotheses, open questions and assets included (_graph_outline_extras builds their items).
+
+register_css(r"""
+.sl-pu-card{border:1px solid var(--line);border-left:3px solid var(--green);border-radius:var(--radius);background:var(--panel);padding:12px 14px;margin:14px 0}.sl-pu-card--missing{border-left-color:var(--red)}
+.sl-pu-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.sl-pu-head strong{display:flex;align-items:center;gap:7px}.sl-pu-meta{color:var(--muted);font-size:var(--t-sm);margin-top:4px}.sl-pu-caps{margin:9px 0 0;padding-left:18px;font-size:var(--t-sm)}
+.sl-job-health{border:1px solid var(--line);border-left:3px solid var(--muted);border-radius:var(--radius);background:var(--panel);padding:12px 14px;margin:14px 0}.sl-job-health--running,.sl-job-health--finished{border-left-color:var(--green)}.sl-job-health--stalled{border-left-color:var(--amber)}.sl-job-health--unverified{border-left-color:var(--red)}.sl-job-health-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.sl-job-health-grid{display:grid;grid-template-columns:minmax(130px,.34fr) 1fr;gap:7px 14px;margin-top:10px;font-size:var(--t-sm)}.sl-job-health-grid dt{color:var(--muted)}.sl-job-health-grid dd{margin:0;min-width:0}.sl-job-health code{overflow-wrap:anywhere}.sl-job-health-issues{margin:8px 0 0;padding-left:18px}.sl-job-health-issues a{color:var(--accent)}.sl-job-health-copy{border:1px solid var(--line);background:var(--panel-2);color:var(--muted);border-radius:var(--radius-sm);font-size:var(--t-xs);padding:2px 8px;cursor:pointer}@media(max-width:640px){.sl-job-health-grid{grid-template-columns:1fr}.sl-job-health-grid dd{margin-bottom:5px}}
+""")
+
+
+def _product_understanding_html(project: dict, store=None) -> str:
+    """Compact, inspectable preflight state on the job that it governs."""
+    policy = project.get("integrity") or {}
+    versions = project.get("product_understanding_versions") or []
+    current_id = str(project.get("product_understanding_current_id") or "")
+    current = next((row for row in versions if str(row.get("id") or "") == current_id), None)
+    current = current or (versions[-1] if versions else None)
+    if not current:
+        if not policy.get("product_understanding_required"):
+            return ""
+        return h("div", {"class_": "sl-pu-card sl-pu-card--missing", "id": "product-understanding",
+                         "role": "status", "aria-label": t("product_understanding_missing_help")},
+                 h("div", {"class_": "sl-pu-head"},
+                   h("strong", {}, raw(_icon("warning")), t("product_understanding_h")),
+                   raw(_label(t("product_understanding_missing"), "var(--red)"))),
+                 h("div", {"class_": "sl-pu-meta"}, t("product_understanding_missing_help")))
+    target = current.get("target") or {}
+    target_name = target.get("name") or target.get("identity") or target.get("url") or "—"
+    status_labels = {
+        "observed_present": t("pu_observed_present"),
+        "observed_absent": t("pu_observed_absent"),
+        "inferred": t("pu_inferred"),
+        "unknown": t("pu_unknown"),
+    }
+    capabilities = current.get("capabilities") or []
+    unknowns = sum(1 for row in capabilities if row.get("status") == "unknown")
+    verified_absences = sum(1 for row in capabilities if row.get("status") == "observed_absent")
+    versions = project.get("product_understanding_versions") or []
+    by_key = {}
+    for version in versions:
+        for row in version.get("capabilities") or []:
+            by_key.setdefault(str(row.get("key") or row.get("claim") or ""), set()).add(
+                str(row.get("status") or "unknown"))
+    conflicts = sum(1 for values in by_key.values()
+                    if {"observed_present", "observed_absent"} <= values)
+    manifest = current.get("stimulus_manifest") or {}
+    meta = (f"{target_name} · {t('pu_revision')} {current.get('revision') or '—'} · "
+            f"{ui.fmt_ts(current.get('observed_at') or '')} · v{current.get('version', 1)}")
+    if manifest.get("manifest_id"):
+        meta += (
+            f" · {t('pu_manifest')} {manifest['manifest_id']} "
+            f"v{manifest.get('manifest_version') or '—'} · "
+            f"{manifest.get('target_revision') or '—'} · "
+            f"{manifest.get('manifest_digest') or '—'}"
+        )
+    from .._render import render_ref
+    cap_rows = [h("li", {}, raw(_label(status_labels.get(str(row.get("status")), str(row.get("status"))),
+                                             "var(--muted)")), " ", row.get("claim", ""),
+                  h("div", {"class_": "sl-claim-sources"},
+                    fragment(*(raw(render_ref(ref, store)) for ref in row.get("evidence_refs") or [])))
+                  if row.get("evidence_refs") else None)
+                for row in capabilities]
+    aria = (f'{t("product_understanding_h")}. {target_name}. {t("pu_revision")} '
+            f'{current.get("revision") or "—"}. {t("pu_unknown_n", n=unknowns)}.')
+    return h("details", {"class_": "sl-pu-card", "id": "product-understanding",
+                         "aria-label": aria},
+             h("summary", {"class_": "sl-pu-head"},
+               h("strong", {}, raw(_icon("target")), t("product_understanding_h")),
+               raw(_label(t("pu_capabilities_n", n=len(capabilities)))),
+               (raw(_label(t("pu_verified_absences_n", n=verified_absences), "var(--green)"))
+                if verified_absences else None),
+               (raw(_label(t("pu_unknown_n", n=unknowns), "var(--amber)")) if unknowns else None),
+               (raw(_label(t("pu_conflicts_n", n=conflicts), "var(--red)")) if conflicts else None)),
+             h("div", {"class_": "sl-pu-meta"}, meta),
+             h("ul", {"class_": "sl-pu-caps"}, fragment(*cap_rows)))
+
+
+def _project_health_html(project_id: str, store) -> str:
+    """Render only the canonical service projection; never infer trust in HTML."""
+    try:
+        health = services.project_health(project_id, store=store)
+    except Exception:
+        return ""
+    state = str(health.get("state") or "stalled")
+    labels = {
+        "running": t("health_running"), "stalled": t("health_stalled"),
+        "finished": t("health_finished"), "unverified": t("health_unverified"),
+        "archived": t("health_archived"), "superseded": t("health_superseded"),
+    }
+    colors = {"running": "var(--green)", "stalled": "var(--amber)",
+              "finished": "var(--green)", "unverified": "var(--red)",
+              "archived": "var(--muted)", "superseded": "var(--muted)"}
+    unmet = health.get("unmet_invariant") or {}
+    last = health.get("last_successful_operation") or {}
+    action = health.get("safe_next_action") or {}
+    arguments = action.get("arguments") or {}
+    args = ", ".join(f"{key}={value!r}" for key, value in arguments.items() if value != "")
+    call = f"{action.get('tool')}({args})" if action.get("tool") else ""
+    issues = []
+    for row in health.get("integrity_findings") or []:
+        content = h("a", {"href": row["target"]}, row["message"]) if row.get("target") else row["message"]
+        issues.append(h("li", {"data-integrity-code": row.get("code", "")}, content))
+    support_ref = str((health.get("trace") or {}).get("support_ref") or "")
+    limitation = str((health.get("trace") or {}).get("limitation") or "")
+    aria = f'{t("health_h")}: {labels.get(state, state)}. ' + (
+        str(unmet.get("message")) if unmet else t("health_no_issues"))
+    return h("section", {"class_": f"sl-job-health sl-job-health--{state}",
+                         "id": "job-health", "role": "status", "aria-label": aria},
+             h("div", {"class_": "sl-job-health-head"},
+               h("strong", {}, raw(_icon("activity")), " ", t("health_h")),
+               raw(_label(labels.get(state, state), colors.get(state, "var(--muted)")))),
+             h("dl", {"class_": "sl-job-health-grid"},
+               h("dt", {}, t("health_unmet")),
+               h("dd", {}, unmet.get("message") if unmet else t("health_no_issues")),
+               h("dt", {}, t("health_last_success")),
+               h("dd", {}, h("code", {}, last.get("key") or last.get("kind") or "—"),
+                 (f' · {last.get("summary")}' if last.get("summary") else "")),
+               h("dt", {}, t("health_safe_next")),
+               h("dd", {}, h("code", {}, call) if call else action.get("reason", "—"),
+                 (h("button", {"type": "button", "class_": "sl-job-health-copy", "data-copy": call,
+                               "data-copied": t("copied"), "aria-label": t("copy_btn")}, t("copy_btn"))
+                  if call else None)),
+               h("dt", {}, t("health_trace")),
+               h("dd", {}, h("code", {}, support_ref), h("br"),
+                 h("span", {"class_": "muted"}, t("health_external_limit"), ": ", limitation))),
+               h("ul", {"class_": "sl-job-health-issues"}, fragment(*issues)) if issues else None)
+
+
+def _project_lineage_html(project: dict, store) -> str:
+    predecessor = str(project.get("supersedes_project_id") or "")
+    successor = str(project.get("superseded_by_project_id") or "")
+    archived = str(project.get("status") or "") == "archived"
+    if not (predecessor or successor or archived):
+        return ""
+    rows = []
+    for label, pid in ((t("lineage_supersedes"), predecessor),
+                       (t("lineage_superseded_by"), successor)):
+        if not pid:
+            continue
+        target = store.get_research_project(pid)
+        # Tenant-scoped Store lookup decides existence; never disclose a title
+        # from an inaccessible workspace.
+        rows.append(h("li", {}, label, ": ",
+                      h("a", {"href": f"/jobs/{pid}"}, target.get("title") or pid)
+                      if target else h("code", {}, pid)))
+    if archived:
+        rows.append(h("li", {}, t("archive_non_destructive")))
+    return h("section", {"class_": "sl-pu-card", "id": "project-lineage",
+                         "aria-label": t("lineage_h")},
+             h("strong", {}, raw(_icon("link")), " ", t("lineage_h")),
+             h("ul", {"class_": "sl-pu-caps"}, fragment(*rows)))
 
 
 def register_projects(app) -> None:
@@ -68,7 +219,7 @@ def register_projects(app) -> None:
         top_btn = ""
         if plan:
             plan_url = f'/jobs/{proj["id"]}/plan'
-            top_btn = h("a", {"class_": "sl-toolbtn tour-plan-chip", "href": plan_url,
+            top_btn = h("a", {"class_": "sl-toolbtn sl-tour-plan-chip", "href": plan_url,
                               "data-drawer": plan_url, "data-drawer-title": t("plan_h")},
                         raw(_icon("target")), " ", _methodology_name())
         protos = graph.get("prototypes") or []
@@ -130,13 +281,17 @@ def register_projects(app) -> None:
         # float at the page's far left), aligned with the title/outline left edge.
         body = h("div", {"class_": "proj"},
                  h("div", {"class_": "proj-head"},
-                   h("h1", {"class_": "h1 project-title"},
+                   h("h1", {"class_": "h1 sl-project-title"},
                      raw(project_icon_html(proj, edit_project_id=proj["id"],
                                            edit_label=t("f_project_icon"))),
                      proj["title"]),
                    h("p", {"class_": "lead"}, proj.get("goal", "")),
                    h("div", {"class_": "pills"}, raw(run_chip)),
                    bar),
+                 raw(_product_understanding_html(proj, store)),
+                 raw(render_cohort_integrity(proj, store)),
+                 raw(_project_health_html(proj["id"], store)),
+                 raw(_project_lineage_html(proj, store)),
                  main_view) + raw(project_icon_edit_script())
         # Write affordances (web CRUD, V10 §9): the ONE visible "…" overflow — Edit opens the
         # metadata dialog over the page, Delete the typed-confirm modal. No create buttons
@@ -168,7 +323,7 @@ def register_projects(app) -> None:
                            store, active="projects",
                            crumbs=[(t("projects"), "/jobs"), (proj["title"], f'/jobs/{project_id}'),
                                    (t("job_outcome_kind"), None)])
-        body = h("div", {"class_": "syn-main"}, raw(render_schema_outcomes([outcome], store, project_id)))
+        body = h("div", {"class_": "sl-syn-main"}, raw(render_schema_outcomes([outcome], store, project_id)))
         evidence_refs = outcome.get("evidence_refs") or []
         result_kind = str(outcome.get("result_kind") or "").replace("_", " ").strip()
         result_kind = result_kind[:1].upper() + result_kind[1:] if result_kind else ""

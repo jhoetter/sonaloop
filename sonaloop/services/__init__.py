@@ -87,6 +87,11 @@ from . import _catalog
 from . import _councils
 from . import _artifacts_service
 from . import _project_assets
+from . import _remote_assets
+from . import _flow_manifests
+from . import _integrity
+from . import _cohort_integrity
+from . import _recovery
 from . import _substrate
 from . import _grounding
 from . import _predictions
@@ -117,7 +122,7 @@ from . import _retrieval
 
 _SUBMODULES = (
     _common, _primitive_taxonomy, _pagination, _hooks, _events, _capabilities, _personas, _simulation, _consolidation, _memory, _evaluation,
-    _snapshots, _catalog, _councils, _artifacts_service, _project_assets, _substrate, _grounding, _predictions, _calibration, _flows, _head_to_head, _pricing, _ideation, _red_team, _coverage, _synthesis, _synthesis_pptx, _project_icons, _result_schemas, _research, _research_graph, _engines, _surveys, _hypotheses, _decisions, _usability_sessions, _walkthrough, _actuation, _sections, _examples, _feedback, _retrieval,
+    _snapshots, _catalog, _councils, _artifacts_service, _project_assets, _remote_assets, _flow_manifests, _integrity, _cohort_integrity, _recovery, _substrate, _grounding, _predictions, _calibration, _flows, _head_to_head, _pricing, _ideation, _red_team, _coverage, _synthesis, _synthesis_pptx, _project_icons, _result_schemas, _research, _research_graph, _engines, _surveys, _hypotheses, _decisions, _usability_sessions, _walkthrough, _actuation, _sections, _examples, _feedback, _retrieval,
 )
 
 

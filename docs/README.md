@@ -33,6 +33,10 @@ canonical published home:
 
 - [job-framework-format.md](job-framework-format.md) — the Job → Framework → Format taxonomy, protocols, Adding-a-Job recipe
 - [frameworks.md](frameworks.md) — the methodology frameworks in plain language
+- [retry-safe-run-contract.md](retry-safe-run-contract.md) — methodology resolution, create/checkpoint idempotency, fail-closed run completion
+- [research-integrity.md](research-integrity.md) — cloud/Core front door selection, dispatch-token writes, Product + Cohort Integrity preflights, Reaction Test claim posture
+- [remote-stimulus-admission.md](remote-stimulus-admission.md) — direct-byte Remote-MCP screenshots, pre-admission scanning, immutable flow versions and Product Understanding coverage
+- [provider-qualification.md](provider-qualification.md) — held-out SHKB/Fink fixtures, invariant provider contracts, hard scores, semantic review and external-host blind spots
 - [lifecycle-hooks.md](lifecycle-hooks.md) — lifecycle events, hooks, the event bus + SSE live inspector
 - [web-mutations.md](web-mutations.md) — the inspector's write boundary (structural writes vs host-authored text)
 - [keyboard-conventions.md](keyboard-conventions.md) — the cross-surface keyboard contract

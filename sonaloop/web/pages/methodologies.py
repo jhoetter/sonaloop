@@ -475,7 +475,8 @@ def _schema_docs_for_methodology(key: str) -> str:
         schema = _result_schemas.get_schema(ref["id"])
         cards.append(_schema_card(schema, ref.get("role", "")))
     return h("section", {},
-             h("h2", {"class_": "sl-doc-sub-h", "id": "result-schemas"}, "Result schemas"),
+             h("h2", {"class_": "sl-doc-sub-h", "id": "result-schemas"},
+               t("result_schemas_h")),
              h("div", {"class_": "sl-meth-schema-grid"}, fragment(*cards)))
 
 
@@ -487,7 +488,8 @@ def _schema_index(result_schema: str | None = None) -> str:
         return ""
     cards = [_schema_card(schema) for schema in schemas]
     return h("section", {},
-             h("h2", {"class_": "sl-doc-sub-h", "id": "result-schemas"}, "Result schemas"),
+             h("h2", {"class_": "sl-doc-sub-h", "id": "result-schemas"},
+               t("result_schemas_h")),
              h("div", {"class_": "sl-meth-schema-grid"}, fragment(*cards)))
 
 
@@ -593,9 +595,9 @@ def _methodology_detail(slug: str) -> str:
     schema_aside = _schema_aside_for_methodology(spec.get("key", ""))
     projs = _projects_using(spec.get("key", ""), store)
     proj_aside = fragment(h("h4", {"id": "sec-meth-projects"}, t("meth_projects_h")),
-                          *(h("a", {"class_": "relrow", "href": f"/jobs/{p['id']}"},
-                              h("span", {"class_": "ol-dot", "style": "background:#5e6ad2"}),
-                              h("span", {"class_": "relt"}, p.get("title", "")))
+                          *(h("a", {"class_": "sl-relrow", "href": f"/jobs/{p['id']}"},
+                              h("span", {"class_": "sl-rel-dot sl-rel-dot--accent"}),
+                              h("span", {"class_": "sl-relt"}, p.get("title", "")))
                             for p in projs)) if projs else ""
     return detail_page(store, title=title, active="methodologies",
                        crumbs=[(t("methodologies_h"), "/methodologies"), (title, None)],

@@ -400,7 +400,7 @@ def _prototype_runtime_css() -> str:
     return (
         "body{background:var(--proto-bg);color:var(--proto-ink);"
         "font:var(--proto-type-body)/1.5 var(--proto-font);letter-spacing:0}"
-        "body[data-fidelity]{--bg:var(--proto-bg);--paper:var(--proto-bg);"
+        "body{--bg:var(--proto-bg);--paper:var(--proto-bg);"
         "--panel:var(--proto-surface);--panel-2:var(--proto-surface-2);"
         "--ink:var(--proto-ink);--muted:var(--proto-muted);--line:var(--proto-line);"
         "--accent:var(--proto-accent);--accent-ink:var(--proto-accent-ink);"

@@ -135,9 +135,9 @@ def _relations_html(store, study_id: str, proj_id: str | None,
             return ""
         ns = _dedupe(ns)
         rows = fragment(*(
-            h("a", {"class_": "relrow", "href": n.get("href", "")},
-              h("span", {"class_": "ol-dot", "style": f"background:{n.get('color', '#9aa0a6')}"}),
-              h("span", {"class_": "relt"}, n.get("title", "")),
+            h("a", {"class_": "sl-relrow", "href": n.get("href", "")},
+              h("span", {"class_": "sl-rel-dot", "style": f"background:{n.get('color', '#9aa0a6')}"}),
+              h("span", {"class_": "sl-relt"}, n.get("title", "")),
               h("span", {"class_": "muted small"},
                 " · ".join(x for x in (
                     (f'{n["_count"]}x {n["_kind_label"]}' if n.get("_count", 1) > 1 else n["_kind_label"]),

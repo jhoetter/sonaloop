@@ -34,6 +34,7 @@ from ..config import utc_now_iso, ensure_content_language, language_instruction
 from ..storage import Store
 from ..suggestions import suggest_blocker_themes
 from .. import artifacts as _artifacts
+from ..research_integrity import stamp_derived_finding
 
 from ._common import *  # noqa: F401,F403  (stable_id, _require_research_project, list_personas, …)
 
@@ -297,7 +298,9 @@ def record_red_team(project_id: str, prompt: str, objections: list[dict[str, Any
                     persona_ids: list[str] | None = None, statements: list | None = None,
                     summary: str = "", exec_summary: str = "", selection_reason: str = "",
                     findings: list | None = None, key: str | None = None,
-                    created_at: str | None = None, store: Store | None = None) -> dict[str, Any]:
+                    created_at: str | None = None, store: Store | None = None,
+                    claims: list[dict[str, Any]] | None = None,
+                    dispatch_token: str | None = None) -> dict[str, Any]:
     """Persist a host-authored RED-TEAM as a CouncilSession carrying a `red_team` block. The host passes the
     per-persona `objections` ([{persona_id, theme, text, severity}]) — the case AGAINST — plus the authored
     `statements` and prose exec_summary/summary. The SERVER deterministically groups objections by theme
@@ -329,7 +332,7 @@ def record_red_team(project_id: str, prompt: str, objections: list[dict[str, Any
                                            "voices": case_against["voices"]},
                                     meta={"case_against": case_against, "case_for": case_for,
                                           "stance": stance})
-    findings_in = list(findings or []) + [rt_finding]
+    findings_in = list(findings or []) + [stamp_derived_finding(rt_finding, statements)]
 
     # One canonical prompt the objections hang off (id 'red_team') so each statement's about-ref resolves.
     rt_prompt = _artifacts.prompt(prompt, kind="proposal", id="red_team")
@@ -338,7 +341,8 @@ def record_red_team(project_id: str, prompt: str, objections: list[dict[str, Any
         project["id"], prompt, pids, statements=statements, proposal="",
         summary=summary, exec_summary=exec_summary,
         selection_reason=selection_reason or "red-team panel",
-        prompts=[rt_prompt], findings=findings_in, key=key, created_at=created_at, store=store)
+        prompts=[rt_prompt], findings=findings_in, key=key, created_at=created_at, store=store,
+        claims=claims, dispatch_token=dispatch_token)
 
     session["red_team"] = {
         "stance": stance,

@@ -31,6 +31,7 @@ def add_substrate_parsers(sub) -> None:
     p.add_argument("--project")
     p = sub.add_parser("flow-define", help="Define an ordered screenshot flow from a JSON file: {project_id, title, steps:[{asset_id, caption?}], key?}.")
     p.add_argument("file")
+    p.add_argument("--dispatch-token")
     p = sub.add_parser("flows-list")
     p.add_argument("project_id")
     p = sub.add_parser("flow-funnel", help="Where the cohort abandons a flow, and why.")
@@ -76,7 +77,9 @@ def run_substrate_command(args) -> Any:
     if args.command == "flow-define":
         import json
         from pathlib import Path
-        return services.define_flow(**json.loads(Path(args.file).read_text(encoding="utf-8")))
+        payload = json.loads(Path(args.file).read_text(encoding="utf-8"))
+        payload.setdefault("dispatch_token", args.dispatch_token)
+        return services.define_flow(**payload)
     if args.command == "flows-list":
         return services.list_flows(args.project_id)
     if args.command == "flow-funnel":

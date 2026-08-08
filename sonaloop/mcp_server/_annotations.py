@@ -129,6 +129,9 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     "brief_completeness_critic": R("Brief completeness critic"),
     "record_completeness_critic": W("Record completeness verdict"),
     "cohort_memory_depth": R("Measure cohort memory depth"),
+    "brief_cohort_preflight": R("Brief cohort integrity preflight"),
+    "record_cohort_preflight": W("Record cohort integrity preflight", idempotent=True),
+    "get_cohort_preflight": R("Get cohort integrity preflight"),
     "score_run": W("Score run"),
     "brief_evidence_check": R("Brief evidence check"),
     "record_evidence_check": W("Record evidence check"),
@@ -143,10 +146,16 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     "fetch": R("Fetch research record"),
 
     # ---- flows (_tools_flows) ----
+    "record_flow_manifest": W("Record secure flow manifest", idempotent=True),
+    "list_flow_manifests": R("List secure flow manifests"),
+    "get_flow_manifest": R("Get secure flow manifest"),
     "define_flow": W("Define flow"),
     "list_flows": R("List flows"),
     "brief_flow_walkthrough": R("Brief flow walkthrough"),
     "flow_funnel": R("Get flow funnel"),
+
+    # ---- remote screenshot admission (_tools_assets) ----
+    "admit_remote_screenshot": W("Admit remote screenshot", idempotent=True),
 
     # ---- grounding (_tools_grounding) ----
     "ingest_corpus": W("Ingest corpus", idempotent=True),  # local text/file; idempotent on content
@@ -186,6 +195,16 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     "sharpen_question": R("Sharpen research question"),  # deterministic, no persistence
     "start_job_study": W("Start job study"),
 
+    # ---- result schemas/contracts (_tools_result_schemas) ----
+    "list_result_schemas": R("List result schemas"),
+    "get_result_schema": R("Get result schema"),
+    "list_result_contracts": R("List result contracts"),
+    "result_contract_for_job": R("Get job result contract"),
+    "result_contract_for_methodology": R("Get methodology result contract"),
+    "set_project_result_schemas": W("Set project result schemas", idempotent=True),
+    "record_job_outcome": W("Record job outcome", idempotent=True),
+    "project_result_contract_state": R("Get project result contract state"),
+
     # ---- methodology (_tools_methodology) ----
     "suggest_capabilities": R("Suggest capability tags"),
     "suggest_roles": R("Suggest role tags"),
@@ -221,6 +240,13 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     "export_plan_md": R("Export plan markdown"),  # returns the rendering inline
     "add_task": W("Add plan task"),
     "record_frame": W("Record frame"),
+    "brief_product_understanding": R("Brief product understanding"),
+    "record_product_understanding": W("Record product understanding", idempotent=True),
+    "get_product_understanding": R("Get product understanding"),
+    "project_health": R("Get project health"),
+    "resume_project_run": R("Resume project run", idempotent=True),
+    "supersede_project": W("Supersede project", idempotent=True),
+    "archive_project": W("Archive project", idempotent=True),
     "link_evidence": W("Link evidence"),
     "park_evidence": W("Park evidence"),
     "complete_task": W("Complete task"),

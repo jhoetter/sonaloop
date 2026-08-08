@@ -3,6 +3,21 @@
   "name": "d.school Micro-Cycle",
   "description": "Stanford d.school micro-cycle: Understand/Observe (fan) -> Define POV (waist) -> Ideate (fan + prototype) -> Prototype & Test (waist).",
   "when_to_use": "Human-centered design when you want empathy-first divergence and rapid prototype testing.",
+  "routing": {
+    "aliases": ["dschool", "d school", "Stanford design thinking"],
+    "threshold": 5,
+    "ambiguity_margin": 2,
+    "signals": [
+      {"phrase": "d school", "weight": 8},
+      {"phrase": "stanford design thinking", "weight": 8},
+      {"phrase": "empathy first", "weight": 6},
+      {"phrase": "empathie zuerst", "weight": 6},
+      {"phrase": "human centered design", "weight": 5},
+      {"phrase": "menschenzentriert", "weight": 5},
+      {"phrase": "define pov", "weight": 5},
+      {"phrase": "rapid prototype", "weight": 4}
+    ]
+  },
   "presentation": {
     "icon": "designThinkingHmw",
     "image": "dschool-micro.jpg",

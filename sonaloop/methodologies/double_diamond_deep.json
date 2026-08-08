@@ -3,6 +3,22 @@
   "name": "Double Diamond (Deep)",
   "description": "The full design-thinking process as three linked diamonds: problem space (Discover broad -> Define key problems), solution exploration (Ideate broad + lo-fi -> down-select), solution refinement (mid-fi build -> Deliver tested solution presentation). Broad empathy, affinity clustering, and a lo-fi -> mid-fi fidelity ladder with real prototype tests.",
   "when_to_use": "When you want depth: many personas, broad problem exploration, clustered key problems, several lo-fi prototypes tested and down-selected, a refined mid-fi prototype tested, and a buildable solution presentation.",
+  "routing": {
+    "aliases": ["deep double diamond", "triple diamond"],
+    "threshold": 5,
+    "ambiguity_margin": 2,
+    "signals": [
+      {"phrase": "double diamond deep", "weight": 9},
+      {"phrase": "deep double diamond", "weight": 9},
+      {"phrase": "triple diamond", "weight": 8},
+      {"phrase": "tiefgehende designforschung", "weight": 7},
+      {"phrase": "many personas", "weight": 5},
+      {"phrase": "viele personas", "weight": 5},
+      {"phrase": "mehrere prototypen", "weight": 5},
+      {"phrase": "fidelity ladder", "weight": 6},
+      {"phrase": "lo fi to mid fi", "weight": 6}
+    ]
+  },
   "presentation": {
     "icon": "diamondFilled",
     "image": "double-diamond-deep.jpg",

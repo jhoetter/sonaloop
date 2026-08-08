@@ -60,7 +60,94 @@ details.qround>summary:hover .qround-q{border-color:var(--accent)}
 .turn-refs__lbl{color:var(--faint)}
 .srcchip-ts{font-family:var(--mono);font-size:var(--t-xs);color:var(--faint);margin-right:4px;white-space:nowrap}
 .srcchip-mark{color:var(--faint);font-style:italic;margin-right:4px}
+.claim-notice{display:flex;align-items:flex-start;gap:9px;border:1px solid var(--line);border-left:3px solid var(--muted);border-radius:var(--radius);background:var(--panel);padding:10px 13px;margin:0 0 16px;font-size:var(--t-sm)}
+.claim-notice--verified{border-left-color:var(--green)}.claim-notice--unverified{border-left-color:var(--red)}.claim-notice--verified svg{color:var(--green)}.claim-notice--unverified svg{color:var(--red)}.claim-notice svg{width:16px;height:16px;flex:none;margin-top:1px}
+.claim-health-body{min-width:0;display:flex;flex-direction:column;gap:6px}.claim-counts,.sl-claim-sources{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.claim-issues{margin:0;padding-left:18px}.claim-exact-refs{margin:0}.claim-exact-refs summary{cursor:pointer;color:var(--muted)}
 """)
+
+
+_CLAIM_COLORS = {
+    "observed": "var(--green)", "memory_grounded": "var(--accent)",
+    "inferred": "var(--amber)", "simulated": "var(--accent)",
+    "unsupported": "var(--red)",
+}
+
+
+def render_claim_posture_chip(posture: str) -> str:
+    """The same provenance chip on every Statement/Finding surface."""
+    value = str(posture or "unsupported").strip().lower()
+    labels = {
+        "observed": t("claim_posture_observed"),
+        "memory_grounded": t("claim_posture_memory_grounded"),
+        "inferred": t("claim_posture_inferred"),
+        "simulated": t("claim_posture_simulated"),
+        "unsupported": t("claim_posture_unsupported"),
+    }
+    return _label(labels.get(value, labels["unsupported"]),
+                  _CLAIM_COLORS.get(value, "var(--muted)"))
+
+
+def render_claim_posture_notice(record: dict, store=None) -> str:
+    """Canonical posture/source counts plus exact repair/evidence links.
+
+    The envelope is server-stamped.  This renderer never upgrades trust from
+    prose length or a run label; legacy records without an envelope render no
+    badge rather than a guessed one.
+    """
+    envelope = record.get("claim_posture") or {}
+    if not envelope:
+        return ""
+    counts = {key: int(value or 0) for key, value in (envelope.get("counts") or {}).items()}
+    n = sum(counts.values())
+    complete = bool(envelope.get("verified"))
+    heading = t("claim_contract_verified") if complete else t("claim_contract_unverified")
+    detail = t("claim_contract_detail", n=n)
+    if envelope.get("prose_uncovered"):
+        detail += " " + t("claim_contract_uncovered")
+    count_chips = fragment(*(h("span", {"class_": "claim-count"},
+                                      raw(render_claim_posture_chip(posture)), f" · {count}")
+                             for posture, count in counts.items() if count))
+    refs: list[dict] = []
+    seen: set[tuple[str, str, str]] = set()
+    for claim in envelope.get("claims") or []:
+        for ref in claim.get("refs") or []:
+            marker = (str(ref.get("kind") or ""), str(ref.get("id") or ""),
+                      str(ref.get("anchor") or ""))
+            if marker not in seen:
+                seen.add(marker); refs.append(ref)
+    source_counts: dict[str, int] = {}
+    for ref in refs:
+        kind = str(ref.get("kind") or "unknown")
+        source_counts[kind] = source_counts.get(kind, 0) + 1
+    sources = fragment(*(raw(_label(f"{kind} · {count}", "var(--muted)"))
+                         for kind, count in sorted(source_counts.items())))
+    known_targets = {str(row.get("id") or "") for row in
+                     [*(record.get("statements") or []), *(record.get("findings") or [])]}
+    issue_links = []
+    for claim in envelope.get("claims") or []:
+        if claim.get("posture") != "unsupported":
+            continue
+        cid = str(claim.get("id") or "")
+        issue_links.append(h("li", {},
+            h("a", {"href": f"#{cid}"}, t("claim_issue_link")) if cid in known_targets
+            else h("span", {}, t("claim_contract_unverified"))))
+    exact_refs = (h("details", {"class_": "claim-exact-refs"},
+                    h("summary", {}, f'{t("claim_source_counts")} · {len(refs)}'),
+                    h("div", {"class_": "sl-claim-sources"},
+                      fragment(*(raw(render_ref(ref, store)) for ref in refs)))) if refs else None)
+    aria = f"{heading}. {detail}"
+    return h("div", {"class_": "claim-notice claim-notice--" +
+                     ("verified" if complete else "unverified"),
+                     "id": "claim-health", "role": "status", "aria-label": aria},
+             raw(_icon("check" if complete else "warning")),
+             h("div", {"class_": "claim-health-body"}, h("strong", {}, heading),
+               h("div", {"class_": "muted"}, detail),
+               h("div", {"class_": "claim-counts", "aria-label": detail}, count_chips),
+               h("div", {"class_": "sl-claim-sources"},
+                 h("span", {"class_": "muted"}, f'{t("claim_source_counts")}:'), sources)
+               if source_counts else None,
+               h("ul", {"class_": "claim-issues"}, fragment(*issue_links)) if issue_links else None,
+               exact_refs))
 
 
 def render_stance(st: dict | None) -> str:
@@ -237,7 +324,10 @@ def _persona_card(sts: list, store, *, head_extra=None, backlinks=None, show_per
         grounded_chip = raw(_label(t("grounded_yes") if g else t("grounded_no"), "var(--green)" if g else "var(--muted)"))
     rel = head_st.get("relevance")
     rel_html = h("span", {"class_": "muted small"}, f" · {rel}") if rel else None
-    head = h("div", {"class_": "hd"}, who, (" " if who else ""), stance_chip, grounded_chip, head_extra, rel_html, ctx_html)
+    posture_chip = (raw(render_claim_posture_chip(gmeta.get("claim_posture")))
+                    if gmeta.get("claim_posture") else None)
+    head = h("div", {"class_": "hd"}, who, (" " if who else ""), stance_chip,
+             grounded_chip, posture_chip, head_extra, rel_html, ctx_html)
     return h("div", {"class_": "turn" + ("" if show_persona else " turn-bare")},
              head, fragment(*(_statement_body(s, store, backlinks, clamp_at=clamp_at,
                                               expand_quotes=expand_quotes) for s in sts)))
@@ -324,6 +414,8 @@ def render_finding(f: dict, *, n: int | None = None, store=None) -> str:
         chips.append(h("span", {"class_": "axchip"}, t("effort_value", a=score["effort"], n=score["value"])))
     if meta.get("stance"):
         chips.append(raw(render_stance(meta["stance"])))
+    if meta.get("claim_posture"):
+        chips.append(raw(render_claim_posture_chip(meta["claim_posture"])))
     num = h("span", {"class_": "recnum"}, str(n)) if n is not None else None
     body = h("div", {"class_": "fbody"}, fragment(*left))
     right = h("div", {"class_": "fchips"}, fragment(*chips)) if chips else None

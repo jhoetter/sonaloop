@@ -92,21 +92,38 @@ runs(run_id TEXT PK, project_id TEXT, methodology TEXT, status TEXT,          --
 Implement as a **Workflow script** `workflows/esv-run.js` (the Workflow tool natively does deterministic
 fan-out + `resumeFromRunId`), with a thin service layer it calls:
 ```
-start_run(project_id, budget=None, run_id=None) -> {run_id, cursor}          # create/load the run object
+start_project(..., operation_id=None) -> project                             # retry-safe when key supplied
+start_run(project_id, budget=None, run_id=None, operation_id=None) -> {run_id, cursor}
+# operation_id = retry-safe initial create; run_id = resume an already known run
 run_journal(run_id) -> {steps, critic_rounds, cursor, status}                # read the journal (lean)
-checkpoint_step(run_id, step) -> {cursor}                                     # append a completed step
-finish_run(run_id, status) -> {run_id, status}
+checkpoint_step(run_id, step{key,...}) -> {cursor, step_idx, key, deduplicated} # compare-and-dedupe
+finish_run(run_id, status) -> {run_id, status}                                # finished is fail-closed
 ```
+
+#### A.3.1 Dispatch-token write binding
+
+`run_step` persists and returns a deterministic `dispatch_token` scoped to the run/project/task/
+bucket/key. On `dispatch_v1` projects every active-run content write must echo it. Token-aware
+recorders validate scope before mutation, adopt the dispatch key for primitive idempotency, link the
+produced ref, complete the task when its evidence/gates are ready, and append the checkpoint. The
+host must not append a second manual checkpoint when `dispatch.checkpointed=true`.
+
+If a multi-write verify is incomplete, the first recorder returns linked/not-checkpointed; the
+token-bound judgment (or other missing write) performs completion/checkpoint. Exact transport replay
+deduplicates both primitive and receipt. A changed immutable write, foreign scope, wrong bucket/task,
+or closed uncheckpointed dispatch fails before mutation. Legacy projects retain their prior paths with
+explicit provenance. See `docs/research-integrity.md`.
+
 Driver loop (pseudocode — NO LLM in the driver itself):
 ```
-run = start_run(project, budget)
+run = start_run(project, budget, operation_id=stable_run_create_key)
 while budget_remaining(run):
     a = assess_project(project)
     if a.recommendation == "finish":            # gates met, not finished → organize+conclude+handoff
         do_finish_steps(a.finish)               # auto-organize (D.1), conclusion subagent, meta-report
         continue
     if a.recommendation == "complete":          # plan done AND finished → run the CRITIC gate (B)
-        if critic_passes(project): finish_run(run, "finished"); break
+        if critic_passes_twice(project): finish_run(run, "finished"); break  # engine-verified only
         else: continue                          # critic injected new tasks → keep going
     n = next_action(project)
     spec = step_spec(n)                          # bucket-aware dispatch spec (what the subagent must do)
@@ -158,7 +175,8 @@ finds nothing material (loop-until-dry). This converts "one pass then stop" into
 ### B.2 Tools (mirror `brief_eval_critic`→`record_eval_critic`)
 ```
 brief_completeness_critic(project_id) -> {schema:"completeness_critic", frame:{...}, instructions:"..."}
-record_completeness_critic(project_id, verdict) -> {id, passed, missing, scores, created_at}
+record_completeness_critic(project_id, verdict, run_id, operation_id) ->
+{id, passed, missing, scores, created_at, deduplicated}
 ```
 `brief_completeness_critic.frame` is a COMPUTED snapshot (no LLM) the critic reasons over:
 ```jsonc
@@ -221,7 +239,8 @@ def critic_passes(project):
     while dry < K:                                  # K = 2 consecutive clean rounds (config)
         frame = brief_completeness_critic(project)
         v = dispatch_critic_subagent(frame)         # an INDEPENDENT subagent authors the verdict
-        record_completeness_critic(project, v)
+        report = record_completeness_critic(project, v, run_id, dispatch.operation_id)
+        record_critic_round(run_id, report.id, dispatch.key)
         if v.passed and not v.missing: dry += 1; continue
         dry = 0
         for m in v.missing:                         # turn each gap into real work

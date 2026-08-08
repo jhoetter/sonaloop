@@ -78,6 +78,18 @@ def stable_id(prefix: str, *parts: str) -> str:
     return f"{prefix}_{digest}"
 
 
+def canonical_payload_fingerprint(payload: Any) -> str:
+    """Stable full-length digest for an authored dispatch payload.
+
+    This is deliberately content-sensitive and local-only: it lets a dispatch
+    distinguish a byte-for-byte/structure-for-structure transport replay from
+    a later revision without putting authored content in the run journal.
+    """
+    body = json.dumps(payload, sort_keys=True, separators=(",", ":"),
+                      ensure_ascii=False, default=str)
+    return hashlib.sha256(body.encode("utf-8")).hexdigest()
+
+
 
 def persona_dir(persona: dict[str, Any]) -> Path:
     # Runtime working dir for rendered SOUL.md/MEMORY.md. Lives under data/ (all

@@ -5,7 +5,7 @@ from ._ctx import *  # noqa: F401,F403  (shared render toolkit)
 from .. import ui
 from .._forms import overflow_delete as _overflow_delete
 from .._keymap import sibling_attrs, sibling_urls
-from .._render import render_statements
+from .._render import render_claim_posture_notice, render_statements
 from .._html import register_css
 from ... import artifacts as _A
 
@@ -197,7 +197,11 @@ def register_councils(app) -> None:
         rt_block = (h("div", {"class_": "sec", "id": "red-team"}, h("h2", {}, t("rt_title")),
                       h("p", {"class_": "ihint"}, t("rt_lead")),
                       raw(rt_html)) if is_rt else "")
+        from .projects import _product_understanding_html
+        pu_project = store.get_research_project(str(session.get("project_id") or "")) or {}
         body = fragment(
+            raw(render_claim_posture_notice(session, store)),
+            raw(_product_understanding_html(pu_project, store)),
             opener,
             summary_lead,
             raw(_study_lead(ui.clamp(raw(exec_html), threshold=ui.SECTION_CLAMP), vm["answer_label"])),

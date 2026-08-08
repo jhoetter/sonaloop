@@ -61,20 +61,33 @@ def _meta_line(r: dict) -> str:
              if r["next_ready"] else None)
 
 
-def _run_row(r: dict, *, stalled: bool = False) -> str:
-    return h("div", {"class_": "runrow" + (" runrow-stalled" if stalled else "")},
+def _run_row(r: dict, *, stalled: bool = False, unverified: bool = False) -> str:
+    state_label = (t("runs_unverified_h") if unverified else
+                   t("stalled") if stalled else t("runs_active_h"))
+    state_color = "var(--red)" if unverified else "var(--amber)" if stalled else "var(--green)"
+    unmet = (r.get("unmet_invariant") or {}).get("message")
+    support = (r.get("trace") or {}).get("support_ref")
+    return h("div", {"class_": "runrow" + (" runrow-stalled" if stalled else "")
+                     + (" runrow-unverified" if unverified else ""),
+                     "role": "status", "aria-label": f"{state_label}. {unmet or ''}"},
              h("div", {"class_": "runrow-head"},
                h("a", {"href": r["url"]}, raw(_icon("projects")), " ", h("b", {}, r["title"])),
-               _label(t("stalled"), "var(--amber)") if stalled else
-               _label(t("runs_active_h"), "var(--green)")),
+               _label(state_label, state_color)),
              _meta_line(r),
-             raw(resume_html(r["note"])) if stalled and r.get("note") else None)
+             h("p", {"class_": "muted small"}, unmet) if unmet else None,
+             raw(resume_html(r["note"])) if (stalled or unverified) and r.get("note") else None,
+             h("p", {"class_": "muted small"}, f'{t("health_trace")}: ', h("code", {}, support))
+             if support else None,
+             # Explicitly announce that unverified is not engine-finished. The
+             # text also keeps older screen-reader/search workflows truthful.
+             h("span", {"class_": "sl-sr-only"}, t("run_engine_finished_no")) if unverified else None)
 
 
 _RUNS_CSS = register_css(r"""
 /* ---- /runs page (ticket agents-running-panel) ---- */
 .runrow{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);padding:11px 13px;margin:0 0 8px}
 .runrow-stalled{border-color:var(--amber)}
+.runrow-unverified{border-color:var(--red)}
 .runrow-head{display:flex;align-items:center;gap:10px;justify-content:space-between}
 .runrow-head a{display:inline-flex;align-items:center;gap:8px;color:var(--ink);text-decoration:none;min-width:0}
 .runrow-head a:hover b{color:var(--accent)}
@@ -84,6 +97,7 @@ _RUNS_CSS = register_css(r"""
 .run-resume code{font-size:var(--t-sm);background:var(--panel-2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:2px 7px}
 .run-copy{border:1px solid var(--line);background:var(--panel-2);color:var(--muted);border-radius:var(--radius-sm);font-size:var(--t-xs);padding:2px 8px;cursor:pointer}
 .run-copy:hover{color:var(--ink);background:var(--hover)}
+.sl-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .runs-sec{margin:18px 0 6px;font-size:var(--t-md);font-weight:600;display:flex;align-items:center;gap:8px}
 .runs-sec .cnt{color:var(--muted);font-weight:500}
 details.runs-fin summary{cursor:pointer;margin:18px 0 6px;font-size:var(--t-md);font-weight:600;color:var(--muted)}
@@ -103,22 +117,26 @@ def register_runs(app) -> None:
         states = collect_run_states(store)
         stalled = [_run_row(r, stalled=True) for r in states["stalled"]]
         active = [_run_row(r) for r in states["active"]]
+        unverified = [_run_row(r, unverified=True) for r in states["unverified"]]
         finished = [h("div", {"class_": "runrow"},
                       h("div", {"class_": "runrow-head"},
                         h("a", {"href": r["url"]}, raw(_icon("projects")), " ", h("b", {}, r["title"])),
                         h("span", {"class_": "muted small"}, ui.fmt_ts(r["last_activity"]))))
                     for r in states["finished"]]
-        if not (stalled or active or finished):
+        if not (stalled or active or unverified or finished):
             core = h("div", {"class_": "sl-empty"},
                      h("div", {"class_": "sl-empty__icon"}, raw(_icon("play"))),
                      h("p", {"class_": "sl-empty__body"}, t("no_runs")))
         else:
             core = fragment(
                 raw(_section(t("runs_stalled_h"), stalled)),   # stalled first: the loud lane
+                h("details", {"class_": "runs-fin sl-runs-unverified", "open": True},
+                  h("summary", {}, f'{t("runs_unverified_h")} ({len(unverified)})'),
+                  fragment(*unverified)) if unverified else None,
                 raw(_section(t("runs_active_h"), active)),
                 # When nothing is stalled or active, the finished journal IS the page — render
                 # it open instead of greeting the reader with one collapsed chevron (ux-audit P5).
-                h("details", {"class_": "runs-fin", "open": True if not (stalled or active) else None},
+                h("details", {"class_": "runs-fin", "open": True if not (stalled or active or unverified) else None},
                   h("summary", {}, f'{t("runs_finished_h")} ({len(finished)})'),
                   fragment(*finished)) if finished else None)
         # (the data-copy clipboard handler ships with the chrome — RUNS_WIDGET_JS)

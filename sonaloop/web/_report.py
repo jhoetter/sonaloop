@@ -220,6 +220,19 @@ def render_report(report: dict, store, *, with_toc: bool = False):
               (h("p", {"class_": "rp-lead"}, raw(_md(report["lead"])))
                if report.get("lead") else ""))
 
+    limitations = ""
+    if report.get("limitations"):
+        limitations = h(
+            "section", {"class_": "rp-limitations", "role": "note"},
+            h("h2", {}, "Limitationen" if de else "Limitations"),
+            h("ul", {}, *[
+                h("li", {}, h("code", {}, row.get("original_status") or
+                              t("cohort_status_overridden")),
+                  " — ", row.get("rationale") or "")
+                for row in report.get("limitations") or []
+            ]),
+        )
+
     toc = h("nav", {"class_": "rp-toc"}, h("div", {"class_": "rp-toc-h"}, t("toc")),
             h("ol", {}, *[h("li", {}, h("a", {"href": f"#rp-s{i}"}, sec["heading"]))
                           for i, sec in enumerate(sections, 1)]))
@@ -249,7 +262,7 @@ def render_report(report: dict, store, *, with_toc: bool = False):
         secs.append(h("section", {"class_": "rp-sec", "id": f"rp-s{i}"},
                       h("h2", {}, h("span", {"class_": "rp-num"}, f"{i:02d}"), sec["heading"]),
                       body_html, cites, src))
-    article = h("article", {"class_": "report"}, cover, toc, *secs)
+    article = h("article", {"class_": "report"}, cover, limitations, toc, *secs)
     if with_toc:
         return article, [(f"rp-s{i}", sec["heading"]) for i, sec in enumerate(sections, 1)]
     return article
@@ -285,6 +298,8 @@ register_css(r"""
 .rp-toc li{counter-increment:toc;padding:3px 0}
 .rp-toc li::before{content:counter(toc,decimal-leading-zero);color:var(--faint);font-variant-numeric:tabular-nums;margin-right:10px;font-size:var(--t-sm)}
 .rp-toc a{color:var(--ink);text-decoration:none}.rp-toc a:hover{color:var(--accent)}
+.rp-limitations{margin:0 0 24px;padding:14px 16px;border:1px solid var(--amber);border-radius:var(--radius);background:var(--panel-2)}
+.rp-limitations h2{font-size:var(--t-prose);margin:0 0 8px}.rp-limitations ul{margin:0;padding-left:20px}.rp-limitations code{color:var(--amber)}
 /* sections */
 .rp-sec{margin:0 0 40px;scroll-margin-top:70px}
 .rp-sec h2{display:flex;align-items:baseline;gap:12px;font-size:var(--t-xl);font-weight:650;line-height:1.2;margin:0 0 14px;letter-spacing:-.01em}
@@ -314,7 +329,7 @@ register_css(r"""
 .rp-src{margin-top:10px;font-size:var(--t-xs);color:var(--faint)}
 /* convergence synthesis embedded in the report shell — its blocks inherit report typography;
    drop the first block's top divider so it sits cleanly under the cover (spec/unified-synthesis-report §3) */
-.report-syn .syn-main>.block:first-child,.report-syn .syn-main>section:first-child .block{border-top:0;margin-top:6px;padding-top:0}
+.report-syn .sl-syn-main>.block:first-child,.report-syn .sl-syn-main>section:first-child .block{border-top:0;margin-top:6px;padding-top:0}
 .report-syn .block{max-width:none}
 /* figures (Phase 2) — prototype screenshots, images, charts */
 .rp-fig{margin:22px 0}

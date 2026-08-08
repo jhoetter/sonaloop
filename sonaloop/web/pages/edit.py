@@ -38,7 +38,7 @@ def project_fields(values: dict, errors: dict) -> list:
                  h("input", {"type": "radio", "name": "icon", "value": value,
                              "checked": checked}),
                  h("span", {"class_": "sl-icon-tile"},
-                   h("span", {"class_": "rico project-rico"},
+                   h("span", {"class_": "rico sl-project-rico"},
                      raw(services.project_icon_svg({"icon": {"kind": "regular", "name": icon_name}}))),
                    h("span", {"class_": "sl-icon-name"}, label)))
     icon_options = [icon_choice("random", t("project_icon_random"), "sparkles")]

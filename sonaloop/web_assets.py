@@ -66,7 +66,8 @@ svg.ic{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke
 .outline .sl-file--row:hover{background:var(--hover);border-radius:var(--radius-sm)}
 .olrow{display:flex;align-items:center;gap:8px;padding:8px;border-radius:var(--radius-sm);color:var(--ink);text-decoration:none;font-size:var(--t-body);z-index:1}
 .olrow:hover{background:var(--hover)}
-.ol-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.sl-rel-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.sl-rel-dot--accent{background:var(--accent)}
 /* per-kind leading icon (§3.2 row atom) — same slot as the dot, tinted per kind */
 .ol-ico{display:inline-flex;align-items:center;justify-content:center;width:16px;flex-shrink:0}
 .ol-ico svg{width:15px;height:15px}
@@ -147,9 +148,9 @@ svg.ic{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke
 .relh{font-size:var(--t-sm);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);margin-bottom:8px;display:flex;align-items:center;gap:6px}.relh svg{width:13px;height:13px}.h1ic{display:inline-flex;vertical-align:-3px;margin-right:8px}.h1ic svg{width:19px;height:19px}
 .relgrp{padding:2px 0 8px}
 .rellbl{font-size:var(--t-xs);font-weight:600;color:var(--muted);margin:0;padding:5px 0 3px}
-.relrow{display:flex;align-items:center;gap:8px;padding:8px;margin:0 -8px;border-radius:var(--radius-sm);color:var(--ink);text-decoration:none;font-size:var(--t-body)}
-.relrow:hover{background:var(--hover)}
-.relrow .relt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sl-relrow{display:flex;align-items:center;gap:8px;padding:8px;margin:0 -8px;border-radius:var(--radius-sm);color:var(--ink);text-decoration:none;font-size:var(--t-body)}
+.sl-relrow:hover{background:var(--hover)}
+.sl-relrow .sl-relt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Properties panel uses the shared .sl-props / .sl-prop; only the value-link tint is app-local */
 .sl-prop__v a{color:var(--accent);text-decoration:none}.sl-prop__v a:hover{text-decoration:underline}
 /* W8 containment: isolation + contain:paint pin the embedded document into its own stacking

@@ -437,7 +437,16 @@ def survey_question_form_values(rec: dict[str, Any]) -> list[str]:
 
 
 def survey_question_form_labels(rec: dict[str, Any]) -> list[str]:
-    return [t(_QUESTION_KIND_LABEL_KEYS[value]) for value in survey_question_form_values(rec)]
+    # Keep these literal calls visible to the i18n source contract.  The value
+    # vocabulary is bounded above; stored question kinds never become t() keys.
+    labels = {
+        "single": t("question_form_single"),
+        "multi": t("question_form_multi"),
+        "scale": t("question_form_scale"),
+        "text": t("question_form_text"),
+        "ranking": t("question_form_ranking"),
+    }
+    return [labels[value] for value in survey_question_form_values(rec)]
 
 
 def prototype_fidelity_value(rec: dict[str, Any]) -> str:

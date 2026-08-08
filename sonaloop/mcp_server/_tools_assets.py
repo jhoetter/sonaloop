@@ -10,17 +10,40 @@ from ._env import _env
 def register_assets(mcp):
     # ============ Project assets: files/images/screenshots as evidence ============
     @mcp.tool()
+    def admit_remote_screenshot(project_id: str, run_id: str, operation_id: str,
+                                content_base64: str, filename: str, media_type: str,
+                                captured_at: str, target_revision: str,
+                                title: str = "", label: str = "",
+                                dispatch_token: str = "") -> dict[str, Any]:
+        """Secure Remote-MCP screenshot admission. Upload bytes directly as canonical base64;
+        there is deliberately NO URL or filesystem-path input. The server binds the intent to
+        the authenticated workspace + exact project/run/operation + Product Understanding
+        dispatch, verifies extension/MIME/magic/container EOF, decodes the image under strict
+        limits, scans it, and persists immutable SHA-256 provenance. Reuse the same operation_id
+        and exact arguments on transport retry. Shared production fails closed unless its real
+        external scanner is configured. Supported: PNG, JPEG, WebP (single-frame screenshots)."""
+        t = time.perf_counter()
+        return _env("admit_remote_screenshot", services.admit_remote_screenshot(
+            project_id=project_id, run_id=run_id, operation_id=operation_id,
+            content_base64=content_base64, filename=filename, media_type=media_type,
+            captured_at=captured_at, target_revision=target_revision,
+            title=title, label=label, dispatch_token=dispatch_token), t)
+
+    @mcp.tool()
     def attach_asset(project_id: str, path: str | None = None, content_base64: str | None = None,
                      filename: str | None = None, kind: str | None = None, title: str = "",
-                     notes: str = "", source: str = "") -> dict[str, Any]:
+                     notes: str = "", source: str = "",
+                     dispatch_token: str | None = None) -> dict[str, Any]:
         """Attach a file/image/screenshot to a project as citable evidence. Pass EITHER `path`
         (a local file, e.g. a screenshot you just captured) OR `content_base64` + `filename`.
         `kind` (image|screenshot|document|file) is inferred from the extension when omitted.
         Idempotent on content. The asset gets a stable id personas/councils cite in refs;
-        brief_council automatically puts every project asset in the room."""
+        brief_council automatically puts every project asset in the room. Pass run_step's
+        dispatch_token during a governed step; the asset is automatically linked to that task."""
         t = time.perf_counter()
         return _env("attach_asset", services.attach_asset(
-            project_id, path, content_base64, filename, kind, title, notes, source), t)
+            project_id, path, content_base64, filename, kind, title, notes, source,
+            dispatch_token=dispatch_token), t)
 
     @mcp.tool()
     def attach_prototype_shot(project_id: str, prototype_id: str, title: str = "",

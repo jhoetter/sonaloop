@@ -17,6 +17,8 @@ Back-compat: compatibility `phases` specs auto-translate to `steps`.
 from __future__ import annotations
 
 import json
+import re
+import unicodedata
 from typing import Any
 
 from .config import methodologies_dir, utc_now_iso
@@ -51,6 +53,66 @@ def _as_list(v: Any) -> list:
     return list(v) if isinstance(v, (list, tuple)) else [v]
 
 
+def _norm_work_item(raw: dict[str, Any]) -> dict[str, Any]:
+    """One optional, data-authored Act todo seeded by a fan step."""
+    return {
+        "id": str(raw.get("id") or raw.get("key") or ""),
+        "title": str(raw.get("title") or raw.get("name") or raw.get("id") or ""),
+        "capability": str(raw.get("capability") or ""),
+        "expected_output_kind": str(raw.get("expected_output_kind") or ""),
+        "intent": str(raw.get("intent") or ""),
+        "presentation": dict(raw.get("presentation") or {}),
+    }
+
+
+def _norm_routing(raw: dict[str, Any]) -> dict[str, Any]:
+    """Canonical, data-authored front-door routing hints.
+
+    These hints are advisory metadata for a server-owned selector.  They never
+    affect plan execution and, importantly, keep methodology vocabulary in the
+    registry instead of hardcoding it in a particular MCP host adapter.
+    """
+    signals = []
+    for entry in raw.get("signals") or []:
+        if isinstance(entry, str):
+            phrase, weight = entry, 1
+        elif isinstance(entry, dict):
+            phrase, weight = entry.get("phrase"), entry.get("weight", 1)
+        else:
+            raise MethodologyError(
+                "BAD_SPEC", "routing.signals entries must be strings or {phrase, weight}",
+            )
+        phrase = str(phrase or "").strip()
+        try:
+            weight = int(weight)
+        except (TypeError, ValueError) as exc:
+            raise MethodologyError("BAD_SPEC", "routing signal weight must be an integer") from exc
+        if not phrase or weight < 1 or weight > 100:
+            raise MethodologyError(
+                "BAD_SPEC", "routing signals need a phrase and a weight between 1 and 100",
+            )
+        signals.append({"phrase": phrase, "weight": weight})
+    try:
+        threshold = int(raw.get("threshold", 5))
+        ambiguity_margin = int(raw.get("ambiguity_margin", 2))
+    except (TypeError, ValueError) as exc:
+        raise MethodologyError(
+            "BAD_SPEC", "routing threshold and ambiguity_margin must be integers",
+        ) from exc
+    if threshold < 1 or ambiguity_margin < 0:
+        raise MethodologyError(
+            "BAD_SPEC", "routing threshold must be positive and ambiguity_margin non-negative",
+        )
+    aliases = [str(value).strip() for value in raw.get("aliases") or [] if str(value).strip()]
+    return {
+        "schema": "methodology_routing.v1",
+        "aliases": list(dict.fromkeys(aliases)),
+        "signals": signals,
+        "threshold": threshold,
+        "ambiguity_margin": ambiguity_margin,
+    }
+
+
 def _norm_step(raw: dict[str, Any]) -> dict[str, Any]:
     """Canonical step dict. All domain words are open tags; nothing checked against a set."""
     produces = dict(raw.get("produces") or {})
@@ -80,6 +142,7 @@ def _norm_step(raw: dict[str, Any]) -> dict[str, Any]:
         },
         "loop_back": raw.get("loop_back", ""),
         "presentation": presentation,
+        "work_items": [_norm_work_item(item) for item in (raw.get("work_items") or [])],
     }
 
 
@@ -170,6 +233,8 @@ def _normalize_spec(spec: dict[str, Any]) -> dict[str, Any]:
         out["steps"] = _phases_to_steps(out["phases"])
     else:
         out["steps"] = []
+    if out.get("routing"):
+        out["routing"] = _norm_routing(dict(out["routing"]))
     return out
 
 
@@ -206,6 +271,15 @@ def validate_methodology_spec(spec: dict[str, Any]) -> dict[str, Any]:
             raise MethodologyError("BAD_SPEC", f"step '{s['id']}' requires.min_inputs must be a non-negative int")
         if s["loop_back"] and s["loop_back"] not in idset:
             raise MethodologyError("BAD_SPEC", f"step '{s['id']}' loop_back target '{s['loop_back']}' is not a step")
+        work_ids = [item["id"] for item in s.get("work_items") or []]
+        if any(not item_id for item_id in work_ids) or len(work_ids) != len(set(work_ids)):
+            raise MethodologyError("BAD_SPEC", f"step '{s['id']}' work_items need unique ids")
+        for item in s.get("work_items") or []:
+            if not item["title"] or not item["capability"] or not item["expected_output_kind"]:
+                raise MethodologyError(
+                    "BAD_SPEC",
+                    f"step '{s['id']}' work item '{item['id']}' needs title, capability and expected_output_kind",
+                )
     if roots < 1:
         raise MethodologyError("BAD_SPEC", "methodology needs >= 1 root step (consumes [])")
     # INV-DAG: the `consumes` graph must be acyclic (loop_back is a separate, logged back-edge).
@@ -239,6 +313,36 @@ _VIRTUAL_SPECS: dict[str, dict[str, Any]] = {
         "name": "Reaction Test",
         "description": "A lightweight reaction test for one fixed stimulus: collect audience reactions, then decide whether it clears a defined gate or needs revision.",
         "when_to_use": "Use when a concrete stimulus already exists and the decision is ship, revise, or review rather than broad discovery.",
+        "routing": {
+            "aliases": ["5-second test", "five second test", "content reaction"],
+            "threshold": 5,
+            "ambiguity_margin": 2,
+            "signals": [
+                {"phrase": "reaktionstest", "weight": 8},
+                {"phrase": "reaction test", "weight": 8},
+                {"phrase": "5 second test", "weight": 8},
+                {"phrase": "five second test", "weight": 8},
+                {"phrase": "ersteindruck", "weight": 6},
+                {"phrase": "first impression", "weight": 6},
+                {"phrase": "screenshot", "weight": 5},
+                {"phrase": "website screen", "weight": 5},
+                {"phrase": "landing page", "weight": 5},
+                {"phrase": "headline", "weight": 5},
+                {"phrase": "wording", "weight": 5},
+                {"phrase": "verstandlichkeit", "weight": 4},
+                {"phrase": "comprehension", "weight": 4}
+            ]
+        },
+        # Methodology DATA declares the stricter research-integrity contract.  The
+        # plan engine copies this block and derives a mandatory preflight task;
+        # no MCP host has to remember the policy from prose.
+        "integrity": {
+            "product_understanding_required": True,
+            "cohort_preflight_required": True,
+            "stimulus_required": True,
+            "claim_posture_required": True,
+            "schema": "sonaloop.research_integrity.v1",
+        },
         "presentation": {
             "icon": "sentiment",
             "image": "reaction-test.jpg",
@@ -252,10 +356,26 @@ _VIRTUAL_SPECS: dict[str, dict[str, Any]] = {
                 "intent": "Show the fixed stimulus to the selected cohort and collect scored reactions, comprehension issues and confusion points.",
                 "strategy": "tension", "diverge_by": "persona_subset",
                 "produces": {"role": "stimulus-reaction"},
+                "work_items": [
+                    {
+                        "id": "comprehension",
+                        "title": "Reaction · first impression and comprehension",
+                        "capability": "reaction_council",
+                        "expected_output_kind": "council",
+                        "intent": "Run a segment-diverse council on first impression, information scent, comprehension and concrete confusion points. Cite only the admitted stimulus and persona memory.",
+                    },
+                    {
+                        "id": "trust_action",
+                        "title": "Reaction · trust, gaps and action readiness",
+                        "capability": "reaction_council",
+                        "expected_output_kind": "council",
+                        "intent": "Run a distinct council angle on trust, missing information, comparison expectations and readiness to take the next action. Include skeptical and non-target voices.",
+                    },
+                ],
                 "presentation": {
                     "forms": ["council/open_discussion", "council/objection_review"],
                     "formats": ["Council: Reaction", "Council: Objection review"],
-                    "library": ["Councils", "Result schemas"],
+                    "library": ["Councils", "Reports"],
                 },
             },
             {
@@ -267,7 +387,7 @@ _VIRTUAL_SPECS: dict[str, dict[str, Any]] = {
                 "presentation": {
                     "forms": ["council/open_discussion"],
                     "formats": ["Council: Gate review"],
-                    "library": ["Result schemas", "Decisions"],
+                    "library": ["Reports", "Decisions"],
                 },
             },
         ],
@@ -304,16 +424,60 @@ def list_methodologies(store: Store | None = None) -> list[dict[str, Any]]:
     for s in registry(store).values():
         keys = [st["id"] for st in s["steps"]]
         out.append({"key": s["key"], "name": s["name"], "description": s["description"],
-                    "when_to_use": s["when_to_use"], "step_keys": keys, "phase_keys": keys})
+                    "when_to_use": s["when_to_use"], "step_keys": keys, "phase_keys": keys,
+                    **({"integrity": dict(s["integrity"])} if s.get("integrity") else {}),
+                    **({"routing": dict(s["routing"])} if s.get("routing") else {})})
     return out
+
+
+def _methodology_alias(value: str) -> str:
+    """Canonical comparison form for human-facing methodology names.
+
+    Methodology keys remain the durable identifiers stored on projects.  This comparison
+    form exists only at the input boundary so an MCP host does not have to guess that the
+    display name ``Reaction Test`` is persisted as ``reaction_test``.
+    """
+    folded = unicodedata.normalize("NFKD", str(value)).casefold()
+    folded = "".join(ch for ch in folded if not unicodedata.combining(ch))
+    return re.sub(r"[^a-z0-9]+", "_", folded).strip("_")
+
+
+def resolve_methodology_key(value: str, store: Store | None = None) -> str:
+    """Resolve a stable key from a key, display name, or harmless spelling variant.
+
+    Exact keys win.  Otherwise matching is case-insensitive and treats whitespace,
+    punctuation, hyphens and underscores alike.  Ambiguous display names fail closed
+    instead of choosing whichever registry row happened to be iterated first.
+    """
+    store = store or Store()
+    raw = str(value or "").strip()
+    specs = registry(store)
+    if raw in specs:
+        return raw
+    alias = _methodology_alias(raw)
+    matches = sorted({
+        key
+        for key, spec in specs.items()
+        if alias and alias in {_methodology_alias(key), _methodology_alias(spec.get("name", ""))}
+    })
+    if len(matches) == 1:
+        return matches[0]
+    if len(matches) > 1:
+        raise MethodologyError(
+            "AMBIGUOUS_METHODOLOGY",
+            f"Methodology {value!r} matches multiple keys: {', '.join(matches)}",
+        )
+    available = ", ".join(f"{key} ({spec.get('name', key)})" for key, spec in sorted(specs.items()))
+    raise MethodologyError(
+        "UNKNOWN_METHODOLOGY",
+        f"No methodology {value!r}. Use a key or display name from: {available}",
+    )
 
 
 def get_methodology(key: str, store: Store | None = None) -> dict[str, Any]:
     store = store or Store()
-    spec = registry(store).get(key)
-    if not spec:
-        raise MethodologyError("UNKNOWN_METHODOLOGY", f"No methodology '{key}'")
-    return spec
+    canonical = resolve_methodology_key(key, store=store)
+    return registry(store)[canonical]
 
 
 def register_methodology(spec: dict[str, Any], store: Store | None = None) -> dict[str, Any]:

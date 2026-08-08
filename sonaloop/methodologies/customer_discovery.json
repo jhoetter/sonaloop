@@ -3,6 +3,22 @@
   "name": "Customer Discovery",
   "description": "Steve Blank's customer discovery run with The Mom Test interviewing discipline: Problem interviews (fan) -> Problem validation (waist) -> Solution interviews (fan) -> Pursue / pivot / drop (waist). Talk about the customer's real life and past behavior, never pitch the idea, and separate facts and commitments from compliments.",
   "when_to_use": "Early validation when you are not yet sure the problem is real or worth solving: interview honestly, find the problems that actually matter, then test whether a minimal solution earns genuine interest.",
+  "routing": {
+    "aliases": ["problem discovery", "mom test"],
+    "threshold": 5,
+    "ambiguity_margin": 2,
+    "signals": [
+      {"phrase": "customer discovery", "weight": 8},
+      {"phrase": "kunden discovery", "weight": 8},
+      {"phrase": "mom test", "weight": 8},
+      {"phrase": "problem interview", "weight": 6},
+      {"phrase": "probleminterview", "weight": 6},
+      {"phrase": "problem validieren", "weight": 6},
+      {"phrase": "problem is real", "weight": 5},
+      {"phrase": "problem wirklich", "weight": 5},
+      {"phrase": "vor dem bauen", "weight": 4}
+    ]
+  },
   "presentation": {
     "icon": "mic",
     "image": "customer-discovery.jpg",

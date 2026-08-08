@@ -8,7 +8,8 @@ from typing import Any
 
 from .avatar import generate_persona_avatar
 from .config import load_env
-from . import services, _cli_hooks, _cli_substrate, _cli_data, _cli_feedback, _cli_catalog
+from . import (services, _cli_hooks, _cli_substrate, _cli_data, _cli_feedback,
+               _cli_catalog, _cli_integrity, _cli_qualification)
 
 
 def _pkg_version() -> str:
@@ -309,8 +310,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--title"); p.add_argument("--start"); p.add_argument("--goal")
     p = sub.add_parser("record-synthesis")
     p.add_argument("title"); p.add_argument("file")
-    p.add_argument("--start", default=""); p.add_argument("--council", action="append", dest="councils", required=True)
+    p.add_argument("--start", default=""); p.add_argument("--council", action="append", dest="councils")
     p.add_argument("--goal", default=""); p.add_argument("--id", dest="synthesis_id")
+    p.add_argument("--project"); p.add_argument("--key"); p.add_argument("--dispatch-token")
     p = sub.add_parser("record-council")
     p.add_argument("file", help="JSON: {prompt, persona_ids, turns, votes?, proposal?, summary?, exec_summary?, selection_reason?}")
     p = sub.add_parser("councils")
@@ -363,6 +365,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("title"); p.add_argument("--goal", default=""); p.add_argument("--methodology", required=True)
     p.add_argument("--persona", action="append", dest="personas"); p.add_argument("--description", default="")
     p.add_argument("--icon", default=None, help="Existing icon name, or 'random' (default).")
+    p.add_argument("--operation-id", help="Stable idempotency key; reuse on transport retries.")
     p = sub.add_parser("methodology-suggest")
     p.add_argument("kind", nargs="?", default="capabilities",
                    choices=["capabilities", "roles", "artifact-types", "methodologies"])
@@ -371,21 +374,26 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("step-judge")
     p.add_argument("project_id"); p.add_argument("step_id"); p.add_argument("gate_tag")
     p.add_argument("--decided", default="true"); p.add_argument("--rationale", default=""); p.add_argument("--ref", action="append", dest="refs")
+    p.add_argument("--dispatch-token")
     # Research-plan engine (plan-driven analyze/act/verify)
     p = sub.add_parser("project-start")
     p.add_argument("title"); p.add_argument("--goal", default=""); p.add_argument("--methodology")
     p.add_argument("--persona", action="append", dest="personas"); p.add_argument("--description", default="")
     p.add_argument("--icon", default=None, help="Existing icon name, or 'random' (default).")
+    p.add_argument("--operation-id", help="Stable idempotency key; reuse on transport retries.")
     # Governed run loop (ESV) — CLI parity with the MCP tools, so a CLI-driven host can follow
     # the front door (AGENTS.md) instead of freestyling plan-next until it "feels answered".
     p = sub.add_parser("run-start")
     p.add_argument("project_id"); p.add_argument("--budget", type=int); p.add_argument("--run-id", dest="run_id")
+    p.add_argument("--operation-id", help="Stable initial-run idempotency key; reuse on retries.")
     p = sub.add_parser("run-step"); p.add_argument("run_id")
     p = sub.add_parser("run-checkpoint")
     p.add_argument("run_id"); p.add_argument("file")  # file = {task_id, bucket, key, evidence, summary}
     p = sub.add_parser("run-critic-round")
-    p.add_argument("run_id"); p.add_argument("--passed", default="false"); p.add_argument("--missing", type=int, default=0)
-    p = sub.add_parser("run-finish"); p.add_argument("run_id"); p.add_argument("--status", default="finished")
+    p.add_argument("run_id"); p.add_argument("--report", required=True, dest="critic_report_id")
+    p.add_argument("--key", required=True)
+    p = sub.add_parser("run-finish"); p.add_argument("run_id")
+    p.add_argument("--status", choices=["finished", "stopped", "capped"], default="finished")
     p = sub.add_parser("run-journal"); p.add_argument("run_id")
     p = sub.add_parser("plan-get"); p.add_argument("project_id")
     p = sub.add_parser("plan-md"); p.add_argument("project_id")
@@ -396,12 +404,15 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--step", default=""); p.add_argument("--note", default="")
     p = sub.add_parser("plan-frame")
     p.add_argument("project_id"); p.add_argument("task_id"); p.add_argument("file")  # file = {questions,hypotheses,memory_refs}
+    p.add_argument("--dispatch-token")
     p = sub.add_parser("plan-link")
     p.add_argument("project_id"); p.add_argument("task_id"); p.add_argument("kind"); p.add_argument("evidence_id")
+    p.add_argument("--dispatch-token")
     p = sub.add_parser("plan-judge")
     p.add_argument("project_id"); p.add_argument("task_id"); p.add_argument("gate_tag")
     p.add_argument("--decided", default="true"); p.add_argument("--rationale", default=""); p.add_argument("--ref", action="append", dest="refs")
-    p = sub.add_parser("plan-complete"); p.add_argument("project_id"); p.add_argument("task_id")
+    p.add_argument("--dispatch-token")
+    p = sub.add_parser("plan-complete"); p.add_argument("project_id"); p.add_argument("task_id"); p.add_argument("--dispatch-token")
     p = sub.add_parser("plan-progress")
     p.add_argument("project_id"); p.add_argument("task_id"); p.add_argument("--rationale", default=""); p.add_argument("--delta", default=""); p.add_argument("--ref", action="append", dest="refs")
     p = sub.add_parser("plan-assess"); p.add_argument("project_id")
@@ -433,6 +444,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("session-brief"); p.add_argument("persona_id"); p.add_argument("prototype_id")
     p = sub.add_parser("session-record")
     p.add_argument("persona_id"); p.add_argument("prototype_id"); p.add_argument("session_id"); p.add_argument("date"); p.add_argument("file")
+    p.add_argument("--dispatch-token")
     # Usability sessions (the durable, replayable trace)
     p = sub.add_parser("session-list")
     p.add_argument("--project"); p.add_argument("--persona"); p.add_argument("--subject")
@@ -442,6 +454,8 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("synthesis-delete"); p.add_argument("synthesis_id")
     p = sub.add_parser("council-delete"); p.add_argument("session_id")
     p = sub.add_parser("persona-delete"); p.add_argument("persona_id")
+    _cli_integrity.add_integrity_parsers(sub)
+    _cli_qualification.add_qualification_parsers(sub)
     return parser
 
 
@@ -653,10 +667,18 @@ def main(argv: list[str] | None = None) -> int:
             _print(_cli_data.run_data_command(args))
         elif args.command in _cli_feedback.COMMANDS:
             _print(_cli_feedback.run_feedback_command(args))
+        elif args.command in _cli_integrity.COMMANDS:
+            _print(_cli_integrity.run_integrity_command(args))
+        elif args.command in _cli_qualification.COMMANDS:
+            _print(_cli_qualification.run_qualification_command(args))
         elif args.command == "brief-synthesis":
             _print(services.brief_synthesis(args.council_ids, args.title, args.start, args.goal))
         elif args.command == "record-synthesis":
-            _print(services.record_synthesis(args.title, args.start, args.councils, json.loads(Path(args.file).read_text(encoding="utf-8")), args.goal, args.synthesis_id))
+            _print(services.record_synthesis(
+                args.title, args.start, args.councils or [],
+                json.loads(Path(args.file).read_text(encoding="utf-8")), args.goal,
+                args.synthesis_id, args.key, project_id=args.project or "",
+                dispatch_token=args.dispatch_token))
         elif args.command == "record-council":
             _print(services.record_council(**json.loads(Path(args.file).read_text(encoding="utf-8"))))
         elif args.command == "councils":
@@ -744,7 +766,8 @@ def main(argv: list[str] | None = None) -> int:
             _print(services.get_methodology(args.key))
         elif args.command == "methodology-start":
             _print(services.start_project(args.title, args.goal, args.methodology, args.personas,
-                                          args.description, icon=args.icon))
+                                          args.description, icon=args.icon,
+                                          operation_id=args.operation_id))
         elif args.command == "methodology-suggest":
             fn = {"capabilities": services.suggest_capabilities, "roles": services.suggest_roles,
                   "artifact-types": services.suggest_artifact_types,
@@ -754,18 +777,21 @@ def main(argv: list[str] | None = None) -> int:
             _print(services.brief_next(args.project_id))
         elif args.command == "step-judge":
             _print(services.record_judgment(args.project_id, args.step_id, args.gate_tag,
-                                            args.decided.lower() == "true", args.rationale, args.refs))
+                                            args.decided.lower() == "true", args.rationale, args.refs,
+                                            dispatch_token=args.dispatch_token))
         elif args.command == "project-start":
             _print(services.start_project(args.title, args.goal, args.methodology, args.personas,
-                                          args.description, icon=args.icon))
+                                          args.description, icon=args.icon,
+                                          operation_id=args.operation_id))
         elif args.command == "run-start":
-            _print(services.start_run(args.project_id, args.budget, args.run_id))
+            _print(services.start_run(
+                args.project_id, args.budget, args.run_id, operation_id=args.operation_id))
         elif args.command == "run-step":
             _print(services.run_step(args.run_id))
         elif args.command == "run-checkpoint":
             _print(services.checkpoint_step(args.run_id, json.loads(Path(args.file).read_text(encoding="utf-8"))))
         elif args.command == "run-critic-round":
-            _print(services.record_critic_round(args.run_id, args.passed.lower() == "true", args.missing))
+            _print(services.record_critic_round(args.run_id, args.critic_report_id, args.key))
         elif args.command == "run-finish":
             _print(services.finish_run(args.run_id, args.status))
         elif args.command == "run-journal":
@@ -782,14 +808,19 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "plan-frame":
             d = json.loads(Path(args.file).read_text(encoding="utf-8"))
             _print(services.record_frame(args.project_id, args.task_id, d.get("questions", []),
-                                         d.get("hypotheses"), d.get("memory_refs")))
+                                         d.get("hypotheses"), d.get("memory_refs"),
+                                         dispatch_token=args.dispatch_token))
         elif args.command == "plan-link":
-            _print(services.link_evidence(args.project_id, args.task_id, {"kind": args.kind, "id": args.evidence_id}))
+            _print(services.link_evidence(
+                args.project_id, args.task_id, {"kind": args.kind, "id": args.evidence_id},
+                dispatch_token=args.dispatch_token))
         elif args.command == "plan-judge":
             _print(services.record_judgment(args.project_id, args.task_id, args.gate_tag,
-                                            args.decided.lower() == "true", args.rationale, args.refs))
+                                            args.decided.lower() == "true", args.rationale, args.refs,
+                                            dispatch_token=args.dispatch_token))
         elif args.command == "plan-complete":
-            _print(services.complete_task(args.project_id, args.task_id))
+            _print(services.complete_task(args.project_id, args.task_id,
+                                          dispatch_token=args.dispatch_token))
         elif args.command == "plan-progress":
             _print(services.assess_progress(args.project_id, args.task_id, args.rationale, args.refs or [], args.delta))
         elif args.command == "plan-assess":
@@ -837,7 +868,10 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "session-brief":
             _print(services.brief_prototype_session(args.persona_id, args.prototype_id))
         elif args.command == "session-record":
-            _print(services.record_prototype_session(args.persona_id, args.prototype_id, args.session_id, args.date, json.loads(Path(args.file).read_text(encoding="utf-8"))))
+            _print(services.record_prototype_session(
+                args.persona_id, args.prototype_id, args.session_id, args.date,
+                json.loads(Path(args.file).read_text(encoding="utf-8")),
+                dispatch_token=args.dispatch_token))
         elif args.command == "session-list":
             _print(services.list_usability_sessions(args.project, args.persona, args.subject))
         elif args.command == "session-get":

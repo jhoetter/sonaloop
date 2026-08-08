@@ -28,6 +28,16 @@ def test_builtins_load_and_validate(store):
     assert [M._is_decide(s) for s in dd["steps"]] == [False, True, False, True]
 
 
+def test_methodology_registry_surfaces_data_authored_front_door_routing(store):
+    rows = {row["key"]: row for row in M.list_methodologies(store=store)}
+    reaction = rows["reaction_test"]["routing"]
+
+    assert reaction["schema"] == "methodology_routing.v1"
+    assert reaction["threshold"] > 0
+    assert any(signal["phrase"] == "screenshot" for signal in reaction["signals"])
+    assert all(signal["weight"] > 0 for signal in reaction["signals"])
+
+
 def test_builtin_stage_guides_use_library_primitives(store):
     """Stage guides are user-facing. They may name Library primitives and explicit
     Council/Session subtypes, but the shown forms must resolve through the registry."""
@@ -49,6 +59,21 @@ def test_builtin_stage_guides_use_library_primitives(store):
             for ref in registered:
                 assert TX.get_form(ref["primitive"], ref["form"])
                 assert ref["label"] == f"{ref['primitive_label']} / {ref['form_label']}"
+
+
+def test_reaction_test_seeds_explicit_provider_neutral_act_todos(store):
+    project = services.start_project(
+        "Reaction harness", "How does the admitted flow land?",
+        methodology="Reaction Test", persona_ids=["p1", "p2"], store=store)
+    tasks = {task["id"]: task for task in services.get_plan(project["id"], store=store)["tasks"]}
+
+    assert {"act__react__comprehension", "act__react__trust_action"} <= tasks.keys()
+    for task_id in ("act__react__comprehension", "act__react__trust_action"):
+        task = tasks[task_id]
+        assert task["bucket"] == "act"
+        assert task["capability"] == "reaction_council"
+        assert task["expected_output_kind"] == "council"
+        assert task["consumes"] == ["frame__react", "preflight__cohort_integrity"]
 
 
 def test_no_hardcoded_vocabularies_in_engine_source():

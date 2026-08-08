@@ -1,0 +1,49 @@
+{
+  "schema": "sonaloop.provider_qualification.fixture.v1",
+  "fixture_id": "shkb-retry-chronology-v1",
+  "revision": "2026-08-08.1",
+  "holdout_group": "production-regression",
+  "privacy": {
+    "classification": "synthetic",
+    "contains_customer_authored_text": false,
+    "contains_production_identifiers": false,
+    "provenance": "Structure-only reconstruction of the two-request, three-resume incident shape."
+  },
+  "task": {
+    "title": "Synthetic regional-bank website reaction",
+    "goal": "Test comprehension of a synthetic financing entry screen without claiming observed user behavior.",
+    "methodology_display": "Reaction Test",
+    "target": {"name": "Synthetic regional-bank website", "url": "https://fixture.invalid"},
+    "revision": "fixture:screen-set-1",
+    "inventory": {
+      "routes": [{"path": "/home"}],
+      "flows": [{"name": "Home to financing entry"}],
+      "states": [{"state": "home"}]
+    },
+    "capabilities": [
+      {"key": "financing-route", "claim": "A financing entry route is visible", "expected_initial_status": "observed_present"},
+      {"key": "calculator", "claim": "A calculator may exist deeper in the flow", "expected_initial_status": "unknown"}
+    ]
+  },
+  "assets": [
+    {
+      "asset_id": "entry-screen",
+      "filename": "synthetic-entry-screen.txt",
+      "kind": "document",
+      "content": "Synthetic screen inventory. Visible: financing entry route. Not inspected: deeper calculator flow."
+    }
+  ],
+  "chronology": [
+    {"event_id": "request-a", "logical_request_id": "request-a", "kind": "request"},
+    {"event_id": "request-a-resume-1", "logical_request_id": "request-a", "kind": "resume"},
+    {"event_id": "request-a-resume-2", "logical_request_id": "request-a", "kind": "resume"},
+    {"event_id": "request-a-resume-3", "logical_request_id": "request-a", "kind": "resume"},
+    {"event_id": "request-b", "logical_request_id": "request-b", "kind": "request"}
+  ],
+  "expected": {
+    "logical_jobs": 2,
+    "required_stances": ["skeptical", "indifferent"],
+    "required_critic_passes": 2,
+    "initial_capability_statuses": {"financing-route": "observed_present", "calculator": "unknown"}
+  }
+}

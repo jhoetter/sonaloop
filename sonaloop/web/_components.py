@@ -318,6 +318,8 @@ _USER_MENU_ID_CSS = register_css(r"""
 .sl-um-choice:hover{color:var(--ink)}
 .sl-um-choice.is-active{background:var(--panel);color:var(--ink);box-shadow:var(--shadow-sm)}
 .sl-um-choice.is-active svg{color:var(--accent)}
+.sl-um-row:hover>svg,.sl-um-control:hover>.sl-um-control-label>svg,.sl-um-choice:hover>svg{
+  transform:translateY(-1px)}
 """)
 
 
@@ -431,7 +433,8 @@ def _user_menu() -> str:
             _user_menu_row(t("tour_take"), "compass", attrs={"data-tour-start": True})
         )
     link_rows.append(
-        _user_menu_row(t("kbd_cheatsheet_h"), "command", attrs={"data-km-open": True})
+        _user_menu_row(t("kbd_cheatsheet_h"), "command",
+                       attrs={"data-km-open": True, "title": t("kbd_hint")})
     )
     link_sec = h("div", {"class_": "sl-um-group"}, *link_rows)
     controls_sec = h("div", {"class_": "sl-um-group"},
@@ -470,7 +473,7 @@ def _sidebar_footer(store: Store) -> str:
     footer = render_slot("sidebar_footer", store)
     if not footer:
         return ""
-    return f'<nav class="sl-nav sl-sb-foot">{footer}</nav>'
+    return h("nav", {"class_": "sl-nav sl-sb-foot"}, raw(footer))
 
 
 def _star(kind: str, ident: str, label: str, href: str) -> str:
@@ -544,7 +547,7 @@ def _brand_logo_img(alt: str) -> str:
         if _config.postgres_row_tenancy_enabled():
             return ""
         src = "/data/" + relative.as_posix()
-    return f'<img class="sl-logo__img" src="{_esc(src)}" alt="{_esc(alt)}">'
+    return h("img", {"class_": "sl-logo__img", "src": src, "alt": alt})
 
 
 def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
@@ -556,9 +559,10 @@ def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
     # along hidden — web/_drawer's DRAWER_JS hoists [data-slide-actions] into the panel header
     # (next to expand/close), so edit/delete stay reachable from the peek too.
     if slide_mode():
-        acts = (f'<span class="sl-tb-actions" data-slide-actions hidden>{actions}</span>'
+        acts = (h("span", {"class_": "sl-tb-actions", "data-slide-actions": True,
+                           "hidden": True}, raw(actions))
                 if actions else "")
-        return f'<div class="sl-slide">{acts}{body}</div>'
+        return h("div", {"class_": "sl-slide"}, raw(acts), raw(body))
     # SPA fragment: the router fetches with `X-Requested-With: spa` and extracts `#main`
     # via DOMParser. Return only the main content — skip the 465 KB shell (CSS/JS/sidebar).
     if spa_mode():

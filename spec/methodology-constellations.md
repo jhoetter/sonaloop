@@ -53,6 +53,13 @@ Step:
   consumes?   string[]            ids of upstream steps (DAG edges); [] for roots
   strategy?   string              free council-strategy tag (e.g. "pain-discovery")
   produces?   { role?: string, artifact_type?: string, more_tags?: string[] }   all free strings
+  work_items? [{                   optional provider-neutral Act todos; all strings remain open:
+                id: string
+                title: string
+                capability: string
+                expected_output_kind: string
+                intent: string
+              }]
   requires?   {                   ALL data — the engine reads these structurally, never by name:
                 min_inputs?: int       # >=N upstream nodes must exist before this step's node
                 gate_tag?:   string    # a judgment carrying this tag must be recorded (decided+evidence)
@@ -63,6 +70,11 @@ Step:
 ```
 There is **no `capability` enum, no `mode`/`breadth` enum, no `role`/`fidelity` enum.** The
 capability is just one of the step's `tags`; the engine does not switch on it.
+
+`work_items` removes the hidden requirement that a model invent the missing to-do list. Each item
+seeds a real Act task after the step's frame and any integrity preflight. It is optional:
+exploratory methodologies can keep a host-authored fan, while bounded methods such as Reaction Test
+declare their exact evidence angles and recorder kind in data.
 
 ### 2.2 Shape is DERIVED from the data, not declared
 - A step is a **fan** ("diverge") when the host records **>1 node** against it; a **waist**

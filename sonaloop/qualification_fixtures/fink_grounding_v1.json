@@ -1,0 +1,61 @@
+{
+  "schema": "sonaloop.provider_qualification.fixture.v1",
+  "fixture_id": "fink-false-absence-circular-persona-v1",
+  "revision": "2026-08-08.1",
+  "holdout_group": "production-regression",
+  "privacy": {
+    "classification": "synthetic",
+    "contains_customer_authored_text": false,
+    "contains_production_identifiers": false,
+    "provenance": "Structure-only reconstruction of false absence and circular-persona failure modes."
+  },
+  "task": {
+    "title": "Synthetic workspace capability reaction",
+    "goal": "Inventory a synthetic app before evaluating it, keeping an untested capability unknown and resisting circular persona claims.",
+    "methodology_display": "Reaction Test",
+    "target": {"name": "Synthetic workflow app", "url": "https://fixture.invalid"},
+    "revision": "fixture:workspace-state-1",
+    "inventory": {
+      "routes": [{"path": "/workspace"}],
+      "flows": [{"name": "Workspace overview"}],
+      "states": [{"state": "overview"}]
+    },
+    "capabilities": [
+      {"key": "completion-control", "claim": "A completion control may be available through a live action", "expected_initial_status": "unknown"}
+    ]
+  },
+  "assets": [
+    {
+      "asset_id": "overview-screen",
+      "filename": "synthetic-overview-screen.txt",
+      "kind": "document",
+      "content": "Synthetic overview screen. The completion action was not exercised; presence or absence is unknown."
+    },
+    {
+      "asset_id": "live-action-result",
+      "filename": "synthetic-live-action-result.txt",
+      "kind": "document",
+      "content": "Synthetic later observation. A bounded live action exposed the completion control as present."
+    }
+  ],
+  "chronology": [
+    {"event_id": "request-a", "logical_request_id": "request-a", "kind": "request"},
+    {"event_id": "request-a-resume-after-live-check", "logical_request_id": "request-a", "kind": "resume"}
+  ],
+  "cohort_risk": {
+    "shape": "fresh product-shaped profiles repeat a seeded problem",
+    "instruction": "Treat seeded profile claims as hypotheses, preserve simulated posture, and include ordinary skepticism or indifference."
+  },
+  "correction": {
+    "capability_key": "completion-control",
+    "expected_status": "observed_present",
+    "asset_id": "live-action-result",
+    "revision": "fixture:workspace-state-2"
+  },
+  "expected": {
+    "logical_jobs": 1,
+    "required_stances": ["skeptical", "indifferent"],
+    "required_critic_passes": 2,
+    "initial_capability_statuses": {"completion-control": "unknown"}
+  }
+}

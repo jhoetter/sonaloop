@@ -41,6 +41,15 @@ from ..storage import Store
 from ..taxonomy import GENERIC_TOOLS, normalized_tool_ids, normalized_tools
 from .. import memory as memory_mod
 from .. import evaluation as evaluation_mod
+from ..research_integrity import (
+    IntegrityError,
+    admitted_stimuli,
+    apply_claim_postures,
+    claim_posture_markdown,
+    current_product_understanding,
+    is_reaction_project,
+    render_product_understanding_context,
+)
 from ..llm_simulation import (
     build_cohort_critic_prompt,
     build_consolidation_prompt,
@@ -92,6 +101,20 @@ def brief_council(project_id: str, prompt: str, persona_ids: list[str] | None = 
     author proposal/votes/exec_summary and call record_council."""
     store = store or Store()
     project = _require_research_project(store, project_id)  # fail fast if no/unknown project
+    plan = store.get_research_plan(project["id"])
+    product_understanding = current_product_understanding(project)
+    product_context = render_product_understanding_context(product_understanding)
+    if is_reaction_project(project, plan):
+        if not product_understanding:
+            raise IntegrityError(
+                "PRODUCT_UNDERSTANDING_REQUIRED",
+                "Reaction Test personas cannot react before the Product Understanding preflight is recorded",
+            )
+        if not admitted_stimuli(project["id"], store):
+            raise IntegrityError(
+                "REACTION_STIMULUS_REQUIRED",
+                "Reaction Test needs an admitted asset, captured artifact, defined flow, or grounded session",
+            )
     # Artifacts in the room: the captured copy of every selected artifact, labelled A/B/… so personas
     # react to the REAL thing (this is the heart of the artifacts-into-council ticket).
     artifact_briefs = council_artifact_briefs(project["id"], artifact_ids, store=store)
@@ -100,7 +123,7 @@ def brief_council(project_id: str, prompt: str, persona_ids: list[str] | None = 
     # image assets tell the HOST to view_asset them first (ticket attach-evidence-files-mcp).
     asset_briefs = project_asset_briefs(project["id"], store=store)
     assets_context = render_assets_context(asset_briefs)
-    artifacts_context = "\n\n".join(filter(None, [artifacts_context, assets_context]))
+    artifacts_context = "\n\n".join(filter(None, [product_context, artifacts_context, assets_context]))
     language = ensure_content_language(" ".join(filter(None, [prompt, context])))
     if not persona_ids:
         personas = list_personas(filters, store)
@@ -116,6 +139,7 @@ def brief_council(project_id: str, prompt: str, persona_ids: list[str] | None = 
             "schema": "council_selection", "language": language, "project_id": project["id"], "prompt": prompt,
             "count": min(max(1, count), len(candidates)) if candidates else 0,
             "candidate_personas": candidates, "artifacts": artifact_briefs, "assets": asset_briefs,
+            "product_understanding": product_understanding,
             "instructions": (
                 "Select the personas whose lived contexts produce useful, honest contrast on this "
                 "prompt (never bias toward support; do not invent IDs). Then call brief_council again "
@@ -143,7 +167,9 @@ def brief_council(project_id: str, prompt: str, persona_ids: list[str] | None = 
     return {
         "schema": "council", "language": language, "project_id": project["id"], "prompt": prompt,
         "external_context": context, "participants": participants,
-        "artifacts": artifact_briefs, "assets": asset_briefs, "artifacts_context": artifacts_context,
+        "artifacts": artifact_briefs, "assets": asset_briefs,
+        "product_understanding": product_understanding,
+        "artifacts_context": artifacts_context,
         "instructions": (
             ("EVIDENCE ASSETS ARE IN THE ROOM: view_asset every image asset and read every document "
              "excerpt BEFORE authoring reactions — ground statements in the real material and cite "
@@ -152,6 +178,10 @@ def brief_council(project_id: str, prompt: str, persona_ids: list[str] | None = 
              "artifact(s) (a live URL/website, a prototype link, or labelled A/B variants). Ground every "
              "statement in what is ACTUALLY there — quote the captured copy, don't invent unseen content; "
              "with two+ variants, name which wins for whom and why.\n" if artifact_briefs else "") +
+            ("PRODUCT UNDERSTANDING IS EXTERNAL STIMULUS, NOT PERSONA MEMORY: preserve each capability's "
+             "observed/inferred/unknown status and cite the artifact id; never turn an unknown into an "
+             "absence. Every Reaction Test statement must cite the concrete stimulus it reacts to.\n"
+             if product_understanding else "") +
             "Run this council in the shape the task calls for (the UI derives the mode):\n"
             "• DISCOVERY (default for early research): pass `questions` = the OPEN, conversational "
             "user-research questions you ask. Author ONE `statement` per (persona, question) — that "
@@ -237,10 +267,14 @@ def export_council_session(session_id: str, format: str = "json", store: Store |
         h_proposal = "Vorschlag" if de else "Proposal"
         h_votes = "Stimmen" if de else "Votes"
         h_summary = "Zusammenfassung" if de else "Summary"
-        lines = [f"# {h_session}", "", f"**Prompt:** {session['prompt']}", "", f"## {h_turns}"]
+        lines = [f"# {h_session}", "", f"**Prompt:** {session['prompt']}", ""]
+        lines += claim_posture_markdown(session.get("claim_posture"), de=de)
+        lines += [f"## {h_turns}"]
         for st in _artifacts.council_statements(session):
             who = (store.get_persona(st.get("persona_id", "")) or {}).get("name") or st.get("persona_id", "")
-            lines.append(f"- **{who}**: {st.get('text', '')}")
+            posture = str((st.get("meta") or {}).get("claim_posture") or "")
+            stamp = f" `[{posture}]`" if posture else ""
+            lines.append(f"- **{who}**{stamp}: {st.get('text', '')}")
         lines.extend(["", f"## {h_proposal}", session["proposal"], "", f"## {h_votes}"])
         for v in session["votes"]:
             lines.append(f"- **{v.get('speaker') or v.get('persona_id', '')}**: {v.get('vote', '')} - {v.get('reason', '')}")
@@ -315,7 +349,8 @@ def record_council_form(project_id: str, form_id: str, payload: dict[str, Any],
                         summary: str = "", exec_summary: str = "",
                         selection_reason: str = "", key: str | None = None,
                         findings: list | None = None, created_at: str | None = None,
-                        store: Store | None = None) -> dict[str, Any]:
+                        store: Store | None = None,
+                        dispatch_token: str | None = None) -> dict[str, Any]:
     """Record a registered council form through one generic API.
 
     Existing specialized tools remain wrappers/presets over the same persisted
@@ -354,7 +389,8 @@ def record_council_form(project_id: str, form_id: str, payload: dict[str, Any],
             project_id, prompt, payload.get("options") or [], payload.get("preferences") or [],
             persona_ids, statements=statements, summary=summary, exec_summary=exec_summary,
             selection_reason=selection_reason, findings=findings, key=key,
-            variant_meta=payload.get("variant_meta"), created_at=created_at, store=store))
+            variant_meta=payload.get("variant_meta"), created_at=created_at, store=store,
+            claims=payload.get("claims"), dispatch_token=dispatch_token))
     if structural == "objection_review":
         return _stamp(record_red_team(  # noqa: F821
             project_id, prompt, objections=payload.get("objections") or [],
@@ -362,20 +398,23 @@ def record_council_form(project_id: str, form_id: str, payload: dict[str, Any],
             stance=str(payload.get("stance") or payload.get("stance_mode") or "against"),
             persona_ids=persona_ids, statements=statements, summary=summary,
             exec_summary=exec_summary, selection_reason=selection_reason,
-            findings=findings, key=key, created_at=created_at, store=store))
+            findings=findings, key=key, created_at=created_at, store=store,
+            claims=payload.get("claims"), dispatch_token=dispatch_token))
     if structural == "ladder_review":
         return _stamp(record_price_ladder(  # noqa: F821
             project_id, prompt, payload.get("price_points") or payload.get("rungs") or [],
             responses=payload.get("responses") or [], persona_ids=persona_ids,
             statements=statements, summary=summary, exec_summary=exec_summary,
             selection_reason=selection_reason, findings=findings, key=key,
-            created_at=created_at, store=store))
+            created_at=created_at, store=store, claims=payload.get("claims"),
+            dispatch_token=dispatch_token))
     if structural == "idea_review":
         return _stamp(record_ideation_summary(  # noqa: F821
             project_id, str(payload.get("problem") or prompt),
             payload.get("shortlist") or [], statements=statements, summary=summary,
             exec_summary=exec_summary, selection_reason=selection_reason,
-            key=key, created_at=created_at, store=store))
+            key=key, created_at=created_at, store=store, claims=payload.get("claims"),
+            dispatch_token=dispatch_token))
 
     if structural == "open_discussion":
         questions = questions or [prompt]
@@ -390,7 +429,8 @@ def record_council_form(project_id: str, form_id: str, payload: dict[str, Any],
         project_id, prompt, persona_ids, statements=statements, votes=votes,
         proposal=proposal, summary=summary, exec_summary=exec_summary,
         selection_reason=selection_reason or f"generic council form: {canonical}",
-        questions=questions, key=key, findings=findings, created_at=created_at, store=store)
+        questions=questions, key=key, findings=findings, created_at=created_at, store=store,
+        claims=payload.get("claims"), dispatch_token=dispatch_token)
     return _stamp(out)
 
 
@@ -401,7 +441,9 @@ def record_council(project_id: str, prompt: str, persona_ids: list[str],
                    key: str | None = None, findings: list | None = None,
                    prompts: list | None = None, predictions: list | None = None,
                    created_at: str | None = None,
-                   store: Store | None = None) -> dict[str, Any]:
+                   store: Store | None = None,
+                   claims: list[dict[str, Any]] | None = None,
+                   dispatch_token: str | None = None) -> dict[str, Any]:
     """Persist a host-authored council. A council is a research artefact and MUST live inside a research
     project — `project_id` is required and validated. Author the voices as `statements` (the ONE voice
     primitive: {persona_id, text, stance, about:{kind:'prompt',id}, refs}); set `questions` (discovery) or
@@ -409,8 +451,40 @@ def record_council(project_id: str, prompt: str, persona_ids: list[str],
     `key` for a DETERMINISTIC id (idempotent upsert → resumable runs; spec/harness-evaluation HX6)."""
     store = store or Store()
     project = _require_research_project(store, project_id)  # fail fast if no/unknown project
-    existing = store.get_council_session(stable_id("council", key)) if key else None
-    cid = stable_id("council", key) if key else stable_id("council", prompt, utc_now_iso())
+    payload_fingerprint = canonical_payload_fingerprint({  # noqa: F821 (bound)
+        "prompt": prompt, "persona_ids": persona_ids, "statements": statements or [],
+        "votes": votes or [], "proposal": proposal, "summary": summary,
+        "exec_summary": exec_summary, "selection_reason": selection_reason,
+        "questions": questions or [], "findings": findings or [], "prompts": prompts or [],
+        "predictions": predictions or [], "claims": claims or [], "created_at": created_at or "",
+    })
+    dispatch_ctx = prepare_dispatch_write(  # noqa: F821 (bound)
+        project["id"], dispatch_token, key, "council", store,
+        allowed_buckets={"act", "verify"},
+        payload_fingerprint=payload_fingerprint,
+    )
+    effective_key = str(dispatch_ctx.get("primitive_key") or key or "") or None
+    existing = store.get_council_session(stable_id("council", effective_key)) if effective_key else None
+    cid = (stable_id("council", effective_key) if effective_key
+           else stable_id("council", prompt, utc_now_iso()))
+    existing_fingerprint = str(((existing or {}).get("dispatch_provenance") or {}).get(
+        "payload_fingerprint") or "")
+    if dispatch_ctx.get("dispatch_token") and existing and existing_fingerprint == payload_fingerprint:
+        # The primitive may have committed immediately before the transport
+        # response was lost. Return the immutable original and repair the
+        # project/evidence/checkpoint seams idempotently.
+        if cid not in project.setdefault("council_ids", []):
+            project["council_ids"].append(cid)
+            project["updated_at"] = utc_now_iso()
+            store.upsert_research_project(project)
+        dispatch_result = bind_dispatch_output(  # noqa: F821 (bound)
+            dispatch_ctx, {"kind": "council", "id": cid}, "recorded council evidence", store)
+        return {
+            **existing, "idempotent_replay": True,
+            "url": web_url(f"/councils/{cid}"),  # noqa: F821 (bound)
+            "project_url": web_url(f"/jobs/{project['id']}"),  # noqa: F821 (bound)
+            "dispatch": dispatch_result,
+        }
 
     def _nvote(v):
         # A vote IS a stance (stance_scale.json — the ONE positivity vocabulary): `vote` stores the
@@ -440,6 +514,10 @@ def record_council(project_id: str, prompt: str, persona_ids: list[str],
     _artifacts.assign_part_ids(findings_out, "f")
     _artifacts.assign_part_ids(prompts_out, "p")
     _artifacts.assign_part_ids(predictions_out, "pb")
+    statements_out, findings_out, posture = apply_claim_postures(
+        project["id"], statements_out, findings_out, claims, store,
+        prose_present=bool(str(summary or "").strip() or str(exec_summary or "").strip()),
+    )
     session = CouncilSession(
         id=cid,
         prompt=prompt, persona_ids=persona_ids, selection_reason=selection_reason or "host-authored",
@@ -453,6 +531,18 @@ def record_council(project_id: str, prompt: str, persona_ids: list[str],
     ).to_dict()
     if predictions_out:
         session["predictions"] = predictions_out
+    if posture:
+        session["claim_posture"] = posture
+    session["dispatch_provenance"] = {
+        "state": dispatch_ctx.get("state", "outside_run"),
+        **({"dispatch_token": dispatch_ctx["dispatch_token"],
+            "run_id": dispatch_ctx["run_id"], "task_id": dispatch_ctx["task_id"],
+            "operation_id": dispatch_ctx["operation_id"]}
+           if dispatch_ctx.get("dispatch_token") else {}),
+        **({"payload_fingerprint": payload_fingerprint,
+            "payload_revision": int(dispatch_ctx.get("payload_revision") or 1)}
+           if dispatch_ctx.get("dispatch_token") else {}),
+    }
     store.insert_council_session(session)
     # Register the council on its project so the project owns it directly (idempotent).
     council_ids = project.setdefault("council_ids", [])
@@ -463,10 +553,17 @@ def record_council(project_id: str, prompt: str, persona_ids: list[str],
     emit_lifecycle_event("council.recorded", {"council_id": cid, "project_id": project["id"],  # noqa: F821 (bound)
                                               "prompt": prompt, "persona_ids": persona_ids,
                                               "statements": len(statements_out), "votes": len(votes)}, store)
+    dispatch_result = bind_dispatch_output(  # noqa: F821 (bound)
+        dispatch_ctx, {"kind": "council", "id": cid}, "recorded council evidence", store)
     # Soft pre-flight on the RESPONSE only (never stored, never blocking — a thin cohort can be
     # intentional): a "memory-grounded" council over participants with zero simulated memory is
     # ungrounded by construction; say so at record time, not first in assess_project's gap tail.
     warnings: list[str] = []
+    if posture and not posture.get("verified"):
+        warnings.append(
+            "UNVERIFIED_HYPOTHESIS_DRAFT: claim posture is incomplete/unsupported; the Reaction "
+            "Test gate stays blocked until prose and structured claims cite admissible evidence"
+        )
     try:
         m = store.count_memory_for_personas(persona_ids)
         if persona_ids and m["facts"] + m["events"] == 0:
@@ -492,7 +589,8 @@ def record_council(project_id: str, prompt: str, persona_ids: list[str],
     # The links a remote agent hands the user: the council's own page + its project (absent
     # before, so an agent that just ran a council couldn't say WHERE to see it).
     out = {**session, "url": web_url(f"/councils/{cid}"),  # noqa: F821 (bound)
-           "project_url": web_url(f"/jobs/{project['id']}")}  # noqa: F821 (bound)
+           "project_url": web_url(f"/jobs/{project['id']}"),  # noqa: F821 (bound)
+           "dispatch": dispatch_result}
     if warnings:
         out["warnings"] = warnings
     return out

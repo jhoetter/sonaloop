@@ -86,10 +86,13 @@ def test_project_run_state_active_stalled_finished(store):
     store.upsert_run(run)
     rs = S.project_run_state(pid, store=store)
     assert rs["state"] == "stalled" and run["run_id"] in rs["note"]  # resume call names the run
-    # finished: a completed freeform plan
+    # Task completion alone is not engine completion: only a governed run may
+    # become finished after the finish/critic/handoff contract.
     fid = S.start_project("Freeform", "frage?", store=store)["id"]
     S.record_frame(fid, "frame__root", ["q?"], memory_refs=["m"], store=store)
-    assert S.project_run_state(fid, store=store)["state"] == "finished"
+    completed = S.project_run_state(fid, store=store)
+    assert completed["state"] == "unverified"
+    assert completed["engine_finished"] is False
     # and the project list carries it
     listed = {p["id"]: p for p in S.list_research_projects(store=store)}
     assert listed[pid]["run_state"]["state"] == "stalled"

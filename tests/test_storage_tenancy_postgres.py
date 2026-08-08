@@ -11,8 +11,11 @@ from __future__ import annotations
 
 import os
 import uuid
+import base64
+from io import BytesIO
 
 import pytest
+from PIL import Image
 
 # Postgres-only suite: psycopg ships with the `postgres` extra, which open-core CI does not
 # install. importorskip skips the whole module cleanly when it's absent rather than erroring
@@ -20,6 +23,7 @@ import pytest
 psycopg = pytest.importorskip("psycopg")
 
 from sonaloop import config, services
+from sonaloop import plan as P
 from sonaloop.storage import Store
 from sonaloop.storage._backend import PostgresBackend, _tenant_tables
 
@@ -82,15 +86,137 @@ def test_rls_isolates_reads_across_workspaces(pg):
     assert pa["url"].endswith(pa["id"])
 
 
+def test_project_operation_id_is_scoped_per_workspace(pg):
+    """The deterministic operation id may repeat across tenants: composite PK/RLS scope owns it."""
+    operation_id = "connector-session:create-1"
+    pa = _scoped(["wsA"], "wsA", lambda: services.start_project(
+        "Same intent", "g", operation_id=operation_id, store=Store()))
+    pb = _scoped(["wsB"], "wsB", lambda: services.start_project(
+        "Same intent", "g", operation_id=operation_id, store=Store()))
+    replay_a = _scoped(["wsA"], "wsA", lambda: services.start_project(
+        "Same intent", "g", operation_id=operation_id, store=Store()))
+
+    assert pa["id"] == pb["id"] == replay_a["id"]
+    assert replay_a["idempotent_replay"] is True
+    assert _titles(["wsA"], "wsA") == ["Same intent"]
+    assert _titles(["wsB"], "wsB") == ["Same intent"]
+
+
+def test_run_operation_id_is_scoped_per_workspace(pg):
+    operation_id = "connector-session:run-create-1"
+    pa = _scoped(["wsA"], "wsA", lambda: services.start_project("A", "g", store=Store()))
+    pb = _scoped(["wsB"], "wsB", lambda: services.start_project("B", "g", store=Store()))
+    ra = _scoped(["wsA"], "wsA", lambda: services.start_run(
+        pa["id"], operation_id=operation_id, store=Store()))
+    rb = _scoped(["wsB"], "wsB", lambda: services.start_run(
+        pb["id"], operation_id=operation_id, store=Store()))
+    replay_a = _scoped(["wsA"], "wsA", lambda: services.start_run(
+        pa["id"], operation_id=operation_id, store=Store()))
+
+    assert ra["run_id"] == rb["run_id"] == replay_a["run_id"]
+    assert replay_a["idempotent_replay"] is True
+
+
+def test_product_understanding_and_dispatch_tokens_are_tenant_scoped(pg):
+    """PU history stays in its RLS row; a token from wsA cannot mutate wsB."""
+    def _seed(workspace_id: str, suffix: str):
+        def _inside():
+            st = Store()
+            project = services.start_project(
+                f"Reaction {suffix}", "Understand the real screen",
+                methodology="Reaction Test", operation_id=f"pg:{suffix}:project", store=st)
+            run = services.start_run(
+                project["id"], operation_id=f"pg:{suffix}:run", store=st)
+            dispatch = services.run_step(run["run_id"], store=st)
+            asset = services.attach_asset(
+                project["id"],
+                content_base64=base64.b64encode(f"screen-{suffix}".encode()).decode(),
+                filename=f"{suffix}.png", kind="screenshot",
+                dispatch_token=dispatch["dispatch_token"], store=st)
+            ref = {"kind": "asset", "id": asset["id"]}
+            pu = services.record_product_understanding(
+                project["id"], {"name": f"App {suffix}"}, f"rev-{suffix}",
+                routes=[{"path": "/", "evidence_refs": [ref]}], flows=[], states=[],
+                capabilities=[{"claim": f"Capability {suffix}", "status": "observed_present",
+                               "evidence_refs": [ref]}],
+                evidence_refs=[ref], observed_at="2026-08-08T10:00:00Z",
+                dispatch_token=dispatch["dispatch_token"], store=st)
+            return project["id"], dispatch["dispatch_token"], pu["id"]
+        return _scoped([workspace_id], workspace_id, _inside)
+
+    pa, token_a, pu_a = _seed("ws_A", "a")
+    pb, _token_b, pu_b = _seed("ws_B", "b")
+    assert pa != pb and pu_a != pu_b
+
+    def _wrong_scope_write():
+        # Expected exception tracebacks can outlive the assertion.  Explicitly close the
+        # Store so a retained traceback cannot keep a Postgres connection checked out and
+        # block this test's DROP SCHEMA teardown.
+        with Store() as st:
+            before = len((st.get_research_project(pb) or {}).get("assets") or [])
+            with pytest.raises(P.PlanError) as exc:
+                services.attach_asset(
+                    pb, content_base64=base64.b64encode(b"cross-tenant").decode(),
+                    filename="cross.png", dispatch_token=token_a, store=st)
+            after = len((st.get_research_project(pb) or {}).get("assets") or [])
+            return exc.value.code, before, after,
+
+    code, before, after = _scoped(["ws_B"], "ws_B", _wrong_scope_write)
+    assert code in {"UNKNOWN_DISPATCH_TOKEN", "DISPATCH_SCOPE_MISMATCH"}
+    assert before == after == 1
+    assert _scoped(["ws_A"], "ws_A", lambda: services.get_product_understanding(pa, store=Store()))["id"] == pu_a
+    assert _scoped(["ws_B"], "ws_B", lambda: services.get_product_understanding(pb, store=Store()))["id"] == pu_b
+
+
+def test_remote_same_bytes_have_workspace_isolated_admission_ids(pg, monkeypatch):
+    """Physical content may deduplicate, but authorization identities never cross tenants."""
+    monkeypatch.setenv("SONALOOP_REMOTE_ASSET_EXTERNAL_SCAN_REQUIRED", "0")
+    image = BytesIO()
+    Image.new("RGB", (8, 8), (15, 80, 140)).save(image, format="PNG")
+    encoded = base64.b64encode(image.getvalue()).decode("ascii")
+
+    def _seed(workspace_id: str):
+        def _inside():
+            st = Store()
+            project = services.start_project(
+                "Same remote intent", "Inspect exact pixels", methodology="Reaction Test",
+                operation_id="same:project", store=st,
+            )
+            run = services.start_run(project["id"], operation_id="same:run", store=st)
+            dispatch = services.run_step(run["run_id"], store=st)
+            asset = services.admit_remote_screenshot(
+                project["id"], run["run_id"], "same:upload", encoded,
+                "screen.png", "image/png", "2026-08-08T10:00:00Z", "deploy:one",
+                dispatch_token=dispatch["dispatch_token"], store=st,
+            )
+            return project["id"], asset
+        return _scoped([workspace_id], workspace_id, _inside)
+
+    project_a, asset_a = _seed("ws_asset_A")
+    project_b, asset_b = _seed("ws_asset_B")
+    assert project_a == project_b  # deterministic intent ids may match across RLS partitions
+    assert asset_a["content_digest"] == asset_b["content_digest"]
+    assert asset_a["id"] != asset_b["id"]
+    assert asset_a["admission"]["workspace_id"] == "ws_asset_A"
+    assert asset_b["admission"]["workspace_id"] == "ws_asset_B"
+
+    def _read_cross_tenant_asset():
+        with Store() as st:
+            return services.get_asset(project_a, asset_b["id"], store=st)
+
+    with pytest.raises(KeyError):
+        _scoped(["ws_asset_A"], "ws_asset_A", _read_cross_tenant_asset)
+
+
 def test_rls_with_check_blocks_writing_into_another_workspace(pg):
     with pytest.raises(Exception):
         def _bad():
-            st = Store()
-            st.conn.execute(
-                "INSERT INTO research_projects (id, workspace_id, slug, title, data, created_at, "
-                "updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                ("x", "wsB", "s", "t", "{}", "2026", "2026"))   # active is wsA → WITH CHECK fails
-            st.conn.commit()
+            with Store() as st:
+                st.conn.execute(
+                    "INSERT INTO research_projects (id, workspace_id, slug, title, data, created_at, "
+                    "updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    ("x", "wsB", "s", "t", "{}", "2026", "2026"))   # active is wsA → WITH CHECK fails
+                st.conn.commit()
         _scoped(["wsA", "wsB"], "wsA", _bad)
 
 
@@ -98,8 +224,13 @@ def test_unscoped_access_is_fail_closed(pg):
     _scoped(["wsA"], "wsA", lambda: services.start_project("Alpha", "a", store=Store()))
     # no scope bound → RLS sees no rows, and a write can't resolve a workspace_id (NOT NULL)
     assert services.list_research_projects(store=Store()) == []
+
+    def _write_unscoped():
+        with Store() as st:
+            return services.start_project("Orphan", "x", store=st)
+
     with pytest.raises(Exception):
-        services.start_project("Orphan", "x", store=Store())
+        _write_unscoped()
 
 
 def test_pool_return_clears_session_scope_before_connection_reuse(pg):

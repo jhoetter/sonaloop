@@ -246,7 +246,9 @@ def test_project_completion_waits_for_expected_job_outcomes(store):
     assert a["complete"] is False
     assert a["recommendation"] == "finish"
     assert a["result_contract"]["missing"][0]["id"] == "stimulus_reaction.v1"
-    assert services.project_run_state(pid, store=store)["state"] == "stalled"
+    missing = services.project_run_state(pid, store=store)
+    assert missing["state"] == "unverified"
+    assert missing["engine_finished"] is False
 
     services.record_job_outcome(pid, "stimulus_reaction.v1", {
         "stimulus_ref": "Draft",
@@ -255,4 +257,6 @@ def test_project_completion_waits_for_expected_job_outcomes(store):
         "confusion_points": ["none"],
     }, evidence_refs=[{"kind": "council", "id": "c1"}], store=store)
     assert services.assess_project(pid, store=store)["complete"] is True
-    assert services.project_run_state(pid, store=store)["state"] == "finished"
+    completed = services.project_run_state(pid, store=store)
+    assert completed["state"] == "unverified"
+    assert completed["engine_finished"] is False

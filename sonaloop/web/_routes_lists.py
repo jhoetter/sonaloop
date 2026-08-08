@@ -116,20 +116,36 @@ def _projects_page(page: int = 1, q: str = "") -> str:
                     return key
 
         def _run_label() -> str | None:
-            state = (p.get("run_state") or services.project_run_state(p["id"], store=store) or {}).get("state")
+            try:
+                health = services.project_health(p["id"], store=store)
+            except Exception:
+                health = p.get("run_state") or services.project_run_state(p["id"], store=store) or {}
+            state = health.get("state")
             if not state:
                 return None
             label = {
-                "active": t("runs_active_h"),
+                "active": t("runs_active_h"), "running": t("health_running"),
                 "stalled": t("runs_stalled_h"),
                 "finished": t("runs_finished_h"),
+                "unverified": t("runs_unverified_h"),
+                "archived": t("health_archived"), "superseded": t("health_superseded"),
             }.get(state, state.replace("_", " ").title())
             color = {
-                "active": "var(--green)",
+                "active": "var(--green)", "running": "var(--green)",
                 "stalled": "var(--amber)",
                 "finished": "var(--muted)",
+                "unverified": "var(--red)",
+                "archived": "var(--muted)", "superseded": "var(--muted)",
             }.get(state, "var(--faint)")
-            return _label(f"{t('run_chip')} · {label}", color)
+            visible = _label(f"{t('run_chip')} · {label}", color)
+            if state == "unverified":
+                # Preserve the old finished-search/screen-reader phrase while
+                # stating the stricter truth: task completion is not an
+                # engine-finished run.
+                return h("span", {
+                    "aria-label": (f"{t('run_chip')} · {t('runs_finished_h')}. "
+                                   f"{t('run_engine_finished_no')}")}, raw(visible))
+            return visible
 
         # the cohort avatar-group (ux-contract §10 W11): the project's persona participation
         # leads the row meta — the ONE anatomy every participation surface renders

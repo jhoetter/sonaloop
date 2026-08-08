@@ -37,6 +37,8 @@ _SKIPPED: dict[str, str] = {
     "catalog_recommend": "remote catalog index over HTTP — needs network",
     "catalog_status": "remote catalog index over HTTP — needs network",
     "proto_read": "needs a live Playwright browser session",
+    "list_flow_manifests": "requires an authenticated active remote workspace; dedicated admission tests drive a non-empty lean index",
+    "get_flow_manifest": "requires an authenticated active remote workspace; dedicated admission tests drive the bounded 50-step exact record",
 }
 
 
@@ -347,6 +349,13 @@ def build_fixture(store: Store) -> dict[str, Any]:
                                   title=title, kind="screenshot", store=store)
         asset_ids.append(a["id"])
     ids["asset_id"] = asset_ids[0]
+    pu_ref = {"kind": "asset", "id": asset_ids[0]}
+    services.record_product_understanding(
+        project_id, {"name": "Premium pricing fixture"}, "fixture-v1",
+        routes=[{"path": "/pricing", "evidence_refs": [pu_ref]}], flows=[], states=[],
+        capabilities=[{"claim": "Pricing is visible", "status": "observed_present",
+                       "evidence_refs": [pu_ref]}], evidence_refs=[pu_ref],
+        observed_at="2026-05-20T09:00:00Z", key="output-budget:pu", store=store)
     flow = services.define_flow(project_id, "Upgrade flow",
                                 [{"asset_id": a, "caption": f"step {i}"}
                                  for i, a in enumerate(asset_ids)], store=store)
@@ -405,10 +414,24 @@ def build_fixture(store: Store) -> dict[str, Any]:
     services.set_project_methodology(project_id, "double_diamond", store=store)
     ids["run_id"] = services.start_run(project_id, store=store)["run_id"]
 
+    # A compact but real deterministic cohort record lets both read surfaces participate
+    # in this exhaustive budget audit without adding a second governed Reaction Test run.
+    from sonaloop.cohort_integrity import evaluate_cohort
+    cohort = evaluate_cohort(
+        store.get_research_project(project_id), [], [], None, store,
+        evaluated_at="2026-08-08T10:00:00Z")
+    cohort.update({"id": "cohort_preflight_budget_fixture", "project_id": project_id,
+                   "version": 1, "raw_status": cohort["status"]})
+    project = store.get_research_project(project_id)
+    project["cohort_preflight_versions"] = [cohort]
+    project["cohort_preflight_current_id"] = cohort["id"]
+    store.upsert_research_project(project)
+
     # vocabulary/registry ids + example-loaded entities
     ids["methodology_key"] = "double_diamond"
     ids["framework_id"] = services.list_frameworks(store=store)["frameworks"][0]["id"]
     ids["job_id"] = services.list_job_presets(store=store)["presets"][0]["id"]
+    ids["result_schema_id"] = services.list_result_schemas(store=store)["schemas"][0]["id"]
     ids["hypothesis_id"] = services.list_hypotheses(project_id=project_id, store=store)[0]["id"]
     ids["decision_id"] = services.list_decisions(project_id=project_id, store=store)[0]["id"]
     ids["section_id"] = services.list_sections(project_id, store=store)[0]["id"]
@@ -424,7 +447,7 @@ def _tool_args(ids: dict[str, Any]) -> dict[str, dict]:
     day = ids["sim_dates"][10]
     return {
         # no-arg / optional-only tools
-        "brief_calibration": {}, "brief_cohort_critic": {}, "calibration_trend": {},
+        "available_project_icons": {}, "brief_calibration": {}, "brief_cohort_critic": {}, "calibration_trend": {},
         "cohort_memory_depth": {}, "eval_scorecard": {"project_id": proj},
         "get_language": {}, "get_world_context": {}, "list_chats": {},
         "list_corpora": {}, "list_councils": {}, "list_decisions": {},
@@ -435,6 +458,7 @@ def _tool_args(ids: dict[str, Any]) -> dict[str, dict]:
         "list_primitives": {},
         "list_proto_sessions": {}, "list_prototypes": {}, "list_research_projects": {},
         "list_syntheses": {}, "list_surveys": {}, "list_usability_sessions": {},
+        "list_result_schemas": {}, "list_result_contracts": {},
         "query_councils": {}, "query_personas": {}, "query_projects": {},
         "query_syntheses": {}, "substrate_schema": {}, "walk_policy_defaults": {},
         "suggest_artifact_types": {}, "suggest_capabilities": {}, "suggest_chart_kinds": {},
@@ -449,6 +473,8 @@ def _tool_args(ids: dict[str, Any]) -> dict[str, dict]:
         "assess_project": {"project_id": proj},
         "assess_progress": {"project_id": proj},
         "brief_completeness_critic": {"project_id": proj},
+        "brief_cohort_preflight": {"project_id": proj},
+        "brief_product_understanding": {"project_id": proj},
         "brief_hypothesis": {"project_id": proj},
         "brief_next": {"project_id": proj},
         "brief_survey": {"project_id": proj},
@@ -456,6 +482,10 @@ def _tool_args(ids: dict[str, Any]) -> dict[str, dict]:
         "brief_synthesis_section": {"project_id": proj, "section_id": ids["report_section_id"]},
         "export_plan_md": {"project_id": proj},
         "get_plan": {"project_id": proj},
+        "project_health": {"project_id": proj},
+        "project_result_contract_state": {"project_id": proj},
+        "get_product_understanding": {"project_id": proj},
+        "get_cohort_preflight": {"project_id": proj},
         "get_project_graph": {"project_id": proj},
         "get_research_frontier": {"project_id": proj},
         "get_study_result": {"project_id": proj},
@@ -467,6 +497,7 @@ def _tool_args(ids: dict[str, Any]) -> dict[str, dict]:
         "list_sections": {"project_id": proj},
         "next_action": {"project_id": proj},
         "run_journal": {"run_id": ids["run_id"]},
+        "resume_project_run": {"project_id": proj, "run_id": ids["run_id"]},
         "flow_funnel": {"project_id": proj, "flow_id": ids["flow_id"]},
         "get_session_funnel": {"subject_kind": "flow", "subject_id_or_url": ids["flow_id"]},
         # persona-scoped
@@ -546,6 +577,9 @@ def _tool_args(ids: dict[str, Any]) -> dict[str, dict]:
         "get_section_members": {"section_id": ids["section_id"]},
         "export_section": {"section_id": ids["section_id"]},
         "get_job_preset": {"job_id": ids["job_id"]},
+        "get_result_schema": {"schema_id": ids["result_schema_id"]},
+        "result_contract_for_job": {"job_id": ids["job_id"]},
+        "result_contract_for_methodology": {"methodology_key": ids["methodology_key"]},
         "get_methodology": {"key": ids["methodology_key"]},
         "describe_framework": {"framework_id": ids["framework_id"]},
         # pure-input tools

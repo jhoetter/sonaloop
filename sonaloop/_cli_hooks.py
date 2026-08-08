@@ -44,6 +44,7 @@ def add_hook_parsers(sub) -> None:
     p.add_argument("--notes")
     p.add_argument("--direction", choices=["in", "out"],
                    help="in = evidence brought into the project (default) · out = deliverable produced from it")
+    p.add_argument("--dispatch-token")
     p = sub.add_parser("asset-list")
     p.add_argument("project_id")
     p = sub.add_parser("asset-get")
@@ -85,7 +86,8 @@ def run_hook_command(args) -> Any:
     if args.command == "asset-attach":
         return services.attach_asset(args.project_id, path=args.path, kind=args.kind,
                                      title=args.title or "", notes=args.notes or "",
-                                     direction=args.direction)
+                                     direction=args.direction,
+                                     dispatch_token=args.dispatch_token)
     if args.command == "asset-list":
         return services.list_assets(args.project_id)
     if args.command == "asset-get":

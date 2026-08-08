@@ -3,6 +3,33 @@
   "name": "Reaction Test",
   "description": "A lightweight content / comprehension reaction test (Nielsen Norman content testing, the 5-second test): React (fan) -> Synthesize (waist). Show a concrete artifact to a segment-diverse persona group and read how they react — fast, honest, two steps.",
   "when_to_use": "When you have something concrete and want a quick read of how your audience reacts — a blog post, headline, landing copy, a single screen or message: what lands, what confuses, and how the wording feels.",
+  "routing": {
+    "aliases": ["5-second test", "five second test", "content reaction"],
+    "threshold": 5,
+    "ambiguity_margin": 2,
+    "signals": [
+      {"phrase": "reaktionstest", "weight": 8},
+      {"phrase": "reaction test", "weight": 8},
+      {"phrase": "5 second test", "weight": 8},
+      {"phrase": "five second test", "weight": 8},
+      {"phrase": "ersteindruck", "weight": 6},
+      {"phrase": "first impression", "weight": 6},
+      {"phrase": "screenshot", "weight": 5},
+      {"phrase": "website screen", "weight": 5},
+      {"phrase": "landing page", "weight": 5},
+      {"phrase": "headline", "weight": 5},
+      {"phrase": "wording", "weight": 5},
+      {"phrase": "verstandlichkeit", "weight": 4},
+      {"phrase": "comprehension", "weight": 4}
+    ]
+  },
+  "integrity": {
+    "product_understanding_required": true,
+    "cohort_preflight_required": true,
+    "stimulus_required": true,
+    "claim_posture_required": true,
+    "schema": "sonaloop.research_integrity.v1"
+  },
   "presentation": {
     "icon": "sentiment",
     "image": "reaction-test.jpg",
@@ -16,6 +43,22 @@
       "intent": "Show the concrete artifact (copy, headline, a screen, a message) to a segment-diverse persona group. Capture honest first impressions, what is understood versus confusing, what resonates or jars, and the emotional reaction. Keep it fast — no leading.",
       "strategy": "tension", "diverge_by": "persona_subset",
       "produces": {"role": "reactions"},
+      "work_items": [
+        {
+          "id": "comprehension",
+          "title": "Reaction · first impression and comprehension",
+          "capability": "reaction_council",
+          "expected_output_kind": "council",
+          "intent": "Run a segment-diverse council on first impression, information scent, comprehension and concrete confusion points. Cite only the admitted stimulus and persona memory."
+        },
+        {
+          "id": "trust_action",
+          "title": "Reaction · trust, gaps and action readiness",
+          "capability": "reaction_council",
+          "expected_output_kind": "council",
+          "intent": "Run a distinct council angle on trust, missing information, comparison expectations and readiness to take the next action. Include skeptical and non-target voices."
+        }
+      ],
       "presentation": {
         "forms": ["council/proposal_reaction", "council/open_discussion", "survey/scale"],
         "library": ["Councils", "Surveys", "Notes"]

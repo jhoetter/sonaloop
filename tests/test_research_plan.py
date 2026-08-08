@@ -671,6 +671,7 @@ def test_completeness_critic_surfaces_gaps_and_refuses_dishonest_pass(store):
     import pytest
     proj = services.start_project("ESV2", "hmw?", None, persona_ids=[], store=store)
     pid = proj["id"]
+    run_id = services.start_run(pid, store=store)["run_id"]
     services.create_note(pid, "a bold concept", "Dark-horse", kind="concept",
                          data={"lens": "reversal", "artifact_kind": "flow", "prototype_id": None}, store=store)
     b = services.brief_completeness_critic(pid, store=store)
@@ -678,13 +679,15 @@ def test_completeness_critic_surfaces_gaps_and_refuses_dishonest_pass(store):
     assert b["frame"]["breadth_candidates"]["concepts_not_prototyped"] == ["Dark-horse"]
     with pytest.raises(ValueError):                               # can't pass with open missing
         services.record_completeness_critic(pid, {"passed": True, "missing": [{"kind": "concept", "what": "x"}],
-                                                  "scores": {}}, store=store)
+                                                  "scores": {}}, run_id, "critic:test:1", store=store)
     with pytest.raises(ValueError):                               # can't pass with a sub-threshold dim
         services.record_completeness_critic(pid, {"passed": True, "missing": [],
-                                                  "scores": {"exploration_depth": 1}}, store=store)
+                                                  "scores": {"exploration_depth": 1}},
+                                                run_id, "critic:test:2", store=store)
     rec = services.record_completeness_critic(pid, {"passed": False, "missing": [
         {"kind": "concept", "what": "build the dark-horse", "suggested_action": "scaffold + test it"}],
-        "scores": {"exploration_depth": 3}, "rationale": "thin"}, store=store)
+        "scores": {"exploration_depth": 3}, "rationale": "thin"},
+        run_id, "critic:test:3", store=store)
     assert rec["passed"] is False and rec["missing"][0]["kind"] == "concept"
     # once the idea note is marked built, it drops out of the gap
     note = [n for n in services.list_notes(pid, store=store) if (n.get("data") or {}).get("artifact_kind")][0]
@@ -946,4 +949,8 @@ def test_resumable_run_object_and_keyed_session(store, tmp_path, monkeypatch):
     j = services.run_journal(rid, store=store)
     assert j["cursor"] == 1 and j["steps"][0]["task_id"] == "frame__root"
     assert services.start_run(pid, run_id=rid, store=store)["cursor"] == 1          # resume returns the journal
-    assert services.finish_run(rid, store=store)["status"] == "finished"
+    # Manual `finished` is fail-closed: a checkpoint alone is not a completed plan + critic gate.
+    with pytest.raises(P.PlanError) as exc:
+        services.finish_run(rid, store=store)
+    assert exc.value.code == "RUN_NOT_FINISHABLE"
+    assert services.finish_run(rid, "stopped", store=store)["status"] == "stopped"

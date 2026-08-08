@@ -24,6 +24,23 @@ Generative steps are split: `brief_X(...)` returns `{instructions, frame, schema
 the host LLM authors JSON; `record_X(...)` / `put_X(...)` validate + persist.
 This follows a context-gatherer + reader/judge split.
 
+For `dispatch_v1` governed runs, `run_step` adds `dispatch_token` to every
+analyze/act/verify dispatch. The matching write tool accepts that token, validates its
+workspace/project/run/task/bucket/key, dispatch cursor, input fingerprint and output contract
+before mutation, and returns `dispatch` state. One primary output kind is bound per dispatch;
+supporting stimulus assets/flow manifests and closing judgments are declared separately. A
+successful terminal write auto-links and auto-checkpoints; the host must not checkpoint it twice.
+An identical payload replay returns the original primitive. A pre-checkpoint authored repair is
+versioned by fingerprint; after task completion/checkpoint, changed content fails closed.
+Reaction Test adds the gather/write pair `brief_product_understanding` →
+`record_product_understanding` plus `get_product_understanding`. After the initial
+`record_frame` commits the actual questions/hypotheses, council/synthesis writes wait for
+`brief_cohort_preflight` → `record_cohort_preflight` (inspectable through
+`get_cohort_preflight`): a versioned, provider-neutral depth/provenance/hypothesis-leakage gate
+whose failed result injects real remediation work. Council/synthesis writes accept an explicit
+`claims` inventory with the posture contract in
+`docs/research-integrity.md`.
+
 | Phase | gather | write-back |
 |---|---|---|
 | Day plan | `brief_day` | `put_day_plan` |

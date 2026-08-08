@@ -10,14 +10,48 @@ from ._env import _env
 def register_flows(mcp):
     # == Screenshot flows: walkthrough with drop-off, artifact-first (docs/flow-walkthrough.md) ==
     @mcp.tool()
+    def record_flow_manifest(project_id: str, run_id: str, operation_id: str,
+                             flow_key: str, title: str, steps: list[dict[str, Any]],
+                             expected_task: str, target_revision: str, captured_at: str,
+                             dispatch_token: str = "") -> dict[str, Any]:
+        """Append one immutable, versioned Remote-MCP screenshot-flow manifest. `steps` is
+        ordered and each entry is {asset_version_id, label}; every id must be a screenshot
+        admitted by admit_remote_screenshot for this authenticated workspace/project/run and
+        exact target_revision. Reuse operation_id unchanged on retry. The returned id/version/
+        manifest_digest is what Product Understanding must freeze and cover before personas react."""
+        t = time.perf_counter()
+        return _env("record_flow_manifest", services.record_flow_manifest(
+            project_id=project_id, run_id=run_id, operation_id=operation_id,
+            flow_key=flow_key, title=title, steps=steps, expected_task=expected_task,
+            target_revision=target_revision, captured_at=captured_at,
+            dispatch_token=dispatch_token), t)
+
+    @mcp.tool()
+    def list_flow_manifests(project_id: str) -> dict[str, Any]:
+        """List immutable admitted screenshot-flow versions in the active workspace/project."""
+        t = time.perf_counter()
+        return _env("list_flow_manifests", services.list_flow_manifests(project_id), t)
+
+    @mcp.tool()
+    def get_flow_manifest(project_id: str, manifest_id: str = "", flow_key: str = "",
+                          version: int | None = None) -> dict[str, Any]:
+        """Read one exact flow-manifest version by manifest_id or flow_key + version."""
+        t = time.perf_counter()
+        return _env("get_flow_manifest", services.get_flow_manifest(
+            project_id, manifest_id, flow_key, version), t)
+
+    @mcp.tool()
     def define_flow(project_id: str, title: str, steps: list[dict[str, Any]],
-                    key: str | None = None) -> dict[str, Any]:
+                    key: str | None = None,
+                    dispatch_token: str | None = None) -> dict[str, Any]:
         """Define an ORDERED flow from the project's screenshot assets — each step is
         {asset_id, caption?} (attach the screenshots first via attach_asset /
         attach_prototype_shot). The flow is what personas walk; no live browser anywhere.
-        A stable `key` makes re-definition an idempotent upsert."""
+        A stable `key` makes re-definition an idempotent upsert. In a governed run pass the issued
+        dispatch_token; the flow is automatically linked to its task."""
         t = time.perf_counter()
-        return _env("define_flow", services.define_flow(project_id, title, steps, key), t)
+        return _env("define_flow", services.define_flow(
+            project_id, title, steps, key, dispatch_token=dispatch_token), t)
 
     @mcp.tool()
     def list_flows(project_id: str) -> dict[str, Any]:

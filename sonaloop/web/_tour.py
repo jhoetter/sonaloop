@@ -47,7 +47,7 @@ def tour_steps() -> list[dict]:
     url = sc["url"]
     return [
         {"url": url, "sel": ".sl-scaffold__head,.h1", "title": t("tour_project_h"), "body": t("tour_project_d")},
-        {"url": url, "sel": ".tour-plan-chip", "title": t("tour_plan_h"), "body": t("tour_plan_d")},
+        {"url": url, "sel": ".sl-tour-plan-chip", "title": t("tour_plan_h"), "body": t("tour_plan_d")},
         {"url": url, "sel": ".outline", "title": t("tour_trace_h"), "body": t("tour_trace_d")},
         {"url": url, "sel": '.olrow[data-rkind="open_question"]', "title": t("tour_question_h"), "body": t("tour_question_d")},
         {"url": url, "sel": '.olrow[data-rkind="note"]', "title": t("tour_note_h"), "body": t("tour_note_d")},
@@ -58,7 +58,7 @@ def tour_steps() -> list[dict]:
         {"url": url, "sel": '.olrow[data-rkind="hypothesis"]', "title": t("tour_hypothesis_h"), "body": t("tour_hypothesis_d")},
         {"url": url, "sel": '.olrow[data-rkind="prototype"]', "title": t("tour_prototype_h"), "body": t("tour_prototype_d")},
         {"url": url, "sel": '.olrow[data-rkind="session"]', "open": True, "focus": "#sec-replay,#sec-statements", "title": t("tour_session_h"), "body": t("tour_session_d")},
-        {"url": url, "sel": '.olrow[data-rkind="synthesis"]', "open": True, "focus": "#exec,#verdict,.rp-cover,.syn-main", "title": t("tour_report_h"), "body": t("tour_report_d")},
+        {"url": url, "sel": '.olrow[data-rkind="synthesis"]', "open": True, "focus": "#exec,#verdict,.rp-cover,.sl-syn-main", "title": t("tour_report_h"), "body": t("tour_report_d")},
         {"url": url, "sel": '.olrow[data-rkind="decision"]', "open": True, "focus": "#sec-decision", "title": t("tour_decision_h"), "body": t("tour_decision_d")},
         {"url": url, "sel": ".outline", "title": t("tour_library_h"), "body": t("tour_library_d")},
     ]

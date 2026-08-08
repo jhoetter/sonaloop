@@ -148,7 +148,8 @@ def ensure_asset_preview(project_id: str, asset_id: str | None = None,
 def attach_asset(project_id: str, path: str | None = None, content_base64: str | None = None,
                  filename: str | None = None, kind: str | None = None, title: str = "",
                  notes: str = "", source: str = "", direction: str | None = None,
-                 store: Store | None = None) -> dict[str, Any]:
+                 store: Store | None = None,
+                 dispatch_token: str | None = None) -> dict[str, Any]:
     """Attach a file/image/screenshot to a project as a citable asset. Pass EITHER
     `path` (a local file — e.g. a screenshot captured during the project) OR
     `content_base64` (+ `filename` for the extension). The binary lands in the
@@ -163,8 +164,8 @@ def attach_asset(project_id: str, path: str | None = None, content_base64: str |
         raise ValueError(f"direction must be one of {ASSET_DIRECTIONS}, got {direction!r}")
     if bool(path) == bool(content_base64):
         raise ValueError("Pass exactly one of `path` or `content_base64`.")
-    if path:
-        src = Path(path).expanduser()
+    src = Path(path).expanduser() if path else None
+    if src is not None:
         if not src.is_file():
             raise FileNotFoundError(f"No such file: {path}")
         from .. import config
@@ -172,6 +173,11 @@ def attach_asset(project_id: str, path: str | None = None, content_base64: str |
                 config.partition_dir().resolve()):
             raise ValueError("asset path must stay inside the active workspace partition; "
                              "upload external material with content_base64")
+    dispatch_ctx = prepare_dispatch_write(  # noqa: F821 (bound)
+        project["id"], dispatch_token, None, "asset", store,
+        allowed_buckets={"analyze", "act", "verify"})
+    if path:
+        assert src is not None
         data = src.read_bytes()
         name = filename or src.name
         source = source or str(src)
@@ -213,6 +219,12 @@ def attach_asset(project_id: str, path: str | None = None, content_base64: str |
         "text_excerpt": _text_excerpt(data, ext),
         "created_at": (existing or {}).get("created_at") or utc_now_iso(),
         "updated_at": utc_now_iso(),
+        "dispatch_provenance": {
+            "state": dispatch_ctx.get("state", "outside_run"),
+            **({"dispatch_token": dispatch_ctx["dispatch_token"],
+                "run_id": dispatch_ctx["run_id"], "task_id": dispatch_ctx["task_id"]}
+               if dispatch_ctx.get("dispatch_token") else {}),
+        },
     }
     if (existing or {}).get("supersedes"):       # the provenance chain survives a re-attach upsert
         record["supersedes"] = existing["supersedes"]
@@ -224,7 +236,10 @@ def attach_asset(project_id: str, path: str | None = None, content_base64: str |
     store.upsert_research_project(project)
     emit_lifecycle_event("asset.attached", {"project_id": project["id"], "asset_id": aid,  # noqa: F821 (bound)
                                             "kind": record["kind"], "filename": name}, store)
-    return record
+    dispatch = bind_dispatch_output(  # noqa: F821 (bound)
+        dispatch_ctx, {"kind": "asset", "id": aid}, "attached supporting stimulus asset", store,
+        complete=False)
+    return {**record, "dispatch": dispatch}
 
 
 def attach_prototype_shot(project_id: str, prototype_id: str, title: str = "",

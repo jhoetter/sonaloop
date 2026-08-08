@@ -6,6 +6,7 @@ Cross-module function references are bound at import time by services/__init__.p
 from __future__ import annotations
 
 import csv
+import copy
 import hashlib
 import json
 import random
@@ -103,48 +104,168 @@ from .. import prototypes as _proto  # noqa: E402
 from .. import browser as _browser   # noqa: E402
 
 
+def _start_project_operation_id(value: str | None) -> str | None:
+    if value is None:
+        return None
+    operation_id = str(value).strip()
+    if not operation_id:
+        raise ValueError("operation_id must be 1..200 printable characters")
+    if len(operation_id) > 200 or not operation_id.isprintable():
+        raise ValueError("operation_id must be 1..200 printable characters")
+    return operation_id
+
+
+def _start_project_fingerprint(title: str, goal: str, methodology: str,
+                               persona_ids: list[str] | None, description: str,
+                               icon: Any | None) -> str:
+    canonical = json.dumps({
+        "title": title,
+        "goal": goal,
+        "methodology": methodology,
+        "persona_ids": list(persona_ids or []),
+        "description": description,
+        "icon": icon,
+    }, ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _start_project_cohort_warning(project: dict[str, Any], store: Store) -> dict[str, Any]:
+    """Attach the non-persisted thin-cohort warning to creates and idempotent replays alike."""
+    persona_ids = project.get("persona_ids") or []
+    if not persona_ids:
+        return project
+    try:
+        d = cohort_memory_depth(persona_ids, store=store)
+        if d["facts"] + d["events"] == 0:
+            project = dict(project)
+            project["warnings"] = [
+                f"cohort memory is EMPTY ({d['personas']} persona(s), 0 facts/events) — councils "
+                f"will be ungrounded; deepen with simulate-cohort (or ground personas from real "
+                f"material) before Discover"
+            ]
+    except Exception:
+        pass
+    return project
+
+
 
 def start_project(title: str, goal: str, methodology: str | None = None,
                   persona_ids: list[str] | None = None, description: str = "",
-                  store: Store | None = None, icon: Any | None = None) -> dict[str, Any]:
+                  store: Store | None = None, icon: Any | None = None,
+                  operation_id: str | None = None) -> dict[str, Any]:
     """Unified project entry: create a research project + seed its plan. With a methodology the plan
     is seeded from the constellation (analyze/act/verify scaffolding); freeform seeds one root frame
-    task (analyze, dischargeable). The plan is the single engine (HX3); a methodology only seeds it."""
+    task (analyze, dischargeable). The plan is the single engine (HX3); a methodology only seeds it.
+
+    ``operation_id`` makes creation retry-safe: replaying the same operation returns the original
+    project, while reusing the key for different inputs fails closed. Methodology names/aliases are
+    resolved and validated before the first project or plan write.
+    """
     store = store or Store()
-    project = create_research_project(title, goal=goal, persona_ids=persona_ids,
-                                      description=description, store=store, icon=icon)
-    if methodology:
-        spec = get_methodology(methodology, store=store)
-        project["methodology"] = methodology
+    spec = None
+    canonical_methodology = ""
+    if methodology and str(methodology).strip():
+        # Resolve BEFORE create_research_project: an unknown methodology must leave no
+        # orphan project/root plan behind.
+        spec = get_methodology(str(methodology), store=store)
+        canonical_methodology = str(spec["key"])
+
+    operation_id = _start_project_operation_id(operation_id)
+    fingerprint = _start_project_fingerprint(
+        title, goal, canonical_methodology, persona_ids, description, icon)
+    project_id = stable_id("rproject_operation", operation_id) if operation_id else None
+    replaying = False
+    if project_id:
+        existing = store.get_research_project(project_id)
+        if existing:
+            if str(existing.get("operation_id") or "") != operation_id:
+                raise PlanError(
+                    "IDEMPOTENCY_CONFLICT",
+                    "IDEMPOTENCY_CONFLICT: operation_id resolved to an existing project owned by "
+                    "another operation",
+                )
+            previous = str(existing.get("operation_fingerprint") or "")
+            if previous and previous != fingerprint:
+                raise PlanError(
+                    "IDEMPOTENCY_CONFLICT",
+                    "IDEMPOTENCY_CONFLICT: operation_id was already used with different "
+                    "start_project inputs",
+                )
+            plan = _plan.get_plan(existing["id"], store=store)
+            # Once initialized, this create operation owns an identity, not the
+            # project's future mutable state. A late transport replay must return
+            # the live project and must never roll back a later intentional
+            # set_project_methodology call or its progressed plan.
+            fully_initialized = existing.get("operation_state") == "initialized" and bool(plan)
+            if fully_initialized:
+                from ._common import web_url
+                replay = {**existing, "url": web_url(f"/jobs/{existing['id']}"),
+                          "idempotent_replay": True}
+                return _start_project_cohort_warning(replay, store)
+            # A process may have died after the project row but before plan initialization.
+            # Resume that same deterministic project instead of returning a half-created shell.
+            from ._common import web_url
+            project = {**existing, "url": web_url(f"/jobs/{existing['id']}")}
+            replaying = True
+        else:
+            project = create_research_project(
+                title, goal=goal, persona_ids=persona_ids, description=description, store=store,
+                icon=icon, project_id=project_id, operation_id=operation_id,
+                operation_fingerprint=fingerprint)
+    else:
+        project = create_research_project(
+            title, goal=goal, persona_ids=persona_ids, description=description, store=store,
+            icon=icon)
+    operation_claimed = project.pop("_operation_claimed", None)
+    if project_id and operation_claimed is False:
+        # Another worker won the atomic deterministic-id claim between our first read and insert.
+        # Compare before any plan/project update; different payloads are never allowed to repair.
+        if (str(project.get("operation_id") or "") != operation_id
+                or str(project.get("operation_fingerprint") or "") != fingerprint):
+            raise PlanError(
+                "IDEMPOTENCY_CONFLICT",
+                "IDEMPOTENCY_CONFLICT: operation_id was concurrently used with different "
+                "start_project inputs",
+            )
+        replaying = True
+    if spec:
+        project["methodology"] = canonical_methodology
+        if spec.get("integrity"):
+            project["integrity"] = dict(spec["integrity"])
+        if operation_id:
+            # New retry-safe front-door projects opt into the dispatch-token
+            # write contract. Projects created before this field remain readable
+            # and follow the documented legacy path.
+            project["governance_contract"] = "dispatch_v1"
         project["updated_at"] = utc_now_iso()
         store.upsert_research_project(project)
         plan = _plan.seed_plan_from_methodology(project["id"], goal, spec)
     else:
+        if operation_id:
+            project["governance_contract"] = "dispatch_v1"
+            project["updated_at"] = utc_now_iso()
+            store.upsert_research_project(project)
         root = {"id": "frame__root", "title": "Frame the inquiry", "bucket": "analyze",
                 "capability": "frame", "consumes": [],
                 "intent": "Understand before concluding: read persona memory + author the research "
                           "questions/hypotheses this inquiry needs before any council runs."}
         plan = _plan.new_plan(project["id"], goal, "", [root])
     _plan.save_plan(plan, store=store)
+    if operation_id:
+        project["operation_state"] = "initialized"
+        project["updated_at"] = utc_now_iso()
+        store.upsert_research_project(project)
     out = {**store.get_research_project(project["id"]),
            "url": project.get("url") or ""}  # the where-to-look link from create_research_project
-    emit_lifecycle_event("project.created", {"project_id": project["id"], "title": title,  # noqa: F821 (bound)
-                                             "goal": goal, "methodology": methodology or ""}, store)
+    if replaying:
+        out["idempotent_replay"] = True
+    if not replaying:
+        emit_lifecycle_event("project.created", {"project_id": project["id"], "title": title,  # noqa: F821 (bound)
+                                                 "goal": goal, "methodology": canonical_methodology}, store)
     # Cohort-depth pre-flight: warn BEFORE Discover, not after Define has gate-passed — a real run
     # produced an entire ungrounded Discover+Define over 0-memory personas before the thin-cohort
     # gap surfaced. Non-blocking (a thin cohort can be intentional); the warning rides the response.
-    if persona_ids:
-        try:
-            d = cohort_memory_depth(persona_ids, store=store)
-            if d["facts"] + d["events"] == 0:
-                out = dict(out)
-                out["warnings"] = [
-                    f"cohort memory is EMPTY ({d['personas']} persona(s), 0 facts/events) — councils "
-                    f"will be ungrounded; deepen with simulate-cohort (or ground personas from real "
-                    f"material) before Discover"]
-        except Exception:
-            pass
-    return out
+    return _start_project_cohort_warning(out, store)
 
 
 
@@ -239,18 +360,56 @@ def add_task(project_id, bucket, capability, title, intent="", consumes=None, re
 
 
 def record_frame(project_id, task_id, questions, hypotheses=None, memory_refs=None,
-                 store: Store | None = None) -> dict[str, Any]:
-    return _plan.record_frame(project_id, task_id, questions, hypotheses, memory_refs, store=store)
+                 store: Store | None = None, dispatch_token: str | None = None) -> dict[str, Any]:
+    store = store or Store()
+    ctx = prepare_dispatch_write(project_id, dispatch_token, None, "frame", store,
+                                 allowed_buckets={"analyze"}, required_task_id=task_id)
+    # A transport may die after record_frame committed the plan but before the
+    # checkpoint was appended.  Replaying the issued token must repair that
+    # seam, not fail TASK_NOT_READY or silently change the authored frame.
+    plan = _plan.get_plan(project_id, store=store) or {}
+    current = next((t for t in plan.get("tasks") or []
+                    if str(t.get("id") or "") == str(task_id)), None)
+    authored = {
+        "questions": [str(q).strip() for q in (questions or []) if str(q).strip()],
+        "hypotheses": [str(h).strip() for h in (hypotheses or []) if str(h).strip()],
+        "memory_refs": [str(r).strip() for r in (memory_refs or []) if str(r).strip()],
+    }
+    if ctx.get("dispatch_token") and current and current.get("status") == "done" and current.get("frame"):
+        if current.get("frame") != authored:
+            raise PlanError(
+                "DISPATCH_OUTPUT_CONFLICT",
+                "the frame dispatch was already committed with different authored content",
+            )
+        out = current
+    else:
+        out = _plan.record_frame(project_id, task_id, questions, hypotheses, memory_refs, store=store)
+    dispatch = bind_dispatch_output(
+        ctx, {"kind": "frame", "id": task_id}, "recorded evidence-grounded research frame", store)
+    if dispatch:
+        out = {**out, "dispatch": dispatch}
+    return out
 
 
 
-def link_evidence(project_id, task_id, ref, store: Store | None = None) -> dict[str, Any]:
+def link_evidence(project_id, task_id, ref, store: Store | None = None,
+                  dispatch_token: str | None = None) -> dict[str, Any]:
+    store = store or Store()
+    prepare_dispatch_write(project_id, dispatch_token, None, str((ref or {}).get("kind") or "evidence"),
+                           store, required_task_id=task_id)
     return _plan.link_evidence(project_id, task_id, ref, store=store)
 
 
 
-def complete_task(project_id, task_id, store: Store | None = None) -> dict[str, Any]:
-    return _plan.complete_task(project_id, task_id, store=store)
+def complete_task(project_id, task_id, store: Store | None = None,
+                  dispatch_token: str | None = None) -> dict[str, Any]:
+    store = store or Store()
+    ctx = prepare_dispatch_write(project_id, dispatch_token, None, "task_completion", store,
+                                 required_task_id=task_id)
+    out = _plan.complete_task(project_id, task_id, store=store)
+    if ctx.get("dispatch_token"):
+        out = {**out, "dispatch": finalize_dispatch(ctx, "completed plan task", store)}
+    return out
 
 
 
@@ -292,7 +451,11 @@ def set_project_methodology(project_id: str, methodology_key: str,
     if not project:
         raise MethodologyError("UNKNOWN_PROJECT", f"Unknown research project: {project_id}")
     spec = get_methodology(methodology_key, store=store)
-    project["methodology"] = methodology_key
+    project["methodology"] = str(spec["key"])
+    if spec.get("integrity"):
+        project["integrity"] = dict(spec["integrity"])
+    else:
+        project.pop("integrity", None)
     project["updated_at"] = utc_now_iso()
     store.upsert_research_project(project)
     plan = _plan.seed_plan_from_methodology(project_id, project.get("goal", ""), spec)
@@ -311,9 +474,17 @@ def brief_next(project_id: str, store: Store | None = None) -> dict[str, Any]:
 
 
 def record_judgment(project_id, task_id, gate_tag, decided, rationale,
-                    evidence_refs=None, store: Store | None = None) -> dict[str, Any]:
-    return _plan.record_judgment(project_id, task_id, gate_tag, decided, rationale,
-                                 evidence_refs, store=store)
+                    evidence_refs=None, store: Store | None = None,
+                    dispatch_token: str | None = None) -> dict[str, Any]:
+    store = store or Store()
+    ctx = prepare_dispatch_write(project_id, dispatch_token, None, "judgment", store,
+                                 allowed_buckets={"verify"}, required_task_id=task_id)
+    out = _plan.record_judgment(project_id, task_id, gate_tag, decided, rationale,
+                                evidence_refs, store=store,
+                                operation_id=str(ctx.get("operation_id") or ""))
+    if ctx.get("dispatch_token"):
+        out = {**out, "dispatch": finalize_dispatch(ctx, "recorded gate judgment", store)}
+    return out
 
 
 def park_evidence(project_id: str, refs: list[Any], reason: str, task_id: str = "",
@@ -487,9 +658,16 @@ def brief_prototype_session(persona_id, prototype_id, store: Store | None = None
 
 
 def record_prototype_session(persona_id, prototype_id, session_id, date_value, reaction,
-                             key: str | None = None, store: Store | None = None):
+                             key: str | None = None, store: Store | None = None,
+                             dispatch_token: str | None = None):
     store = store or Store()
     proto = _proto.get_prototype(prototype_id, store=store)
+    project_id = str(proto.get("project_id") or "")
+    dispatch_ctx = (prepare_dispatch_write(
+        project_id, dispatch_token, key, "session", store,
+        allowed_buckets={"act", "verify"}) if project_id else
+        {"state": "outside_run", "operation_id": str(key or ""), "key": str(key or "")})
+    effective_key = str(dispatch_ctx.get("primitive_key") or key or "") or None
     refs = [str(r).strip() for r in (reaction.get("observed_state_refs") or []) if str(r).strip()]
     if not refs:
         raise ValueError("reaction.observed_state_refs must cite >= 1 observed state (a ref or text actually seen)")
@@ -511,7 +689,8 @@ def record_prototype_session(persona_id, prototype_id, session_id, date_value, r
     from .. import artifacts as _A
     statements = [_A.validate_statement(s) for s in (reaction.get("statements") or [])]
     sess = PrototypeSession(
-        id=(stable_id("protosession", key) if key else stable_id("protosession", persona_id, prototype_id, now)),
+        id=(stable_id("protosession", effective_key) if effective_key
+            else stable_id("protosession", persona_id, prototype_id, now)),
         persona_id=persona_id,
         prototype_id=proto["id"], session_id=session_id, date=date_value, reaction=reaction,
         observed_state_refs=refs, created_at=now, statements=statements).to_dict()
@@ -519,6 +698,14 @@ def record_prototype_session(persona_id, prototype_id, session_id, date_value, r
     # A prototype can be updated after this run. Stamp the version observed NOW so later critics do
     # not accidentally attribute historical reactions to whatever version happens to be current.
     sess["prototype_version"] = str(proto.get("version") or "unknown")
+    if project_id:
+        sess["dispatch_provenance"] = {
+            "state": dispatch_ctx.get("state", "outside_run"),
+            **({"dispatch_token": dispatch_ctx["dispatch_token"],
+                "run_id": dispatch_ctx["run_id"], "task_id": dispatch_ctx["task_id"],
+                "operation_id": dispatch_ctx["operation_id"]}
+               if dispatch_ctx.get("dispatch_token") else {}),
+        }
     store.insert_prototype_session(sess)
     # write the real use into persona memory so the test council surfaces it
     name = proto["name"]
@@ -542,6 +729,10 @@ def record_prototype_session(persona_id, prototype_id, session_id, date_value, r
     except Exception:
         memory_written = False
     out = {"prototype_session": sess, "grounded_verified": grounded, "memory_written": memory_written}
+    if project_id:
+        out["dispatch"] = bind_dispatch_output(
+            dispatch_ctx, {"kind": "session", "id": sess["id"]},
+            "recorded grounded prototype session", store)
     if not grounded:
         # GAP-5: an unverified session is soft evidence — make it visible (and the gate now requires a
         # GROUNDED session when the harness can verify), instead of silently passing as "real usage".
@@ -562,24 +753,381 @@ def run_key(run_id: str, task_id: str, angle: str = "") -> str:
     return f"{run_id}:{task_id}:{angle}" if angle else f"{run_id}:{task_id}"
 
 
+def _dispatch_token(run_id: str, project_id: str, task_id: str, key: str) -> str:
+    """Opaque, deterministic identity for one issued run/task operation.
+
+    This is a scope/correlation token, not an authorization bearer. Workspace
+    authorization remains the storage/request tenant boundary.
+    """
+    scope = config.request_tenant_scope()
+    workspace_id = str(scope[1]) if scope else "local"
+    return stable_id("dispatch", workspace_id, run_id, project_id, task_id, key)
+
+
+def _issue_dispatch(run_id: str, project_id: str, task_id: str, bucket: str,
+                    key: str, store: Store, public_step_id: str | None = None,
+                    trace_contract: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Persist one replay-safe dispatch claim on the run and return it."""
+    token = _dispatch_token(run_id, project_id, task_id, key)
+    scope = config.request_tenant_scope()
+    workspace_id = str(scope[1]) if scope else "local"
+    trace_contract = dict(trace_contract or {})
+    expected_kind = str(trace_contract.get("expected_output_kind") or "")
+    exact_primary = list(trace_contract.get("allowed_primary_kinds") or []) or {
+        "frame": ["frame"],
+        "product_understanding": ["product_understanding"],
+        "cohort_integrity": ["cohort_preflight"],
+        "synthesis": ["synthesis"],
+    }.get(expected_kind, [])
+    input_fingerprint = canonical_payload_fingerprint(trace_contract) if trace_contract else ""
+    for _attempt in range(16):
+        current = store.get_run(run_id)
+        if not current or str(current.get("project_id") or "") != project_id:
+            raise PlanError("UNKNOWN_RUN", f"unknown run: {run_id}")
+        existing = next((d for d in (current.get("dispatches") or [])
+                         if str(d.get("dispatch_token") or "") == token), None)
+        if existing:
+            expected = (project_id, task_id, bucket, key)
+            actual = (str(existing.get("project_id") or ""), str(existing.get("task_id") or ""),
+                      str(existing.get("bucket") or ""), str(existing.get("key") or ""))
+            if actual != expected:
+                raise PlanError("DISPATCH_CONFLICT", "dispatch token is bound to different scope")
+            if (expected_kind and existing.get("expected_output_kind")
+                    and existing.get("expected_output_kind") != expected_kind):
+                raise PlanError("DISPATCH_CONFLICT", "dispatch token has a different output contract")
+            if (input_fingerprint and existing.get("input_fingerprint")
+                    and existing.get("input_fingerprint") != input_fingerprint):
+                raise PlanError("DISPATCH_INPUT_CONFLICT", "dispatch inputs changed after issuance")
+            return existing
+        updated = copy.deepcopy(current)
+        dispatch = {
+            "dispatch_token": token,
+            "operation_id": token,
+            "workspace_id": workspace_id,
+            "project_id": project_id,
+            "run_id": run_id,
+            "task_id": task_id,
+            "step_id": public_step_id or task_id,
+            "bucket": bucket,
+            "key": key,
+            "dispatch_cursor": int(current.get("cursor") or len(current.get("steps") or [])),
+            "expected_output_kind": expected_kind,
+            "input_fingerprint": input_fingerprint,
+            "output_contract": {
+                "schema": "sonaloop.dispatch_output_contract.v1",
+                "max_primary_outputs": 1,
+                "allowed_primary_kinds": exact_primary,
+                "supporting_kinds": ["asset", "flow", "reference", "evidence"],
+                "closing_kinds": ["judgment", "task_completion"],
+            },
+            "primary_output_kind": "",
+            "payload_fingerprints": {},
+            "payload_revisions": {},
+            "status": "issued",
+            "issued_at": utc_now_iso(),
+        }
+        updated.setdefault("dispatches", []).append(dispatch)
+        updated["updated_at"] = utc_now_iso()
+        if store.compare_and_swap_run(current, updated):
+            return dispatch
+    raise PlanError("DISPATCH_CONTENTION",
+                    "run changed repeatedly while issuing the dispatch; retry run_step")
+
+
+def _strict_dispatch_project(project: dict[str, Any]) -> bool:
+    return str(project.get("governance_contract") or "") == "dispatch_v1"
+
+
+def prepare_dispatch_write(
+    project_id: str,
+    dispatch_token: str | None,
+    key: str | None,
+    output_kind: str,
+    store: Store,
+    *,
+    allowed_buckets: set[str] | None = None,
+    required_capability: str = "",
+    required_task_id: str = "",
+    payload_fingerprint: str = "",
+) -> dict[str, Any]:
+    """Validate a primitive write before mutation and return its provenance.
+
+    Retry-safe front-door projects (``governance_contract=dispatch_v1``) require
+    a token while an active governed run owns the project. Legacy projects and
+    deliberate outside-run authoring remain available and are explicitly
+    stamped instead of pretending they came through the run loop.
+    """
+    project = store.get_research_project(project_id)
+    if not project:
+        raise PlanError("UNKNOWN_PROJECT", f"unknown research project: {project_id}")
+    token = str(dispatch_token or "").strip()
+    runs = store.list_runs(project_id)
+    active = [r for r in runs if r.get("status") == "active"]
+    if not token:
+        if active and _strict_dispatch_project(project):
+            raise PlanError(
+                "DISPATCH_TOKEN_REQUIRED",
+                f"{output_kind} write belongs to an active governed run; pass the dispatch_token "
+                "returned by run_step (legacy/outside-run writes are allowed only without such an owner)",
+            )
+        return {
+            "state": "legacy" if not _strict_dispatch_project(project) else "outside_run",
+            "project_id": project_id,
+            "output_kind": output_kind,
+            "operation_id": str(key or ""),
+            "key": str(key or ""),
+        }
+
+    found_run = None
+    found = None
+    for run in runs:
+        row = next((d for d in (run.get("dispatches") or [])
+                    if str(d.get("dispatch_token") or "") == token), None)
+        if row:
+            found_run, found = run, row
+            break
+    if not found or not found_run:
+        raise PlanError("UNKNOWN_DISPATCH_TOKEN", "dispatch_token was not issued for this project")
+    if str(found.get("project_id") or "") != project_id:
+        raise PlanError("DISPATCH_SCOPE_MISMATCH", "dispatch_token belongs to another project")
+    scope = config.request_tenant_scope()
+    active_workspace = str(scope[1]) if scope else "local"
+    if str(found.get("workspace_id") or active_workspace) != active_workspace:
+        raise PlanError("DISPATCH_SCOPE_MISMATCH", "dispatch_token belongs to another workspace")
+    if allowed_buckets and str(found.get("bucket") or "") not in allowed_buckets:
+        raise PlanError(
+            "DISPATCH_SCOPE_MISMATCH",
+            f"dispatch bucket {found.get('bucket')!r} cannot author {output_kind}",
+        )
+    if required_task_id and str(found.get("task_id") or "") != str(required_task_id):
+        raise PlanError("DISPATCH_SCOPE_MISMATCH",
+                        f"dispatch_token belongs to task {found.get('task_id')!r}, not {required_task_id!r}")
+    plan = _plan.get_plan(project_id, store=store) or {}
+    task = next((t for t in plan.get("tasks") or []
+                 if str(t.get("id") or "") == str(found.get("task_id") or "")), None)
+    if not task:
+        raise PlanError("DISPATCH_SCOPE_MISMATCH", "dispatch task no longer exists in this plan")
+    if required_capability and str(task.get("capability") or "") != required_capability:
+        raise PlanError(
+            "DISPATCH_SCOPE_MISMATCH",
+            f"dispatch task capability is {task.get('capability')!r}, expected {required_capability!r}",
+        )
+    explicit_key = str(key or "").strip()
+    if explicit_key and explicit_key not in {str(found.get("key") or ""), token}:
+        raise PlanError(
+            "DISPATCH_KEY_CONFLICT",
+            "an explicit primitive key must equal the dispatch key/token; retries may not mint a new output",
+        )
+    checkpoint = next((s for s in (found_run.get("steps") or [])
+                       if str(s.get("dispatch_token") or "") == token
+                       or str(s.get("key") or "") == str(found.get("key") or "")), None)
+    if found_run.get("status") != "active" and not checkpoint:
+        raise PlanError("DISPATCH_CLOSED", "run closed before this dispatch produced a checkpoint")
+    output_contract = dict(found.get("output_contract") or {})
+    support = set(output_contract.get("supporting_kinds") or
+                  ["asset", "flow", "reference", "evidence"])
+    closing = set(output_contract.get("closing_kinds") or ["judgment", "task_completion"])
+    is_primary = output_kind not in support | closing
+    allowed = set(output_contract.get("allowed_primary_kinds") or [])
+    if is_primary and allowed and output_kind not in allowed:
+        raise PlanError(
+            "DISPATCH_OUTPUT_KIND_CONFLICT",
+            f"dispatch expects {sorted(allowed)!r}, not {output_kind!r}",
+        )
+    claimed_kind = str(found.get("primary_output_kind") or "")
+    if is_primary and claimed_kind and claimed_kind != output_kind:
+        raise PlanError(
+            "DISPATCH_OUTPUT_KIND_CONFLICT",
+            f"single-output dispatch is already bound to {claimed_kind!r}, not {output_kind!r}",
+        )
+    fingerprint = str(payload_fingerprint or "").strip()
+    prior_fingerprint = str((found.get("payload_fingerprints") or {}).get(output_kind) or "")
+    output_locked = bool(checkpoint or found.get("status") == "completed"
+                         or (task or {}).get("status") == "done")
+    if fingerprint and prior_fingerprint and prior_fingerprint != fingerprint and output_locked:
+        raise PlanError(
+            "DISPATCH_OUTPUT_CONFLICT",
+            "the committed dispatch output cannot be replayed with different authored content",
+        )
+    needs_claim = ((is_primary and not claimed_kind)
+                   or (fingerprint and fingerprint != prior_fingerprint))
+    if needs_claim:
+        for _attempt in range(16):
+            current_run = store.get_run(str(found_run.get("run_id") or ""))
+            current_dispatch = next((d for d in (current_run or {}).get("dispatches") or []
+                                     if str(d.get("dispatch_token") or "") == token), None)
+            if not current_run or not current_dispatch:
+                raise PlanError("UNKNOWN_DISPATCH_TOKEN", "dispatch disappeared while claiming output")
+            current_kind = str(current_dispatch.get("primary_output_kind") or "")
+            if is_primary and current_kind and current_kind != output_kind:
+                raise PlanError("DISPATCH_OUTPUT_KIND_CONFLICT",
+                                "another primary output already claimed this dispatch")
+            current_fp = str((current_dispatch.get("payload_fingerprints") or {}).get(output_kind) or "")
+            current_checkpoint = next((s for s in (current_run.get("steps") or [])
+                                       if str(s.get("dispatch_token") or "") == token), None)
+            if (fingerprint and current_fp and current_fp != fingerprint
+                    and (current_checkpoint or current_dispatch.get("status") == "completed"
+                         or (task or {}).get("status") == "done")):
+                raise PlanError("DISPATCH_OUTPUT_CONFLICT",
+                                "the committed dispatch output cannot be revised")
+            updated = copy.deepcopy(current_run)
+            target = next(d for d in updated.get("dispatches") or []
+                          if str(d.get("dispatch_token") or "") == token)
+            if is_primary:
+                target["primary_output_kind"] = output_kind
+            if fingerprint:
+                fps = target.setdefault("payload_fingerprints", {})
+                revisions = target.setdefault("payload_revisions", {})
+                if current_fp and current_fp != fingerprint:
+                    target.setdefault("payload_revision_history", []).append({
+                        "output_kind": output_kind, "from": current_fp, "to": fingerprint,
+                        "revised_at": utc_now_iso(), "reason": "pre-checkpoint authored repair",
+                    })
+                fps[output_kind] = fingerprint
+                revisions[output_kind] = int(revisions.get(output_kind) or 0) + (
+                    1 if current_fp != fingerprint else 0)
+            updated["updated_at"] = utc_now_iso()
+            if store.compare_and_swap_run(current_run, updated):
+                found_run, found = updated, target
+                prior_fingerprint = fingerprint or prior_fingerprint
+                break
+        else:
+            raise PlanError("DISPATCH_CONTENTION",
+                            "run changed repeatedly while binding the dispatch output")
+    return {
+        **found,
+        "state": "governed",
+        "output_kind": output_kind,
+        # The dispatch key is the deterministic primitive key.  A transport
+        # retry therefore updates/returns one record rather than duplicating it.
+        "primitive_key": str(found.get("key") or token),
+        "checkpointed": bool(checkpoint),
+        "expected_output_kind": str(found.get("expected_output_kind") or ""),
+        "input_fingerprint": str(found.get("input_fingerprint") or ""),
+        "payload_fingerprint": prior_fingerprint,
+        "payload_revision": int((found.get("payload_revisions") or {}).get(output_kind) or 0),
+    }
+
+
+def _dispatch_ref_token(ref: dict[str, Any]) -> str:
+    kind, rid = str(ref.get("kind") or ""), str(ref.get("id") or "")
+    return f"{kind}:{rid}" if kind and rid else rid
+
+
+def finalize_dispatch(ctx: dict[str, Any], summary: str, store: Store) -> dict[str, Any]:
+    """Complete/checkpoint a token-bound task after its required writes exist."""
+    if not ctx.get("dispatch_token"):
+        return {"state": ctx.get("state", "outside_run"), "checkpointed": False}
+    pid, tid = str(ctx["project_id"]), str(ctx["task_id"])
+    plan = _plan.get_plan(pid, store=store) or {}
+    task = next((t for t in plan.get("tasks") or [] if str(t.get("id") or "") == tid), None)
+    if not task:
+        raise PlanError("DISPATCH_SCOPE_MISMATCH", "dispatch task no longer exists")
+    if task.get("status") != "done":
+        try:
+            completed = _plan.complete_task(pid, tid, store=store)
+        except PlanError as exc:
+            if exc.code in {"GATE_UNMET", "REACTION_EVIDENCE_UNMET"}:
+                return {"state": "linked", "checkpointed": False, "task_id": tid,
+                        "needs": exc.message}
+            raise
+        if completed.get("trace_nudge"):
+            return {"state": "linked", "checkpointed": False, "task_id": tid,
+                    "needs": completed["trace_nudge"]["message"]}
+    fresh = _plan.get_plan(pid, store=store) or {}
+    fresh_task = next((t for t in fresh.get("tasks") or [] if str(t.get("id") or "") == tid), task)
+    refs = [_dispatch_ref_token(r) for r in (fresh_task.get("produces") or [])
+            if r.get("kind") != "frame" or ctx.get("output_kind") == "frame"]
+    receipt = checkpoint_step(str(ctx["run_id"]), {
+        "task_id": tid,
+        "bucket": str(ctx.get("bucket") or ""),
+        "key": str(ctx.get("key") or ""),
+        "dispatch_token": str(ctx["dispatch_token"]),
+        "evidence": refs,
+        "produced_refs": refs,
+        "summary": summary,
+    }, store=store)
+    return {"state": "completed", "checkpointed": True, "task_id": tid, "receipt": receipt}
+
+
+def bind_dispatch_output(ctx: dict[str, Any], ref: dict[str, Any], summary: str,
+                         store: Store, *, complete: bool = True) -> dict[str, Any]:
+    """Auto-link one produced ref and, when ready, complete/checkpoint its dispatch."""
+    if not ctx.get("dispatch_token"):
+        return {"state": ctx.get("state", "outside_run"), "checkpointed": False,
+                "provenance": "not governed by an active dispatch"}
+    _plan.link_evidence(str(ctx["project_id"]), str(ctx["task_id"]), ref, store=store)
+    if not complete:
+        return {"state": "linked", "checkpointed": False, "task_id": ctx["task_id"],
+                "produced_ref": _dispatch_ref_token(ref)}
+    return finalize_dispatch({**ctx, "output_kind": str(ref.get("kind") or ctx.get("output_kind") or "")},
+                             summary, store)
+
+
 def start_run(project_id: str, budget: int | None = None, run_id: str | None = None,
-              store: Store | None = None) -> dict[str, Any]:
+              store: Store | None = None, operation_id: str | None = None) -> dict[str, Any]:
     """Create (or load) the run object for a project — the resumable journal the driver advances. If
-    `run_id` already exists, it is returned as-is (resume)."""
+    `run_id` already exists, it is returned as-is (resume). A stable ``operation_id`` gives callers
+    retry-safe initial creation when they do not yet know the generated run id."""
     store = store or Store()
     if not store.get_research_project(project_id):
         raise PlanError("UNKNOWN_PROJECT", f"unknown research project: {project_id}")
-    if run_id:
-        existing = store.get_run(run_id)
+    operation_id = _start_project_operation_id(operation_id)
+    if operation_id and run_id:
+        raise ValueError("start_run accepts either run_id (resume) or operation_id (retry-safe create), not both")
+    requested_budget = int(budget) if budget is not None else None
+    fingerprint = hashlib.sha256(json.dumps(
+        {"project_id": project_id, "budget": requested_budget},
+        sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+    ).encode("utf-8")).hexdigest()
+    effective_run_id = (
+        stable_id("run_operation", operation_id) if operation_id else str(run_id or "") or None
+    )
+
+    def replay_or_conflict(existing: dict[str, Any]) -> dict[str, Any]:
+        if str(existing.get("project_id") or "") != str(project_id):
+            raise PlanError(
+                "RUN_IDEMPOTENCY_CONFLICT",
+                "RUN_IDEMPOTENCY_CONFLICT: run identity belongs to another project",
+            )
+        previous = str(existing.get("operation_fingerprint") or "")
+        if operation_id and (
+            str(existing.get("operation_id") or "") != operation_id
+            or (previous and previous != fingerprint)
+        ):
+            raise PlanError(
+                "RUN_IDEMPOTENCY_CONFLICT",
+                "RUN_IDEMPOTENCY_CONFLICT: operation_id was reused with different start_run inputs",
+            )
+        if run_id and budget is not None and existing.get("budget") != requested_budget:
+            raise PlanError(
+                "RUN_IDEMPOTENCY_CONFLICT",
+                "RUN_IDEMPOTENCY_CONFLICT: run_id resume cannot change its budget",
+            )
+        return {**existing, "idempotent_replay": True}
+
+    if effective_run_id:
+        existing = store.get_run(effective_run_id)
         if existing:
-            return existing
+            return replay_or_conflict(existing)
     now = utc_now_iso()
     plan = _plan.get_plan(project_id, store=store) or {}
-    run = {"run_id": run_id or stable_id("run", project_id, now), "project_id": project_id,
+    run = {"run_id": effective_run_id or stable_id("run", project_id, now), "project_id": project_id,
            "methodology": plan.get("methodology", ""), "status": "active",
-           "budget": int(budget) if budget is not None else None, "cursor": 0,
-           "steps": [], "critic_rounds": [], "created_at": now, "updated_at": now}
-    store.upsert_run(run)
+           "budget": requested_budget, "cursor": 0,
+           "steps": [], "dispatches": [], "critic_rounds": [], "created_at": now, "updated_at": now}
+    if operation_id:
+        run["operation_id"] = operation_id
+        run["operation_fingerprint"] = fingerprint
+    if effective_run_id:
+        claimed = store.insert_run_if_absent(run)
+        if not claimed:
+            existing = store.get_run(effective_run_id)
+            if not existing:  # pragma: no cover - committed conflict must be visible
+                raise RuntimeError("run operation claim lost without an existing run")
+            return replay_or_conflict(existing)
+    else:
+        store.upsert_run(run)
     return run
 
 
@@ -611,19 +1159,10 @@ def _trace_list(value: Any) -> list[Any]:
     return [value]
 
 
-def checkpoint_step(run_id: str, step: dict[str, Any], store: Store | None = None) -> dict[str, Any]:
-    """Append a completed step to the journal (ids + a 1-line summary). Returns the new cursor.
-
-    The original `evidence` field stays for old callers. The explicit trace fields let autonomous
-    authors record the I/O contract they actually fulfilled, so later UI/assessment can distinguish
-    "new evidence not consumed yet" from "forgotten evidence".
-    """
-    store = store or Store()
-    r = store.get_run(run_id)
-    if not r:
-        raise PlanError("UNKNOWN_RUN", f"unknown run: {run_id}")
-    entry = {"idx": len(r["steps"]), "task_id": step.get("task_id", ""), "bucket": step.get("bucket", ""),
-             "key": step.get("key", ""), "evidence": step.get("evidence", []),
+def _checkpoint_entry(step: dict[str, Any], idx: int) -> dict[str, Any]:
+    entry = {"idx": idx, "task_id": step.get("task_id", ""), "bucket": step.get("bucket", ""),
+             "key": str(step.get("key") or ""), "evidence": step.get("evidence", []),
+             "dispatch_token": str(step.get("dispatch_token") or ""),
              "summary": str(step.get("summary", ""))[:300]}
     for field in _RUN_STEP_TRACE_LIST_FIELDS:
         entry[field] = _trace_list(step.get(field))
@@ -631,38 +1170,225 @@ def checkpoint_step(run_id: str, step: dict[str, Any], store: Store | None = Non
         entry["produced_refs"] = _trace_list(step.get("evidence"))
     if "expected_output_kind" in step:
         entry["expected_output_kind"] = str(step.get("expected_output_kind") or "")
-    r["steps"].append(entry)
-    r["cursor"] = len(r["steps"])
-    r["updated_at"] = utc_now_iso()
-    store.upsert_run(r)
-    return {"cursor": r["cursor"], "run_id": run_id}
+    return entry
 
 
-def record_critic_round(run_id: str, passed: bool, missing_count: int, store: Store | None = None) -> dict[str, Any]:
-    """Log one completeness-critic round on the run (for the loop-until-dry gate + observability)."""
+def _checkpoint_payload(entry: dict[str, Any]) -> dict[str, Any]:
+    """The immutable content claimed by a deterministic checkpoint key."""
+    payload = {
+        "task_id": entry.get("task_id", ""),
+        "bucket": entry.get("bucket", ""),
+        "key": str(entry.get("key") or ""),
+        "dispatch_token": str(entry.get("dispatch_token") or ""),
+        "evidence": entry.get("evidence", []),
+        "summary": str(entry.get("summary", ""))[:300],
+    }
+    for field in _RUN_STEP_TRACE_LIST_FIELDS:
+        payload[field] = _trace_list(entry.get(field))
+    if not payload["produced_refs"] and payload["evidence"]:
+        payload["produced_refs"] = _trace_list(payload["evidence"])
+    if "expected_output_kind" in entry:
+        payload["expected_output_kind"] = str(entry.get("expected_output_kind") or "")
+    return payload
+
+
+def _checkpoint_receipt(run_id: str, entry: dict[str, Any]) -> dict[str, Any]:
+    idx = int(entry.get("idx", 0))
+    return {"run_id": run_id, "cursor": idx + 1, "step_idx": idx,
+            "key": str(entry.get("key") or "")}
+
+
+def checkpoint_step(run_id: str, step: dict[str, Any], store: Store | None = None) -> dict[str, Any]:
+    """Append a completed step to the journal (ids + a 1-line summary). Returns the new cursor.
+
+    The original `evidence` field stays for old callers. The explicit trace fields let autonomous
+    authors record the I/O contract they actually fulfilled, so later UI/assessment can distinguish
+    "new evidence not consumed yet" from "forgotten evidence". A non-empty deterministic ``key``
+    is an idempotency key: retrying it returns the original cursor without appending another row.
+    """
     store = store or Store()
-    r = store.get_run(run_id)
-    if not r:
-        raise PlanError("UNKNOWN_RUN", f"unknown run: {run_id}")
-    r.setdefault("critic_rounds", []).append({"round": len(r.get("critic_rounds", [])),
-                                              "passed": bool(passed), "missing": int(missing_count)})
-    r["updated_at"] = utc_now_iso()
-    store.upsert_run(r)
-    return {"round": len(r["critic_rounds"]) - 1, "passed": bool(passed)}
+    for _attempt in range(16):
+        current = store.get_run(run_id)
+        if not current:
+            raise PlanError("UNKNOWN_RUN", f"unknown run: {run_id}")
+        entry = _checkpoint_entry(step, len(current.get("steps") or []))
+        key = entry["key"]
+        token = entry["dispatch_token"]
+        issued = None
+        if token:
+            issued = next((d for d in (current.get("dispatches") or [])
+                           if str(d.get("dispatch_token") or "") == token), None)
+            if not issued:
+                raise PlanError("UNKNOWN_DISPATCH_TOKEN",
+                                "checkpoint dispatch_token was not issued by this run")
+            if (str(issued.get("task_id") or "") != str(entry.get("task_id") or "")
+                    or str(issued.get("key") or "") != key
+                    or str(issued.get("bucket") or "") != str(entry.get("bucket") or "")):
+                raise PlanError("DISPATCH_SCOPE_MISMATCH",
+                                "checkpoint task/bucket/key do not match the issued dispatch")
+        else:
+            project = store.get_research_project(str(current.get("project_id") or "")) or {}
+            if _strict_dispatch_project(project) and current.get("status") == "active":
+                raise PlanError(
+                    "DISPATCH_TOKEN_REQUIRED",
+                    "checkpoint belongs to a dispatch_v1 run; echo run_step.dispatch_token",
+                )
+        if key:
+            previous = next((row for row in (current.get("steps") or [])
+                             if str(row.get("key") or "") == key), None)
+            if previous is not None:
+                if _checkpoint_payload(previous) != _checkpoint_payload(entry):
+                    raise PlanError(
+                        "CHECKPOINT_KEY_CONFLICT",
+                        "CHECKPOINT_KEY_CONFLICT: checkpoint key was already committed with a different payload",
+                    )
+                receipt = dict(previous.get("receipt") or _checkpoint_receipt(run_id, previous))
+                return {**receipt, "deduplicated": True}
+        updated = copy.deepcopy(current)
+        entry["receipt"] = _checkpoint_receipt(run_id, entry)
+        updated.setdefault("steps", []).append(entry)
+        if issued:
+            for dispatch in updated.get("dispatches") or []:
+                if str(dispatch.get("dispatch_token") or "") == token:
+                    dispatch["status"] = "completed"
+                    dispatch["completed_at"] = utc_now_iso()
+                    dispatch["produced_refs"] = list(entry.get("produced_refs") or [])
+                    dispatch["receipt"] = dict(entry["receipt"])
+                    break
+        updated["cursor"] = len(updated["steps"])
+        updated["updated_at"] = utc_now_iso()
+        if store.compare_and_swap_run(current, updated):
+            return {**entry["receipt"], "deduplicated": False}
+    raise PlanError(
+        "CHECKPOINT_CONTENTION",
+        "CHECKPOINT_CONTENTION: the run journal changed repeatedly; retry the same deterministic key",
+    )
+
+
+def record_critic_round(
+    run_id: str,
+    critic_report_id: str,
+    key: str,
+    store: Store | None = None,
+) -> dict[str, Any]:
+    """Atomically bind one persisted critic report to one deterministic run round.
+
+    Pass the report id returned by ``record_completeness_critic`` and the critic
+    dispatch key returned by ``run_step``. Passed/missing state is derived from
+    the report, so retries cannot manufacture two independent dry rounds.
+    """
+    store = store or Store()
+    key = str(key or "").strip()
+    if not key:
+        raise ValueError("critic round key is required")
+    for _attempt in range(16):
+        current = store.get_run(run_id)
+        if not current:
+            raise PlanError("UNKNOWN_RUN", f"unknown run: {run_id}")
+        project = store.get_research_project(current["project_id"]) or {}
+        report = next((item for item in (project.get("critic_reports") or [])
+                       if str(item.get("id") or "") == str(critic_report_id)), None)
+        if report is None or str(report.get("run_id") or "") != str(run_id):
+            raise PlanError(
+                "CRITIC_REPORT_MISMATCH",
+                "CRITIC_REPORT_MISMATCH: report must exist and belong to this run",
+            )
+        rounds = current.get("critic_rounds") or []
+        keyed = next((item for item in rounds if str(item.get("key") or "") == key), None)
+        if keyed is not None:
+            if str(keyed.get("critic_report_id") or "") != str(critic_report_id):
+                raise PlanError(
+                    "CRITIC_ROUND_CONFLICT",
+                    "CRITIC_ROUND_CONFLICT: critic key was already bound to another report",
+                )
+            return {"round": int(keyed["round"]), "passed": bool(keyed.get("passed")),
+                    "critic_report_id": critic_report_id, "key": key, "deduplicated": True}
+        already = next((item for item in rounds
+                        if str(item.get("critic_report_id") or "") == str(critic_report_id)), None)
+        if already is not None:
+            return {"round": int(already["round"]), "passed": bool(already.get("passed")),
+                    "critic_report_id": critic_report_id, "key": str(already.get("key") or ""),
+                    "deduplicated": True}
+        updated = copy.deepcopy(current)
+        round_row = {
+            "round": len(rounds),
+            "key": key,
+            "critic_report_id": str(critic_report_id),
+            "passed": bool(report.get("passed")),
+            "missing": len(report.get("missing") or []),
+        }
+        updated.setdefault("critic_rounds", []).append(round_row)
+        updated["updated_at"] = utc_now_iso()
+        if store.compare_and_swap_run(current, updated):
+            return {**round_row, "deduplicated": False}
+    raise PlanError(
+        "CRITIC_ROUND_CONTENTION",
+        "CRITIC_ROUND_CONTENTION: run critic journal changed repeatedly; retry the same key",
+    )
 
 
 def finish_run(run_id: str, status: str = "finished", store: Store | None = None) -> dict[str, Any]:
-    """Mark the run finished/stopped."""
+    """Close a run, failing closed when ``finished`` is not engine-verified.
+
+    ``stopped`` and ``capped`` remain explicit operational exits.  A successful finish is a
+    research-quality claim: the plan/result contract and finish work must be complete and both
+    the run journal and persisted project must contain the required trailing dry critic rounds.
+    Normal callers should loop :func:`run_step`; its deterministic done branch satisfies these
+    same checks before calling this function.
+    """
     store = store or Store()
     r = store.get_run(run_id)
     if not r:
         raise PlanError("UNKNOWN_RUN", f"unknown run: {run_id}")
+    allowed_statuses = {"finished", "stopped", "capped"}
+    if status not in allowed_statuses:
+        raise PlanError(
+            "INVALID_RUN_STATUS",
+            "INVALID_RUN_STATUS: status must be one of finished, stopped, capped",
+        )
+    if status == "finished":
+        assessment = assess_project(r["project_id"], store=store)
+        project = store.get_research_project(r["project_id"]) or {}
+        critic_reports = {str(report.get("id") or ""): report
+                          for report in (project.get("critic_reports") or [])}
+        dry_rounds: list[dict[str, Any]] = []
+        seen_report_ids: set[str] = set()
+        for round_row in reversed(r.get("critic_rounds") or []):
+            report_id = str(round_row.get("critic_report_id") or "")
+            if (not round_row.get("passed") or round_row.get("missing")
+                    or not report_id or report_id in seen_report_ids):
+                break
+            report = critic_reports.get(report_id)
+            if (not report or str(report.get("run_id") or "") != str(run_id)
+                    or not report.get("passed") or report.get("missing")):
+                break
+            seen_report_ids.add(report_id)
+            dry_rounds.append(round_row)
+        missing: list[str] = []
+        if not assessment.get("complete"):
+            missing.append("the plan/result contract is still open")
+        if not (assessment.get("finish") or {}).get("finished"):
+            missing.append("organize/conclusion/report finish work is incomplete")
+        if len(dry_rounds) < _RUN_K_DRY:
+            missing.append(
+                f"the run lacks {_RUN_K_DRY} distinct, persisted and run-bound trailing critic passes"
+            )
+        if missing:
+            raise PlanError(
+                "RUN_NOT_FINISHABLE",
+                "RUN_NOT_FINISHABLE: " + "; ".join(missing) +
+                ". Continue with run_step(run_id); do not force-finish the run.",
+            )
+    if r.get("status") == status:
+        return {"run_id": run_id, "status": status, "steps": len(r.get("steps") or []),
+                "deduplicated": True}
     r["status"] = status
     r["updated_at"] = utc_now_iso()
     store.upsert_run(r)
     emit_lifecycle_event("run.finished", {"run_id": run_id, "project_id": r["project_id"],  # noqa: F821 (bound)
                                           "status": status, "steps": len(r["steps"])}, store)
-    return {"run_id": run_id, "status": status, "steps": len(r["steps"])}
+    return {"run_id": run_id, "status": status, "steps": len(r["steps"]),
+            "deduplicated": False}
 
 
 # ===================== ESV §A.3 — the deterministic RunLoop engine (the keystone) =====================
@@ -677,8 +1403,11 @@ _RUN_MAX_CRITIC = 4
 
 def _rl_trailing_dry(rounds: list[dict[str, Any]]) -> int:
     n = 0
+    seen: set[str] = set()
     for r in reversed(rounds):
-        if r.get("passed"):
+        report_id = str(r.get("critic_report_id") or "")
+        if r.get("passed") and not r.get("missing") and report_id and report_id not in seen:
+            seen.add(report_id)
             n += 1
         else:
             break
@@ -762,17 +1491,31 @@ def _rl_trace_contract(project_id: str, task_id: str, store: Store) -> dict[str,
             open_questions.extend(str(q) for q in (ct["frame"].get("questions") or []) if str(q).strip())
         else:
             consume_refs.extend(_ref_token(r) for r in (ct.get("produces") or []) if _ref_token(r))
-    expected = "frame" if t.get("bucket") == "analyze" else str(t.get("capability") or t.get("bucket") or "")
+    explicit_output = str(t.get("expected_output_kind") or "")
+    expected = (explicit_output or
+                (str(t.get("capability") or "frame") if t.get("bucket") == "analyze"
+                 else str(t.get("capability") or t.get("bucket") or "")))
     return {"consume_task_ids": consumes, "consume_refs": consume_refs,
             "optional_context_refs": optional_context_refs, "open_questions": open_questions,
             "expected_output_kind": expected,
+            "allowed_primary_kinds": [explicit_output] if explicit_output else [],
             "must_link_before_complete": t.get("bucket") in ("act", "verify")}
 
 
 def _rl_dispatch(run: dict[str, Any], n: dict[str, Any], store: Store) -> dict[str, Any]:
     trace = _rl_trace_contract(run["project_id"], n["task"], store)
-    return {"kind": n["bucket"], "step_id": n["task"], "key": run_key(run["run_id"], n["task"]),
-            "next_action": n, "directive": n.get("instructions", ""), **trace}
+    key = run_key(run["run_id"], n["task"])
+    dispatch = _issue_dispatch(run["run_id"], run["project_id"], n["task"], n["bucket"], key,
+                               store, trace_contract=trace)
+    return {"kind": n["bucket"], "step_id": n["task"], "key": key,
+            "dispatch_token": dispatch["dispatch_token"], "operation_id": dispatch["operation_id"],
+            "dispatch_cursor": dispatch["dispatch_cursor"],
+            "input_fingerprint": dispatch["input_fingerprint"],
+            "output_contract": dict(dispatch["output_contract"]),
+            "next_action": n,
+            "directive": (n.get("instructions", "") + " Pass this dispatch_token to every record/"
+                          "completion write for the step; token-aware recorders auto-link and checkpoint, "
+                          "so do not checkpoint a second time when dispatch.checkpointed=true."), **trace}
 
 
 def run_step(run_id: str, store: Store | None = None) -> dict[str, Any]:
@@ -807,12 +1550,25 @@ def run_step(run_id: str, store: Store | None = None) -> dict[str, Any]:
         if not a["finish"].get("concluded"):
             terminal = next((t["id"] for t in reversed((_plan.get_plan(pid, store=store) or {}).get("tasks", []))
                              if t["bucket"] == "verify"), None)
-            return {"kind": "verify", "step_id": "__conclusion__", "key": run_key(run_id, "conclusion"),
+            conclusion_key = run_key(run_id, "conclusion")
+            dispatch = _issue_dispatch(
+                run_id, pid, terminal, "verify", conclusion_key, store,
+                public_step_id="__conclusion__",
+                trace_contract={"expected_output_kind": "synthesis", "terminal": True,
+                                "consume_refs": [f"task:{terminal}"]},
+            )
+            return {"kind": "verify", "step_id": "__conclusion__", "task_id": terminal,
+                    "key": conclusion_key, "dispatch_token": dispatch["dispatch_token"],
+                    "operation_id": dispatch["operation_id"],
+                    "dispatch_cursor": dispatch["dispatch_cursor"],
+                    "input_fingerprint": dispatch["input_fingerprint"],
+                    "output_contract": dict(dispatch["output_contract"]),
                     "terminal_verify": terminal,
                     "directive": ("Author a RICH terminal solution-presentation synthesis (record_synthesis: "
                                   "gesamtbild + positionierung + pain_solvers + ranking/shortlist; the answer, "
                                   "who-wins + deliberate non-targets, validated solvers, build spec) and "
-                                  f"link_evidence it to the terminal verify task `{terminal}`.")}
+                                  "pass this dispatch_token. The recorder auto-links it to terminal verify task "
+                                  f"`{terminal}` and checkpoints the conclusion.")}
     if a["complete"] and a["finish"]["finished"]:
         rounds = run.get("critic_rounds", [])
         if _rl_trailing_dry(rounds) >= _RUN_K_DRY:
@@ -821,9 +1577,14 @@ def run_step(run_id: str, store: Store | None = None) -> dict[str, Any]:
         if len(rounds) >= _RUN_MAX_CRITIC:
             finish_run(run_id, "capped", store=store)
             return {"kind": "done", "status": "capped", "summary": _rl_summary(pid, store)}
-        return {"kind": "critic", "run_id": run_id, "brief": brief_completeness_critic(pid, store=store),  # noqa: F821
-                "directive": ("Spawn an INDEPENDENT critic subagent: author the verdict from the brief, call "
-                              "record_completeness_critic(project_id, verdict) then record_critic_round.")}
+        critic_key = run_key(run_id, f"critic:{len(rounds)}")
+        return {"kind": "critic", "run_id": run_id, "key": critic_key,
+                "operation_id": critic_key,
+                "brief": brief_completeness_critic(pid, store=store),  # noqa: F821
+                "directive": ("Spawn an INDEPENDENT critic subagent: author the verdict from the brief; "
+                              "call record_completeness_critic(project_id, verdict, run_id, "
+                              "operation_id=<this dispatch operation_id>); then call record_critic_round("
+                              "run_id, critic_report_id=<returned id>, key=<this dispatch key>).")}
     finish_run(run_id, "stopped", store=store)
     return {"kind": "done", "status": "stopped", "summary": _rl_summary(pid, store)}
 

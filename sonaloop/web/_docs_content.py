@@ -6,7 +6,7 @@ render time by the page builders. No rendering happens here.
 """
 from __future__ import annotations
 
-from ._html import register_css
+from . import _docs_styles as _docs_styles  # noqa: F401  (registers hub styles)
 
 # ============================ Page registry ============================ #
 # Ordered: drives the tab bar AND prev/next. Shape: (slug, icon, (label_de, label_en)). "" == Overview.
@@ -70,6 +70,44 @@ PRINCIPLES = [
       "domain. Admins can temporarily inspect the active workspace with a regular member's permissions; "
       "their persistent role remains unchanged. Passwords are managed by the configured identity provider, "
       "not by Sonaloop.")),
+    ("target",
+     ("Claims bleiben ehrlich", "Claims stay honest"),
+     ("Reaction Tests starten mit einem versionierten **Product Understanding** aus echten Screens, "
+      "Flows oder Sessions. Remote-Screens werden direkt hochgeladen, vorab dekodiert und gescannt "
+      "und als exakte, unveränderliche Flow-Version mit vollständiger Screen-Checkliste eingefroren. "
+      "Jede Aussage bleibt als beobachtet, memory-geerdet, abgeleitet, simuliert "
+      "oder unbelegt sichtbar. Ein Screenshot zeigt Produktzustand — nie beobachtetes Nutzerverhalten.",
+      "Reaction Tests begin with versioned **Product Understanding** from real screens, flows, or "
+      "sessions. Remote screens are uploaded directly, decoded and scanned before admission, then "
+      "frozen as one exact immutable flow version with a complete screen checklist. Every claim stays "
+      "visibly observed, memory-grounded, inferred, simulated, or "
+      "unsupported. A screenshot shows product state — never observed user behavior.")),
+    ("personas",
+     ("Kohorten bleiben unabhängig", "Cohorts stay independent"),
+     ("Vor einem Reaction Test prüft Sonaloop serverseitig Gedächtnistiefe, Herkunft, Profilalter, "
+      "Hypothesen-Überlappung und mindestens eine skeptische, gleichgültige oder fachfremde "
+      "Gegenstimme mit exaktem Zitat aus ihrem unabhängigen Vor-Projekt-Kontext. Produktstimulus "
+      "und unabhängiger Zielkontext bleiben getrennt; hohe Überlappung wird auch bei tiefem Gedächtnis nicht ignoriert. Dünne oder "
+      "zirkuläre Personas erzeugen echte Vertiefungs-/Neuauswahl-Arbeit; ein expliziter Override "
+      "bleibt als Report-Einschränkung sichtbar.",
+      "Before a Reaction Test, Sonaloop checks memory depth, provenance, profile age, hypothesis "
+      "overlap, and at least one skeptical, indifferent, or non-target countervoice grounded by an "
+      "exact quote from independent pre-project context. Product stimulus and independent target "
+      "context stay separate; deep memory never waives high overlap. Thin or circular personas "
+      "create real deepening/reselection work; an explicit override remains visible as a report "
+      "limitation.")),
+    ("activity",
+     ("Modelle unter demselben Vertrag", "Models under one contract"),
+     ("Provider werden mit denselben versionierten Aufgaben, Tools, Assets, Budgets und festen "
+      "Qualitätsschwellen geprüft. Beim Reaction Test sind auch die zwei Council-To-dos "
+      "(Verständnis sowie Vertrauen/Handlungsbereitschaft) Teil der Methodik; das Modell muss die "
+      "Act-Schritte nicht erraten. Ein stärkeres Modell oder menschliche Prüfung kann helfen — "
+      "Evidenz- und Completion-Gates werden dafür nie gelockert.",
+      "Providers are tested with the same versioned tasks, tools, assets, budgets, and fixed quality "
+      "thresholds. Reaction Test also declares its two Council todos (comprehension and trust/action "
+      "readiness) in the methodology, so the model does not have to invent the Act lane. A stronger "
+      "model or human review may help, but evidence and completion gates are "
+      "never relaxed.")),
     ("syntheses",
      ("Präsentationsreif", "Presentation-grade"),
      ("Jeder Report ist von Haus aus vorzeigbar und als **PDF** oder **PPTX** exportierbar — kein "
@@ -149,10 +187,13 @@ DOCS = [
      "what": ("Eine echte Datei im Projekt: Screenshot, Dokument, Export oder erzeugtes Deliverable — mit "
               "Herkunft und Richtung. In der mandantenfähigen Cloud laufen Vorschau und Download "
               "über eine authentifizierte Route des aktiven Workspace; ungeschützte Datei-Rohpfade "
-              "bleiben gesperrt.",
+              "bleiben gesperrt. Remote-Screens kommen nur als begrenzter Direktupload hinein: ohne URL-"
+              "Import, mit Bildprüfung, Scan, SHA-256 und Run-/Workspace-Bindung.",
               "A real file in the project: screenshot, document, export or generated deliverable — with "
               "provenance and direction. In multi-tenant Cloud its preview and download use an "
-              "authenticated active-workspace route; unprotected raw file paths remain blocked."),
+              "authenticated active-workspace route; unprotected raw file paths remain blocked. Remote "
+              "screens enter only through a bounded direct upload: no URL import, with image validation, "
+              "scan, SHA-256 and run/workspace binding."),
      "why": ("Assets sind das Material für Evidence, Walkthrough-Screens und Deliverables. Sie sind Dateien, "
              "nicht Council-Referenzen.",
              "Assets are the material behind evidence, walkthrough screens and deliverables. They are files, not council references.")},
@@ -337,6 +378,11 @@ LOOP_NOTE = ("↻ Wiederholen, bis die Evidenz überzeugt.", "↻ Repeat until t
 
 # How a study stays rigorous — a small repeating cycle (the plan engine, in plain language).
 RIGOUR_STEPS = [
+    (("Produkt verstehen", "Understand the product"),
+     ("Vor einem Reaction Test werden Ziel, Revision, Routen, Flows, Zustände und unbekannte "
+      "Fähigkeiten gegen echte Evidenz inventarisiert — unbekannt ist besser als erraten.",
+      "Before a Reaction Test, target, revision, routes, flows, states and unknown capabilities are "
+      "inventoried against real evidence — unknown is better than guessed.")),
     (("Rahmen", "Frame"),
      ("Eine Forschungsfrage stellen, geerdet in der Erinnerung der Personas.",
       "Pose a research question, grounded in the personas' memory.")),
@@ -344,8 +390,10 @@ RIGOUR_STEPS = [
      ("Councils laufen lassen, Prototypen testen, Signale festhalten.",
       "Run councils, test prototypes, capture signals.")),
     (("Prüfen", "Verify"),
-     ("Erst schließen, wenn die Evidenz die Gates erfüllt — belegen statt behaupten.",
-      "Only close once the evidence clears the gates — back it, don't assert it.")),
+     ("Erst schließen, wenn die Evidenz die Gates und zwei unabhängige Abschlussprüfungen erfüllt — "
+      "ein Agent kann einen offenen Run nicht einfach als fertig markieren.",
+      "Only close once the evidence clears the gates and two independent completion checks — "
+      "an agent cannot simply mark an open run as finished.")),
 ]
 
 # ============================ Working live (the inspector page) ============================ #
@@ -453,13 +501,56 @@ INSPECTOR_SECTIONS = [
       "**gelb**, wenn ein Projekt feststeckt (das stille Scheitern soll laut sein). Im "
       "Projekt-Kopf trägt jedes Projekt seinen eigenen **Run-Chip** (Zustand · letzte Aktivität). "
       "Beide verlinken auf das **Run-Journal** (`g` `r`) — eine bewusst schlichte Telemetrie-Seite "
-      "mit jedem Projekt-Run und seiner letzten Aktivität; als Navigationspunkt taucht sie nicht "
-      "auf.",
+      "mit jedem Projekt-Run und seiner letzten Aktivität. **Läuft · stockt · Engine-abgeschlossen · "
+      "Ausgabe unverifiziert** sind getrennte Zustände. Bei einem Problem nennt Sonaloop die "
+      "unerfüllte Invariante, die letzte sichere Operation, genau einen sicheren nächsten Schritt "
+      "und eine redigierte Support-Trace-Referenz; als Navigationspunkt taucht die Seite nicht "
+      "auf. Verbindungs-Retries verwenden dieselbe Projekt-, Run- und Schritt-Operation erneut: Sie setzen "
+      "den vorhandenen Run fort, statt doppelte Jobs oder Journalzeilen anzulegen. "
+      "Beim Cloud-Start gewinnt eine explizite Methodik immer. Sonst wählt `auto` aus "
+      "datengetragenen Signalen der live Methodik-Registry; bei einem unklaren Ergebnis stellt "
+      "Sonaloop genau eine Rückfrage und legt noch kein Projekt an. **Freiform** bleibt möglich, "
+      "aber nur als bewusste Auswahl. Entscheidung, Confidence, Kandidaten und Override bleiben im Trace. "
+      "Im Cloud-Front-Door fängt ein begrenzter, workspace-gebundener Request-Fingerprint sogar "
+      "gleichzeitige Retries mit versehentlich neuen Attempt-IDs ab; das Zeitfenster beginnt beim "
+      "ersten Auftrag und wird durch Aliase nicht verlängert. Eine absichtlich identische zweite "
+      "Studie muss mit `new_job_intent=true` und einer frischen ID markiert werden. "
+      "Jeder Schritt trägt ein begrenztes Dispatch-Token mit Workspace-, Run-, Task-, Input- und Output-Vertrag; ein "
+      "identischer Retry liefert dasselbe Ergebnis, eine Inhaltsänderung nach dem Checkpoint scheitert. "
+      "Das Speichern verknüpft und checkpointet den Schritt reparierbar genau einmal. Der Trace zeigt Sonaloops MCP-Grenze und Journal — nicht "
+      "verdeckte Provider-Prompts, Reasoning, Berechtigungsdialoge oder host-interne Retries. "
+      "Cloud-Trace-Inhalt bleibt standardmäßig redigiert: Erst Deployment-Schalter, eine "
+      "versionierte Owner-Freigabe je Workspace-Zweck **und** die explizite Call/Job-Zustimmung "
+      "dürfen begrenzten Inhalt erfassen; PostHog und Hosted-Generations sind getrennte Zwecke. "
+      "Widerruf gilt sofort für neue Receipts, alte Receipts ohne Policy-Snapshot bleiben Metadaten. "
+      "Explizites Ersetzen oder Archivieren bewahrt Evidenz; es löscht nichts.",
       "A status dot in the top bar shows whether studies are **running** right now — it turns "
       "**amber** when a project is stalled (the silent failure mode should be loud). In the "
       "project header every project carries its own **run chip** (state · last activity). Both "
       "link to the **run journal** (`g` `r`) — a deliberately plain telemetry page listing every "
-      "project run with its last activity; it isn't a nav item.")),
+      "project run with its last activity. **Running · stalled · engine-finished · output "
+      "unverified** are distinct states. A problem names the unmet invariant, last safe operation, "
+      "one safe next action and a redacted support-trace reference; it isn't a nav item. Connection retries reuse the same "
+      "project and step operation: they resume the existing run instead of creating duplicate jobs "
+      "or journal rows. "
+      "At Cloud ingress an explicit methodology always wins. Otherwise `auto` ranks data-authored "
+      "signals from the live methodology registry; an ambiguous result asks exactly one question and "
+      "creates no project. **Freeform** remains available only as a deliberate choice. The trace keeps "
+      "the decision, confidence, candidates and any override. "
+      "Cloud's bounded, workspace-bound front-door fingerprint also collapses concurrent retries "
+      "that accidentally carry fresh attempt ids; the window starts at first "
+      "ingress and aliases do not extend it. An intentional identical second study requires "
+      "`new_job_intent=true` and a fresh id. Each step carries a scoped dispatch token; recording its result links and "
+      "checkpoints it repairably once, even after a retry. The token binds workspace, run, task, input "
+      "and output contract; identical replay returns the same result and changed post-checkpoint content "
+      "fails closed. Critic retries also remain one independent completion check. "
+      "The trace covers Sonaloop's MCP boundary and journal, not hidden provider prompts, reasoning, "
+      "permission dialogs or host-internal retries. Cloud trace content stays redacted by default: "
+      "bounded content requires deployment switches, a versioned owner approval for each workspace "
+      "purpose **and** explicit call/job consent; PostHog and hosted generations are separate purposes. "
+      "Revocation applies immediately to new receipts, while legacy receipts without a policy snapshot "
+      "stay metadata-only. Explicit superseding or archiving preserves evidence; "
+      "it deletes nothing.")),
     ("keyboard", "command",
      ("Tastatur & Palette", "Keyboard & palette"),
      ("`?` öffnet das Shortcut-Cheat-Sheet. **⌘K / Ctrl+K** öffnet die Befehls-Palette: zuletzt "
@@ -637,155 +728,3 @@ SUPER_GROUPS = [
 
 
 # ============================ Co-located CSS ============================ #
-register_css(r"""
-/* ==== Documentation hub: the standard page header (eyebrow/.h1/.lead — W7) + tabs in the measure ==== */
-.doc-head{margin-bottom:2px}
-.doc-head .h1{display:flex;align-items:center;gap:12px}
-.doc-tabs{margin:8px 0 24px}
-.doc-p{color:var(--muted);font-size:var(--t-body);line-height:1.6;margin:0 0 16px;max-width:74ch}
-.doc-p strong{color:var(--ink)}
-.doc-p p{margin:0;max-width:none}
-.doc-note{color:var(--ink);font-size:var(--t-sm);background:var(--panel-2);border:1px solid var(--line-2);border-radius:var(--radius-md,10px);padding:11px 14px;max-width:74ch}
-.doc-note p,.doc-note{margin:0}
-
-/* ==== Documentation: two-column wrap + sticky on-this-page rail ==== */
-.doc-wrap{display:flex;align-items:flex-start;gap:38px;margin-top:18px}
-.doc-main{flex:1;min-width:0}.doc-main.wide{margin-top:18px}
-.doc-main [id]{scroll-margin-top:16px}
-.doc-toc{width:188px;flex-shrink:0;position:sticky;top:14px}
-.toc-nav{display:flex;flex-direction:column;gap:2px;border-left:1px solid var(--line);padding-left:14px}
-.toc-lbl{font-size:var(--t-xs,11px);font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
-.toc-nav a{color:var(--muted);font-size:var(--t-sm);text-decoration:none;padding:4px 0;transition:color 110ms}
-.toc-nav a:hover{color:var(--ink)}
-.doc-block{margin-top:38px}.doc-block:first-child{margin-top:0}
-.doc-sub-h{font-size:var(--t-md);font-weight:650;letter-spacing:-.01em;margin:0 0 12px}
-
-/* ==== Overview: principle tiles + landing cards ==== */
-.principles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-.ptile-ic{color:var(--accent);margin-bottom:9px}
-.ptile-t{font-weight:650;font-size:var(--t-md);letter-spacing:-.01em;margin-bottom:5px}
-.ptile-b{color:var(--muted)}.ptile-b p{margin:0;max-width:none}
-.navgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
-.navcard{display:flex;flex-direction:column;gap:8px;text-decoration:none;transition:border-color 120ms,box-shadow 120ms}
-.navcard:hover{border-color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.04)}
-.navcard-ic{color:var(--accent)}
-.navcard-t{font-weight:650;font-size:var(--t-md);letter-spacing:-.01em;color:var(--ink)}
-.navcard-b{color:var(--muted);font-size:var(--t-sm);line-height:1.5}
-
-/* ==== Concepts: one dense grid, role shown as a per-card tag ==== */
-.concept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;align-items:start}
-.doccard{display:flex;flex-direction:column;text-decoration:none;color:inherit;transition:border-color 120ms,box-shadow 120ms}
-.doccard:hover{border-color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.04)}
-.doccard:hover .doc-open{color:var(--accent)}
-.doc-open{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line-2);font-size:var(--t-xs,11px);font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--faint);transition:color 120ms}
-.doc-h{display:flex;align-items:center;gap:9px;margin-bottom:8px}
-.rico{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:28px;height:28px;border-radius:var(--radius-sm);background:var(--panel-2)}
-.doc-h .rico svg{width:17px;height:17px}
-.doc-name{font-size:var(--t-md);font-weight:650;letter-spacing:-.01em;flex:1;min-width:0}
-.doc-gtag{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;font-size:var(--t-xs,11px);font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
-.doc-gdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.doc-what{color:var(--ink);line-height:1.6}.doc-what p{margin:0;max-width:none}
-.doc-why{margin-top:11px;padding-top:10px;border-top:1px solid var(--line-2);font-size:var(--t-sm);color:var(--muted);line-height:1.5}
-.doc-why-lbl{display:block;font-size:var(--t-xs,11px);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);margin-bottom:3px}
-.doc-why strong{color:var(--ink)}
-/* ==== Concepts: data-model (three layers + five primitives w/ JSON) ==== */
-.rico.lg{width:34px;height:34px}.rico.lg svg{width:20px;height:20px}
-.doc-code{margin:0;background:var(--panel-2);border:1px solid var(--line-2);border-radius:var(--radius-md,10px);padding:13px 15px;overflow-x:auto}
-.doc-code code{font-family:var(--mono,'Geist Mono',monospace);font-size:var(--t-xs,12px);line-height:1.6;color:var(--ink);white-space:pre;background:none;border:0;padding:0}
-.dl-layers{display:flex;flex-direction:column;gap:2px;margin-top:6px}
-.dl-layer{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--line-2)}
-.dl-layer:last-child{border-bottom:0}
-.dl-layer-n{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--panel-2);color:var(--accent);font-weight:650;font-size:var(--t-sm);display:flex;align-items:center;justify-content:center}
-.dl-layer-main{min-width:0}
-.dl-layer-t{font-weight:650;font-size:var(--t-md);letter-spacing:-.01em;margin-bottom:3px}
-.dl-layer-b{color:var(--muted)}.dl-layer-b p{margin:0;max-width:none}
-.prim-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
-
-.prim-card-h{margin-bottom:6px}
-.prim-card-n{font-family:var(--mono,'Geist Mono',monospace);font-size:var(--t-sm);font-weight:700;color:var(--accent)}
-.prim-card-d{color:var(--muted);font-size:var(--t-sm);line-height:1.5;margin-bottom:10px}
-.prim-chips{display:flex;flex-wrap:wrap;gap:7px}
-.prim-chip{font-family:var(--mono,'Geist Mono',monospace);font-size:var(--t-sm);font-weight:600;color:var(--accent);background:var(--panel-2);border:1px solid var(--line-2);border-radius:20px;padding:3px 11px;text-decoration:none;transition:border-color 110ms}
-.prim-chip:hover{border-color:var(--accent)}
-
-/* ==== How it works: lifecycle pipeline ==== */
-.flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin-top:6px}
-.flow-stage{flex:1 1 150px;min-width:140px;border:1px solid var(--line);border-radius:var(--radius-md,10px);padding:14px 15px;background:var(--panel);display:flex;flex-direction:column;gap:4px}
-.flow-stage.wide{flex:1.3 1 180px;border-color:var(--accent);background:color-mix(in srgb,var(--accent) 5%,var(--panel))}
-.flow-ic{display:inline-flex;color:var(--accent);margin-bottom:4px}.flow-ic svg{width:19px;height:19px}
-.flow-t{font-weight:650;font-size:var(--t-md);letter-spacing:-.01em}
-.flow-s{color:var(--muted);font-size:var(--t-sm);line-height:1.5}
-.flow-pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
-.flow-pill{display:inline-flex;align-items:center;gap:4px;font-size:var(--t-xs,11px);font-weight:500;color:var(--ink);background:var(--panel);border:1px solid var(--line-2);border-radius:20px;padding:2px 9px}
-.flow-pill svg{width:12px;height:12px;color:var(--accent)}
-.flow-arrow{display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:19px;padding:0 9px;flex-shrink:0}
-.flow-loop{margin-top:12px;font-size:var(--t-sm);color:var(--accent);font-weight:500;text-align:center;background:var(--panel-2);border:1px dashed var(--line);border-radius:20px;padding:7px 14px}
-
-/* ==== How it works: rigour cycle ==== */
-.cyc{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin-top:6px}
-.cyc-step{flex:1 1 180px;min-width:160px;border:1px solid var(--line-2);border-radius:var(--radius-md,10px);padding:14px 15px;background:var(--panel-2)}
-.cyc-n{width:24px;height:24px;border-radius:50%;background:var(--panel);border:1px solid var(--line);color:var(--accent);font-weight:650;font-size:var(--t-sm);display:flex;align-items:center;justify-content:center;margin-bottom:8px}
-.cyc-t{font-weight:650;font-size:var(--t-md);letter-spacing:-.01em;margin-bottom:4px}
-.cyc-b{color:var(--muted);font-size:var(--t-sm);line-height:1.5}
-.flow-arrow.loopback{font-size:22px;color:var(--accent)}
-
-/* ==== Methodology: catalogue cards + DD phases + recipes ==== */
-.methgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
-
-.methcard-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:6px}
-.methcard-n{font-weight:650;font-size:var(--t-md);letter-spacing:-.01em}
-.methcard-c{font-size:var(--t-xs,11px);color:var(--faint);font-weight:600;flex-shrink:0}
-.methcard-d{color:var(--muted);font-size:var(--t-sm);line-height:1.5;margin-bottom:10px}
-.methcard-when{color:var(--faint);font-size:var(--t-sm);line-height:1.5;margin-bottom:10px}
-.methcard-when b{color:var(--muted);font-weight:600}
-.step-pills{display:flex;flex-wrap:wrap;gap:5px}
-.step-pill{font-size:var(--t-xs,11px);color:var(--ink);background:var(--panel-2);border:1px solid var(--line-2);border-radius:20px;padding:2px 9px}
-.ddphases{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:6px}
-.ddphase{border:1px solid var(--line-2);border-radius:var(--radius-md,10px);padding:13px 15px;background:var(--panel);border-top:3px solid var(--line)}
-.ddphase.diverge{border-top-color:var(--accent)}
-.ddphase.converge{border-top-color:var(--amber,#d08700)}
-.dd-rhythm{font-size:var(--t-xs,11px);font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
-.dd-name{font-weight:650;font-size:var(--t-md);letter-spacing:-.01em;margin:3px 0 6px}
-.dd-intent{color:var(--muted)}.dd-intent p{margin:0;max-width:none}
-.plays{display:flex;flex-direction:column;gap:0}
-.play{display:flex;gap:16px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line-2)}
-.play:last-child{border-bottom:0}
-.play-l{flex-shrink:0;min-width:210px;display:flex;flex-direction:column;gap:2px}
-.play-name{font-weight:600;font-size:var(--t-sm);color:var(--ink)}
-.play-code{font-family:var(--mono,'Geist Mono',monospace);font-size:var(--t-xs,11px);color:var(--accent)}
-.play-desc{color:var(--muted);font-size:var(--t-sm);line-height:1.6}.play-desc strong{color:var(--ink)}
-
-/* ==== MCP reference: two-level taxonomy (super-group index → domains → tools) ==== */
-.mcp-superindex{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin:22px 0 8px}
-
-.mcp-super-card-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
-.mcp-super-card-t{font-weight:650;font-size:var(--t-md);letter-spacing:-.01em}
-.mcp-super-card-n{flex-shrink:0;font-size:var(--t-xs,11px);font-weight:700;color:var(--accent);background:var(--panel-2);border-radius:20px;padding:1px 8px}
-.mcp-super-card-d{color:var(--muted);font-size:var(--t-sm);line-height:1.5;margin:4px 0 10px}
-.mcp-pills{display:flex;flex-wrap:wrap;gap:6px}
-.mcp-pill{display:inline-flex;align-items:center;gap:5px;font-size:var(--t-xs,11px);font-weight:500;color:var(--ink);background:var(--panel-2);border:1px solid var(--line-2);border-radius:20px;padding:2px 9px;text-decoration:none;transition:border-color 110ms}
-.mcp-pill:hover{border-color:var(--accent)}
-.mcp-pill-c{color:var(--faint);font-weight:700}
-.mcp-super{margin-top:44px;scroll-margin-top:16px}
-.mcp-super-h{font-size:var(--t-lg);font-weight:650;letter-spacing:-.02em;margin:0 0 4px;padding-bottom:10px;border-bottom:2px solid var(--line)}
-.mcp-domain{margin-top:26px;scroll-margin-top:16px}
-.mcp-domain-h{display:flex;align-items:baseline;gap:10px;margin-bottom:11px}
-.mcp-domain-t{font-size:var(--t-md);font-weight:650;letter-spacing:-.01em}
-.mcp-domain-c{flex-shrink:0;font-size:var(--t-xs,11px);font-weight:700;color:var(--accent);background:var(--panel-2);border-radius:20px;padding:1px 8px}
-.mcp-domain-d{color:var(--muted);font-size:var(--t-sm)}
-.mcp-tools{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:8px}
-.mcp-tool{border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:9px 12px;background:var(--panel)}
-.mcp-tool-n{display:inline-block;font-family:var(--mono,'Geist Mono',monospace);font-size:var(--t-sm);font-weight:600;color:var(--accent);margin-bottom:3px}
-.mcp-tool-d{display:block;color:var(--muted);font-size:var(--t-sm);line-height:1.5}
-.mcp-kind{font-size:var(--t-xs,10px);text-transform:uppercase;letter-spacing:.04em;color:var(--faint);font-weight:700;margin-right:2px}
-
-/* ==== Documentation: prev/next footer ==== */
-.doc-pn{display:flex;justify-content:space-between;gap:12px;margin-top:48px;padding-top:20px;border-top:1px solid var(--line)}
-.pn{display:flex;flex-direction:column;gap:3px;text-decoration:none;min-width:160px}
-.pn.next{text-align:right;align-items:flex-end}
-.pn-eye{font-size:var(--t-xs,11px);text-transform:uppercase;letter-spacing:.05em;color:var(--faint);font-weight:600}
-.pn-lab{display:flex;align-items:center;gap:5px;color:var(--ink);font-weight:600;font-size:var(--t-sm);transition:color 120ms}
-.pn:hover .pn-lab{color:var(--accent)}
-
-@media(max-width:900px){.doc-toc{display:none}.doc-wrap{gap:0}.flow-arrow{display:none}.flow,.cyc{gap:10px}}
-""")

@@ -47,7 +47,8 @@ def _next_label(existing: list[dict[str, Any]]) -> str:
 
 def add_artifact(project_id: str, url: str, kind: str = "url", title: str = "",
                  label: str | None = None, capture: bool = True, key: str | None = None,
-                 store: Store | None = None) -> dict[str, Any]:
+                 store: Store | None = None,
+                 dispatch_token: str | None = None) -> dict[str, Any]:
     """Bring an artifact into a project's council pool: capture a grounded snapshot of `url` and store a
     stable, reproducible reference. `kind`: url (a live website) | prototype (e.g. a Figma link) |
     variant (one side of an A/B comparison). Capture degrades gracefully — a URL that can't be fetched
@@ -56,6 +57,9 @@ def add_artifact(project_id: str, url: str, kind: str = "url", title: str = "",
     upsert). Re-adding the same url RE-CAPTURES it (a fresh snapshot/version)."""
     store = store or Store()
     project = _require_research_project(store, project_id)
+    dispatch_ctx = prepare_dispatch_write(  # noqa: F821 (bound)
+        project["id"], dispatch_token, key, "artifact", store,
+        allowed_buckets={"analyze", "act", "verify"})
     url = (url or "").strip()
     if not url:
         raise ValueError("artifact url is required")
@@ -78,6 +82,12 @@ def add_artifact(project_id: str, url: str, kind: str = "url", title: str = "",
         "content_hash": snapshot.get("content_hash"),
         "created_at": (existing or {}).get("created_at") or utc_now_iso(),
         "updated_at": utc_now_iso(),
+        "dispatch_provenance": {
+            "state": dispatch_ctx.get("state", "outside_run"),
+            **({"dispatch_token": dispatch_ctx["dispatch_token"],
+                "run_id": dispatch_ctx["run_id"], "task_id": dispatch_ctx["task_id"]}
+               if dispatch_ctx.get("dispatch_token") else {}),
+        },
     }
     if existing:
         arts[arts.index(existing)] = record
@@ -85,7 +95,10 @@ def add_artifact(project_id: str, url: str, kind: str = "url", title: str = "",
         arts.append(record)
     project["updated_at"] = utc_now_iso()
     store.upsert_research_project(project)
-    return record
+    dispatch = bind_dispatch_output(  # noqa: F821 (bound)
+        dispatch_ctx, {"kind": "artifact", "id": aid}, "captured supporting stimulus artifact", store,
+        complete=False)
+    return {**record, "dispatch": dispatch}
 
 
 def list_artifacts(project_id: str, store: Store | None = None) -> list[dict[str, Any]]:

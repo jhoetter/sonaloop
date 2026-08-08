@@ -86,8 +86,9 @@ def _drive(run_id, pid, store, stop_after=None):
                      "rationale": "thin"}
             else:                                       # subsequent critics: exhaustive
                 v = {"passed": True, "scores": {d: 5 for d in _DIMS}, "missing": [], "rationale": "exhaustive"}
-            rec = services.record_completeness_critic(pid, v, store=store)
-            services.record_critic_round(run_id, rec["passed"], len(rec["missing"]), store=store)
+            rec = services.record_completeness_critic(
+                pid, v, run_id, s["operation_id"], store=store)
+            services.record_critic_round(run_id, rec["id"], s["key"], store=store)
             continue
         _stub_author(s, pid, store, ctr)
         services.checkpoint_step(run_id, {"task_id": s["step_id"], "bucket": s["kind"],

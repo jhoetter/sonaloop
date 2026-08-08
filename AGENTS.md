@@ -16,9 +16,14 @@ assignment to run a Sonaloop research project end-to-end:
    `catalog_pull`. Author from scratch (`brief_persona` → `record_persona`) only what the
    catalog lacks. If the cohort has no simulated memory (`start_project` warns), deepen it
    FIRST (simulate days/months) — councils are only as deep as the lives behind them.
-2. **Project**: `start_project(title, goal=<the question>, methodology=…, persona_ids=[…])`.
-3. **Governed loop**: `start_run(project_id)`, then loop `run_step(run_id)` — execute each
-   dispatch (author the step, persist via MCP, link every produced evidence ref, `checkpoint_step`) until it returns
+2. **Project**: `start_project(title, goal=<the question>, methodology=…, persona_ids=[…],
+   operation_id=<stable create-intent key>)`; reuse the operation id on transport retries.
+   If the connected cloud surface exposes `begin_research_job`, use that ONE front-door call instead
+   (full initial request + stable operation_id + methodology auto/freeform/exact name); repeat the
+   exact call on retry and never also call `start_project`/`start_run`.
+3. **Governed loop**: `start_run(project_id, operation_id=<stable run-create intent>)`, then loop `run_step(run_id)` — execute each
+   dispatch with its exact `dispatch_token`. Token-aware recorders validate scope, auto-link, complete
+   and checkpoint; never checkpoint again when `dispatch.checkpointed=true`. Continue until it returns
    `kind=='done'` (CLI: `run-start` / `run-step` / `run-checkpoint`). Only the engine ends the run (`assess_project.finish.finished` + the
    completeness critic) — never your own sense of "enough", and never at a phase boundary.
 4. **Hand-off**: point the user at the inspector (http://127.0.0.1:8787) + the Deliver
@@ -65,7 +70,8 @@ product.
 4. Only if a step fails on missing dependencies: run `uv sync` once, then retry (2).
    Do not install globally (`uv tool install` / `pip install`) unless the user asks.
 
-The CLI and the MCP tools are the SAME service surface — including the governed run loop:
+The CLI and the MCP tools are the SAME service surface — including the governed run loop and
+retry-safe project creation (`project-start --operation-id …`):
 `run-start` / `run-step` / `run-checkpoint` / `run-critic-round` / `run-finish` / `run-journal`.
 
 ```bash
@@ -235,14 +241,27 @@ Memory & multi-resolution simulation (gather → author → write-back):
   branches/loops) is DERIVED from the task DAG + recorded evidence.
 - Project trace contract for agents: every `run_step`/`next_action` dispatch carries
   `consume_refs`, `optional_context_refs`, `open_questions`, `expected_output_kind` and
-  `must_link_before_complete`. For `act` and `verify`, first record the output primitive
-  (council, survey, prototype, session, synthesis, decision, asset/reference as appropriate),
-  then call `link_evidence(project_id, task_id, kind, evidence_id)` before `complete_task`.
+  `must_link_before_complete`. For a governed dispatch, pass its `dispatch_token` into the output
+  primitive recorder (council, session, synthesis, asset/reference as appropriate): it auto-links,
+  completes and checkpoints when gates are ready. Use manual `link_evidence`/`complete_task` only on
+  legacy/outside-run writes or when a recorder explicitly reports linked but not checkpointed.
   If output should stay visible but deliberately not feed a downstream gate, call
   `park_evidence(refs, reason)` instead of leaving it stranded. `complete_task` returns a
   `TRACE_LINK_MISSING` nudge when evidence was completed without a trace link; repair that before
   moving on. `checkpoint_step` should echo `consume_refs`, `produced_refs`, `downstream_refs`,
   `open_questions` and `parked_refs` so the run journal can explain what happened later.
+- Research integrity (`docs/research-integrity.md`): Reaction Test seeds a mandatory, immutable
+  Product Understanding preflight (real target revision/routes/flows/states/capability postures +
+  evidence), then its evidence-grounded research frame, then a versioned Cohort Integrity gate bound
+  to the frame's question/hypothesis digest (independent pre-project depth/source/age,
+  vocabulary-free lexical leakage, optional digest-bound provider-neutral semantic similarity, and
+  a skeptical/indifferent/non-target countervoice grounded by an exact quote/ref from independent
+  pre-project persona context). Goal/description, cohort, Product Understanding and frame changes
+  stale the pass; high overlap is never waived by depth. Thin or circular cohorts become real
+  plan remediation work; a rationale-bearing override remains a visible report limitation. Its
+  councils/reports require explicit claim posture and refs; screenshots prove product
+  state, never observed behavior, which requires a grounded session `step:N`. Unsupported/uncovered
+  prose remains a visible hypothesis draft and blocks completion.
 - ESV — exhaustive, self-verifying runs (`spec/exhaustive-self-verifying-runs.md`). The autonomous loop
   is a **deterministic RunLoop engine** the host skill executes: `start_run`(resumable run object +
   journal) → loop `run_step` (the brain: assess + next_action + the deterministic finish work + the
@@ -259,8 +278,10 @@ Memory & multi-resolution simulation (gather → author → write-back):
 - Methodologies = tag-driven CONSTELLATION **plan seeds**: a methodology is a DAG of steps carrying
   OPEN TAGS (capability/role/artifact-type/gate are free strings). `list_methodologies`/
   `get_methodology`/`start_methodology_project`/`set_project_methodology` SEED a plan from the
-  constellation (a `frame` analyze task per fan step, a gated `verify` task per decide step); the plan
-  engine then drives it. Common building blocks are SUGGESTED as data via `suggest_capabilities`/
+  constellation (a `frame` analyze task per fan step, optional data-declared `work_items` as concrete
+  Act todos with `expected_output_kind`, and a gated `verify` task per decide step); the plan engine
+  then drives it. Reaction Test already seeds both required Council angles—do not invent/add duplicate
+  Act tasks. Common building blocks are SUGGESTED as data via `suggest_capabilities`/
   `suggest_roles`/`suggest_artifact_types`/`suggest_methodologies` — recommendations, not constraints;
   adopt, tweak, or invent your own tags. Authoring a new methodology = author a constellation of
   tagged steps in JSON (no code). Since HX3 there is ONE engine (the plan); the old constellation

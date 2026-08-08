@@ -100,10 +100,18 @@ def _store_project_graph_cache(cache: dict[tuple[int, str], dict[str, Any]] | No
 
 def create_research_project(title: str, goal: str = "", persona_ids: list[str] | None = None,
                             description: str = "", store: Store | None = None,
-                            icon: Any | None = None) -> dict[str, Any]:
+                            icon: Any | None = None, project_id: str | None = None,
+                            operation_id: str | None = None,
+                            operation_fingerprint: str | None = None) -> dict[str, Any]:
     store = store or Store()
+    if project_id:
+        existing = store.get_research_project(project_id)
+        if existing:
+            from ._common import web_url
+            return {**existing, "url": web_url(f"/jobs/{existing['id']}"),
+                    "_operation_claimed": False}
     now = utc_now_iso()
-    pid = stable_id("rproject", title, now)
+    pid = project_id or stable_id("rproject", title, now)
     base = slugify(title)
     slug, n = base, 2
     while store.get_research_project(slug) is not None:
@@ -113,8 +121,23 @@ def create_research_project(title: str, goal: str = "", persona_ids: list[str] |
         persona_ids=persona_ids or [], study_ids=[], study_tags={}, themes=[],
         status="active", created_at=now, updated_at=now, council_ids=[],
     ).to_dict()
+    if operation_id:
+        project["operation_id"] = operation_id
+        project["operation_fingerprint"] = operation_fingerprint or ""
+        project["operation_state"] = "creating"
     project["icon"] = normalize_project_icon(icon or "random", title=title, goal=goal, seed=pid)  # noqa: F821 (bound)
-    store.upsert_research_project(project)
+    operation_claimed: bool | None = None
+    if operation_id:
+        operation_claimed = store.insert_research_project_if_absent(project)
+        if not operation_claimed:
+            existing = store.get_research_project(pid)
+            if not existing:  # pragma: no cover - a committed conflict row must be readable
+                raise RuntimeError("project operation claim lost without an existing project")
+            from ._common import web_url
+            return {**existing, "url": web_url(f"/jobs/{existing['id']}"),
+                    "_operation_claimed": False}
+    else:
+        store.upsert_research_project(project)
     root = {"id": "frame__root", "title": "Frame the inquiry", "bucket": "analyze",
             "capability": "frame", "consumes": [],
             "intent": "Understand before concluding: read persona memory + author the research "
@@ -123,7 +146,10 @@ def create_research_project(title: str, goal: str = "", persona_ids: list[str] |
     # The answer to "where can I look at this?" rides every creation result —
     # remote hosts (MCP connectors) surface it to the user.
     from ._common import web_url
-    return {**project, "url": web_url(f"/jobs/{pid}")}
+    out = {**project, "url": web_url(f"/jobs/{pid}")}
+    if operation_claimed is not None:
+        out["_operation_claimed"] = operation_claimed
+    return out
 
 
 
@@ -434,6 +460,12 @@ def get_project_graph(project_id: str, store: Store | None = None) -> dict[str, 
                     "goal": project.get("goal", ""), "status": project.get("status", "active"),
                     "persona_ids": project.get("persona_ids", []), "themes": project.get("themes", []),
                     "methodology": project.get("methodology", ""), "phase": project.get("phase", ""),
+                    "integrity": project.get("integrity") or {},
+                    "product_understanding_current_id": project.get("product_understanding_current_id", ""),
+                    "product_understanding_versions": project.get("product_understanding_versions") or [],
+                    "supersedes_project_id": project.get("supersedes_project_id", ""),
+                    "superseded_by_project_id": project.get("superseded_by_project_id", ""),
+                    "lineage": project.get("lineage") or {}, "archive": project.get("archive") or {},
                     "icon": project.get("icon") or {"kind": "regular", "name": "projects"},
                     "url": web_url(f"/jobs/{project['id']}")},  # noqa: F821 (bound)
         "methodology_state": None,
@@ -586,6 +618,12 @@ def plan_graph(project_id: str, store: Store | None = None) -> dict[str, Any]:
                     "goal": project.get("goal", ""), "status": project.get("status", "active"),
                     "persona_ids": project.get("persona_ids", []), "themes": project.get("themes", []),
                     "methodology": plan.get("methodology", ""), "phase": "",
+                    "integrity": project.get("integrity") or plan.get("integrity") or {},
+                    "product_understanding_current_id": project.get("product_understanding_current_id", ""),
+                    "product_understanding_versions": project.get("product_understanding_versions") or [],
+                    "supersedes_project_id": project.get("supersedes_project_id", ""),
+                    "superseded_by_project_id": project.get("superseded_by_project_id", ""),
+                    "lineage": project.get("lineage") or {}, "archive": project.get("archive") or {},
                     "icon": project.get("icon") or {"kind": "regular", "name": "projects"}},
         "methodology_state": ms,
         "prototypes": _protos_with_session_counts(project["id"], store),

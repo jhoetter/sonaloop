@@ -3,6 +3,21 @@
   "name": "Double Diamond",
   "description": "Problem space (Discover fan -> Define waist) then solution space (Develop fan + prototype -> Deliver waist). Frame an ambiguous problem and take it to a buildable solution.",
   "when_to_use": "When you have a 'How Might We' question and want a rigorous problem framing plus a tested, buildable solution spec.",
+  "routing": {
+    "aliases": ["double-diamond", "doppel-diamant"],
+    "threshold": 5,
+    "ambiguity_margin": 2,
+    "signals": [
+      {"phrase": "double diamond", "weight": 8},
+      {"phrase": "doppel diamant", "weight": 8},
+      {"phrase": "how might we", "weight": 6},
+      {"phrase": "wie konnten wir", "weight": 6},
+      {"phrase": "problemraum", "weight": 4},
+      {"phrase": "losungsraum", "weight": 4},
+      {"phrase": "vom problem zur losung", "weight": 6},
+      {"phrase": "buildable solution", "weight": 5}
+    ]
+  },
   "presentation": {
     "icon": "diamond",
     "image": "double-diamond.jpg",

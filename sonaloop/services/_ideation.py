@@ -27,6 +27,7 @@ from typing import Any
 from ..config import utc_now_iso
 from ..storage import Store
 from .. import artifacts as _artifacts
+from ..research_integrity import stamp_derived_finding
 
 from ._common import *  # noqa: F401,F403  (stable_id, _require_research_project, …)
 
@@ -153,7 +154,9 @@ def record_ideation_summary(project_id: str, problem: str, shortlist: list[dict[
                             statements: list | None = None, summary: str = "",
                             exec_summary: str = "", selection_reason: str = "",
                             key: str | None = None, created_at: str | None = None,
-                            store: Store | None = None) -> dict[str, Any]:
+                            store: Store | None = None,
+                            claims: list[dict[str, Any]] | None = None,
+                            dispatch_token: str | None = None) -> dict[str, Any]:
     """CONVERGE (protocol step 3): persist the FORCED ranking as an `ideation` block on a
     CouncilSession. `shortlist` is the ordered picks — [{idea_id, rationale}] — rank = position
     (1-based); every pick must be a recorded idea note and carry a host-authored rationale (a
@@ -207,15 +210,19 @@ def record_ideation_summary(project_id: str, problem: str, shortlist: list[dict[
     verdict = (f"Shortlist: {len(picks)} of {len(pool)} ideas, spanning "
                f"{len({p['hmw_ref'] for p in picks if p['hmw_ref']})} HMW question(s) and "
                f"{len({p['persona_id'] for p in picks if p['persona_id']})} persona voice(s).")
-    id_finding = _artifacts.finding(verdict, kind="ideation",
-                                    score={"ideas": len(pool), "shortlisted": len(picks)},
-                                    meta={"shortlist": picks})
+    id_finding = stamp_derived_finding(
+        _artifacts.finding(verdict, kind="ideation",
+                           score={"ideas": len(pool), "shortlisted": len(picks)},
+                           meta={"shortlist": picks}),
+        statements,
+    )
 
     session = record_council(
         project["id"], problem, persona_ids, statements=statements, proposal="",
         summary=summary, exec_summary=exec_summary,
         selection_reason=selection_reason or "ideation council (HMW diverge→converge)",
-        prompts=prompts, findings=[id_finding], key=key, created_at=created_at, store=store)
+        prompts=prompts, findings=[id_finding], key=key, created_at=created_at, store=store,
+        claims=claims, dispatch_token=dispatch_token)
 
     session["ideation"] = {
         "problem": problem,

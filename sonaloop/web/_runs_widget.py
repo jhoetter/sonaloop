@@ -35,6 +35,12 @@ def end_run_states_cache(token: contextvars.Token) -> None:
     _RUN_STATES_CACHE.reset(token)
 
 
+def _action_call(action: dict[str, Any]) -> str:
+    args = ", ".join(f"{key}={value!r}" for key, value in (action.get("arguments") or {}).items()
+                     if value != "")
+    return f"{action.get('tool')}({args})" if action.get("tool") else ""
+
+
 def collect_run_states(store: Store | None = None) -> dict[str, list[dict[str, Any]]]:
     """Every project's run state (services.project_run_state), grouped by state.
     Projects without a plan (state None) are skipped — there is no driver to show.
@@ -44,18 +50,32 @@ def collect_run_states(store: Store | None = None) -> dict[str, list[dict[str, A
         return cached
     from .. import services
     store = store or Store()
-    out: dict[str, list[dict[str, Any]]] = {"active": [], "stalled": [], "finished": []}
+    out: dict[str, list[dict[str, Any]]] = {"active": [], "stalled": [], "finished": [],
+                                             "unverified": []}
     for p in store.list_research_projects():
         try:
-            rs = services.project_run_state(p["id"], store=store)
+            health = services.project_health(p["id"], store=store)
         except Exception:
-            rs = None
-        if not rs or rs.get("state") not in out:
+            health = None
+        if not health:
             continue
-        out[rs["state"]].append({
+        bucket = {"running": "active", "stalled": "stalled", "finished": "finished",
+                  "unverified": "unverified"}.get(str(health.get("state") or ""))
+        if not bucket:
+            continue
+        action = health.get("safe_next_action") or {}
+        call = _action_call(action)
+        invariant = (health.get("unmet_invariant") or {}).get("message", "")
+        note = f"{invariant} resume with {call}".strip() if call else invariant
+        out[bucket].append({
             "project_id": p["id"], "title": p["title"], "url": f'/jobs/{p["id"]}',
-            "last_activity": rs.get("last_activity", ""),
-            "next_ready": rs.get("next_ready") or [], "note": rs.get("note", "")})
+            "last_activity": health.get("last_activity", ""),
+            "next_ready": (health.get("tasks") or {}).get("next_ready") or [],
+            "note": note, "unmet_invariant": health.get("unmet_invariant"),
+            "last_successful_operation": health.get("last_successful_operation"),
+            "safe_next_action": action, "trace": health.get("trace"),
+            "engine_finished": health.get("engine_finished", False),
+            "unverified_output": health.get("unverified_output", False)})
     _RUN_STATES_CACHE.set(out)
     return out
 
@@ -84,17 +104,18 @@ def project_run_chip(project_id: str, store: Store) -> str:
     '' when the project has no plan — there is no driver to show."""
     from .. import services
     try:
-        rs = services.project_run_state(project_id, store=store)
+        rs = services.project_health(project_id, store=store)
     except Exception:  # noqa: BLE001 — the chip is chrome; never break the page
         rs = None
-    if not rs or rs.get("state") not in ("active", "stalled", "finished"):
+    if not rs or rs.get("state") not in ("running", "stalled", "finished", "unverified"):
         return ""
     state = rs["state"]
-    label = {"active": t("runs_active_h"), "stalled": t("runs_stalled_h"),
-             "finished": t("runs_finished_h")}[state]
+    css_state = "active" if state == "running" else state
+    label = {"running": t("runs_active_h"), "stalled": t("runs_stalled_h"),
+             "finished": t("runs_finished_h"), "unverified": t("runs_unverified_h")}[state]
     last = (rs.get("last_activity") or "")[:16].replace("T", " ")
-    ready = rs.get("next_ready") or []
-    btn = h("button", {"type": "button", "class_": f"sl-toolbtn runchip runchip--{state}",
+    ready = (rs.get("tasks") or {}).get("next_ready") or []
+    btn = h("button", {"type": "button", "class_": f"sl-toolbtn runchip runchip--{css_state}",
                        "data-runchip-toggle": True, "aria-haspopup": "true",
                        "aria-expanded": "false"},
             raw(_picon("play")), f'{t("run_chip")} · {label}')
@@ -109,7 +130,9 @@ def project_run_chip(project_id: str, store: Store) -> str:
               fragment(h("span", {"class_": "muted small"}, f'{t("run_next_ready")}: '),
                        fragment(*(h("span", {"class_": "pill"}, step) for step in ready[:4])))
               if ready else None),
-            raw(resume_html(rs["note"])) if state == "stalled" and rs.get("note") else None,
+            raw(resume_html(((rs.get("unmet_invariant") or {}).get("message", "")
+                             + " resume with " + _action_call(rs.get("safe_next_action") or {})).strip()))
+            if state in {"stalled", "unverified"} and rs.get("safe_next_action") else None,
             h("a", {"class_": "runsw-all", "href": "/runs"},
               raw(_picon("arrowRight")), " ", t("runs_view_all")))
     return h("div", {"class_": "runchip-wrap", "id": "runchip"}, btn, fly)
@@ -143,6 +166,7 @@ RUNS_WIDGET_CSS = r"""
 .runchip svg{width:12px;height:12px}
 .runchip--active{color:var(--green,#34a853);border-color:color-mix(in srgb,var(--green,#34a853) 45%,var(--line))}
 .runchip--stalled{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,var(--line))}
+.runchip--unverified{color:var(--red);border-color:color-mix(in srgb,var(--red) 45%,var(--line))}
 .runchip-fly{position:absolute;left:0;top:calc(100% + 8px);width:min(380px,86vw);z-index:160;background:var(--panel);
   border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 14px 40px rgba(0,0,0,.3);padding:6px 8px 8px}
 .sl-tb-actions .runchip-fly{left:auto;right:0}

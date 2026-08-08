@@ -3,6 +3,22 @@
   "name": "Lean / Jobs-to-be-Done",
   "description": "Problem-explore (fan) -> Problem-pick (waist) -> Solution-explore (fan + prototype) -> Validate (waist). Lean-startup framing around the customer's job-to-be-done.",
   "when_to_use": "When you want to anchor on the customer's job, find the highest-value problem, then validate a minimal solution.",
+  "routing": {
+    "aliases": ["lean JTBD", "jobs to be done"],
+    "threshold": 5,
+    "ambiguity_margin": 2,
+    "signals": [
+      {"phrase": "lean jtbd", "weight": 8},
+      {"phrase": "jobs to be done", "weight": 7},
+      {"phrase": "job to be done", "weight": 7},
+      {"phrase": "kundenjob", "weight": 6},
+      {"phrase": "customer job", "weight": 6},
+      {"phrase": "minimal solution", "weight": 5},
+      {"phrase": "minimale losung", "weight": 5},
+      {"phrase": "mvp validieren", "weight": 5},
+      {"phrase": "hochwertigstes problem", "weight": 5}
+    ]
+  },
   "presentation": {
     "icon": "jtbd",
     "image": "lean-jtbd.jpg",

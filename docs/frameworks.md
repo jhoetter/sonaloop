@@ -53,9 +53,20 @@ The [taxonomy](job-framework-format.md) maps each **Job** to a default Framework
 through one explicitly:
 
 ```text
-start_project(title=…, goal=…, methodology="lean_jtbd")   # seed the plan from this Framework
+start_project(title=…, goal=…, methodology="lean_jtbd", operation_id="chat-42:create-1")
+# Display names and spelling variants also resolve deterministically:
+start_project(title=…, goal=…, methodology="Reaction Test", operation_id="chat-43:create-1")
 set_project_methodology(project_id, "double_diamond")     # or (re)bind an existing project
 ```
+
+The methodology is resolved and validated before project storage. Reuse one `operation_id` for
+transport retries of the same create intent; see the [retry-safe run contract](retry-safe-run-contract.md).
+
+A framework may declare optional `work_items` on a fan step. These become concrete, ordered Act
+tasks with an explicit `expected_output_kind`; the host executes them instead of inventing missing
+research work. Reaction Test ships two Council todos after Product Understanding, framing and the
+cohort gate: first-impression/comprehension, then trust/gaps/action-readiness. The verify gate still
+requires both independent evidence angles.
 
 In the inspector, a running study shows its Framework + current stage on the **Plan** drawer
 (`/jobs/{id}/plan`). The sidebar's **Methodologies** tab (`/methodologies`) lists every
