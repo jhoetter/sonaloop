@@ -151,8 +151,8 @@ def test_project_head_run_chip_with_progressive_diagnostics(store):
 
 def test_reaction_preflights_project_one_truthful_waiting_state_in_de_and_en(store):
     """An active journal waiting at a mandatory gate is amber, not a green
-    background worker. The downstream cohort gate stays hidden until its frame
-    inputs are complete, so a fresh job presents one recovery action at a time.
+    background worker. Setup guidance belongs to the run-chip popover; the job
+    canvas never grows a second, full-width missing-state card.
     """
     project = S.start_project(
         "Reaction waiting", "Do people understand the captured screen?",
@@ -189,7 +189,10 @@ def test_reaction_preflights_project_one_truthful_waiting_state_in_de_and_en(sto
         assert global_label in detail_html
         assert 'runchip runchip--waiting' in detail_html
         assert recovery in detail_html
-        assert 'data-setup-kind="stimulus_required"' in detail_html
+        assert 'id="product-understanding"' not in detail_html
+        assert 'id="cohort-selection"' not in detail_html
+        assert 'id="cohort-integrity"' not in detail_html
+        assert 'id="research-setup-details"' not in detail_html
         assert "Cohort Integrity" not in detail_html
         assert 'runchip runchip--active' not in detail_html
 
@@ -206,9 +209,9 @@ def test_reaction_preflights_project_one_truthful_waiting_state_in_de_and_en(sto
     inventory_health = S.project_health(project["id"], store=store)
     assert inventory_health["preflight"]["kind"] == "product_understanding_required"
     inventory_html = _client().get(f"/jobs/{project['id']}?lang=en").text
-    assert 'data-setup-kind="product_understanding_required"' in inventory_html
-    assert ("Inspect every captured screen, record the visible product understanding, "
-            "then continue the same run.") in inventory_html
+    assert 'runchip runchip--waiting' in inventory_html
+    assert 'id="product-understanding"' not in inventory_html
+    assert 'id="research-setup-details"' not in inventory_html
     S.record_product_understanding(
         project["id"], target={"name": "Captured product"}, revision="screen:1",
         routes=[{"path": "/", "evidence_refs": [ref]}],
@@ -229,7 +232,7 @@ def test_reaction_preflights_project_one_truthful_waiting_state_in_de_and_en(sto
     assert selection_health["state"] == "waiting"
     assert selection_health["preflight"]["gate"] == "cohort_selection"
     selection_html = _client().get(f"/jobs/{project['id']}?lang=en").text
-    assert "Select a cohort" in selection_html
+    assert 'id="cohort-selection"' not in selection_html
     assert "Cohort Integrity" not in selection_html
     assert 'runchip runchip--waiting' in selection_html
     assert 'runchip runchip--active' not in selection_html
@@ -241,8 +244,9 @@ def test_reaction_preflights_project_one_truthful_waiting_state_in_de_and_en(sto
         dispatch_token=frame_dispatch["dispatch_token"], store=store,
     )
     frame_html = _client().get(f"/jobs/{project['id']}?lang=en").text
-    assert "Select a cohort" not in frame_html
+    assert 'id="cohort-selection"' not in frame_html
     assert "Cohort Integrity" not in frame_html
+    assert 'id="research-setup-details"' in frame_html
     assert 'runchip runchip--active' in frame_html
 
     S.record_frame(
@@ -256,11 +260,12 @@ def test_reaction_preflights_project_one_truthful_waiting_state_in_de_and_en(sto
     assert cohort_health["state"] == "waiting"
     assert cohort_health["preflight"]["gate"] == "cohort_integrity"
     cohort_html = _client().get(f"/jobs/{project['id']}?lang=en").text
-    assert "Cohort Integrity" in cohort_html
-    assert "Check or deepen the current cohort, then continue the same run." in cohort_html
+    assert 'id="cohort-integrity"' not in cohort_html
+    assert 'id="research-setup-details"' in cohort_html
+    assert web.STRINGS["en"]["health_attention_preflight_cohort"] in cohort_html
 
 
-def test_product_setup_card_follows_the_server_projected_flow_manifest_action(store):
+def test_flow_manifest_setup_stays_in_run_chip_without_a_canvas_card(store):
     project = S.start_project(
         "Flow setup", "React to https://example.test",
         methodology="Reaction Test", operation_id="flow-setup:create", store=store,
@@ -291,13 +296,12 @@ def test_product_setup_card_follows_the_server_projected_flow_manifest_action(st
 
     health = S.project_health(project["id"], store=store)
     assert health["preflight"]["kind"] == "flow_manifest_required"
-    for language, copy in (
-        ("de", "Die erfassten Screens in ihrer tatsächlichen Reihenfolge als Flow festhalten und danach denselben Run fortsetzen."),
-        ("en", "Freeze the captured screens in their actual flow order, then continue the same run."),
-    ):
+    for language in ("de", "en"):
         html = _client().get(f"/jobs/{project['id']}?lang={language}").text
-        assert 'data-setup-kind="flow_manifest_required"' in html
-        assert copy in html
+        assert 'runchip runchip--waiting' in html
+        assert 'data-setup-kind="flow_manifest_required"' not in html
+        assert 'id="product-understanding"' not in html
+        assert 'id="research-setup-details"' not in html
         assert "Cohort Integrity" not in html
 
 

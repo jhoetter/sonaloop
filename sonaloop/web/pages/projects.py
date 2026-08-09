@@ -20,11 +20,22 @@ register_css(r"""
 .sl-pu-card{border:1px solid var(--line);border-left:3px solid var(--green);border-radius:var(--radius);background:var(--panel);padding:12px 14px;margin:14px 0}.sl-pu-card--missing{border-left-color:var(--amber)}
 .sl-pu-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.sl-pu-head strong{display:flex;align-items:center;gap:7px}.sl-pu-meta{color:var(--muted);font-size:var(--t-sm);margin-top:4px}.sl-pu-caps{margin:9px 0 0;padding-left:18px;font-size:var(--t-sm)}
 .sl-project-creator{color:var(--muted);font-size:var(--t-xs);margin:4px 0 0}
+.sl-project-meta{color:var(--muted);font-size:var(--t-xs);margin:4px 0 0}
+.sl-project-setup{flex:none;width:100%;max-width:900px;margin:0 auto;padding:0 24px 10px;border:0;background:transparent}
+.sl-project-setup>summary,.sl-project-lineage>summary{list-style:none;cursor:pointer;color:var(--muted);font-size:var(--t-xs);font-weight:500;display:flex;align-items:center;gap:6px;width:max-content}
+.sl-project-setup>summary::-webkit-details-marker,.sl-project-lineage>summary::-webkit-details-marker{display:none}
+.sl-project-setup[open]>summary,.sl-project-lineage[open]>summary{color:var(--ink)}
+.sl-project-setup__body{padding:8px 0 6px}.sl-setup-block{padding:6px 0}.sl-setup-block+.sl-setup-block{margin-top:12px}
+.sl-project-setup .sl-cohort-stat{border:0;background:transparent;padding:0}
+.sl-project-lineage{margin:5px 0 0;border:0;background:transparent;font-size:var(--t-xs)}
+.sl-project-lineage ul{margin:6px 0 0;padding-left:18px;color:var(--muted)}
 """)
 
 
 def _product_understanding_html(project: dict, store=None,
-                                preflight: dict | None = None) -> str:
+                                preflight: dict | None = None, *,
+                                show_missing: bool = True,
+                                embedded: bool = False) -> str:
     """Compact, inspectable preflight state on the job that it governs."""
     policy = project.get("integrity") or {}
     versions = project.get("product_understanding_versions") or []
@@ -32,7 +43,7 @@ def _product_understanding_html(project: dict, store=None,
     current = next((row for row in versions if str(row.get("id") or "") == current_id), None)
     current = current or (versions[-1] if versions else None)
     if not current:
-        if not policy.get("product_understanding_required"):
+        if not policy.get("product_understanding_required") or not show_missing:
             return ""
         kind = str((preflight or {}).get("kind") or "")
         help_text = (t("product_flow_manifest_missing_help")
@@ -87,9 +98,12 @@ def _product_understanding_html(project: dict, store=None,
                 for row in capabilities]
     aria = (f'{t("product_understanding_h")}. {target_name}. {t("pu_revision")} '
             f'{current.get("revision") or "—"}. {t("pu_unknown_n", n=unknowns)}.')
-    return h("details", {"class_": "sl-pu-card", "id": "product-understanding",
-                         "aria-label": aria},
-             h("summary", {"class_": "sl-pu-head"},
+    tag = "section" if embedded else "details"
+    wrapper_class = "sl-setup-block sl-setup-block--product" if embedded else "sl-pu-card"
+    head_tag = "div" if embedded else "summary"
+    return h(tag, {"class_": wrapper_class, "id": "product-understanding",
+                   "aria-label": aria},
+             h(head_tag, {"class_": "sl-pu-head"},
                h("strong", {}, raw(_icon("target")), t("product_understanding_h")),
                raw(_label(t("pu_capabilities_n", n=len(capabilities)))),
                (raw(_label(t("pu_verified_absences_n", n=verified_absences), "var(--green)"))
@@ -100,26 +114,10 @@ def _product_understanding_html(project: dict, store=None,
              h("ul", {"class_": "sl-pu-caps"}, fragment(*cap_rows)))
 
 
-def _cohort_selection_html(preflight: dict) -> str:
-    """Render the server-projected between-gates setup action, if current."""
-    if preflight.get("state") != "waiting" or preflight.get("gate") != "cohort_selection":
-        return ""
-    return h(
-        "section",
-        {"class_": "sl-pu-card sl-pu-card--missing", "id": "cohort-selection",
-         "role": "status", "aria-label": t("cohort_selection_help")},
-        h("div", {"class_": "sl-pu-head"},
-          h("strong", {}, raw(_icon("personas")), t("cohort_selection_h")),
-          raw(_label(t("cohort_integrity_missing"), "var(--amber)"))),
-        h("div", {"class_": "sl-pu-meta"}, t("cohort_selection_help")),
-    )
-
-
 def _project_lineage_html(project: dict, store) -> str:
     predecessor = str(project.get("supersedes_project_id") or "")
     successor = str(project.get("superseded_by_project_id") or "")
-    archived = str(project.get("status") or "") == "archived"
-    if not (predecessor or successor or archived):
+    if not (predecessor or successor):
         return ""
     rows = []
     for label, pid in ((t("lineage_supersedes"), predecessor),
@@ -132,12 +130,32 @@ def _project_lineage_html(project: dict, store) -> str:
         rows.append(h("li", {}, label, ": ",
                       h("a", {"href": f"/jobs/{pid}"}, target.get("title") or pid)
                       if target else h("code", {}, pid)))
-    if archived:
-        rows.append(h("li", {}, t("archive_non_destructive")))
-    return h("section", {"class_": "sl-pu-card", "id": "project-lineage",
+    return h("details", {"class_": "sl-project-lineage", "id": "project-lineage",
                          "aria-label": t("lineage_h")},
-             h("strong", {}, raw(_icon("link")), " ", t("lineage_h")),
+             h("summary", {}, raw(_icon("link")), t("lineage_h")),
              h("ul", {"class_": "sl-pu-caps"}, fragment(*rows)))
+
+
+def _project_setup_details_html(project: dict, store) -> str:
+    """One quiet project-head-width disclosure for already persisted setup evidence.
+
+    Missing setup belongs to the run chip and its recovery popover.  This block is
+    intentionally absent until there is durable evidence worth inspecting.
+    """
+    product = _product_understanding_html(
+        project, store, show_missing=False, embedded=True,
+    )
+    cohort = render_cohort_integrity(
+        project, store, show_missing=False, embedded=True,
+    )
+    if not (product or cohort):
+        return ""
+    return h(
+        "details",
+        {"class_": "sl-project-setup", "id": "research-setup-details"},
+        h("summary", {}, raw(_icon("target")), t("research_setup_details_h")),
+        h("div", {"class_": "sl-project-setup__body"}, raw(product), raw(cohort)),
+    )
 
 
 def register_projects(app) -> None:
@@ -254,12 +272,12 @@ def register_projects(app) -> None:
             health = services.project_health(proj["id"], store=store)
         except Exception:
             health = {}
-        preflight = health.get("preflight") or {}
         run_chip = project_run_chip(proj["id"], store, run_state=health)
         # The graph projection is deliberately lean and does not carry request-boundary
         # attribution. Read the canonical project row for this one presentation field;
         # only its display snapshot is rendered (never the opaque actor id).
-        creator = services.get_research_project(proj["id"], store=store).get("created_by")
+        project_record = services.get_research_project(proj["id"], store=store)
+        creator = project_record.get("created_by")
         creator_label = (
             str(creator.get("label") or "").strip() if isinstance(creator, dict) else ""
         )
@@ -274,16 +292,13 @@ def register_projects(app) -> None:
                    h("p", {"class_": "lead"}, proj.get("goal", "")),
                    (h("p", {"class_": "sl-project-creator"},
                       t("project_created_by", label=creator_label)) if creator_label else None),
+                   (h("p", {"class_": "sl-project-meta", "data-project-archived": True},
+                      t("archive_non_destructive"))
+                    if str(project_record.get("status") or "") == "archived" else None),
+                   raw(_project_lineage_html(project_record, store)),
                    h("div", {"class_": "pills"}, raw(run_chip)),
                    bar),
-                 raw(_product_understanding_html(proj, store, preflight)),
-                 raw(_cohort_selection_html(preflight)),
-                 raw(render_cohort_integrity(
-                     proj, store,
-                     show_missing=(preflight.get("state") == "waiting"
-                                   and preflight.get("gate") == "cohort_integrity"),
-                 )),
-                 raw(_project_lineage_html(proj, store)),
+                 raw(_project_setup_details_html(project_record, store)),
                  main_view) + raw(project_icon_edit_script())
         # Write affordances (web CRUD, V10 §9): the ONE visible "…" overflow — Edit opens the
         # metadata dialog over the page, Delete the typed-confirm modal. No create buttons

@@ -5,9 +5,10 @@ import asyncio
 import base64
 
 import pytest
+from starlette.testclient import TestClient
 
 from sonaloop import plan as P
-from sonaloop import services
+from sonaloop import services, web
 from sonaloop.cohort_integrity import (
     COHORT_FEATURE_SCHEMA,
     COHORT_POLICY_VERSION,
@@ -171,6 +172,30 @@ def test_fink_shaped_fresh_profiles_trigger_versioned_reselection_and_real_plan_
     assert downstream and all(remediation["id"] in row["consumes"] for row in downstream)
     nxt = services.run_step(run["run_id"], store=store)
     assert nxt["step_id"] == remediation["id"] and nxt["kind"] == "analyze"
+
+
+def test_project_setup_disclosure_contains_product_and_cohort_evidence(store):
+    p1 = _persona(store, "Synthetic Ira", "Coordinates routine supplier handoffs")
+    p2 = _persona(store, "Synthetic Jo", "Questions whether workflow changes are necessary")
+    project, _run, dispatch, ref = _start(store, "setup-disclosure", [p1, p2])
+    result = services.record_cohort_preflight(
+        project["id"],
+        representation=[
+            {"persona_id": p1, "posture": "target", "rationale": "adjacent workflow owner"},
+            {"persona_id": p2, "posture": "skeptical", "rationale": "questions the premise"},
+        ],
+        dispatch_token=dispatch["dispatch_token"], store=store,
+    )
+
+    page = TestClient(web.create_app()).get(f'/jobs/{project["id"]}?lang=en').text
+    marker = page.index('id="research-setup-details"')
+    setup = page[page.rindex("<details", 0, marker):page.index('class="outlinecard', marker)]
+    assert setup.count("<details") == 1
+    assert 'id="product-understanding"' in setup
+    assert 'id="cohort-integrity"' in setup
+    assert ref["id"] in setup
+    assert "Synthetic Ira" in setup and "Synthetic Jo" in setup
+    assert result["policy_version"] in setup
 
 
 def test_deep_independent_cohort_passes_and_retains_disconfirming_sources(store):

@@ -18,7 +18,8 @@ def _maximum_score(rows: list[dict]) -> float:
     return max((float(row.get("score") or 0) for row in rows), default=0.0)
 
 
-def render_cohort_integrity(project: dict, store=None, *, show_missing: bool = True) -> str:
+def render_cohort_integrity(project: dict, store=None, *, show_missing: bool = True,
+                            embedded: bool = False) -> str:
     """Render persisted depth, provenance, leakage and remediation state."""
     policy = project.get("integrity") or {}
     current = current_cohort_preflight(project)
@@ -84,10 +85,13 @@ def render_cohort_integrity(project: dict, store=None, *, show_missing: bool = T
     aria = f'{t("cohort_integrity_h")}: {labels.get(status, status)}. '
     aria += t("cohort_depth_summary", personas=totals.get("personas", 0),
               items=totals.get("independent_context_items", 0), thin=totals.get("thin", 0))
+    tag = "section" if embedded else "details"
+    wrapper_class = (f"sl-setup-block sl-setup-block--cohort sl-cohort-card--{card_state}"
+                     if embedded else f"sl-cohort-card sl-cohort-card--{card_state}")
+    head_tag = "div" if embedded else "summary"
     return h(
-        "details", {"class_": f"sl-cohort-card sl-cohort-card--{card_state}",
-                    "id": "cohort-integrity", "aria-label": aria},
-        h("summary", {"class_": "sl-cohort-head"},
+        tag, {"class_": wrapper_class, "id": "cohort-integrity", "aria-label": aria},
+        h(head_tag, {"class_": "sl-cohort-head"},
           h("strong", {}, raw(_icon("personas")), t("cohort_integrity_h")),
           h("span", {"class_": "sl-cohort-pills"},
             raw(_label(labels.get(status, status), colors.get(status, "var(--muted)"))),

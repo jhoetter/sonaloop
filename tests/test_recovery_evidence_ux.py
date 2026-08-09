@@ -187,6 +187,23 @@ def test_supersede_and_archive_are_explicit_idempotent_and_non_destructive(store
         new["id"], "archive:one", "Operator explicitly archived canonical record", store=store)["idempotent"]
     page = TestClient(web.create_app()).get(f'/jobs/{old["id"]}?lang=en').text
     assert "Job lineage" in page and new["id"] in page
+    lineage_tag = page[page.rindex("<details", 0, page.index('id="project-lineage"')):
+                       page.index(">", page.index('id="project-lineage"')) + 1]
+    assert 'class="sl-project-lineage"' in lineage_tag and " open" not in lineage_tag
+    project_head = page.split('class="proj-head"', 1)[1].split('class="outlinecard', 1)[0]
+    assert 'id="project-lineage"' in project_head
+
+    archive_only = services.start_project(
+        "Archived only", "q", operation_id="archive-only-create", store=store)
+    services.archive_project(
+        archive_only["id"], "archive:only", "Operator archived this record", store=store)
+    archived_page = TestClient(web.create_app()).get(
+        f'/jobs/{archive_only["id"]}?lang=en').text
+    archived_head = archived_page.split('class="proj-head"', 1)[1].split(
+        'class="outlinecard', 1)[0]
+    assert 'data-project-archived' in archived_head
+    assert "Archived; evidence is preserved." in archived_head
+    assert 'id="project-lineage"' not in archived_page
 
     active = services.start_project("Active", "q", operation_id="active-create", store=store)
     services.start_run(active["id"], operation_id="active-run", store=store)
@@ -224,6 +241,22 @@ def test_bilingual_evidence_health_precedes_report_and_has_exact_sources(store):
             # Trust/evidence blocks precede authored result prose.
             assert html.index('id="claim-health"') < html.index('id="product-understanding"')
         assert report_html.index('id="product-understanding"') < report_html.index("captured state and simulated")
+
+
+def test_project_keeps_persisted_setup_evidence_in_one_closed_quiet_disclosure(store):
+    project, _run, ref, _understanding = _reaction_with_understanding(store, "project-setup")
+    page = TestClient(web.create_app()).get(f'/jobs/{project["id"]}?lang=en').text
+
+    marker = page.index('id="research-setup-details"')
+    details_tag = page[page.rindex("<details", 0, marker):page.index(">", marker) + 1]
+    assert 'class="sl-project-setup"' in details_tag and " open" not in details_tag
+    assert "Research setup details" in page
+    assert 'id="product-understanding"' in page and ref["id"] in page
+    assert 'class="sl-setup-block sl-setup-block--product"' in page
+    # Project evidence uses one outer disclosure, not the full-width card used
+    # on evidence-heavy council/report detail pages.
+    setup = page[marker:page.index('class="outlinecard', marker)]
+    assert 'class="sl-pu-card"' not in setup
 
 
 def test_mcp_and_cli_recovery_surface_is_present():
