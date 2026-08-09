@@ -126,6 +126,31 @@ def register_plan(mcp):
             observed_at=observed_at, key=key, dispatch_token=dispatch_token), t)
 
     @mcp.tool()
+    def record_manifest_product_understanding(
+            project_id: str, manifest_id: str,
+            observations: list[dict[str, Any]],
+            unknown_capabilities: list[str] | None = None,
+            target_name: str = "", target_url: str = "",
+            observed_at: str | None = None, key: str | None = None,
+            dispatch_token: str | None = None) -> dict[str, Any]:
+        """Weak-host-safe Reaction Test Product Understanding. First view every exact asset listed
+        by run_step.blocking_action.manifest. Then pass one flat observation
+        {step_index, claim} per manifest step plus honest unknown_capabilities. The server owns and
+        freezes target revision, digest, evidence refs, state inventory and coverage; target_url is
+        identity metadata only and is NEVER fetched or accepted as evidence. Reuse the same
+        dispatch_token on retry; a successful call auto-links/checkpoints the Product Understanding
+        dispatch. Strong hosts may still use record_product_understanding for richer postures."""
+        t = time.perf_counter()
+        return _env(
+            "record_manifest_product_understanding",
+            services.record_manifest_product_understanding(
+                project_id, manifest_id, observations, unknown_capabilities,
+                target_name, target_url, observed_at, key, dispatch_token,
+            ),
+            t,
+        )
+
+    @mcp.tool()
     def get_product_understanding(project_id: str,
                                   version_id: str | None = None) -> dict[str, Any]:
         """Read the current Product Understanding artifact, its immutable version history and
@@ -144,6 +169,25 @@ def register_plan(mcp):
         t = time.perf_counter()
         return _env("brief_cohort_preflight",
                     services.brief_cohort_preflight(project_id, hypotheses), t)
+
+    @mcp.tool()
+    def select_reaction_test_cohort(
+            project_id: str, persona_ids: list[str], selection_rationale: str,
+            operation_id: str = "", dispatch_token: str | None = None) -> dict[str, Any]:
+        """Repair an empty Reaction Test cohort with at least two EXISTING persona IDs. Use
+        list_personas or catalog_search/catalog_recommend -> catalog_pull first. This is a supporting,
+        retry-safe write on the current frame dispatch: it does NOT pass Cohort Integrity, complete or
+        checkpoint the frame, create a new job, or create personas. Reuse operation_id and the exact
+        arguments on retry; then continue the same run/frame dispatch."""
+        t = time.perf_counter()
+        return _env(
+            "select_reaction_test_cohort",
+            services.select_reaction_test_cohort(
+                project_id, persona_ids, selection_rationale,
+                operation_id, dispatch_token,
+            ),
+            t,
+        )
 
     @mcp.tool()
     def record_cohort_preflight(project_id: str,

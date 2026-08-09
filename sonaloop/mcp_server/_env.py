@@ -67,6 +67,8 @@ _NEXT: dict[str, dict[str, Any]] = {
     "register_methodology": {"name": "start_project", "reason": "start_project(methodology=<your key>) seeds a study's plan from the new constellation"},
     "admit_remote_screenshot": {"name": "record_flow_manifest", "reason": "freeze the ordered admitted screenshot versions before Product Understanding"},
     "record_flow_manifest": {"name": "brief_product_understanding", "reason": "inspect and cover the exact manifest version before personas react"},
+    "record_manifest_product_understanding": {"name": "run_step", "reason": "Product Understanding is checkpointed; continue the same governed run"},
+    "select_reaction_test_cohort": {"name": "run_step", "reason": "cohort selection is a supporting write; continue the same open frame dispatch"},
     "set_project_methodology": {"name": "next_action", "reason": "load the next ready plan step fully"},
     "brief_next": {"name": "next_action", "reason": "load the ready task fully (grounding + participants + gate)"},
     "next_action": {"name": "complete_task", "reason": "author the step (frame/council/synthesis), persist, then complete"},
@@ -178,6 +180,11 @@ def _env(tool: str, data: Any, started: float) -> dict[str, Any]:
     # run), the natural next step is start_run — for EVERY host, including ones that read neither
     # skills nor prompts. The static DAG hint yields to this dynamic one.
     if isinstance(data, dict):
+        action = data.get("blocking_action") or data.get("action")
+        next_call = action.get("next_call") if isinstance(action, dict) else None
+        if isinstance(next_call, dict) and next_call.get("tool"):
+            nxt = {"name": str(next_call["tool"]),
+                   "reason": str(action.get("message") or "execute the one server-owned remediation")}
         rs = data.get("run_state")
         if isinstance(rs, dict) and rs.get("active_run") is False:
             nxt = {"name": "start_run",

@@ -130,6 +130,7 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     "record_completeness_critic": W("Record completeness verdict"),
     "cohort_memory_depth": R("Measure cohort memory depth"),
     "brief_cohort_preflight": R("Brief cohort integrity preflight"),
+    "select_reaction_test_cohort": W("Select Reaction Test cohort", idempotent=True),
     "record_cohort_preflight": W("Record cohort integrity preflight", idempotent=True),
     "get_cohort_preflight": R("Get cohort integrity preflight"),
     "score_run": W("Score run"),
@@ -241,6 +242,8 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     "add_task": W("Add plan task"),
     "record_frame": W("Record frame"),
     "brief_product_understanding": R("Brief product understanding"),
+    "record_manifest_product_understanding": W(
+        "Record manifest Product Understanding", idempotent=True),
     "record_product_understanding": W("Record product understanding", idempotent=True),
     "get_product_understanding": R("Get product understanding"),
     "project_health": R("Get project health"),

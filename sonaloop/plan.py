@@ -297,6 +297,16 @@ def record_frame(project_id: str, task_id: str, questions: list[str], hypotheses
             "this analyze task can only be discharged by record_cohort_preflight; a generic frame "
             "cannot turn a thin or circular cohort warning into a pass",
         )
+    from .research_integrity import project_policy
+    project = store.get_research_project(project_id) or {}
+    if (project_policy(project, plan).get("cohort_preflight_required")
+            and len(project.get("persona_ids") or []) < 2):
+        raise PlanError(
+            "COHORT_SELECTION_REQUIRED",
+            "Reaction Test framing is blocked until at least two existing personas are selected; "
+            "safe retry: call select_reaction_test_cohort with this run_step dispatch_token, then "
+            "retry record_frame on the same dispatch",
+        )
     qs = [str(q).strip() for q in (questions or []) if str(q).strip()]
     refs = [str(r).strip() for r in (memory_refs or []) if str(r).strip()]
     if not qs:
@@ -759,6 +769,17 @@ def next_action(project_id: str, store: Store | None = None) -> dict[str, Any]:
                              "per ANGLE consuming the frame, run real councils / build+test prototypes, "
                              "link_evidence + complete, until the gate's min_inputs is met."),
             }
+    from .research_integrity import reaction_preflight_action
+    blocking_action = reaction_preflight_action(project_id, store)
+    if blocking_action:
+        out["blocking_action"] = blocking_action
+        out["unmet"] = [str(blocking_action.get("code") or "REACTION_PREFLIGHT_REQUIRED")]
+        call = blocking_action.get("next_call") or {}
+        out["instructions"] = (
+            f"{blocking_action.get('message', 'Reaction Test preflight is blocked')} "
+            f"Execute exactly the one next call `{call.get('tool', '')}` from blocking_action; "
+            "do not invent evidence, skip ahead, or create another project/run."
+        )
     try:
         out["recommendation"] = assess_project(project_id, store=store)["recommendation"]
     except Exception:

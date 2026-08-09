@@ -818,7 +818,9 @@ def _issue_dispatch(run_id: str, project_id: str, task_id: str, bucket: str,
                 "schema": "sonaloop.dispatch_output_contract.v1",
                 "max_primary_outputs": 1,
                 "allowed_primary_kinds": exact_primary,
-                "supporting_kinds": ["asset", "flow", "reference", "evidence"],
+                "supporting_kinds": [
+                    "asset", "flow", "reference", "evidence", "cohort_selection",
+                ],
                 "closing_kinds": ["judgment", "task_completion"],
             },
             "primary_output_kind": "",
@@ -927,6 +929,9 @@ def prepare_dispatch_write(
     output_contract = dict(found.get("output_contract") or {})
     support = set(output_contract.get("supporting_kinds") or
                   ["asset", "flow", "reference", "evidence"])
+    # Server-added supporting repairs must work on an already-issued production
+    # dispatch. They never claim/replace its one primary output.
+    support.add("cohort_selection")
     closing = set(output_contract.get("closing_kinds") or ["judgment", "task_completion"])
     is_primary = output_kind not in support | closing
     allowed = set(output_contract.get("allowed_primary_kinds") or [])
@@ -1542,13 +1547,26 @@ def _rl_dispatch(run: dict[str, Any], n: dict[str, Any], store: Store) -> dict[s
     key = run_key(run["run_id"], n["task"])
     dispatch = _issue_dispatch(run["run_id"], run["project_id"], n["task"], n["bucket"], key,
                                store, trace_contract=trace)
+    routed = copy.deepcopy(n)
+    blocking = routed.get("blocking_action") or {}
+    arguments = (blocking.get("next_call") or {}).get("arguments") or {}
+    if arguments:
+        if "run_id" in arguments:
+            arguments["run_id"] = str(run["run_id"])
+        if "dispatch_token" in arguments:
+            arguments["dispatch_token"] = str(dispatch["dispatch_token"])
+        tool = str((blocking.get("next_call") or {}).get("tool") or "")
+        if tool in {"record_flow_manifest", "select_reaction_test_cohort"}:
+            suffix = "flow-manifest" if tool == "record_flow_manifest" else "cohort-selection"
+            arguments["operation_id"] = f"{dispatch['operation_id']}:{suffix}"
     return {"kind": n["bucket"], "step_id": n["task"], "key": key,
             "dispatch_token": dispatch["dispatch_token"], "operation_id": dispatch["operation_id"],
             "dispatch_cursor": dispatch["dispatch_cursor"],
             "input_fingerprint": dispatch["input_fingerprint"],
             "output_contract": dict(dispatch["output_contract"]),
-            "next_action": n,
-            "directive": (n.get("instructions", "") + " Pass this dispatch_token to every record/"
+            "next_action": routed,
+            **({"blocking_action": blocking} if blocking else {}),
+            "directive": (routed.get("instructions", "") + " Pass this dispatch_token to every record/"
                           "completion write for the step; token-aware recorders auto-link and checkpoint, "
                           "so do not checkpoint a second time when dispatch.checkpointed=true."), **trace}
 

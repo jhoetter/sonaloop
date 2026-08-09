@@ -15,7 +15,12 @@ from ..cohort_integrity import (
     framed_research_inputs,
 )
 from ..config import utc_now_iso
-from ..research_integrity import IntegrityError, operation_fingerprint
+from ..research_integrity import (
+    IntegrityError,
+    operation_fingerprint,
+    project_policy,
+    reaction_preflight_action,
+)
 from ..storage import Store
 
 from ._common import *  # noqa: F401,F403  (stable_id, web_url)
@@ -46,6 +51,7 @@ def brief_cohort_preflight(project_id: str, hypotheses: list[str] | None = None,
         "policy_version": COHORT_POLICY_VERSION,
         "project_id": project_id,
         "current": current_cohort_preflight(project),
+        "action": reaction_preflight_action(project_id, store),
         "preview": preview,
         "required_input": {
             "framed_research": {
@@ -123,6 +129,133 @@ def _cohort_selection(project: dict[str, Any], persona_ids: list[str] | None,
         "from": current, "to": selected, "rationale": rationale, "created_at": utc_now_iso(),
     })
     return updated
+
+
+def select_reaction_test_cohort(
+    project_id: str,
+    persona_ids: list[str],
+    selection_rationale: str,
+    operation_id: str = "",
+    dispatch_token: str | None = None,
+    store: Store | None = None,
+) -> dict[str, Any]:
+    """Select a bounded Reaction-Test cohort without pretending the gate passed.
+
+    This supporting mutation is intentionally separate from
+    :func:`record_cohort_preflight`: it lets a minimal host repair an empty
+    cohort on the frame dispatch, after Product Understanding and before the
+    frame is authored. The later server-owned gate still evaluates depth,
+    leakage and grounded countervoice representation.
+    """
+    store = store or Store()
+    project = _required_project(store, project_id)
+    plan = _plan.get_plan(project_id, store=store) or {}
+    if not project_policy(project, plan).get("cohort_preflight_required"):
+        raise IntegrityError(
+            "COHORT_SELECTION_NOT_APPLICABLE",
+            "select_reaction_test_cohort is only available on a cohort-governed project",
+        )
+    selected = list(dict.fromkeys(str(pid).strip() for pid in persona_ids or []
+                                  if str(pid).strip()))
+    if len(selected) > 100:
+        raise IntegrityError("COHORT_SELECTION_BAD_INPUT",
+                             "persona_ids may contain at most 100 unique personas")
+    if len(selected) < int(DEFAULT_THRESHOLDS["min_personas"]):
+        raise IntegrityError(
+            "COHORT_MISSING_OR_TOO_SMALL",
+            f"persona_ids must contain at least {DEFAULT_THRESHOLDS['min_personas']} existing "
+            "personas; safe retry: catalog_recommend/catalog_pull, then repeat the exact "
+            "select_reaction_test_cohort call",
+        )
+    rationale = str(selection_rationale or "").strip()
+    if len(rationale) < 12:
+        raise IntegrityError(
+            "COHORT_SELECTION_RATIONALE_REQUIRED",
+            "selection_rationale must contain at least 12 characters explaining the independent contrast",
+        )
+    if len(rationale) > 2_000:
+        raise IntegrityError("COHORT_SELECTION_RATIONALE_REQUIRED",
+                             "selection_rationale may contain at most 2000 characters")
+    unknown = [pid for pid in selected if not store.get_persona(pid)]
+    if unknown:
+        raise IntegrityError(
+            "UNKNOWN_PERSONA",
+            f"persona_ids contains unknown personas {unknown}; safe retry after catalog_pull or use "
+            "IDs returned by list_personas",
+        )
+    op = str(operation_id or dispatch_token or "").strip()
+    if op and (len(op) > 200 or not op.isprintable()):
+        raise IntegrityError("COHORT_SELECTION_BAD_INPUT",
+                             "operation_id must contain 1-200 printable characters")
+    authored = {"persona_ids": selected, "selection_rationale": rationale}
+    fingerprint = operation_fingerprint(authored)
+    ctx = prepare_dispatch_write(  # noqa: F821 (bound by services package)
+        project_id, dispatch_token, None, "cohort_selection", store,
+        allowed_buckets={"analyze"}, payload_fingerprint=fingerprint,
+    )
+
+    replay = False
+    revision: dict[str, Any] | None = None
+    for _attempt in range(16):
+        current = _required_project(store, project_id)
+        if op:
+            previous = next((row for row in current.get("cohort_revisions") or []
+                             if str(row.get("operation_id") or "") == op), None)
+            if previous:
+                if str(previous.get("operation_fingerprint") or "") != fingerprint:
+                    raise IntegrityError(
+                        "COHORT_SELECTION_IDEMPOTENCY_CONFLICT",
+                        "operation_id was already used for a different cohort selection",
+                    )
+                revision, replay = previous, True
+                break
+        before = list(current.get("persona_ids") or [])
+        if before == selected:
+            revision = {
+                "from": before, "to": selected, "rationale": rationale,
+                "operation_id": op, "operation_fingerprint": fingerprint,
+                "created_at": str(current.get("updated_at") or current.get("created_at") or utc_now_iso()),
+            }
+            replay = True
+            break
+        revision = {
+            "from": before, "to": selected, "rationale": rationale,
+            "operation_id": op, "operation_fingerprint": fingerprint,
+            "created_at": utc_now_iso(),
+        }
+        updated = copy.deepcopy(current)
+        updated["persona_ids"] = selected
+        updated.setdefault("cohort_revisions", []).append(revision)
+        updated["updated_at"] = utc_now_iso()
+        if store.compare_and_swap_research_project(current, updated):
+            break
+        revision = None
+    if revision is None:
+        raise IntegrityError(
+            "COHORT_SELECTION_CONTENTION",
+            "the project changed repeatedly; retry the same operation_id and arguments",
+        )
+    return {
+        "schema": "sonaloop.reaction_cohort_selection.v1",
+        "project_id": project_id,
+        "persona_ids": selected,
+        "minimum_personas": int(DEFAULT_THRESHOLDS["min_personas"]),
+        "selection_rationale": rationale,
+        "operation_id": op,
+        "idempotent_replay": replay,
+        "gate_passed": False,
+        "next": {
+            "tool": "run_step",
+            "arguments": {"run_id": str(ctx.get("run_id") or "<active run id>")},
+            "note": "The same frame dispatch remains open; run_step returns its updated one-action contract.",
+        },
+        "dispatch": {
+            "state": "supporting_write" if ctx.get("dispatch_token") else ctx.get("state"),
+            "checkpointed": False,
+            "dispatch_token": str(ctx.get("dispatch_token") or ""),
+            "task_id": str(ctx.get("task_id") or ""),
+        },
+    }
 
 
 def _remediation_task(project_id: str, task_id: str, record: dict[str, Any],
