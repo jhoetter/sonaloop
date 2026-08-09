@@ -151,3 +151,30 @@ def test_pipeline_regression_score_and_memory_depth(store):
     # score_run persists a quality snapshot
     sc = services.score_run(pid, store=store)
     assert sc["complete"] is True and sc["finish"]["finished"] is True and "councils" in sc["coverage"]
+
+
+@pytest.mark.parametrize("terminal_status", ["finished", "stopped", "capped"])
+def test_run_step_replays_terminal_journal_without_dispatch(store, terminal_status):
+    if terminal_status == "finished":
+        _register_tiny_methodology(store)
+        pid = services.start_project(
+            "Terminal finished", "hmw?", "esv_test", persona_ids=["p1"], store=store,
+        )["id"]
+        run = services.start_run(pid, budget=60, store=store)
+        assert _drive(run["run_id"], pid, store)["status"] == "finished"
+    else:
+        pid = services.start_project(
+            f"Terminal {terminal_status}", "hmw?", "", store=store,
+        )["id"]
+        run = services.start_run(pid, budget=10, store=store)
+        services.finish_run(run["run_id"], terminal_status, store=store)
+    before = services.run_journal(run["run_id"], store=store)
+
+    replay = services.run_step(run["run_id"], store=store)
+
+    after = services.run_journal(run["run_id"], store=store)
+    assert replay["kind"] == "done"
+    assert replay["status"] == terminal_status
+    assert replay["persisted_status"] == terminal_status
+    assert replay["idempotent_replay"] is True
+    assert after == before

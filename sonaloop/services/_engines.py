@@ -1650,6 +1650,25 @@ def run_step(run_id: str, store: Store | None = None) -> dict[str, Any]:
     if not run:
         raise PlanError("UNKNOWN_RUN", f"unknown run: {run_id}")
     pid = run["project_id"]
+    persisted_status = str(run.get("status") or "active")
+    if persisted_status != "active":
+        # Terminal journals are immutable. A lost response or an overeager
+        # external host may repeat run_step after completion; replay the
+        # terminal observation without issuing a new dispatch or mutating the
+        # plan. Unknown persisted states fail closed as stopped rather than
+        # becoming an accidental execution capability.
+        terminal_status = (
+            persisted_status
+            if persisted_status in {"finished", "stopped", "capped"}
+            else "stopped"
+        )
+        return {
+            "kind": "done",
+            "status": terminal_status,
+            "persisted_status": persisted_status,
+            "idempotent_replay": True,
+            "summary": _rl_summary(pid, store),
+        }
     budget = run.get("budget")
     if budget is not None and len(run.get("steps", [])) >= budget:
         derive_sections(pid, store=store); scaffold_synthesis(pid, store=store)  # noqa: F821 (bound)

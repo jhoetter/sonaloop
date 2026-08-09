@@ -77,7 +77,9 @@ before this creation guard and continue to return the original journal. Any othe
 raises `ACTIVE_RUN_EXISTS` and names both the existing run id and the exact safe
 `start_run(project_id=..., run_id=...)` continuation; clients must not create a replacement. When a
 run reaches `finished`, `stopped` or `capped`, its matching claim is released and a later run may be
-started.
+started. Repeating `run_step(run_id)` against any such terminal journal is a read-only terminal
+replay (`kind=done`, the persisted status, `idempotent_replay=true`); it can never issue another
+dispatch or mutate the plan.
 
 The claim table is intentionally separate from the append-preserving run journal. On an upgraded
 store, it lazily adopts the most recently touched legacy active row and leaves all historical rows
