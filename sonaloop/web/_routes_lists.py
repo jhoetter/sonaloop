@@ -89,10 +89,20 @@ def _first_steps_html() -> str:
 def _projects_page(page: int = 1, q: str = "") -> str:
     """The Projects list — the app's home (project-centric IA). Paginated per the shared
     convention (docs/pagination.md): ?page=N in the URL next to the ?q= filter, ~25 rows
-    per page, the h1 count over the FULL filtered set."""
+    per page, the h1 count over the FULL filtered set.
+
+    Archived projects remain durable and directly inspectable, but they are not
+    current work and therefore stay out of the normal Jobs overview.  Filter them
+    before search, pagination, counts and enrichment so a hidden archive row can
+    neither create a page hole nor make the visible total dishonest.
+    """
     store = Store()
     # Lean metadata only — NO graph builds for the full list. Enrich only the visible page.
-    projects = services.list_research_project_summaries(store=store)
+    all_projects = services.list_research_project_summaries(store=store)
+    projects = [
+        project for project in all_projects
+        if str(project.get("status") or "active").strip().casefold() != "archived"
+    ]
     if q:
         needle = q.strip().casefold()
         projects = [p for p in projects
@@ -166,7 +176,7 @@ def _projects_page(page: int = 1, q: str = "") -> str:
             f'/jobs/{p["id"]}', raw(project_icon_html(p)), p["title"], meta,
             byline=(t("project_created_by", label=creator_label) if creator_label else None),
         ))
-    if not rows and not q and not store.list_personas():
+    if not rows and not q and not all_projects and not store.list_personas():
         # Truly fresh database (no projects AND no personas): orient instead of an empty list.
         return _layout(t("first_steps_h"), _first_steps_html(), store,
                        crumbs=[(t("projects"), None)], active="projects")

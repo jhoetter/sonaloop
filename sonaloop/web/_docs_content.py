@@ -567,7 +567,9 @@ INSPECTOR_SECTIONS = [
       "versionierte Owner-Freigabe je Workspace-Zweck **und** die explizite Call/Job-Zustimmung "
       "dürfen begrenzten Inhalt erfassen; PostHog und Hosted-Generations sind getrennte Zwecke. "
       "Widerruf gilt sofort für neue Receipts, alte Receipts ohne Policy-Snapshot bleiben Metadaten. "
-      "Explizites Ersetzen oder Archivieren bewahrt Evidenz; es löscht nichts.",
+      "Explizites Ersetzen oder Archivieren bewahrt Evidenz; es löscht nichts. Archivierte Jobs "
+      "verschwinden aus der normalen Jobs-Übersicht, der Befehlspalette und den Job-Verweisen auf "
+      "Methodikseiten, bleiben aber über ihren exakten Detail-Link vollständig inspizierbar.",
       "A status dot in the top bar shows whether studies are **running** right now — it turns "
       "**amber** when a project is stalled (the silent failure mode should be loud). In the "
       "project header every project carries its own **run chip** (state · last activity). "
@@ -616,7 +618,8 @@ INSPECTOR_SECTIONS = [
       "purpose **and** explicit call/job consent; PostHog and hosted generations are separate purposes. "
       "Revocation applies immediately to new receipts, while legacy receipts without a policy snapshot "
       "stay metadata-only. Explicit superseding or archiving preserves evidence; "
-      "it deletes nothing.")),
+      "it deletes nothing. Archived jobs leave the normal Jobs overview, command palette and "
+      "methodology Job references, but remain fully inspectable through their exact detail link.")),
     ("keyboard", "command",
      ("Tastatur & Palette", "Keyboard & palette"),
      ("`?` öffnet das Shortcut-Cheat-Sheet. **⌘K / Ctrl+K** öffnet die Befehls-Palette: zuletzt "

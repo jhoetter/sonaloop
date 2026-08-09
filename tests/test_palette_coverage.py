@@ -222,6 +222,19 @@ def test_search_is_diacritic_and_case_insensitive(store):
         assert any(r["url"] == f'/jobs/{proj["id"]}' for r in rows), f"no hit for {q!r}"
 
 
+def test_archived_job_is_not_an_ordinary_palette_result(store):
+    project = services.create_research_project(
+        "Archived palette fixture", goal="preserved evidence", store=store)
+    services.archive_project(
+        project["id"], "archive:palette-fixture", "Hide historical work", store=store)
+
+    rows = search_rows("Archived palette fixture", store=store)
+    assert not any(
+        row["type"] == "project" and row["url"] == f'/jobs/{project["id"]}'
+        for row in rows
+    )
+
+
 def test_search_caps_results_per_kind(store):
     proj = services.create_research_project("Caps", goal="g", store=store)
     for i in range(8):

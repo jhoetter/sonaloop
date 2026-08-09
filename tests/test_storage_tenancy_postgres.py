@@ -439,6 +439,42 @@ def test_project_delete_cascade_is_scoped_to_the_active_workspace(pg):
     assert _state("ws_beta") == {"project": True, "outcomes": 1, "events": 1}
 
 
+def test_postgres_store_project_cascade_batch_commits_or_rolls_back_together(pg):
+    def _exercise():
+        with Store() as st:
+            rollback_projects = [
+                services.start_project(
+                    f"Rollback {suffix}", "q",
+                    operation_id=f"pg-atomic-rollback:{suffix}", store=st,
+                )
+                for suffix in ("a", "b")
+            ]
+            rollback_ids = [project["id"] for project in rollback_projects]
+            for project_id in rollback_ids:
+                assert st.get_research_plan(project_id) is not None
+                st.delete_research_project(project_id, commit=False)
+            assert all(st.get_research_project(project_id) is None for project_id in rollback_ids)
+            st.conn.rollback()
+            assert all(st.get_research_project(project_id) is not None for project_id in rollback_ids)
+            assert all(st.get_research_plan(project_id) is not None for project_id in rollback_ids)
+
+            commit_projects = [
+                services.start_project(
+                    f"Commit {suffix}", "q",
+                    operation_id=f"pg-atomic-commit:{suffix}", store=st,
+                )
+                for suffix in ("a", "b")
+            ]
+            commit_ids = [project["id"] for project in commit_projects]
+            for project_id in commit_ids:
+                st.delete_research_project(project_id, commit=False)
+            st.conn.commit()
+            assert all(st.get_research_project(project_id) is None for project_id in commit_ids)
+            assert all(st.get_research_plan(project_id) is None for project_id in commit_ids)
+
+    _scoped(["ws_atomic"], "ws_atomic", _exercise)
+
+
 def test_importer_folds_a_sqlite_partition_into_a_workspace(pg, tmp_path):
     """The cutover tool: a single-tenant SQLite partition's rows land in Postgres under the
     target workspace, ids preserved, visible only to that workspace's scope."""

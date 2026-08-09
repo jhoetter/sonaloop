@@ -332,6 +332,28 @@ def test_methodologies_page_does_not_build_project_graphs_for_usage_counts(monke
     assert "/methodologies/double-diamond" in r.text
 
 
+def test_methodology_ui_excludes_archived_jobs_from_usage_and_related_rows(store):
+    from starlette.testclient import TestClient
+
+    from sonaloop import services
+    from sonaloop.web.pages import methodologies as meth_page
+
+    current = services.start_project(
+        "Current methodology job", "q", methodology="double_diamond", store=store)
+    archived = services.start_project(
+        "Archived methodology job", "q", methodology="double_diamond", store=store)
+    services.archive_project(
+        archived["id"], "archive:methodology-ui", "Historical job", store=store)
+
+    related = meth_page._projects_using("double_diamond", store)
+    assert [project["id"] for project in related] == [current["id"]]
+    assert meth_page._usage_counts(store)["double_diamond"] == 1
+
+    html = TestClient(web.create_app()).get("/methodologies/double-diamond?lang=en").text
+    assert current["title"] in html
+    assert archived["title"] not in html
+
+
 def test_user_menu_does_not_render_local_identity_placeholder():
     from sonaloop.web._components import _user_menu
     from sonaloop.web._ext import reset_identity, set_identity

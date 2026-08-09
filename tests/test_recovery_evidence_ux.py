@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import base64
+import json
 
 import pytest
 from starlette.testclient import TestClient
@@ -209,6 +210,73 @@ def test_supersede_and_archive_are_explicit_idempotent_and_non_destructive(store
     services.start_run(active["id"], operation_id="active-run", store=store)
     with pytest.raises(ValueError, match="ACTIVE_RUN_ARCHIVE_BLOCKED"):
         services.archive_project(active["id"], "archive:active", "Do not race", store=store)
+
+
+def test_jobs_overview_hides_archived_before_search_count_and_enrichment(store, monkeypatch):
+    active = services.start_project(
+        "VISIBLE CURRENT JOB", "q", operation_id="overview:active", store=store)
+    archived = services.start_project(
+        "HIDDEN ARCHIVED JOB", "q", operation_id="overview:archived", store=store)
+    services.archive_project(
+        archived["id"], "overview:archive", "Preserve completed historical work", store=store)
+
+    enriched_ids = []
+    original_enrich = services._research.enrich_research_project
+
+    def track_enrichment(project, scoped_store, _batch=None):
+        enriched_ids.append(project["id"])
+        return original_enrich(project, scoped_store, _batch=_batch)
+
+    monkeypatch.setattr(services._research, "enrich_research_project", track_enrichment)
+    client = TestClient(web.create_app())
+
+    overview = client.get("/jobs?lang=en").text
+    assert f'href="/jobs/{active["id"]}"' in overview
+    assert f'href="/jobs/{archived["id"]}"' not in overview
+    assert 'class="h1cnt">1<' in overview
+    assert enriched_ids == [active["id"]]
+
+    active_search = client.get("/jobs", params={"q": "VISIBLE CURRENT", "lang": "en"}).text
+    assert f'href="/jobs/{active["id"]}"' in active_search
+    assert f'href="/jobs/{archived["id"]}"' not in active_search
+
+    archive_search = client.get("/jobs", params={"q": "HIDDEN ARCHIVED", "lang": "en"}).text
+    assert f'href="/jobs/{archived["id"]}"' not in archive_search
+    assert "No jobs yet." in archive_search
+
+    # Archiving changes overview membership, not evidence retention or addressability.
+    detail = client.get(f'/jobs/{archived["id"]}?lang=en').text
+    assert archived["title"] in detail
+    assert "Archived; evidence is preserved." in detail
+
+
+def test_archived_only_history_is_empty_overview_not_fresh_database(store):
+    archived = services.start_project(
+        "ONLY ARCHIVED HISTORY", "q", operation_id="overview:archive-only", store=store)
+    services.archive_project(
+        archived["id"], "overview:archive-only:apply", "Keep evidence", store=store)
+    client = TestClient(web.create_app())
+
+    for path in ("/jobs?lang=en", "/?lang=en"):
+        overview = client.get(path).text
+        assert f'href="/jobs/{archived["id"]}"' not in overview
+        assert "No jobs yet." in overview
+        assert "First steps" not in overview
+
+    # An unrelated/unknown status remains normal work; only the exact archive
+    # lifecycle is hidden by this overview policy.
+    legacy = services.start_project(
+        "VISIBLE LEGACY STATUS", "q", operation_id="overview:legacy-status", store=store)
+    legacy_row = store.get_research_project(legacy["id"])
+    legacy_row.pop("status", None)
+    store.conn.execute(
+        "UPDATE research_projects SET data=? WHERE id=?",
+        (json.dumps(legacy_row, ensure_ascii=False), legacy["id"]),
+    )
+    store.conn.commit()
+    overview = client.get("/jobs?lang=en").text
+    assert f'href="/jobs/{legacy["id"]}"' in overview
+    assert f'href="/jobs/{archived["id"]}"' not in overview
 
 
 def test_bilingual_evidence_health_precedes_report_and_has_exact_sources(store):

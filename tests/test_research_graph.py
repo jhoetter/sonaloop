@@ -208,6 +208,48 @@ def test_delete_research_project_cascades_project_scoped_outputs(store):
     assert any(e["id"] == global_event_id for e in remaining_events)
 
 
+@pytest.mark.parametrize("finalize", ["commit", "rollback"])
+def test_store_project_cascade_deletes_compose_in_one_sqlite_transaction(store, finalize):
+    projects = [
+        services.start_project(
+            f"Atomic delete {suffix}", "q", operation_id=f"atomic-delete:{suffix}", store=store,
+        )
+        for suffix in ("a", "b")
+    ]
+    for project in projects:
+        services.record_open_questions(
+            project["id"], [f'Question for {project["id"]}'], store=store,
+        )
+    project_ids = [project["id"] for project in projects]
+    assert all(store.get_research_plan(project_id) for project_id in project_ids)
+    assert all(store.list_open_questions(project_id) for project_id in project_ids)
+
+    deleted = [
+        store.delete_research_project(project_id, commit=False)
+        for project_id in project_ids
+    ]
+    assert all(result["research_projects"] == 1 for result in deleted)
+    assert all(result["research_plans"] == 1 for result in deleted)
+    assert all(result["research_open_questions"] == 1 for result in deleted)
+    assert all(store.get_research_project(project_id) is None for project_id in project_ids)
+
+    getattr(store.conn, finalize)()
+
+    expected_present = finalize == "rollback"
+    assert all(
+        (store.get_research_project(project_id) is not None) is expected_present
+        for project_id in project_ids
+    )
+    assert all(
+        (store.get_research_plan(project_id) is not None) is expected_present
+        for project_id in project_ids
+    )
+    assert all(
+        bool(store.list_open_questions(project_id)) is expected_present
+        for project_id in project_ids
+    )
+
+
 def test_delete_persona(store):
     from conftest import create_persona
     pid = create_persona(store, "Doomed")

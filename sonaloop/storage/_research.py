@@ -367,12 +367,16 @@ class ResearchMixin:
         return json.loads(row["data"]) if row else None
 
     # ---- Granular deletes (D in CRUD; all via MCP/CLI, never the read-only UI) ----
-    def delete_research_project(self, project_id: str) -> dict[str, int]:
+    def delete_research_project(
+        self, project_id: str, *, commit: bool = True,
+    ) -> dict[str, int]:
         """Delete a project container and every project-scoped artifact row.
 
         Personas and persona memory are global and remain. Research outputs with this
         project_id do not: leaving them behind makes Library/global views point at a
-        missing project and breaks trace annotation.
+        missing project and breaks trace annotation. ``commit=False`` is an internal
+        composition seam for callers that have already validated a complete batch and
+        own its transaction; the default preserves the existing one-call commit.
         """
         workspace_id = self._active_claim_workspace()
         scope_sql = " AND workspace_id=?" if workspace_id else ""
@@ -465,7 +469,8 @@ class ResearchMixin:
             "DELETE FROM research_projects WHERE id=?" + scope_sql,
             (pid, *scope_params))
         deleted["research_projects"] = cur.rowcount
-        self.conn.commit()
+        if commit:
+            self.conn.commit()
         return deleted
 
     def delete_open_question(self, question_id: str) -> int:

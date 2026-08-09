@@ -82,6 +82,11 @@ def _date(rec: dict, key: str = "created_at") -> str:
 
 def _project_rows(store: Store) -> Iterator[Row]:
     for p in store.list_research_projects():
+        # Archive is retained evidence, not current navigation. Keep the exact
+        # detail URL addressable while removing the Job itself from ordinary
+        # discovery surfaces such as Cmd+K.
+        if str(p.get("status") or "active").strip().casefold() == "archived":
+            continue
         yield p.get("title", ""), (p.get("goal", "") or "")[:90], f'/jobs/{p["id"]}', _date(p)
 
 

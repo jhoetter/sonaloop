@@ -296,7 +296,10 @@ Project cleanup is non-destructive by default:
 - `supersede_project(new_id, old_id, operation_id, reason)` records explicit old→new lineage, marks
   the predecessor `superseded`, and preserves all artifacts. Similar titles are never a match rule.
 - `archive_project(project_id, operation_id, reason)` preserves the whole record and rejects active
-  runs. Deletion remains a separate, explicit destructive operation.
+  runs. An archived Job leaves the normal Jobs overview, command-palette Job results and methodology
+  usage/related-Job surfaces, but remains available at its exact detail URL for evidence inspection.
+  Jobs search, pagination and the visible count operate only on non-archived Jobs. Deletion remains a
+  separate, explicit destructive operation.
 
 Both writes are retry-safe under their operation id. The inspector renders lineage but does not
 recommend a canonical record unless that relationship was explicitly persisted.
