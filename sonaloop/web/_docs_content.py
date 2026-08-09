@@ -65,13 +65,17 @@ PRINCIPLES = [
       "über eine ganze Domain. Admins können den aktiven Workspace vorübergehend mit den Rechten eines "
       "regulären Mitglieds ansehen; ihre dauerhafte Rolle bleibt dabei unverändert. Passwörter verwaltet "
       "der konfigurierte Login-Anbieter, nicht Sonaloop. Bei neuen Cloud-Jobs zeigt die Übersicht den "
-      "unveränderlichen, authentifizierten Ersteller; ältere Jobs bleiben ehrlich ohne Zuschreibung.",
+      "unveränderlichen, authentifizierten Ersteller. Ältere Jobs bleiben ohne Zuschreibung, solange "
+      "nicht ein Workspace-Owner eine exakte Projekt-zu-Mitglied-Zuordnung ausdrücklich bestätigt; "
+      "eine solche Support-Korrektur wird auditiert und nie aus Titeln oder späteren Bearbeitern erraten.",
       "In Sonaloop Cloud, every record stays inside its workspace. Members enter through an addressed, "
       "single-use invitation and a verified email identity — never automatically through an entire "
       "domain. Admins can temporarily inspect the active workspace with a regular member's permissions; "
       "their persistent role remains unchanged. Passwords are managed by the configured identity provider, "
-      "not by Sonaloop. For new Cloud jobs, the overview shows the immutable authenticated creator; "
-      "older jobs remain honestly unattributed.")),
+      "not by Sonaloop. For new Cloud jobs, the overview shows the immutable authenticated creator. "
+      "Older jobs remain unattributed unless a workspace owner explicitly attests an exact "
+      "project-to-member mapping; that support correction is audited and never guessed from titles "
+      "or later editors.")),
     ("target",
      ("Claims bleiben ehrlich", "Claims stay honest"),
      ("Reaction Tests starten mit einem versionierten **Product Understanding** aus echten Screens, "
@@ -519,7 +523,9 @@ INSPECTOR_SECTIONS = [
       "geschlossenen Detailzeile inspizierbar. "
       "Wenn der Server beim ersten Anlegen einen authentifizierten Akteur gebunden hat, zeigt der "
       "Projekt-Kopf außerdem dessen unveränderlichen Anzeigenamen. Retries und spätere Bearbeiter "
-      "überschreiben ihn nicht; alte oder lokale Jobs ohne Attribution bleiben ohne Zuschreibung. "
+      "überschreiben ihn nicht. Alte Cloud-Jobs können nur über eine auditierte, vom Workspace-Owner "
+      "bestätigte exakte Zuordnung ergänzt werden; lokale Jobs und nicht bestätigte Altjobs bleiben "
+      "ohne Zuschreibung. "
       "Beide verlinken auf das **Run-Journal** (`g` `r`) — eine bewusst schlichte Telemetrie-Seite "
       "mit jedem Projekt-Run und seiner letzten Aktivität. **Läuft · stockt · Engine-abgeschlossen · "
       "Ausgabe unverifiziert** sind getrennte Zustände. Bei einem Problem nennt Sonaloop die "
@@ -569,8 +575,9 @@ INSPECTOR_SECTIONS = [
       "canvas; recorded product/cohort check evidence remains inspectable behind one small, closed "
       "details row. "
       "When the server bound an authenticated actor at the first create, the project header also "
-      "shows that immutable display name. Retries and later editors cannot replace it; legacy or "
-      "local jobs without attribution remain unattributed. Both "
+      "shows that immutable display name. Retries and later editors cannot replace it. Legacy Cloud "
+      "jobs can only be filled through an audited exact mapping attested by the workspace owner; "
+      "local jobs and unattested legacy jobs remain unattributed. Both "
       "link to the **run journal** (`g` `r`) — a deliberately plain telemetry page listing every "
       "project run with its last activity. **Running · stalled · engine-finished · output "
       "unverified** are distinct states. A problem first shows a human-readable recovery hint. "

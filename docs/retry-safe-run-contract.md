@@ -33,8 +33,11 @@ optional `created_by` (`kind`, opaque `id`, display `label`, optional `role`/`ch
 and therefore never appears in MCP input schemas. Exact retries and concurrent creators retain the
 first atomic winner; later project edits and whole-row upserts cannot replace it. Historical,
 unbound and local projects remain honestly unattributed—Sonaloop never guesses a creator from a
-later editor, operation id, prompt or tool call. The inspector renders only the frozen display
-label on the Jobs overview and Job detail, never the opaque actor id.
+later editor, operation id, prompt or tool call. A hosting adapter may expose a separate privileged
+owner-attestation migration for exact legacy project/member mappings; ordinary project APIs and
+retries cannot invoke it, and unattributed projects remain unchanged without that explicit evidence.
+The inspector renders only the frozen display label on the Jobs overview and Job detail, never the
+opaque actor id or migration receipt.
 
 Before project or plan storage is touched, `methodology` is resolved against the registry. Stable
 keys and human display names are accepted, with case, whitespace, `_`, `-` and punctuation treated

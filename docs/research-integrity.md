@@ -23,7 +23,9 @@ Creator attribution is a separate server boundary. A hosting adapter may bind an
 `sonaloop.request_actor.v1` context around the request; project creation snapshots it once as
 immutable `created_by`. Models cannot supply this field through MCP, retries cannot rewrite it, and
 legacy/unbound projects stay unattributed rather than inheriting the identity of whoever next opens
-or edits them.
+or edits them. A Cloud operator may fill a legacy gap only from an exact project-to-current-member
+mapping explicitly attested by a current workspace owner. That exceptional path is dry-run-first,
+tenant-bound and audited; it never infers identity from titles, prompts, timestamps or later activity.
 
 ## Dispatch write contract
 
