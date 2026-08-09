@@ -1,14 +1,39 @@
 from __future__ import annotations
 
 import time
-from typing import Any
+from typing import Any, TypedDict
 
 from .. import services
 from ._env import _env
 
 
+class ReactionScreenRole(TypedDict):
+    asset_version_id: str
+    role: str
+
+
 def register_flows(mcp):
     # == Screenshot flows: walkthrough with drop-off, artifact-first (docs/flow-walkthrough.md) ==
+    @mcp.tool()
+    def record_reaction_test_capture_review(
+            project_id: str, capture_complete: bool,
+            screen_roles: list[ReactionScreenRole], known_missing: list[str] | None,
+            rationale: str, operation_id: str, dispatch_token: str) -> dict[str, Any]:
+        """Review the exact currently admitted Reaction-Test screen inventory before a flow is
+        frozen. Set capture_complete=false and name concrete known_missing routes/states to request
+        another screenshot; set it true only when the inventory is sufficient for the user's task.
+        screen_roles must cover every returned asset id exactly once and in order. The decision is
+        immutable, bound to the exact byte digests and dispatch, and retry-safe by operation_id."""
+        t = time.perf_counter()
+        return _env(
+            "record_reaction_test_capture_review",
+            services.record_reaction_test_capture_review(
+                project_id, capture_complete, screen_roles, known_missing,
+                rationale, operation_id, dispatch_token,
+            ),
+            t,
+        )
+
     @mcp.tool()
     def record_flow_manifest(project_id: str, run_id: str, operation_id: str,
                              flow_key: str, title: str, steps: list[dict[str, Any]],

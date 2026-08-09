@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import time
-from typing import Any
+from typing import Any, Literal
 
 from .. import services
 from ._env import _env
@@ -11,7 +11,8 @@ def register_assets(mcp):
     # ============ Project assets: files/images/screenshots as evidence ============
     @mcp.tool()
     def admit_remote_screenshot(project_id: str, run_id: str, operation_id: str,
-                                content_base64: str, filename: str, media_type: str,
+                                content_base64: str, filename: str,
+                                media_type: Literal["image/png", "image/jpeg", "image/webp"],
                                 captured_at: str, target_revision: str,
                                 title: str = "", label: str = "",
                                 dispatch_token: str = "") -> dict[str, Any]:
@@ -84,6 +85,23 @@ def register_assets(mcp):
         return _env("view_asset", {"id": record["id"], "title": record.get("title"),
                                    "media_type": record.get("media_type"), "bytes": record.get("bytes"),
                                    "note": "binary asset — cite it by id; no inline preview"}, t)
+
+    @mcp.tool()
+    def inspect_reaction_test_screen(project_id: str, manifest_id: str,
+                                     step_index: int, asset_id: str,
+                                     dispatch_token: str):
+        """Execute the ONE current multimodal Reaction-Test setup action. The server validates
+        the active Product Understanding dispatch, immutable manifest/digest, exact step and asset
+        version, returns the real pixels, and journals a privacy-safe ``served_to_host`` receipt.
+        This does not claim that the model understood the image; it prevents skipped/mixed screens
+        from satisfying the bounded Product Understanding recorder. Retry the exact same call after
+        transport loss; it is idempotent. Then continue the SAME job/run for the next sole action."""
+        data, record, receipt = services.inspect_reaction_test_screen(
+            project_id, manifest_id, step_index, asset_id, dispatch_token,
+        )
+        from mcp.server.fastmcp import Image
+        fmt = (record.get("media_type") or "image/png").split("/")[-1]
+        return [Image(data=data, format=fmt), {"receipt": receipt}]
 
     @mcp.tool()
     def remove_asset(project_id: str, asset_id: str) -> dict[str, Any]:

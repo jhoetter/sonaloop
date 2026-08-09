@@ -107,8 +107,8 @@ def record_manifest_product_understanding(
     if not isinstance(observations, list) or not observations:
         raise IntegrityError(
             "STIMULUS_OBSERVATION_INCOMPLETE",
-            "observations must contain {step_index, claim} for every manifest step; safe retry: "
-            "view each action.manifest.steps asset, then call record_manifest_product_understanding",
+            "observations must contain {step_index, visible_observation} for every manifest step; "
+            "safe retry: continue the same job and execute each inspect_reaction_test_screen action",
         )
     if len(observations) > 200:
         raise IntegrityError("STIMULUS_OBSERVATION_BAD_INPUT",
@@ -119,7 +119,7 @@ def record_manifest_product_understanding(
         if not isinstance(raw, dict):
             raise IntegrityError(
                 "STIMULUS_OBSERVATION_BAD_INPUT",
-                f"observations[{index}] must be an object with step_index and claim",
+                f"observations[{index}] must be an object with step_index and visible_observation",
             )
         step_index = raw.get("step_index")
         if not isinstance(step_index, int) or isinstance(step_index, bool):
@@ -132,16 +132,16 @@ def record_manifest_product_understanding(
                 "STIMULUS_OBSERVATION_BAD_INPUT",
                 f"observations[{index}].step_index {step_index} is outside 0..{len(steps) - 1}",
             )
-        claim = str(raw.get("claim") or "").strip()
+        claim = str(raw.get("visible_observation") or "").strip()
         if not claim:
             raise IntegrityError(
                 "STIMULUS_OBSERVATION_BAD_INPUT",
-                f"observations[{index}].claim is required",
+                f"observations[{index}].visible_observation is required",
             )
         if len(claim) > 1_000:
             raise IntegrityError(
                 "STIMULUS_OBSERVATION_BAD_INPUT",
-                f"observations[{index}].claim may contain at most 1000 characters",
+                f"observations[{index}].visible_observation may contain at most 1000 characters",
             )
         step = steps[step_index]
         ref = {"kind": "asset", "id": str(step.get("asset_version_id") or "")}
@@ -155,6 +155,39 @@ def record_manifest_product_understanding(
             "STIMULUS_OBSERVATION_INCOMPLETE",
             f"observations are missing manifest step indexes {missing}; safe retry the same "
             "record_manifest_product_understanding call after viewing those exact assets",
+        )
+
+    token = str(dispatch_token or "").strip()
+    run = next((row for row in store.list_runs(project_id)
+                if any(str(item.get("dispatch_token") or "") == token
+                       for item in (row.get("dispatches") or []))), None)
+    dispatch = next((item for item in (run or {}).get("dispatches") or []
+                     if str(item.get("dispatch_token") or "") == token), None)
+    progress = dict((dispatch or {}).get("progress_receipts") or {})
+    assets = {str(row.get("id") or ""): row for row in project.get("assets") or []}
+    undelivered: list[int] = []
+    for index, step in enumerate(steps):
+        asset_id = str(step.get("asset_version_id") or "")
+        asset = assets.get(asset_id) or {}
+        content_digest = str(asset.get("content_digest") or "")
+        action_key = f"reaction-screen:{manifest_id}:{index}"
+        receipt = dict(progress.get(action_key) or {})
+        expected_input = operation_fingerprint({
+            "manifest_id": manifest_id,
+            "manifest_digest": str(manifest.get("manifest_digest") or ""),
+            "step_index": index,
+            "asset_version_id": asset_id,
+            "content_digest": content_digest,
+        })
+        if (receipt.get("kind") != "reaction_screen_served"
+                or str(receipt.get("input_fingerprint") or "") != expected_input
+                or str(receipt.get("result_digest") or "") != content_digest):
+            undelivered.append(index)
+    if undelivered:
+        raise IntegrityError(
+            "STIMULUS_SCREEN_DELIVERY_REQUIRED",
+            f"manifest step indexes {undelivered} have no exact served-to-host receipt on this "
+            "dispatch; safe retry: continue the same job and execute its sole screen action",
         )
     if unknown_capabilities is not None and not isinstance(unknown_capabilities, list):
         raise IntegrityError("STIMULUS_OBSERVATION_BAD_INPUT",
@@ -202,9 +235,9 @@ def record_manifest_product_understanding(
         for index, step in enumerate(steps)
     ]
     coverage = [
-        {"step_index": index, "status": "inspected",
+        {"step_index": index, "status": "served_to_host",
          "evidence_refs": [{"kind": "asset", "id": step.get("asset_version_id")}],
-         "notes": "Bound to a concrete host-authored visible-screen observation."}
+         "notes": "Exact pixels were served to the host before this visible-state observation."}
         for index, step in enumerate(steps)
     ]
     result = record_product_understanding(
@@ -232,9 +265,9 @@ def record_manifest_product_understanding(
         store=store,
     )
     result["bounded_authoring"] = {
-        "schema": "sonaloop.manifest_observations.v1",
+        "schema": "sonaloop.manifest_observations.v2",
         "manifest_id": manifest_id,
-        "observed_steps": sorted(covered),
+        "served_steps": sorted(covered),
         "url_role": "target_identity_only",
     }
     return result

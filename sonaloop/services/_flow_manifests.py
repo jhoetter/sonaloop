@@ -7,7 +7,7 @@ import json
 from typing import Any
 
 from ..config import utc_now_iso
-from ..research_integrity import IntegrityError, operation_fingerprint
+from ..research_integrity import IntegrityError, is_reaction_project, operation_fingerprint
 from ..storage import Store
 
 from ._common import *  # noqa: F401,F403  (stable_id, dispatch helpers, project guard)
@@ -27,6 +27,125 @@ MAX_FLOW_MANIFEST_STEPS = 50
 def _manifest_operation(project: dict[str, Any], operation_id: str) -> dict[str, Any] | None:
     return next((m for m in (project.get("flow_manifests") or [])
                  if str(m.get("operation_id") or "") == operation_id), None)
+
+
+def record_reaction_test_capture_review(
+    project_id: str,
+    capture_complete: bool,
+    screen_roles: list[dict[str, Any]],
+    known_missing: list[str] | None,
+    rationale: str,
+    operation_id: str,
+    dispatch_token: str,
+    store: Store | None = None,
+) -> dict[str, Any]:
+    """Freeze an explicit capture-more/finalize decision over exact screen bytes."""
+    store = store or Store()
+    project = _require_research_project(store, project_id)  # noqa: F821
+    if not isinstance(capture_complete, bool):
+        raise IntegrityError("CAPTURE_REVIEW_BAD_INPUT", "capture_complete must be a boolean")
+    op = _required_text(operation_id, "operation_id", maximum=200)
+    reason = _required_text(rationale, "rationale", maximum=2_000)
+    if len(reason) < 20:
+        raise IntegrityError("CAPTURE_REVIEW_BAD_INPUT", "rationale must contain at least 20 characters")
+    remote = [row for row in (project.get("assets") or [])
+              if ((row.get("admission") or {}).get("schema") == REMOTE_SCREENSHOT_SCHEMA)]
+    if not remote:
+        raise IntegrityError("CAPTURE_REVIEW_NO_SCREENS", "admit at least one screenshot before review")
+    revision = str((remote[-1].get("admission") or {}).get("target_revision") or "")
+    selected = [row for row in remote
+                if str((row.get("admission") or {}).get("target_revision") or "") == revision]
+    selected_ids = [str(row.get("id") or "") for row in selected]
+    if not isinstance(screen_roles, list) or len(screen_roles) != len(selected_ids):
+        raise IntegrityError(
+            "CAPTURE_REVIEW_INCOMPLETE",
+            "screen_roles must contain exactly one {asset_version_id, role} row per current screen",
+        )
+    roles: list[dict[str, str]] = []
+    for index, raw in enumerate(screen_roles):
+        if not isinstance(raw, dict):
+            raise IntegrityError("CAPTURE_REVIEW_BAD_INPUT", f"screen_roles[{index}] must be an object")
+        asset_id = _required_text(raw.get("asset_version_id"),
+                                  f"screen_roles[{index}].asset_version_id")
+        role = _required_text(raw.get("role"), f"screen_roles[{index}].role", maximum=500)
+        roles.append({"asset_version_id": asset_id, "role": role})
+    if [row["asset_version_id"] for row in roles] != selected_ids:
+        raise IntegrityError(
+            "CAPTURE_REVIEW_SCREEN_MISMATCH",
+            "screen_roles must preserve the exact current admitted screen order",
+        )
+    if known_missing is not None and not isinstance(known_missing, list):
+        raise IntegrityError("CAPTURE_REVIEW_BAD_INPUT", "known_missing must be a list of strings")
+    missing = list(dict.fromkeys(str(value).strip() for value in (known_missing or [])
+                                if str(value).strip()))
+    if len(missing) > 50 or any(len(value) > 500 for value in missing):
+        raise IntegrityError("CAPTURE_REVIEW_BAD_INPUT",
+                             "known_missing allows at most 50 entries of 500 characters")
+    if not capture_complete and not missing:
+        raise IntegrityError(
+            "CAPTURE_REVIEW_MISSING_NEXT_STATE",
+            "capture_more requires at least one concrete known_missing route/state",
+        )
+    assets = [{"asset_version_id": str(row.get("id") or ""),
+               "content_digest": str(row.get("content_digest") or "")}
+              for row in selected]
+    authored = {
+        "assets": assets, "target_revision": revision, "capture_complete": capture_complete,
+        "screen_roles": roles, "known_missing": missing, "rationale": reason,
+    }
+    fingerprint = operation_fingerprint(authored)
+    ctx = prepare_dispatch_write(  # noqa: F821
+        project_id, dispatch_token, None, "reference", store,
+        allowed_buckets={"analyze"}, required_capability="product_understanding",
+    )
+    review: dict[str, Any] | None = None
+    replay = False
+    for _attempt in range(16):
+        current = _require_research_project(store, project_id)  # noqa: F821
+        existing = next((row for row in (current.get("reaction_capture_reviews") or [])
+                         if str(row.get("operation_id") or "") == op), None)
+        if existing:
+            if str(existing.get("operation_fingerprint") or "") != fingerprint:
+                raise IntegrityError(
+                    "CAPTURE_REVIEW_IDEMPOTENCY_CONFLICT",
+                    "operation_id was already used for a different capture review",
+                )
+            review, replay = existing, True
+            break
+        versions = list(current.get("reaction_capture_reviews") or [])
+        review = {
+            "schema": "sonaloop.reaction_capture_review.v1",
+            "id": stable_id("capture_review", project_id, op),  # noqa: F821
+            "project_id": project_id,
+            "version": len(versions) + 1,
+            "status": "finalized" if capture_complete else "capture_more",
+            **authored,
+            "operation_id": op,
+            "operation_fingerprint": fingerprint,
+            "created_at": utc_now_iso(),
+            "dispatch_provenance": {
+                "dispatch_token": str(ctx.get("dispatch_token") or ""),
+                "run_id": str(ctx.get("run_id") or ""),
+                "task_id": str(ctx.get("task_id") or ""),
+            },
+        }
+        updated = copy.deepcopy(current)
+        updated.setdefault("reaction_capture_reviews", []).append(review)
+        updated["updated_at"] = utc_now_iso()
+        if store.compare_and_swap_research_project(current, updated):
+            break
+        review = None
+    if review is None:
+        raise IntegrityError("CAPTURE_REVIEW_CONTENTION",
+                             "project changed repeatedly; retry the same operation_id")
+    return {
+        **review,
+        "idempotent_replay": replay,
+        "dispatch": {"state": "supporting_write", "checkpointed": False,
+                     "dispatch_token": str(ctx.get("dispatch_token") or ""),
+                     "task_id": str(ctx.get("task_id") or "")},
+        "next": {"tool": "run_step", "arguments": {"run_id": str(ctx.get("run_id") or "")}},
+    }
 
 
 def record_flow_manifest(
@@ -126,6 +245,21 @@ def record_flow_manifest(
                 "url": asset.get("url", ""),
                 "captured_at": admission["captured_at"],
             })
+        if is_reaction_project(current, store.get_research_plan(project_id) or {}):
+            exact_assets = [{"asset_version_id": row["asset_version_id"],
+                             "content_digest": row["content_digest"]}
+                            for row in resolved_steps]
+            finalized = next((row for row in reversed(
+                current.get("reaction_capture_reviews") or [])
+                if row.get("status") == "finalized"
+                and str(row.get("target_revision") or "") == target_revision
+                and row.get("assets") == exact_assets), None)
+            if not finalized:
+                raise IntegrityError(
+                    "CAPTURE_REVIEW_REQUIRED",
+                    "Reaction Test flow steps require an exact finalized capture review; "
+                    "continue the same run and execute its capture-review action",
+                )
         lineage = [m for m in (current.get("flow_manifests") or [])
                    if str(m.get("flow_key") or "") == flow_key]
         version = max((int(m.get("version") or 0) for m in lineage), default=0) + 1
@@ -298,7 +432,7 @@ def validate_product_understanding_manifest_binding(
     if len(checklist) != len(stored.get("steps") or []):
         raise IntegrityError(
             "STIMULUS_COVERAGE_INCOMPLETE",
-            "coverage_checklist must contain exactly one inspected entry per manifest step",
+            "coverage_checklist must contain exactly one covered entry per manifest step",
         )
     normalized: list[dict[str, Any]] = []
     seen: set[int] = set()
@@ -312,10 +446,11 @@ def validate_product_understanding_manifest_binding(
         if step_index in seen or not 0 <= step_index < len(stored["steps"]):
             raise IntegrityError("STIMULUS_COVERAGE_INCOMPLETE", "coverage step indexes must be exact and unique")
         seen.add(step_index)
-        if str(raw.get("status") or "") != "inspected":
+        coverage_status = str(raw.get("status") or "")
+        if coverage_status not in {"inspected", "served_to_host"}:
             raise IntegrityError(
                 "STIMULUS_COVERAGE_INCOMPLETE",
-                "every remote screenshot must be explicitly marked inspected before Reaction Test",
+                "every remote screenshot must be marked inspected or served_to_host before Reaction Test",
             )
         step = stored["steps"][step_index]
         refs = raw.get("evidence_refs") or []
@@ -328,7 +463,7 @@ def validate_product_understanding_manifest_binding(
             )
         normalized.append({
             "step_index": step_index,
-            "status": "inspected",
+            "status": coverage_status,
             "label": step["label"],
             "asset_version_id": step["asset_version_id"],
             "content_digest": step["content_digest"],

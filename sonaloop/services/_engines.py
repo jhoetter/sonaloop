@@ -1015,6 +1015,74 @@ def prepare_dispatch_write(
     }
 
 
+def record_dispatch_progress(
+    project_id: str,
+    dispatch_token: str,
+    action_key: str,
+    kind: str,
+    payload: dict[str, Any],
+    result_digest: str,
+    store: Store,
+    *,
+    allowed_buckets: set[str] | None = None,
+    required_capability: str = "",
+) -> dict[str, Any]:
+    """Persist one replay-safe supporting progress receipt on an issued dispatch.
+
+    Progress is not evidence and never claims or checkpoints the primary output.
+    Only fingerprints/digests are journaled, so screen bytes and authored text do
+    not leak into the run record.  The same action key with different inputs
+    fails closed instead of silently advancing a weak host.
+    """
+    ctx = prepare_dispatch_write(
+        project_id, dispatch_token, None, "reference", store,
+        allowed_buckets=allowed_buckets, required_capability=required_capability,
+    )
+    key = str(action_key or "").strip()
+    progress_kind = str(kind or "").strip()
+    digest = str(result_digest or "").strip()
+    if not key or len(key) > 300 or not key.isprintable():
+        raise PlanError("DISPATCH_PROGRESS_BAD_INPUT", "action_key must be 1-300 printable characters")
+    if not progress_kind or len(progress_kind) > 100 or not progress_kind.isprintable():
+        raise PlanError("DISPATCH_PROGRESS_BAD_INPUT", "kind must be 1-100 printable characters")
+    if not digest or len(digest) > 200 or not digest.isprintable():
+        raise PlanError("DISPATCH_PROGRESS_BAD_INPUT", "result_digest must be 1-200 printable characters")
+    input_fingerprint = canonical_payload_fingerprint(payload)
+    for _attempt in range(16):
+        current = store.get_run(str(ctx.get("run_id") or ""))
+        dispatch = next((row for row in (current or {}).get("dispatches") or []
+                         if str(row.get("dispatch_token") or "") == dispatch_token), None)
+        if not current or not dispatch:
+            raise PlanError("UNKNOWN_DISPATCH_TOKEN", "dispatch disappeared while recording progress")
+        existing = dict((dispatch.get("progress_receipts") or {}).get(key) or {})
+        if existing:
+            if (str(existing.get("input_fingerprint") or "") != input_fingerprint
+                    or str(existing.get("result_digest") or "") != digest
+                    or str(existing.get("kind") or "") != progress_kind):
+                raise PlanError(
+                    "DISPATCH_PROGRESS_CONFLICT",
+                    "the same dispatch progress key was reused with different inputs or result",
+                )
+            return {**existing, "idempotent_replay": True}
+        receipt = {
+            "id": stable_id("progress", str(dispatch_token), key),
+            "action_key": key,
+            "kind": progress_kind,
+            "input_fingerprint": input_fingerprint,
+            "result_digest": digest,
+            "status": "recorded",
+            "recorded_at": utc_now_iso(),
+        }
+        updated = copy.deepcopy(current)
+        target = next(row for row in updated.get("dispatches") or []
+                      if str(row.get("dispatch_token") or "") == dispatch_token)
+        target.setdefault("progress_receipts", {})[key] = receipt
+        updated["updated_at"] = utc_now_iso()
+        if store.compare_and_swap_run(current, updated):
+            return {**receipt, "idempotent_replay": False}
+    raise PlanError("DISPATCH_CONTENTION", "run changed repeatedly while recording progress")
+
+
 def _dispatch_ref_token(ref: dict[str, Any]) -> str:
     kind, rid = str(ref.get("kind") or ""), str(ref.get("id") or "")
     return f"{kind}:{rid}" if kind and rid else rid

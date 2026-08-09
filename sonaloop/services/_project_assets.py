@@ -313,6 +313,83 @@ def get_asset_content(project_id: str, asset_id: str,
     return target.read_bytes(), record
 
 
+def inspect_reaction_test_screen(
+    project_id: str,
+    manifest_id: str,
+    step_index: int,
+    asset_id: str,
+    dispatch_token: str,
+    store: Store | None = None,
+) -> tuple[bytes, dict[str, Any], dict[str, Any]]:
+    """Serve one exact Reaction-Test screen and journal a version-bound receipt.
+
+    The receipt honestly means ``served_to_host``; it cannot prove that a model
+    cognitively understood the pixels.  It does prove that the bounded recorder
+    cannot skip screens, mix manifest revisions, or claim coverage without this
+    purpose-built multimodal tool having delivered each exact asset version.
+    """
+    from ..reaction_preflight import reaction_preflight_action
+
+    store = store or Store()
+    project = _require_research_project(store, project_id)  # noqa: F821 (bound)
+    manifest = next((row for row in (project.get("flow_manifests") or [])
+                     if str(row.get("id") or "") == str(manifest_id or "")), None)
+    if not manifest:
+        raise ValueError("REACTION_SCREEN_MANIFEST_MISMATCH: unknown manifest_id")
+    steps = list(manifest.get("steps") or [])
+    if not isinstance(step_index, int) or isinstance(step_index, bool) \
+            or not 0 <= step_index < len(steps):
+        raise ValueError("REACTION_SCREEN_STEP_MISMATCH: step_index is outside the manifest")
+    step = steps[step_index]
+    expected_asset_id = str(step.get("asset_version_id") or "")
+    if str(asset_id or "") != expected_asset_id:
+        raise ValueError("REACTION_SCREEN_ASSET_MISMATCH: asset_id is not the exact manifest step")
+    data, record = get_asset_content(project_id, expected_asset_id, store=store)
+    content_digest = str(record.get("content_digest") or hashlib.sha256(data).hexdigest())
+    action_key = f"reaction-screen:{manifest_id}:{step_index}"
+    payload = {
+        "manifest_id": str(manifest_id),
+        "manifest_digest": str(manifest.get("manifest_digest") or ""),
+        "step_index": step_index,
+        "asset_version_id": expected_asset_id,
+        "content_digest": content_digest,
+    }
+
+    # Exact transport retries remain valid even after the router has advanced;
+    # a first-time call must, however, be the server's current sole action.
+    run = next((row for row in store.list_runs(project_id)
+                if any(str(item.get("dispatch_token") or "") == str(dispatch_token or "")
+                       for item in (row.get("dispatches") or []))), None)
+    dispatch = next((item for item in (run or {}).get("dispatches") or []
+                     if str(item.get("dispatch_token") or "") == str(dispatch_token or "")), None)
+    existing = dict(((dispatch or {}).get("progress_receipts") or {}).get(action_key) or {})
+    if not existing:
+        action = reaction_preflight_action(project_id, store) or {}
+        expected_call = dict(action.get("next_call") or {})
+        expected_args = dict(expected_call.get("arguments") or {})
+        if (expected_call.get("tool") != "inspect_reaction_test_screen"
+                or str(expected_args.get("manifest_id") or "") != str(manifest_id)
+                or int(expected_args.get("step_index") or 0) != step_index
+                or str(expected_args.get("asset_id") or "") != expected_asset_id):
+            raise ValueError(
+                "REACTION_SCREEN_OUT_OF_ORDER: request the current blocking_action and execute only its next_call"
+            )
+    receipt = record_dispatch_progress(  # noqa: F821 (bound)
+        project_id, str(dispatch_token or ""), action_key,
+        "reaction_screen_served", payload, content_digest, store,
+        allowed_buckets={"analyze"}, required_capability="product_understanding",
+    )
+    receipt.update({
+        "manifest_id": str(manifest_id),
+        "manifest_digest": str(manifest.get("manifest_digest") or ""),
+        "step_index": step_index,
+        "asset_version_id": expected_asset_id,
+        "content_digest": content_digest,
+        "delivery_status": "served_to_host",
+    })
+    return data, record, receipt
+
+
 def get_asset_preview_content(project_id: str, asset_id: str,
                               store: Store | None = None) -> tuple[bytes, dict[str, Any]]:
     """The generated PNG preview for a document asset, contained to its active

@@ -223,6 +223,14 @@ def test_manifest_and_product_understanding_freeze_exact_versions_revision_and_c
             )
         assert unmanifested.value.code == "STIMULUS_MANIFEST_REQUIRED"
 
+        services.record_reaction_test_capture_review(
+            project["id"], True,
+            [{"asset_version_id": first["id"], "role": "Home state"},
+             {"asset_version_id": second["id"], "role": "Finance state"}],
+            [], "The exact two-screen inventory covers the bounded home-to-finance task.",
+            "capture-review:v1", dispatch["dispatch_token"], store=store,
+        )
+
         manifest = services.record_flow_manifest(
             project["id"], run["run_id"], "flow:v1", "home-finance", "Home to finance",
             [{"asset_version_id": first["id"], "label": "Home"},

@@ -23,9 +23,9 @@ def _workspace():
         config.reset_request_tenant_scope(token)
 
 
-def _png() -> str:
+def _png(color: tuple[int, int, int] = (40, 90, 140)) -> str:
     out = BytesIO()
-    Image.new("RGB", (32, 20), (40, 90, 140)).save(out, format="PNG")
+    Image.new("RGB", (32, 20), color).save(out, format="PNG")
     return base64.b64encode(out.getvalue()).decode("ascii")
 
 
@@ -108,6 +108,13 @@ def test_url_is_identity_only_and_first_run_step_has_one_real_stimulus_call(stor
         assert action["next_call"]["arguments"]["run_id"] == run["run_id"]
         assert action["next_call"]["arguments"]["dispatch_token"] == dispatch["dispatch_token"]
         assert action["pending_blockers"]["cohort_too_small"] is True
+        health = services.project_health(project["id"], store=store)
+        assert health["safe_next_action"]["tool"] == "admit_remote_screenshot"
+        assert health["safe_next_action"]["arguments"]["run_id"] == run["run_id"]
+        assert health["safe_next_action"]["arguments"]["dispatch_token"] == \
+            dispatch["dispatch_token"]
+        assert {"arguments.content_base64", "arguments.filename", "arguments.media_type"} <= \
+            set(health["safe_next_action"]["required_input_paths"])
         stored = store.get_research_project(project["id"])
         assert not stored.get("assets") and not stored.get("product_understanding_versions")
         assert [row for row in store.list_council_sessions()
@@ -129,6 +136,17 @@ def test_minimal_host_repairs_same_run_and_reaches_both_owned_council_dispatches
             "2026-08-09T14:40:00Z", "release:shkb:1", label="Anlegen overview",
             dispatch_token=first["dispatch_token"], store=store,
         )
+        review_dispatch = services.run_step(run["run_id"], store=store)
+        review_action = review_dispatch["blocking_action"]
+        assert review_action["kind"] == "capture_review_required"
+        review = services.record_reaction_test_capture_review(
+            project["id"], True,
+            [{"asset_version_id": screen["id"], "role": "Investment overview under test"}],
+            [], "The task is intentionally limited to this exact captured overview state.",
+            review_action["next_call"]["arguments"]["operation_id"],
+            review_dispatch["dispatch_token"], store=store,
+        )
+        assert review["status"] == "finalized"
         flow_action = services.run_step(run["run_id"], store=store)["blocking_action"]
         assert flow_action["kind"] == "flow_manifest_required"
         manifest = services.record_flow_manifest(
@@ -141,7 +159,11 @@ def test_minimal_host_repairs_same_run_and_reaches_both_owned_council_dispatches
         product_dispatch = services.run_step(run["run_id"], store=store)
         assert product_dispatch["blocking_action"]["kind"] == "product_understanding_required"
         assert product_dispatch["blocking_action"]["next_call"]["tool"] == \
-            "record_manifest_product_understanding"
+            "inspect_reaction_test_screen"
+        health = services.project_health(project["id"], store=store)
+        assert health["safe_next_action"]["tool"] == "inspect_reaction_test_screen"
+        assert health["safe_next_action"]["arguments"]["asset_id"] == screen["id"]
+        assert health["safe_next_action"]["required_input_paths"] == []
         with pytest.raises(IntegrityError) as incomplete:
             services.record_manifest_product_understanding(
                 project["id"], manifest["id"], observations=[],
@@ -150,11 +172,35 @@ def test_minimal_host_repairs_same_run_and_reaches_both_owned_council_dispatches
         assert incomplete.value.code == "STIMULUS_OBSERVATION_INCOMPLETE"
         assert "safe retry" in incomplete.value.message
         assert not store.get_research_project(project["id"]).get("product_understanding_versions")
+        with pytest.raises(IntegrityError) as undelivered:
+            services.record_manifest_product_understanding(
+                project["id"], manifest["id"],
+                observations=[{"step_index": 0,
+                               "visible_observation": "An overview is visible."}],
+                dispatch_token=product_dispatch["dispatch_token"], store=store,
+            )
+        assert undelivered.value.code == "STIMULUS_SCREEN_DELIVERY_REQUIRED"
+        assert not store.get_research_project(project["id"]).get("product_understanding_versions")
+
+        _data, _asset, receipt = services.inspect_reaction_test_screen(
+            project["id"], manifest["id"], 0, screen["id"],
+            product_dispatch["dispatch_token"], store=store,
+        )
+        assert receipt["delivery_status"] == "served_to_host"
+        _data, _asset, replay_receipt = services.inspect_reaction_test_screen(
+            project["id"], manifest["id"], 0, screen["id"],
+            product_dispatch["dispatch_token"], store=store,
+        )
+        assert replay_receipt["id"] == receipt["id"]
+        assert replay_receipt["idempotent_replay"] is True
+        record_dispatch = services.run_step(run["run_id"], store=store)
+        assert record_dispatch["blocking_action"]["next_call"]["tool"] == \
+            "record_manifest_product_understanding"
 
         understanding = services.record_manifest_product_understanding(
             project["id"], manifest["id"],
             observations=[{"step_index": 0,
-                           "claim": "The captured screen visibly presents an investment overview."}],
+                           "visible_observation": "The screen presents an investment overview."}],
             unknown_capabilities=["Behavior after selecting a product is not visible."],
             target_name="SHKB", target_url="https://www.shkb.ch/295-anlegen",
             dispatch_token=product_dispatch["dispatch_token"], store=store,
@@ -165,7 +211,7 @@ def test_minimal_host_repairs_same_run_and_reaches_both_owned_council_dispatches
         understanding_replay = services.record_manifest_product_understanding(
             project["id"], manifest["id"],
             observations=[{"step_index": 0,
-                           "claim": "The captured screen visibly presents an investment overview."}],
+                           "visible_observation": "The screen presents an investment overview."}],
             unknown_capabilities=["Behavior after selecting a product is not visible."],
             target_name="SHKB", target_url="https://www.shkb.ch/295-anlegen",
             dispatch_token=product_dispatch["dispatch_token"], store=store,
@@ -176,6 +222,8 @@ def test_minimal_host_repairs_same_run_and_reaches_both_owned_council_dispatches
         frame_dispatch = services.run_step(run["run_id"], store=store)
         assert frame_dispatch["step_id"] == "frame__react"
         assert frame_dispatch["blocking_action"]["kind"] == "cohort_selection_required"
+        assert {row["id"] for row in frame_dispatch["blocking_action"]["candidate_personas"]} >= \
+            {p1, p2}
         with pytest.raises(IntegrityError) as too_small:
             services.select_reaction_test_cohort(
                 project["id"], [p1], "Only one persona is not enough",
@@ -194,6 +242,19 @@ def test_minimal_host_repairs_same_run_and_reaches_both_owned_council_dispatches
         )
         assert selected["gate_passed"] is False and selected["dispatch"]["checkpointed"] is False
         assert replay["idempotent_replay"] is True
+        no_op = services.select_reaction_test_cohort(
+            project["id"], [p1, p2], "Keep the same independent operational contrast",
+            operation_id="weak:cohort-no-op", dispatch_token=frame_dispatch["dispatch_token"],
+            store=store,
+        )
+        assert no_op["idempotent_replay"] is False
+        with pytest.raises(IntegrityError) as selection_conflict:
+            services.select_reaction_test_cohort(
+                project["id"], [p2, p1], "Reverse the same independent operational contrast",
+                operation_id="weak:cohort-no-op", dispatch_token=frame_dispatch["dispatch_token"],
+                store=store,
+            )
+        assert selection_conflict.value.code == "COHORT_SELECTION_IDEMPOTENCY_CONFLICT"
         assert "blocking_action" not in services.run_step(run["run_id"], store=store)
         services.record_frame(
             project["id"], "frame__react",
@@ -237,11 +298,80 @@ def test_minimal_host_repairs_same_run_and_reaches_both_owned_council_dispatches
         assert second_council["step_id"] == "act__react__trust_action"
 
 
+def test_capture_more_and_late_screen_invalidate_stale_inventory_and_manifest(store):
+    with _workspace():
+        project, run = _url_only(store)
+        dispatch = services.run_step(run["run_id"], store=store)
+        first = services.admit_remote_screenshot(
+            project["id"], run["run_id"], "capture:first", _png(), "first.png", "image/png",
+            "2026-08-09T15:00:00Z", "release:multi:1", label="Entry",
+            dispatch_token=dispatch["dispatch_token"], store=store,
+        )
+        review_dispatch = services.run_step(run["run_id"], store=store)
+        review_action = review_dispatch["blocking_action"]
+        services.record_reaction_test_capture_review(
+            project["id"], False,
+            [{"asset_version_id": first["id"], "role": "Entry state"}],
+            ["Outcome state after the primary action"],
+            "The entry alone cannot show the primary action outcome or its failure state.",
+            review_action["next_call"]["arguments"]["operation_id"],
+            review_dispatch["dispatch_token"], store=store,
+        )
+        capture_more = services.run_step(run["run_id"], store=store)["blocking_action"]
+        assert capture_more["kind"] == "stimulus_required"
+        assert capture_more["stage"] == "capture_more"
+        assert capture_more["next_call"]["tool"] == "admit_remote_screenshot"
+        second = services.admit_remote_screenshot(
+            project["id"], run["run_id"], capture_more["next_call"]["arguments"]["operation_id"],
+            _png((60, 110, 160)), "second.png", "image/png", "2026-08-09T15:02:00Z", "release:multi:1",
+            label="Outcome", dispatch_token=dispatch["dispatch_token"], store=store,
+        )
+        second_review_dispatch = services.run_step(run["run_id"], store=store)
+        second_review = second_review_dispatch["blocking_action"]
+        assert second_review["kind"] == "capture_review_required"
+        services.record_reaction_test_capture_review(
+            project["id"], True,
+            [{"asset_version_id": first["id"], "role": "Entry state"},
+             {"asset_version_id": second["id"], "role": "Outcome state"}],
+            [], "The two exact screens cover the deliberately bounded entry-to-outcome question.",
+            second_review["next_call"]["arguments"]["operation_id"],
+            second_review_dispatch["dispatch_token"], store=store,
+        )
+        manifest_dispatch = services.run_step(run["run_id"], store=store)
+        manifest_action = manifest_dispatch["blocking_action"]
+        old_manifest = services.record_flow_manifest(
+            project["id"], run["run_id"], "capture:old-manifest", "primary", "Primary",
+            [{"asset_version_id": first["id"], "label": "Entry"},
+             {"asset_version_id": second["id"], "label": "Outcome"}],
+            "Entry to outcome", "release:multi:1", "2026-08-09T15:02:00Z",
+            dispatch_token=manifest_dispatch["dispatch_token"], store=store,
+        )
+
+        third = services.admit_remote_screenshot(
+            project["id"], run["run_id"], "capture:late", _png((80, 130, 180)), "third.png", "image/png",
+            "2026-08-09T15:03:00Z", "release:multi:1", label="Validation error",
+            dispatch_token=manifest_dispatch["dispatch_token"], store=store,
+        )
+        stale = services.run_step(run["run_id"], store=store)["blocking_action"]
+        assert stale["kind"] == "capture_review_required"
+        assert [row["asset_version_id"] for row in stale["admitted_screens"]] == \
+            [first["id"], second["id"], third["id"]]
+        assert old_manifest["id"] not in str(stale)
+
+
 def test_mcp_exposes_only_bounded_manifest_observations_and_explicit_selector():
     tools = {row.name: row for row in asyncio.run(build_server().list_tools())}
-    assert {"record_manifest_product_understanding", "select_reaction_test_cohort"} <= tools.keys()
+    assert {"inspect_reaction_test_screen", "record_reaction_test_capture_review",
+            "record_manifest_product_understanding", "select_reaction_test_cohort"} <= tools.keys()
     manifest = tools["record_manifest_product_understanding"].inputSchema["properties"]
     assert {"manifest_id", "observations", "unknown_capabilities", "dispatch_token"} <= manifest.keys()
     assert "routes" not in manifest and "states" not in manifest and "stimulus_manifest" not in manifest
+    observation = tools["record_manifest_product_understanding"].inputSchema["$defs"][
+        "ManifestScreenObservation"
+    ]
+    assert set(observation["required"]) == {"step_index", "visible_observation"}
+    assert "claim" not in observation["properties"]
+    media = tools["admit_remote_screenshot"].inputSchema["properties"]["media_type"]
+    assert set(media["enum"]) == {"image/png", "image/jpeg", "image/webp"}
     selector = tools["select_reaction_test_cohort"].inputSchema["properties"]
     assert {"persona_ids", "selection_rationale", "operation_id", "dispatch_token"} <= selector.keys()

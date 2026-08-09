@@ -53,6 +53,7 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     "list_assets": R("List project assets"),
     "get_asset": R("Get asset"),
     "view_asset": R("View asset content"),
+    "inspect_reaction_test_screen": W("Inspect Reaction Test screen", idempotent=True),
     "remove_asset": D("Remove project asset"),
 
     # ---- calibration (_tools_calibration) ----
@@ -148,6 +149,7 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
 
     # ---- flows (_tools_flows) ----
     "record_flow_manifest": W("Record secure flow manifest", idempotent=True),
+    "record_reaction_test_capture_review": W("Review Reaction Test capture", idempotent=True),
     "list_flow_manifests": R("List secure flow manifests"),
     "get_flow_manifest": R("Get secure flow manifest"),
     "define_flow": W("Define flow"),

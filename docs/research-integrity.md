@@ -100,6 +100,30 @@ citing that step's exact admitted asset version. The resolved manifest digest, a
 coverage are copied into the Product Understanding version. A new manifest version therefore
 cannot change an older preflight or silently substitute a newer screen.
 
+A public URL in the project request is **target identity only**. It is not admitted stimulus,
+an observed route/state, behaviour evidence, or authorization for the server to fetch the page.
+`reaction_preflight_action` therefore projects one deterministic blocker at a time:
+
+```text
+stimulus_required -> capture_review_required -> capture_more (optional loop)
+                    -> flow_manifest_required -> inspect_screen (one at a time)
+                    -> product_understanding_required -> cohort selection/catalog
+                    -> frame -> Cohort Integrity
+```
+
+For an admitted remote manifest, `record_manifest_product_understanding` is the bounded weak-host
+writer. A capture review first makes missing routes/states explicit instead of freezing the first
+screen automatically. The host then receives each exact screen through
+`inspect_reaction_test_screen`; privacy-safe progress receipts bind delivery to the active dispatch,
+manifest digest, step and asset digest. Only after all receipts exist does the host supply one flat
+`{step_index, visible_observation}` per screen and any honest `unknown_capabilities`. The server owns
+manifest revision/digest, evidence refs and the complete coverage checklist. Missing or malformed
+observations name the offending field and retain the same dispatch for a safe retry.
+`select_reaction_test_cohort` similarly performs an idempotent supporting write on the frame
+dispatch. Its action includes bounded workspace-local persona IDs/name/role/segment choices so a
+weak host does not have to invent IDs; the later Cohort Integrity evaluation still decides depth,
+independence and countervoice quality.
+
 The compact Product Understanding block is added to council context as **external
 stimulus**, never persona memory.
 

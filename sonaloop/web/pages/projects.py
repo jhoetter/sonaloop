@@ -37,6 +37,8 @@ def _product_understanding_html(project: dict, store=None,
         kind = str((preflight or {}).get("kind") or "")
         help_text = (t("product_flow_manifest_missing_help")
                      if kind == "flow_manifest_required"
+                     else t("product_capture_review_missing_help")
+                     if kind == "capture_review_required"
                      else t("product_inventory_missing_help")
                      if kind == "product_understanding_required"
                      else t("product_understanding_missing_help"))

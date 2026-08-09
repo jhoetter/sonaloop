@@ -34,7 +34,7 @@ and therefore never appears in MCP input schemas. Exact retries and concurrent c
 first atomic winner; later project edits and whole-row upserts cannot replace it. Historical,
 unbound and local projects remain honestly unattributed—Sonaloop never guesses a creator from a
 later editor, operation id, prompt or tool call. The inspector renders only the frozen display
-label, never the opaque actor id.
+label on the Jobs overview and Job detail, never the opaque actor id.
 
 Before project or plan storage is touched, `methodology` is resolved against the registry. Stable
 keys and human display names are accepted, with case, whitespace, `_`, `-` and punctuation treated

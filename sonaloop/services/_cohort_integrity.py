@@ -214,10 +214,19 @@ def select_reaction_test_cohort(
             revision = {
                 "from": before, "to": selected, "rationale": rationale,
                 "operation_id": op, "operation_fingerprint": fingerprint,
-                "created_at": str(current.get("updated_at") or current.get("created_at") or utc_now_iso()),
+                "no_state_change": True,
+                "created_at": utc_now_iso(),
             }
-            replay = True
-            break
+            if not op:
+                replay = True
+                break
+            updated = copy.deepcopy(current)
+            updated.setdefault("cohort_revisions", []).append(revision)
+            updated["updated_at"] = utc_now_iso()
+            if store.compare_and_swap_research_project(current, updated):
+                break
+            revision = None
+            continue
         revision = {
             "from": before, "to": selected, "rationale": rationale,
             "operation_id": op, "operation_fingerprint": fingerprint,

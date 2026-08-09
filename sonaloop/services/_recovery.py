@@ -136,7 +136,8 @@ def _preflight_health(project: dict[str, Any], plan: dict[str, Any] | None,
     if front_action:
         kind = str(front_action.get("kind") or "preflight_required")
         product_kinds = {
-            "stimulus_required", "flow_manifest_required", "product_understanding_required",
+            "stimulus_required", "capture_review_required", "flow_manifest_required",
+            "product_understanding_required",
         }
         gate = "product_understanding" if kind in product_kinds else "cohort_selection"
         return {
@@ -221,6 +222,34 @@ def _trace_ref(project: dict[str, Any], run: dict[str, Any] | None) -> dict[str,
             "provider prompts, reasoning, permission dialogs, internal retries, or host-only errors."
         ),
     }
+
+
+def _required_placeholder_paths(value: Any, prefix: str = "arguments") -> list[str]:
+    paths: list[str] = []
+    if isinstance(value, dict):
+        for key, child in value.items():
+            paths.extend(_required_placeholder_paths(child, f"{prefix}.{key}"))
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            paths.extend(_required_placeholder_paths(child, f"{prefix}[{index}]"))
+    elif isinstance(value, str) and value.startswith("<") and value.endswith(">"):
+        paths.append(prefix)
+    return paths
+
+
+def _hydrate_preflight_call(call: dict[str, Any], run: dict[str, Any],
+                            dispatch: dict[str, Any]) -> dict[str, Any]:
+    out = copy.deepcopy(call)
+    args = out.setdefault("arguments", {})
+    if "run_id" in args:
+        args["run_id"] = str(run.get("run_id") or "")
+    if "dispatch_token" in args:
+        args["dispatch_token"] = str(dispatch.get("dispatch_token") or "")
+    if ("operation_id" in args and isinstance(args.get("operation_id"), str)
+            and str(args["operation_id"]).startswith("<")):
+        suffix = str(out.get("tool") or "preflight").replace("_", "-")
+        args["operation_id"] = f"{dispatch.get('operation_id')}:{suffix}"
+    return out
 
 
 def project_health(project_id: str, store: Store | None = None,
@@ -405,6 +434,19 @@ def project_health(project_id: str, store: Store | None = None,
     elif len(active_runs) > 1:
         safe_action = {"kind": "select_run", "tool": "resume_project_run", "arguments": {},
                        "reason": "Pass one explicit project_id and run_id; recovery never guesses."}
+    elif (run and run.get("status") == "active"
+          and preflight.get("state") == "waiting" and incomplete_dispatch
+          and (preflight.get("next_call") or {}).get("tool")):
+        call = _hydrate_preflight_call(
+            dict(preflight.get("next_call") or {}), run, incomplete_dispatch,
+        )
+        safe_action = {
+            "kind": "complete_preflight",
+            "tool": str(call.get("tool") or ""),
+            "arguments": dict(call.get("arguments") or {}),
+            "required_input_paths": _required_placeholder_paths(call.get("arguments") or {}),
+            "reason": str(preflight.get("message") or "Complete the current setup action."),
+        }
     elif run and run.get("status") == "active":
         safe_action = {
             "kind": "resume_existing_run", "tool": "resume_project_run",

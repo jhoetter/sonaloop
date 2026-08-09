@@ -221,6 +221,7 @@ def test_reaction_preflights_project_one_truthful_waiting_state_in_de_and_en(sto
         evidence_refs=[ref], observed_at="2026-08-09T18:00:00Z",
         dispatch_token=dispatch["dispatch_token"], store=store,
     )
+    personas = [create_persona(store, "Independent A"), create_persona(store, "Independent B")]
     frame_dispatch = S.run_step(run["run_id"], store=store)
     assert frame_dispatch["step_id"] == "frame__react"
     assert frame_dispatch["blocking_action"]["kind"] == "cohort_selection_required"
@@ -233,7 +234,6 @@ def test_reaction_preflights_project_one_truthful_waiting_state_in_de_and_en(sto
     assert 'runchip runchip--waiting' in selection_html
     assert 'runchip runchip--active' not in selection_html
 
-    personas = [create_persona(store, "Independent A"), create_persona(store, "Independent B")]
     S.select_reaction_test_cohort(
         project["id"], personas,
         "Independent roles provide a useful contrast",
@@ -282,6 +282,12 @@ def test_product_setup_card_follows_the_server_projected_flow_manifest_action(st
         "target_revision": "deploy:1",
     }
     store.upsert_research_project(row)
+    S.record_reaction_test_capture_review(
+        project["id"], True,
+        [{"asset_version_id": asset["id"], "role": "The deliberately bounded target screen"}],
+        [], "This presentation fixture intentionally covers one bounded target screen only.",
+        "flow-setup:capture-review", dispatch["dispatch_token"], store=store,
+    )
 
     health = S.project_health(project["id"], store=store)
     assert health["preflight"]["kind"] == "flow_manifest_required"

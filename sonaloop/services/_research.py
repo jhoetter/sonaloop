@@ -37,6 +37,7 @@ from ..models import (
     Synthesis,
 )
 from ..storage import Store
+from ..creator_attribution import public_creator_projection
 from .. import artifacts as _A
 from ..taxonomy import GENERIC_TOOLS, normalized_tool_ids, normalized_tools
 from .. import memory as memory_mod
@@ -66,8 +67,6 @@ from ..llm_simulation import (
     validate_profile_payload,
     validate_synthesis_payload,
 )
-
-
 from ._common import *  # noqa: F401,F403  (shared helpers + constants)
 from .._project_locks import project_lifecycle_locks
 
@@ -185,26 +184,6 @@ def update_research_project(project_id: str, patch: dict[str, Any],
     return project
 
 
-def _public_creator_projection(value: Any) -> dict[str, str] | None:
-    """Return the deliberately tiny creator shape allowed on public list surfaces.
-
-    The persisted request-actor snapshot also contains an opaque subject id, role,
-    channel and capture timestamp.  Those fields are useful for server-side audit and
-    portable snapshots, but a cross-workspace project listing needs only the immutable
-    display label.  Revalidate imported/legacy rows here instead of assuming every
-    stored mapping passed through the current request-boundary normalizer.
-    """
-    if not isinstance(value, dict):
-        return None
-    label = value.get("label")
-    if not isinstance(label, str):
-        return None
-    label = label.strip()
-    if not label or len(label) > 160 or not label.isprintable():
-        return None
-    return {"label": label}
-
-
 def list_research_project_summaries(store: Store | None = None) -> list[dict[str, Any]]:
     """Lean project metadata for list pages — NO graph builds, NO run-state, NO counts.
     Returns id/slug/title/goal/status/icon/persona_ids/themes plus the immutable
@@ -221,7 +200,7 @@ def list_research_project_summaries(store: Store | None = None) -> list[dict[str
          "persona_ids": list(p.get("persona_ids") or []),
          "themes": p.get("themes", []),
          **({"created_by": public_creator}
-            if (public_creator := _public_creator_projection(p.get("created_by"))) else {})}
+            if (public_creator := public_creator_projection(p.get("created_by"))) else {})}
         for p in store.list_research_projects()
     ]
 

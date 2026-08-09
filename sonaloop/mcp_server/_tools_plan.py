@@ -1,10 +1,15 @@
 from __future__ import annotations
 
 import time
-from typing import Any
+from typing import Any, TypedDict
 
 from .. import services
 from ._env import _env
+
+
+class ManifestScreenObservation(TypedDict):
+    step_index: int
+    visible_observation: str
 
 
 def register_plan(mcp):
@@ -128,18 +133,19 @@ def register_plan(mcp):
     @mcp.tool()
     def record_manifest_product_understanding(
             project_id: str, manifest_id: str,
-            observations: list[dict[str, Any]],
+            observations: list[ManifestScreenObservation],
             unknown_capabilities: list[str] | None = None,
             target_name: str = "", target_url: str = "",
             observed_at: str | None = None, key: str | None = None,
             dispatch_token: str | None = None) -> dict[str, Any]:
-        """Weak-host-safe Reaction Test Product Understanding. First view every exact asset listed
-        by run_step.blocking_action.manifest. Then pass one flat observation
-        {step_index, claim} per manifest step plus honest unknown_capabilities. The server owns and
+        """Weak-host-safe Reaction Test Product Understanding. First execute every serialized
+        inspect_reaction_test_screen action returned by the same run. Then pass one flat observation
+        {step_index, visible_observation} per manifest step plus honest unknown_capabilities. The server owns and
         freezes target revision, digest, evidence refs, state inventory and coverage; target_url is
         identity metadata only and is NEVER fetched or accepted as evidence. Reuse the same
         dispatch_token on retry; a successful call auto-links/checkpoints the Product Understanding
-        dispatch. Strong hosts may still use record_product_understanding for richer postures."""
+        dispatch. Missing exact served-to-host receipts fail before mutation. Strong hosts may still
+        use record_product_understanding for richer postures."""
         t = time.perf_counter()
         return _env(
             "record_manifest_product_understanding",

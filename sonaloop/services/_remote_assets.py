@@ -491,6 +491,12 @@ def admit_remote_screenshot(
             "admitted scanned remote screenshot", store, complete=False,
         )
         return {**existing, "idempotent_replay": True, "dispatch": dispatch}
+    if dispatch_ctx.get("checkpointed"):
+        raise IntegrityError(
+            "REMOTE_DISPATCH_CLOSED",
+            "the Product Understanding dispatch is already checkpointed; exact upload replays remain "
+            "available, but a new screenshot requires an explicit new governed preflight",
+        )
 
     scan = _scan_remote_image(data, image["canonical_ext"])
     _target, deduplicated = _ensure_content_blob(data, digest, image["canonical_ext"])

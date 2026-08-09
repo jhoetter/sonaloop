@@ -5,12 +5,21 @@ long-lived Cloud process into a URL fetcher or filesystem reader. The dedicated 
 
 ```text
 begin_research_job
-  -> run_step (product_understanding dispatch)
-  -> admit_remote_screenshot × N
+  -> stimulus_required (product_understanding dispatch already bound)
+  -> admit_remote_screenshot
+  -> record_reaction_test_capture_review
+       -> capture_more -> admit_remote_screenshot -> review again
+       -> finalized
   -> record_flow_manifest
-  -> record_product_understanding (exact manifest + coverage)
+  -> inspect_reaction_test_screen × N (one server receipt per exact screen)
+  -> record_manifest_product_understanding (flat visible observations + unknowns)
   -> run_step continues
 ```
+
+The URL in the request is retained only as target identity. It is never dereferenced by this
+contract and cannot satisfy any evidence gate. Cloud presents `state=needs_setup` even though the
+resumable raw journal is active, and returns exactly one current action. A host that lacks real
+screenshot bytes must ask the user for PNG/JPEG/WebP input rather than invent product structure.
 
 ## Direct bytes only
 
@@ -86,12 +95,23 @@ Exact retries return the same version; changed content under one operation id is
 The compatibility projection in `project.flows` is immutable and carries the same id, version
 and digest, so existing artifact walkthroughs can consume it without weakening the contract.
 
-A Product Understanding that cites such a flow must also submit
-`stimulus_manifest={id, version, target_revision, manifest_digest}` and a coverage checklist
-with exactly one `status=inspected` entry per ordered step, citing that step's exact asset
-version. Its `revision` must equal the frozen target revision. The binding and resolved
-asset digests are copied into the immutable Product Understanding version. A later manifest
-version therefore cannot retroactively change an older preflight.
+Before the flow is frozen, `record_reaction_test_capture_review` binds an explicit
+`capture_more|finalized` decision to the exact current screen digests. A `capture_more` decision
+must name a missing route/state, and a newly admitted screen makes the previous review and manifest
+inapplicable. This keeps a literal one-action host from treating its first screenshot as a complete
+application by accident.
+
+`inspect_reaction_test_screen` then serializes the flow one screen at a time. It returns the real
+pixels plus an idempotent dispatch-progress receipt whose honest status is `served_to_host`—not a
+claim that a model cognitively understood them. `record_manifest_product_understanding` accepts one
+`{step_index, visible_observation}` per ordered screen plus optional explicit unknown capabilities.
+It refuses to mutate without the exact receipt set. The server resolves and writes
+`stimulus_manifest={id, version, target_revision, manifest_digest}`, the matching revision,
+project-owned evidence refs and exactly one `status=served_to_host` coverage row per manifest step.
+This smaller contract prevents a weak host from skipping or mixing screen versions while shaping
+the nested integrity artifact. The binding and resolved asset digests are copied into the immutable
+Product Understanding version. A later manifest version therefore cannot retroactively change an
+older preflight.
 
 For a manifest-bound Product Understanding, the Reaction-Test evidence gate narrows admissible
 claim citations to that exact manifest id and the exact asset versions in its frozen coverage.
@@ -105,7 +125,10 @@ Workspace users can read admitted records through `list_assets`, `get_asset`, `v
 asset id. The Cloud execution ledger always redacts `content_base64`, even when bounded content
 capture is opted in; replay uses the admitted SHA-256 and provenance rather than pixel bodies.
 
-Any validation/scanner/identity failure leaves the project without a new evidence record.
+Any validation/scanner/identity failure leaves the project without a new evidence record. Remote
+input failures return a stable validation category, exact field issue and safe retry to the same Job;
+scanner timeout, policy, permission, storage and other operational failures retain their own code so
+support and PostHog do not blame model-authored input for a Sonaloop-side incident.
 Reaction Test completion does not downgrade to an evidence-free path: Product Understanding
 still needs the exact admitted manifest and complete coverage, followed by the normal evidence,
 claim-posture and completeness gates.

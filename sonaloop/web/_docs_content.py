@@ -64,22 +64,32 @@ PRINCIPLES = [
       "adressierte, einmalige Einladung und eine verifizierte E-Mail-Identität hinein — nie automatisch "
       "über eine ganze Domain. Admins können den aktiven Workspace vorübergehend mit den Rechten eines "
       "regulären Mitglieds ansehen; ihre dauerhafte Rolle bleibt dabei unverändert. Passwörter verwaltet "
-      "der konfigurierte Login-Anbieter, nicht Sonaloop.",
+      "der konfigurierte Login-Anbieter, nicht Sonaloop. Bei neuen Cloud-Jobs zeigt die Übersicht den "
+      "unveränderlichen, authentifizierten Ersteller; ältere Jobs bleiben ehrlich ohne Zuschreibung.",
       "In Sonaloop Cloud, every record stays inside its workspace. Members enter through an addressed, "
       "single-use invitation and a verified email identity — never automatically through an entire "
       "domain. Admins can temporarily inspect the active workspace with a regular member's permissions; "
       "their persistent role remains unchanged. Passwords are managed by the configured identity provider, "
-      "not by Sonaloop.")),
+      "not by Sonaloop. For new Cloud jobs, the overview shows the immutable authenticated creator; "
+      "older jobs remain honestly unattributed.")),
     ("target",
      ("Claims bleiben ehrlich", "Claims stay honest"),
      ("Reaction Tests starten mit einem versionierten **Product Understanding** aus echten Screens, "
       "Flows oder Sessions. Remote-Screens werden direkt hochgeladen, vorab dekodiert und gescannt "
-      "und als exakte, unveränderliche Flow-Version mit vollständiger Screen-Checkliste eingefroren. "
+      "und erst nach einer bewussten Inventur als exakte, unveränderliche Flow-Version eingefroren. "
+      "Jeder Screen wird einzeln als echtes Bild ausgeliefert und serverseitig quittiert; fehlende "
+      "Routen oder Zustände bleiben vor dem Research sichtbar. "
+      "Eine URL bezeichnet nur das Ziel und ist nie selbst Evidenz. Fehlt Vorbereitung, zeigt "
+      "Sonaloop genau den aktuellen Schritt statt einen scheinbar laufenden Run. "
       "Jede Aussage bleibt als beobachtet, memory-geerdet, abgeleitet, simuliert "
       "oder unbelegt sichtbar. Ein Screenshot zeigt Produktzustand — nie beobachtetes Nutzerverhalten.",
       "Reaction Tests begin with versioned **Product Understanding** from real screens, flows, or "
       "sessions. Remote screens are uploaded directly, decoded and scanned before admission, then "
-      "frozen as one exact immutable flow version with a complete screen checklist. Every claim stays "
+      "frozen as one exact immutable flow version only after an explicit inventory review. Each "
+      "screen is delivered individually as real pixels and receipted by the server; missing routes "
+      "or states remain visible before research starts. "
+      "A URL identifies only the target and is never evidence itself. When setup is missing, Sonaloop "
+      "shows exactly the current step instead of an apparently running job. Every claim stays "
       "visibly observed, memory-grounded, inferred, simulated, or "
       "unsupported. A screenshot shows product state — never observed user behavior.")),
     ("personas",
@@ -380,9 +390,13 @@ LOOP_NOTE = ("↻ Wiederholen, bis die Evidenz überzeugt.", "↻ Repeat until t
 RIGOUR_STEPS = [
     (("Produkt verstehen", "Understand the product"),
      ("Vor einem Reaction Test werden Ziel, Revision, Routen, Flows, Zustände und unbekannte "
-      "Fähigkeiten gegen echte Evidenz inventarisiert — unbekannt ist besser als erraten.",
+      "Fähigkeiten gegen echte Evidenz inventarisiert. Fehlende Screens werden vor dem Abschluss "
+      "benannt; danach genügt pro ausgeliefertem Screen eine sichtbare Beobachtung. Manifest, "
+      "Belege und Checkliste bindet der Server — unbekannt ist besser als erraten.",
       "Before a Reaction Test, target, revision, routes, flows, states and unknown capabilities are "
-      "inventoried against real evidence — unknown is better than guessed.")),
+      "inventoried against real evidence. Missing screens are named before finalization; then one "
+      "visible observation per delivered screen is enough. The server binds manifest, evidence and "
+      "checklist — unknown is better than guessed.")),
     (("Rahmen", "Frame"),
      ("Eine Forschungsfrage stellen, geerdet in der Erinnerung der Personas.",
       "Pose a research question, grounded in the personas' memory.")),
