@@ -9,7 +9,7 @@ from . import ui
 
 
 register_css(r"""
-.sl-cohort-card{border:1px solid var(--line);border-left:3px solid var(--green);border-radius:var(--radius);background:var(--panel);padding:12px 14px;margin:14px 0}.sl-cohort-card--warn{border-left-color:var(--amber)}.sl-cohort-card--blocked,.sl-cohort-card--missing{border-left-color:var(--red)}
+.sl-cohort-card{border:1px solid var(--line);border-left:3px solid var(--green);border-radius:var(--radius);background:var(--panel);padding:12px 14px;margin:14px 0}.sl-cohort-card--warn,.sl-cohort-card--missing{border-left-color:var(--amber)}.sl-cohort-card--blocked{border-left-color:var(--red)}
 .sl-cohort-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.sl-cohort-head strong{display:flex;align-items:center;gap:7px}.sl-cohort-pills{display:flex;gap:6px;flex-wrap:wrap}.sl-cohort-meta{color:var(--muted);font-size:var(--t-sm);margin-top:5px}.sl-cohort-grid{display:grid;grid-template-columns:repeat(3,minmax(110px,1fr));gap:8px;margin:11px 0}.sl-cohort-stat{border:1px solid var(--line);border-radius:var(--radius-sm);padding:8px;background:var(--panel-2);font-size:var(--t-sm)}.sl-cohort-stat strong{display:block;font-size:var(--t-lg)}.sl-cohort-list{margin:9px 0 0;padding-left:18px;font-size:var(--t-sm)}.sl-cohort-personas{margin:8px 0 0;padding-left:18px;font-size:var(--t-xs);color:var(--muted)}.sl-cohort-limitation{border-left:2px solid var(--amber);padding-left:9px;margin-top:10px;color:var(--muted);font-size:var(--t-sm)}@media(max-width:640px){.sl-cohort-grid{grid-template-columns:1fr}}
 """)
 
@@ -18,7 +18,7 @@ def _maximum_score(rows: list[dict]) -> float:
     return max((float(row.get("score") or 0) for row in rows), default=0.0)
 
 
-def render_cohort_integrity(project: dict, store=None) -> str:
+def render_cohort_integrity(project: dict, store=None, *, show_missing: bool = True) -> str:
     """Render persisted depth, provenance, leakage and remediation state."""
     policy = project.get("integrity") or {}
     current = current_cohort_preflight(project)
@@ -26,13 +26,15 @@ def render_cohort_integrity(project: dict, store=None) -> str:
     if not current:
         if not required:
             return ""
+        if not show_missing:
+            return ""
         return h(
             "section",
             {"class_": "sl-cohort-card sl-cohort-card--missing", "id": "cohort-integrity",
              "role": "status", "aria-label": t("cohort_integrity_missing_help")},
             h("div", {"class_": "sl-cohort-head"},
               h("strong", {}, raw(_icon("personas")), t("cohort_integrity_h")),
-              raw(_label(t("cohort_integrity_missing"), "var(--red)"))),
+              raw(_label(t("cohort_integrity_missing"), "var(--amber)"))),
             h("div", {"class_": "sl-cohort-meta"}, t("cohort_integrity_missing_help")),
         )
 

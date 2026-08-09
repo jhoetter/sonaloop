@@ -18,12 +18,15 @@ from ._html import h, raw, fragment, register_css
 from ._docs import register_docs
 
 
-def _row(href: str, ric, title, right=None, *, color: str | None = None, sub=None) -> str:
+def _row(href: str, ric, title, right=None, *, color: str | None = None, sub=None,
+         byline=None) -> str:
     """A list row: leading icon/avatar (`ric`), title (+ optional muted `sub`), right-aligned meta."""
     lead = ric if color is None else h("span", {"class_": "rico", "style": f"color:{color}"}, raw(_icon(ric)))
     return h("a", {"class_": "row", "href": href}, lead,
-             h("span", {"class_": "title"}, title,
-               h("span", {"class_": "muted small"}, f" · {sub}") if sub else None),
+             h("span", {"class_": "title" + (" has-byline" if byline else "")},
+               h("span", {"class_": "row-title-text"}, title) if byline else title,
+               h("span", {"class_": "muted small"}, f" · {sub}") if sub else None,
+               h("span", {"class_": "row-byline"}, byline) if byline else None),
              h("span", {"class_": "right"}, right))
 
 
@@ -125,6 +128,7 @@ def _projects_page(page: int = 1, q: str = "") -> str:
                 return None
             label = {
                 "active": t("runs_active_h"), "running": t("health_running"),
+                "waiting": t("runs_waiting_h"),
                 "stalled": t("runs_stalled_h"),
                 "finished": t("runs_finished_h"),
                 "unverified": t("runs_unverified_h"),
@@ -132,20 +136,20 @@ def _projects_page(page: int = 1, q: str = "") -> str:
             }.get(state, state.replace("_", " ").title())
             color = {
                 "active": "var(--green)", "running": "var(--green)",
-                "stalled": "var(--amber)",
+                "waiting": "var(--amber)", "stalled": "var(--amber)",
                 "finished": "var(--muted)",
                 "unverified": "var(--red)",
                 "archived": "var(--muted)", "superseded": "var(--muted)",
             }.get(state, "var(--faint)")
-            visible = _label(f"{t('run_chip')} · {label}", color)
+            run_badge = _label(f"{t('run_chip')} · {label}", color)
             if state == "unverified":
                 # Preserve the old finished-search/screen-reader phrase while
                 # stating the stricter truth: task completion is not an
                 # engine-finished run.
                 return h("span", {
                     "aria-label": (f"{t('run_chip')} · {t('runs_finished_h')}. "
-                                   f"{t('run_engine_finished_no')}")}, raw(visible))
-            return visible
+                                   f"{t('run_engine_finished_no')}")}, raw(run_badge))
+            return run_badge
 
         # the cohort avatar-group (ux-contract §10 W11): the project's persona participation
         # leads the row meta — the ONE anatomy every participation surface renders
@@ -156,7 +160,12 @@ def _projects_page(page: int = 1, q: str = "") -> str:
                         _label(f'{t("methodology_h")} · {_methodology_name()}', "var(--accent)"),
                         raw(_run_label() or ""),
                         raw(_star("project", p["id"], p["title"], f'/jobs/{p["id"]}')))
-        rows.append(_row(f'/jobs/{p["id"]}', raw(project_icon_html(p)), p["title"], meta))
+        creator = p.get("created_by") if isinstance(p.get("created_by"), dict) else {}
+        creator_label = str(creator.get("label") or "").strip()
+        rows.append(_row(
+            f'/jobs/{p["id"]}', raw(project_icon_html(p)), p["title"], meta,
+            byline=(t("project_created_by", label=creator_label) if creator_label else None),
+        ))
     if not rows and not q and not store.list_personas():
         # Truly fresh database (no projects AND no personas): orient instead of an empty list.
         return _layout(t("first_steps_h"), _first_steps_html(), store,
@@ -248,8 +257,12 @@ register_css(r"""
 .h1cnt{font-size:var(--t-body);font-weight:500;color:var(--faint);margin-left:8px;vertical-align:middle}
 .list-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:48px 0;color:var(--muted);text-align:center}.list-empty svg{width:26px;height:26px;color:var(--faint)}
 .row .title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.row .title.has-byline{display:flex;flex-direction:column;align-items:flex-start;gap:1px;white-space:normal;line-height:1.25}
+.row-title-text{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-byline{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:var(--t-xs);font-weight:400}
 .row .sub{color:var(--muted);font-size:var(--t-sm);flex-shrink:0}
 .row .right{display:flex;align-items:center;gap:8px;flex-shrink:0;color:var(--faint);font-size:var(--t-sm)}
+@media(max-width:760px){.row{align-items:flex-start;flex-wrap:wrap}.row .right{flex:1 0 calc(100% - 36px);margin-left:28px;justify-content:flex-start;flex-wrap:wrap}}
 .votebar{display:inline-flex;height:6px;width:88px;border-radius:3px;overflow:hidden;border:1px solid var(--line)}
 .votebar i{display:block;height:100%}
 /* ---- first-steps checklist (empty-DB home; ticket one-sentence-mcp-install) ---- */

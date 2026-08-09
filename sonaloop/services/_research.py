@@ -98,7 +98,6 @@ def _store_project_graph_cache(cache: dict[tuple[int, str], dict[str, Any]] | No
     return graph
 
 
-
 def create_research_project(title: str, goal: str = "", persona_ids: list[str] | None = None,
                             description: str = "", store: Store | None = None,
                             icon: Any | None = None, project_id: str | None = None,
@@ -159,7 +158,6 @@ def create_research_project(title: str, goal: str = "", persona_ids: list[str] |
     return out
 
 
-
 def update_research_project(project_id: str, patch: dict[str, Any],
                             store: Store | None = None) -> dict[str, Any]:
     """Patch a project's STRUCTURAL metadata (title/goal/description/status) — the
@@ -187,10 +185,10 @@ def update_research_project(project_id: str, patch: dict[str, Any],
     return project
 
 
-
 def list_research_project_summaries(store: Store | None = None) -> list[dict[str, Any]]:
     """Lean project metadata for list pages — NO graph builds, NO run-state, NO counts.
-    Returns id/slug/title/goal/status/icon/persona_ids/themes only. The list page
+    Returns id/slug/title/goal/status/icon/persona_ids/themes plus the immutable
+    creator display snapshot when one was captured. The list page
     paginates this lean list, then enriches only the visible page with
     `enrich_research_project` (graph counts, run state)."""
     store = store or Store()
@@ -200,7 +198,9 @@ def list_research_project_summaries(store: Store | None = None) -> list[dict[str
          "icon": p.get("icon") or {"kind": "regular", "name": "projects"},
          "url": web_url(f"/jobs/{p['id']}"),  # noqa: F821 (bound)
          "persona_ids": list(p.get("persona_ids") or []),
-         "themes": p.get("themes", [])}
+         "themes": p.get("themes", []),
+         **({"created_by": copy.deepcopy(p["created_by"])}
+            if isinstance(p.get("created_by"), dict) else {})}
         for p in store.list_research_projects()
     ]
 
@@ -280,11 +280,9 @@ def list_research_projects(store: Store | None = None) -> list[dict[str, Any]]:
     return [enrich_research_project(s, store, _batch=batch) for s in summaries]
 
 
-
 def get_research_project(project_id: str, store: Store | None = None) -> dict[str, Any]:
     store = store or Store()
     return _require_research_project(store, project_id)
-
 
 
 def parent_project_of_study(study_id: str, store: Store | None = None) -> dict[str, Any] | None:
@@ -295,7 +293,6 @@ def parent_project_of_study(study_id: str, store: Store | None = None) -> dict[s
         if study_id in (p.get("study_ids") or []):
             return {"id": p["id"], "slug": p["slug"], "title": p["title"]}
     return None
-
 
 
 def parent_study_of_council(council_id: str, store: Store | None = None) -> dict[str, Any] | None:

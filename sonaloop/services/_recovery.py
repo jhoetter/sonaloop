@@ -17,8 +17,10 @@ from ..research_integrity import (
     artifact_posture_gaps,
     current_product_understanding,
     is_reaction_project,
+    reaction_preflight_action,
     resolve_project_ref,
 )
+from ..cohort_integrity import current_cohort_preflight, preflight_satisfies_project
 from ..storage import Store
 from .._project_locks import project_lifecycle_locks
 
@@ -113,6 +115,91 @@ def _product_understanding_health(project: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _preflight_health(project: dict[str, Any], plan: dict[str, Any] | None,
+                      store: Store) -> dict[str, Any]:
+    """Project the one integrity preflight that currently blocks useful progress.
+
+    Product Understanding precedes the research frame, and the Cohort Integrity
+    gate consumes that frame.  Treating both missing future records as concurrent
+    failures made a newly started Reaction Test look broken and, worse, left its
+    active journal green.  This projection follows the persisted task DAG: a
+    downstream missing cohort record is a blocker only once all of its inputs are
+    done.  A previously recorded failing/stale cohort gate remains a blocker until
+    it is repaired.
+    """
+    policy = project.get("integrity") or {}
+    tasks = list((plan or {}).get("tasks") or [])
+    by_id = {str(row.get("id") or ""): row for row in tasks}
+    done = {str(row.get("id") or "") for row in tasks if row.get("status") == "done"}
+
+    front_action = reaction_preflight_action(str(project.get("id") or ""), store)
+    if front_action:
+        kind = str(front_action.get("kind") or "preflight_required")
+        product_kinds = {
+            "stimulus_required", "flow_manifest_required", "product_understanding_required",
+        }
+        gate = "product_understanding" if kind in product_kinds else "cohort_selection"
+        return {
+            "state": "waiting", "gate": gate, "kind": kind,
+            "task_id": ("preflight__product_understanding"
+                        if gate == "product_understanding" else "frame__react"),
+            "code": str(front_action.get("code") or "REACTION_PREFLIGHT_REQUIRED"),
+            "message": str(front_action.get("message") or "A Reaction Test prerequisite is waiting."),
+            "allowed_tools": list(front_action.get("allowed_tools") or []),
+            "next_call": dict(front_action.get("next_call") or {}),
+            "action": copy.deepcopy(front_action),
+        }
+
+    if not policy.get("cohort_preflight_required"):
+        return {"state": "ready"}
+
+    current = current_cohort_preflight(project)
+    cohort_task = by_id.get("preflight__cohort_integrity")
+    # A missing downstream record is not an error while its frame inputs are
+    # still being authored.  Old/custom projects without the canonical task keep
+    # the conservative visible gate instead of silently hiding it forever.
+    actionable = (
+        cohort_task is None
+        or all(str(dep) in done for dep in (cohort_task.get("consumes") or []))
+    )
+    if current is None:
+        if not actionable:
+            return {"state": "pending", "gate": "cohort_integrity",
+                    "task_id": "preflight__cohort_integrity"}
+        return {
+            "state": "waiting", "gate": "cohort_integrity",
+            "task_id": "preflight__cohort_integrity",
+            "code": "cohort_preflight_missing",
+            "message": "The Reaction Test is waiting for its Cohort Integrity check.",
+        }
+
+    try:
+        satisfied = preflight_satisfies_project(project, store)
+    except Exception:  # an unreadable boundary is never promoted to a pass
+        satisfied = False
+    if satisfied:
+        return {"state": "ready", "gate": "cohort_integrity",
+                "task_id": "preflight__cohort_integrity",
+                "status": str(current.get("status") or "")}
+
+    status = str(current.get("status") or "needs_reselection")
+    code = (
+        "cohort_preflight_stale"
+        if status in {"pass", "overridden"}
+        else f"cohort_preflight_{status}"
+    )
+    messages = {
+        "needs_deepening": "The cohort needs deeper independent context before the Reaction Test can continue.",
+        "needs_reselection": "The cohort must be reselected before the Reaction Test can continue.",
+    }
+    return {
+        "state": "waiting", "gate": "cohort_integrity",
+        "task_id": "preflight__cohort_integrity", "status": status,
+        "code": code,
+        "message": messages.get(status, "The Cohort Integrity check is stale and must be rerun."),
+    }
+
+
 def _trace_ref(project: dict[str, Any], run: dict[str, Any] | None) -> dict[str, Any]:
     ingress = dict(project.get("research_job_ingress") or {})
     operation_id = str(ingress.get("operation_id") or project.get("operation_id") or "")
@@ -173,10 +260,17 @@ def project_health(project_id: str, store: Store | None = None,
         issue("multiple_active_runs", "Multiple active runs exist; select an explicit run id before recovery.")
 
     pu = _product_understanding_health(project)
-    if pu["required"] and not pu["present"]:
-        issue("product_understanding_missing",
-              "The mandatory evidence-bound Product Understanding preflight is missing.",
-              target=f"/jobs/{project_id}#product-understanding")
+    preflight = _preflight_health(project, plan, store)
+    if preflight.get("state") == "waiting":
+        gate = str(preflight.get("gate") or "")
+        target = (f"/jobs/{project_id}#product-understanding"
+                  if gate == "product_understanding"
+                  else f"/jobs/{project_id}#cohort-integrity"
+                  if gate == "cohort_integrity"
+                  else f"/jobs/{project_id}#cohort-selection")
+        issue(str(preflight.get("code") or "preflight_waiting"),
+              str(preflight.get("message") or "A required preflight is waiting."),
+              target=target)
 
     linked = {(str(ref.get("kind") or ""), str(ref.get("id") or ""))
               for task in tasks for ref in (task.get("produces") or [])
@@ -250,20 +344,28 @@ def project_health(project_id: str, store: Store | None = None,
             issue("engine_completion_missing",
                   "The plan may be complete, but no run has reached engine-verified finished state.")
 
-    unverified = any(row["code"] in {
+    unverified = preflight.get("state") == "waiting" or any(row["code"] in {
         "product_understanding_missing", "orphaned_evidence", "claim_provenance_incomplete",
         "invalid_evidence_ref", "assessment_unavailable", "engine_completion_missing",
         "expected_sections_missing", "conclusion_missing", "report_missing",
-        "result_contract_missing",
+        "result_contract_missing", "cohort_preflight_missing", "cohort_preflight_stale",
+        "cohort_preflight_needs_deepening", "cohort_preflight_needs_reselection",
     } for row in issues)
     lifecycle = str(project.get("status") or "active")
     if lifecycle in {"archived", "superseded"}:
         driver_state = lifecycle
         state = lifecycle
     elif active_runs:
-        quiet = _is_quiet(str((run or {}).get("updated_at") or ""), stale_hours)
-        driver_state = "stalled" if quiet else "running"
-        state = driver_state
+        if preflight.get("state") == "waiting":
+            # The journal is resumable but no useful research can proceed until
+            # the current evidence/cohort gate is discharged.  "running" would
+            # falsely imply autonomous background work.
+            driver_state = "waiting_on_preflight"
+            state = "waiting"
+        else:
+            quiet = _is_quiet(str((run or {}).get("updated_at") or ""), stale_hours)
+            driver_state = "stalled" if quiet else "running"
+            state = driver_state
     elif authoritative_finished:
         driver_state = "engine_finished"
         state = "unverified" if unverified else "finished"
@@ -340,9 +442,11 @@ def project_health(project_id: str, store: Store | None = None,
         "retry_result": "available" if completed_dispatch else "not_observed",
         "retry_receipt": dict((completed_dispatch or {}).get("receipt") or {}),
         "dispatch": "incomplete" if incomplete_dispatch else "none_incomplete",
-        "evidence": "missing" if any(row["code"] in {
+        "evidence": "missing" if preflight.get("state") == "waiting" or any(row["code"] in {
             "product_understanding_missing", "claim_provenance_incomplete", "invalid_evidence_ref",
             "orphaned_evidence", "expected_sections_missing", "conclusion_missing", "report_missing",
+            "cohort_preflight_missing", "cohort_preflight_stale",
+            "cohort_preflight_needs_deepening", "cohort_preflight_needs_reselection",
         } for row in issues) else "projected_complete",
         "critic": "pending" if any(row["code"] == "critic_pending" for row in issues) else "not_pending",
         "audit": "not_projected_in_core",
@@ -374,6 +478,7 @@ def project_health(project_id: str, store: Store | None = None,
                      "source_counts": dict(sorted(source_counts.items())),
                      "orphaned": sum(1 for row in issues if row["code"] == "orphaned_evidence")},
         "product_understanding": pu,
+        "preflight": preflight,
         "safe_next_action": safe_action,
         "trace": _trace_ref(project, run),
         "recovery_signals": recovery_signals,

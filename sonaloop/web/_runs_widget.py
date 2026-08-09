@@ -50,8 +50,9 @@ def collect_run_states(store: Store | None = None) -> dict[str, list[dict[str, A
         return cached
     from .. import services
     store = store or Store()
-    out: dict[str, list[dict[str, Any]]] = {"active": [], "stalled": [], "finished": [],
-                                             "unverified": []}
+    out: dict[str, list[dict[str, Any]]] = {
+        "active": [], "waiting": [], "stalled": [], "finished": [], "unverified": [],
+    }
     for p in store.list_research_projects():
         try:
             health = services.project_health(p["id"], store=store)
@@ -59,15 +60,17 @@ def collect_run_states(store: Store | None = None) -> dict[str, list[dict[str, A
             health = None
         if not health:
             continue
-        bucket = {"running": "active", "stalled": "stalled", "finished": "finished",
+        bucket = {"running": "active", "waiting": "waiting", "stalled": "stalled", "finished": "finished",
                   "unverified": "unverified"}.get(str(health.get("state") or ""))
         if not bucket:
             continue
         action = health.get("safe_next_action") or {}
         out[bucket].append({
             "project_id": p["id"], "title": p["title"], "url": f'/jobs/{p["id"]}',
+            "state": health.get("state", ""),
             "last_activity": health.get("last_activity", ""),
             "driver_state": health.get("driver_state", ""),
+            "preflight": health.get("preflight") or {},
             "run_inventory": health.get("run_inventory") or {},
             "next_ready": (health.get("tasks") or {}).get("next_ready") or [],
             "unmet_invariant": health.get("unmet_invariant"),
@@ -150,21 +153,46 @@ def run_diagnostics_html(run_state: dict[str, Any]) -> str:
               h("ul", {}, fragment(*issues)))) if issues else None)))
 
 
-def project_run_chip(project_id: str, store: Store) -> str:
+def run_attention_text(run_state: dict[str, Any]) -> str:
+    """One human recovery sentence for the visible run state."""
+    if run_state.get("state") == "waiting" \
+            or run_state.get("driver_state") == "waiting_on_preflight":
+        gate = str((run_state.get("preflight") or {}).get("gate") or "")
+        return (t("health_attention_preflight_product")
+                if gate == "product_understanding"
+                else t("health_attention_preflight_selection")
+                if gate == "cohort_selection"
+                else t("health_attention_preflight_cohort"))
+    if run_state.get("state") == "unverified":
+        return t("health_attention_unverified")
+    if run_state.get("state") == "stalled":
+        if run_state.get("driver_state") == "not_started":
+            return t("health_attention_not_started")
+        if run_state.get("driver_state") == "stopped":
+            return t("health_attention_stopped")
+        return t("health_attention_stalled")
+    return ""
+
+
+def project_run_chip(project_id: str, store: Store,
+                     run_state: dict[str, Any] | None = None) -> str:
     """The project-header run chip (ux-contract §3.5 / decision §7.4): `▶ Run · state`
     in the state's color, opening a small popover with the state, the last activity,
     a human-readable recovery hint, closed support diagnostics, and the /runs journal link.
     '' when the project has no plan — there is no driver to show."""
     from .. import services
-    try:
-        rs = services.project_health(project_id, store=store)
-    except Exception:  # noqa: BLE001 — the chip is chrome; never break the page
-        rs = None
-    if not rs or rs.get("state") not in ("running", "stalled", "finished", "unverified"):
+    rs = run_state
+    if rs is None:
+        try:
+            rs = services.project_health(project_id, store=store)
+        except Exception:  # noqa: BLE001 — the chip is chrome; never break the page
+            rs = None
+    if not rs or rs.get("state") not in ("running", "waiting", "stalled", "finished", "unverified"):
         return ""
     state = rs["state"]
     css_state = "active" if state == "running" else state
-    label = {"running": t("runs_active_h"), "stalled": t("runs_stalled_h"),
+    label = {"running": t("runs_active_h"), "waiting": t("runs_waiting_h"),
+             "stalled": t("runs_stalled_h"),
              "finished": t("runs_finished_h"), "unverified": t("runs_unverified_h")}[state]
     last = (rs.get("last_activity") or "")[:16].replace("T", " ")
     btn = h("button", {"type": "button", "class_": f"sl-toolbtn runchip runchip--{css_state}",
@@ -181,14 +209,8 @@ def project_run_chip(project_id: str, store: Store) -> str:
             h("div", {"class_": "run-meta"},
               h("span", {"class_": "muted small"},
                 f'{t("run_last_activity")}: {last}') if last else None),
-            h("p", {"class_": "sl-run-attention"},
-              (t("health_attention_not_started")
-               if state == "stalled" and rs.get("driver_state") == "not_started"
-               else t("health_attention_stopped")
-               if state == "stalled" and rs.get("driver_state") == "stopped"
-               else t("health_attention_stalled")) if state == "stalled"
-              else t("health_attention_unverified"))
-            if state in {"stalled", "unverified"} else None,
+            h("p", {"class_": "sl-run-attention"}, run_attention_text(rs))
+            if state in {"waiting", "stalled", "unverified"} else None,
             raw(run_diagnostics_html(rs)),
             h("a", {"class_": "runsw-all", "href": "/runs"},
               raw(_picon("arrowRight")), " ", t("runs_view_all")))
@@ -204,13 +226,14 @@ RUNS_WIDGET_CSS = r"""
 .runsw-btn{gap:8px;font-weight:500}
 .runsw-dot{flex:none;width:7px;height:7px;border-radius:50%;background:var(--faint)}
 .runsw.has-active .runsw-dot{background:var(--green,#34a853);animation:livepulse 1.6s ease-out infinite}
-.runsw.has-stalled .runsw-dot{background:var(--amber);animation:none}
+.runsw.has-waiting .runsw-dot,.runsw.has-stalled .runsw-dot{background:var(--amber);animation:none}
 .runsw.has-active .runsw-btn{color:var(--green,#34a853);border-color:color-mix(in srgb,var(--green,#34a853) 45%,var(--line))}
-.runsw.has-stalled .runsw-btn{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,var(--line))}
+.runsw.has-waiting .runsw-btn,.runsw.has-stalled .runsw-btn{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,var(--line))}
 .runsw-count{font-variant-numeric:tabular-nums}
 .runsw-fly{position:absolute;right:0;top:calc(100% + 8px);width:min(320px,86vw);z-index:160;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 14px 40px rgba(0,0,0,.3);padding:6px}
 .runsw-fly[hidden]{display:none}
 .runsw-h{font-size:var(--t-xs);color:var(--faint);font-weight:600;letter-spacing:.04em;padding:7px 8px 3px}
+.runsw-lane+.runsw-lane{border-top:1px solid var(--line-2);margin-top:3px;padding-top:3px}.runsw-lane-h{padding:5px 8px 2px;color:var(--muted);font-size:var(--t-xs);font-weight:600}
 .runsw-row{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:var(--radius-sm);text-decoration:none;color:var(--ink);font-size:var(--t-body)}
 .runsw-row:hover{background:var(--hover)}
 .runsw-row .runsw-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
@@ -223,6 +246,7 @@ RUNS_WIDGET_CSS = r"""
 .runchip svg{width:12px;height:12px}
 .runchip--active{color:var(--green,#34a853);border-color:color-mix(in srgb,var(--green,#34a853) 45%,var(--line))}
 .runchip--stalled{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,var(--line))}
+.runchip--waiting{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,var(--line))}
 .runchip--unverified{color:var(--red);border-color:color-mix(in srgb,var(--red) 45%,var(--line))}
 .runchip-fly{position:absolute;left:0;top:calc(100% + 8px);width:min(380px,86vw);z-index:160;background:var(--panel);
   border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 14px 40px rgba(0,0,0,.3);padding:6px 8px 8px}
@@ -245,23 +269,38 @@ RUNS_WIDGET_CSS = r"""
 """
 
 
-def _fly_rows(active: list[dict]) -> str:
-    rows = [h("a", {"class_": "runsw-row", "href": r["url"]},
+def _fly_rows(rows: list[dict]) -> str:
+    items = [h("a", {"class_": "runsw-row", "href": r["url"]},
               h("span", {"class_": "runsw-t"}, r["title"]),
               h("span", {"class_": "runsw-ts"}, r["last_activity"][:16].replace("T", " ")))
-            for r in active]
-    if not rows:
-        return h("div", {"class_": "runsw-empty"}, t("runs_none_active"))
-    return "".join(rows)
+             for r in rows]
+    return "".join(items)
 
 
-def chip_label(n_active: int, n_stalled: int) -> str:
+def _fly_sections(states: dict[str, list[dict]]) -> str:
+    sections = []
+    for key, label in (("waiting", t("runs_setup_h")),
+                       ("stalled", t("runs_stalled_h")),
+                       ("active", t("runs_active_h"))):
+        rows = states[key]
+        if rows:
+            sections.append(h("div", {"class_": "runsw-lane", "data-run-lane": key},
+                              h("div", {"class_": "runsw-lane-h"}, label),
+                              raw(_fly_rows(rows))))
+    return "".join(sections) or h("div", {"class_": "runsw-empty"}, t("runs_none_active"))
+
+
+def chip_label(n_active: int, n_stalled: int, n_waiting: int = 0) -> str:
     """Status-chip text: attention wins, otherwise show active governed runs.
 
     Silent failures must remain loud even while another project is progressing. The
     attention count includes both interrupted runs and jobs whose governed run never
     started, so it must not claim that every counted item is a stalled run.
     """
+    if n_waiting and n_stalled:
+        return t("run_stalled_n", n=n_waiting + n_stalled)
+    if n_waiting:
+        return t("run_setup_n", n=n_waiting)
     if n_stalled:
         return t("run_stalled_n", n=n_stalled)
     if n_active:
@@ -275,28 +314,38 @@ def runs_widget_markup(store: Store) -> str:
     At zero the whole chip is hidden (§9 V7) — the markup still ships so a live event
     can unhide it without a reload."""
     states = collect_run_states(store)
-    n_active, n_stalled = len(states["active"]), len(states["stalled"])
-    cls = "runsw" + (" has-active" if n_active else "") + (" has-stalled" if n_stalled else "")
+    n_active, n_waiting, n_stalled = (
+        len(states["active"]), len(states["waiting"]), len(states["stalled"]),
+    )
+    cls = ("runsw" + (" has-active" if n_active else "")
+           + (" has-waiting" if n_waiting else "")
+           + (" has-stalled" if n_stalled else ""))
     btn = h("button", {"type": "button", "class_": "sl-toolbtn runsw-btn", "data-runsw-toggle": True,
                        "aria-haspopup": "dialog", "aria-controls": "runsw-fly",
                        "aria-expanded": "false",
                        "title": t("active_runs"), "aria-label": t("active_runs")},
             h("span", {"class_": "runsw-dot"}),
             h("span", {"class_": "runsw-count", "id": "runsw-count"},
-              chip_label(n_active, n_stalled)))
+              chip_label(n_active, n_stalled, n_waiting)))
     fly = h("div", {"class_": "runsw-fly", "id": "runsw-fly", "hidden": True,
                     "data-empty": t("runs_none_active"), "role": "dialog",
                     "aria-labelledby": "runsw-fly-title", "tabindex": "-1"},
             h("div", {"class_": "runsw-h", "id": "runsw-fly-title"}, t("active_runs")),
-            h("div", {"id": "runsw-list"}, raw(_fly_rows(states["active"]))),
+            h("div", {"id": "runsw-list"}, raw(_fly_sections(states))),
             h("a", {"class_": "runsw-all", "href": "/runs"},
               raw(_picon("arrowRight")), " ", t("runs_view_all")))
-    return h("div", {"class_": cls, "id": "runsw", "hidden": not (n_active or n_stalled),
+    return h("div", {"class_": cls, "id": "runsw",
+                     "hidden": not (n_active or n_waiting or n_stalled),
                      # the JS re-render composes the localized chip text from these templates
                      "data-l-active-one": t("run_active_n", n=1),
                      "data-l-active-n": t("run_active_n", n="{n}"),
+                     "data-l-setup-one": t("run_setup_n", n=1),
+                     "data-l-setup-n": t("run_setup_n", n="{n}"),
                      "data-l-stalled-one": t("run_stalled_n", n=1),
-                     "data-l-stalled-n": t("run_stalled_n", n="{n}")}, btn, fly)
+                     "data-l-stalled-n": t("run_stalled_n", n="{n}"),
+                     "data-l-setup-h": t("runs_setup_h"),
+                     "data-l-stalled-h": t("runs_stalled_h"),
+                     "data-l-active-h": t("runs_active_h")}, btn, fly)
 
 
 RUNS_WIDGET_JS = r"""<script>(function(){
@@ -350,19 +399,26 @@ document.addEventListener('click',function(e){
 if(!window.EventSource) return;   // static fallback: the server-rendered state stands
 function render(d){
   var w=el('runsw'), list=el('runsw-list'), cnt=el('runsw-count'); if(!w||!list||!cnt) return;
-  var act=d.active||[], st=d.stalled||[];
+  var act=d.active||[], wait=d.waiting||[], st=d.stalled||[];
   // Attention remains loud even when another run is active; full zero stays hidden.
-  var n=act.length, s=st.length, lbl='';
-  if(s) lbl=(s===1)?w.getAttribute('data-l-stalled-one'):w.getAttribute('data-l-stalled-n').replace('{n}',s);
+  var n=act.length, q=wait.length, s=st.length, lbl='';
+  if(q&&s){ var total=q+s; lbl=(total===1)?w.getAttribute('data-l-stalled-one'):w.getAttribute('data-l-stalled-n').replace('{n}',total); }
+  else if(q) lbl=(q===1)?w.getAttribute('data-l-setup-one'):w.getAttribute('data-l-setup-n').replace('{n}',q);
+  else if(s) lbl=(s===1)?w.getAttribute('data-l-stalled-one'):w.getAttribute('data-l-stalled-n').replace('{n}',s);
   else if(n) lbl=(n===1)?w.getAttribute('data-l-active-one'):w.getAttribute('data-l-active-n').replace('{n}',n);
   cnt.textContent=lbl||'';
-  w.hidden=!(n||s);
+  w.hidden=!(n||q||s);
   w.classList.toggle('has-active',n>0);
+  w.classList.toggle('has-waiting',q>0);
   w.classList.toggle('has-stalled',s>0);
-  var html='';
-  act.forEach(function(r){ html+='<a class="runsw-row" href="'+esc(r.url)+'">'
+  function rows(items){ var out=''; items.forEach(function(r){ out+='<a class="runsw-row" href="'+esc(r.url)+'">'
     +'<span class="runsw-t">'+esc(r.title)+'</span>'
-    +'<span class="runsw-ts">'+esc((r.last_activity||'').slice(0,16).replace('T',' '))+'</span></a>'; });
+    +'<span class="runsw-ts">'+esc((r.last_activity||'').slice(0,16).replace('T',' '))+'</span></a>'; }); return out; }
+  function lane(key,label,items){ return items.length?'<div class="runsw-lane" data-run-lane="'+key+'">'
+    +'<div class="runsw-lane-h">'+esc(label)+'</div>'+rows(items)+'</div>':''; }
+  var html=lane('waiting',w.getAttribute('data-l-setup-h'),wait)
+    +lane('stalled',w.getAttribute('data-l-stalled-h'),st)
+    +lane('active',w.getAttribute('data-l-active-h'),act);
   if(!html){ var fly=el('runsw-fly'); html='<div class="runsw-empty">'+esc(fly?fly.getAttribute('data-empty'):'')+'</div>'; }
   list.innerHTML=html;
 }

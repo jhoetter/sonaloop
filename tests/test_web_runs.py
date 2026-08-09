@@ -4,9 +4,12 @@ Fixtures mirror tests/test_autonomy.py: a planned project with no run is stalled
 a checkpointing run is active, a discharged freeform plan is finished."""
 from __future__ import annotations
 
+import base64
+
 from starlette.testclient import TestClient
 
 from sonaloop import services as S, web
+from conftest import create_persona
 
 
 def _client() -> TestClient:
@@ -144,6 +147,178 @@ def test_project_head_run_chip_with_progressive_diagnostics(store):
     bare = S.create_research_project("No plan", goal="g", store=store)
     bare_html = _client().get(f'/jobs/{bare["id"]}?lang=en').text
     assert 'class="sl-toolbtn runchip runchip--stalled"' in bare_html
+
+
+def test_reaction_preflights_project_one_truthful_waiting_state_in_de_and_en(store):
+    """An active journal waiting at a mandatory gate is amber, not a green
+    background worker. The downstream cohort gate stays hidden until its frame
+    inputs are complete, so a fresh job presents one recovery action at a time.
+    """
+    project = S.start_project(
+        "Reaction waiting", "Do people understand the captured screen?",
+        methodology="Reaction Test", operation_id="reaction-waiting:create", store=store,
+    )
+    run = S.start_run(
+        project["id"], operation_id="reaction-waiting:run", store=store,
+    )
+
+    health = S.project_health(project["id"], store=store)
+    assert health["state"] == "waiting"
+    assert health["driver_state"] == "waiting_on_preflight"
+    assert health["preflight"]["state"] == "waiting"
+    assert health["preflight"]["gate"] == "product_understanding"
+    assert health["preflight"]["kind"] == "stimulus_required"
+    assert health["preflight"]["code"] == "REACTION_STIMULUS_REQUIRED"
+    assert health["preflight"]["action"]["next_call"] == health["preflight"]["next_call"]
+    grouped = _client().get("/api/runs").json()
+    assert grouped["active"] == []
+    assert grouped["waiting"][0]["state"] == "waiting"
+    assert grouped["stalled"] == []
+
+    for language, waiting, recovery, global_label in (
+        ("de", "Run · Vorbereitung nötig",
+         "Echte Screens oder Assets erfassen und dann denselben Run fortsetzen.",
+         "1 Job braucht Vorbereitung"),
+        ("en", "Run · Needs setup",
+         "Capture real screens or assets, then continue the same run.",
+         "1 job needs setup"),
+    ):
+        list_html = _client().get(f"/jobs?lang={language}").text
+        detail_html = _client().get(f"/jobs/{project['id']}?lang={language}").text
+        assert waiting in list_html and waiting in detail_html
+        assert global_label in detail_html
+        assert 'runchip runchip--waiting' in detail_html
+        assert recovery in detail_html
+        assert 'data-setup-kind="stimulus_required"' in detail_html
+        assert "Cohort Integrity" not in detail_html
+        assert 'runchip runchip--active' not in detail_html
+
+    # Complete Product Understanding through the governed dispatch. While the
+    # frame is being authored, Cohort Integrity is still a future task and must
+    # not render as a simultaneous missing error.
+    dispatch = S.run_step(run["run_id"], store=store)
+    asset = S.attach_asset(
+        project["id"], content_base64=base64.b64encode(b"screen-state").decode(),
+        filename="screen.png", kind="screenshot", title="Captured screen",
+        dispatch_token=dispatch["dispatch_token"], store=store,
+    )
+    ref = {"kind": "asset", "id": asset["id"]}
+    inventory_health = S.project_health(project["id"], store=store)
+    assert inventory_health["preflight"]["kind"] == "product_understanding_required"
+    inventory_html = _client().get(f"/jobs/{project['id']}?lang=en").text
+    assert 'data-setup-kind="product_understanding_required"' in inventory_html
+    assert ("Inspect every captured screen, record the visible product understanding, "
+            "then continue the same run.") in inventory_html
+    S.record_product_understanding(
+        project["id"], target={"name": "Captured product"}, revision="screen:1",
+        routes=[{"path": "/", "evidence_refs": [ref]}],
+        flows=[{"name": "Landing", "evidence_refs": [ref]}],
+        states=[{"state": "landing", "evidence_refs": [ref]}],
+        capabilities=[{
+            "key": "headline", "claim": "The headline is visible",
+            "status": "observed_present", "evidence_refs": [ref],
+        }],
+        evidence_refs=[ref], observed_at="2026-08-09T18:00:00Z",
+        dispatch_token=dispatch["dispatch_token"], store=store,
+    )
+    frame_dispatch = S.run_step(run["run_id"], store=store)
+    assert frame_dispatch["step_id"] == "frame__react"
+    assert frame_dispatch["blocking_action"]["kind"] == "cohort_selection_required"
+    selection_health = S.project_health(project["id"], store=store)
+    assert selection_health["state"] == "waiting"
+    assert selection_health["preflight"]["gate"] == "cohort_selection"
+    selection_html = _client().get(f"/jobs/{project['id']}?lang=en").text
+    assert "Select a cohort" in selection_html
+    assert "Cohort Integrity" not in selection_html
+    assert 'runchip runchip--waiting' in selection_html
+    assert 'runchip runchip--active' not in selection_html
+
+    personas = [create_persona(store, "Independent A"), create_persona(store, "Independent B")]
+    S.select_reaction_test_cohort(
+        project["id"], personas,
+        "Independent roles provide a useful contrast",
+        operation_id="reaction-waiting:cohort-selection",
+        dispatch_token=frame_dispatch["dispatch_token"], store=store,
+    )
+    frame_html = _client().get(f"/jobs/{project['id']}?lang=en").text
+    assert "Select a cohort" not in frame_html
+    assert "Cohort Integrity" not in frame_html
+    assert 'runchip runchip--active' in frame_html
+
+    S.record_frame(
+        project["id"], frame_dispatch["step_id"],
+        ["What would make the captured headline unclear?"],
+        hypotheses=["Some readers may miss the intended next action."],
+        memory_refs=["memory:independent-context"],
+        dispatch_token=frame_dispatch["dispatch_token"], store=store,
+    )
+    cohort_health = S.project_health(project["id"], store=store)
+    assert cohort_health["state"] == "waiting"
+    assert cohort_health["preflight"]["gate"] == "cohort_integrity"
+    cohort_html = _client().get(f"/jobs/{project['id']}?lang=en").text
+    assert "Cohort Integrity" in cohort_html
+    assert "Check or deepen the current cohort, then continue the same run." in cohort_html
+
+
+def test_product_setup_card_follows_the_server_projected_flow_manifest_action(store):
+    project = S.start_project(
+        "Flow setup", "React to https://example.test",
+        methodology="Reaction Test", operation_id="flow-setup:create", store=store,
+    )
+    run = S.start_run(project["id"], operation_id="flow-setup:run", store=store)
+    dispatch = S.run_step(run["run_id"], store=store)
+    asset = S.attach_asset(
+        project["id"], content_base64=base64.b64encode(b"remote-screen").decode(),
+        filename="remote.png", kind="screenshot", title="Remote screen",
+        dispatch_token=dispatch["dispatch_token"], store=store,
+    )
+    # This is a presentation fixture: mark the already persisted asset as an
+    # admitted remote version so the canonical projector selects its manifest
+    # action. Admission validation itself is covered by test_remote_stimulus_admission.
+    row = store.get_research_project(project["id"])
+    persisted_asset = next(item for item in row["assets"] if item["id"] == asset["id"])
+    persisted_asset["admission"] = {
+        "schema": "sonaloop.remote_screenshot_admission.v1",
+        "target_revision": "deploy:1",
+    }
+    store.upsert_research_project(row)
+
+    health = S.project_health(project["id"], store=store)
+    assert health["preflight"]["kind"] == "flow_manifest_required"
+    for language, copy in (
+        ("de", "Die erfassten Screens in ihrer tatsächlichen Reihenfolge als Flow festhalten und danach denselben Run fortsetzen."),
+        ("en", "Freeze the captured screens in their actual flow order, then continue the same run."),
+    ):
+        html = _client().get(f"/jobs/{project['id']}?lang={language}").text
+        assert 'data-setup-kind="flow_manifest_required"' in html
+        assert copy in html
+        assert "Cohort Integrity" not in html
+
+
+def test_setup_and_stalled_runs_keep_separate_lanes_and_neutral_mixed_count(store):
+    setup = S.start_project(
+        "Needs setup", "React to https://example.test",
+        methodology="Reaction Test", operation_id="lanes:setup", store=store,
+    )
+    S.start_run(setup["id"], operation_id="lanes:setup-run", store=store)
+    stalled = _planned(store, "Actually stalled")
+
+    grouped = _client().get("/api/runs").json()
+    assert [row["project_id"] for row in grouped["waiting"]] == [setup["id"]]
+    assert [row["project_id"] for row in grouped["stalled"]] == [stalled]
+
+    chrome = _client().get("/personas?lang=en").text
+    assert ">2 jobs need attention</span>" in chrome.split('id="runsw-count"')[1][:100]
+    assert 'data-run-lane="waiting"' in chrome
+    assert 'data-run-lane="stalled"' in chrome
+    assert "1 job needs setup" not in chrome.split('id="runsw-count"')[1][:100]
+
+    runs = _client().get("/runs?lang=en").text
+    main = runs.split("<section>", 1)[1]
+    setup_at = main.index(web.STRINGS["en"]["runs_setup_h"])
+    stalled_at = main.index(web.STRINGS["en"]["runs_stalled_h"], setup_at + 1)
+    assert setup_at < main.index(f'href="/jobs/{setup["id"]}"', setup_at) < stalled_at
+    assert stalled_at < main.index(f'href="/jobs/{stalled}"', stalled_at)
 
 
 def test_runs_page_support_trace_is_only_inside_closed_diagnostics(store):

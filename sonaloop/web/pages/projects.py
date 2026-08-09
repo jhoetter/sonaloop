@@ -17,13 +17,14 @@ from .._cohort_integrity_view import render_cohort_integrity
 # hypotheses, open questions and assets included (_graph_outline_extras builds their items).
 
 register_css(r"""
-.sl-pu-card{border:1px solid var(--line);border-left:3px solid var(--green);border-radius:var(--radius);background:var(--panel);padding:12px 14px;margin:14px 0}.sl-pu-card--missing{border-left-color:var(--red)}
+.sl-pu-card{border:1px solid var(--line);border-left:3px solid var(--green);border-radius:var(--radius);background:var(--panel);padding:12px 14px;margin:14px 0}.sl-pu-card--missing{border-left-color:var(--amber)}
 .sl-pu-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.sl-pu-head strong{display:flex;align-items:center;gap:7px}.sl-pu-meta{color:var(--muted);font-size:var(--t-sm);margin-top:4px}.sl-pu-caps{margin:9px 0 0;padding-left:18px;font-size:var(--t-sm)}
 .sl-project-creator{color:var(--muted);font-size:var(--t-xs);margin:4px 0 0}
 """)
 
 
-def _product_understanding_html(project: dict, store=None) -> str:
+def _product_understanding_html(project: dict, store=None,
+                                preflight: dict | None = None) -> str:
     """Compact, inspectable preflight state on the job that it governs."""
     policy = project.get("integrity") or {}
     versions = project.get("product_understanding_versions") or []
@@ -33,12 +34,19 @@ def _product_understanding_html(project: dict, store=None) -> str:
     if not current:
         if not policy.get("product_understanding_required"):
             return ""
+        kind = str((preflight or {}).get("kind") or "")
+        help_text = (t("product_flow_manifest_missing_help")
+                     if kind == "flow_manifest_required"
+                     else t("product_inventory_missing_help")
+                     if kind == "product_understanding_required"
+                     else t("product_understanding_missing_help"))
         return h("div", {"class_": "sl-pu-card sl-pu-card--missing", "id": "product-understanding",
-                         "role": "status", "aria-label": t("product_understanding_missing_help")},
+                         "role": "status", "data-setup-kind": kind or "product_understanding_required",
+                         "aria-label": help_text},
                  h("div", {"class_": "sl-pu-head"},
                    h("strong", {}, raw(_icon("warning")), t("product_understanding_h")),
-                   raw(_label(t("product_understanding_missing"), "var(--red)"))),
-                 h("div", {"class_": "sl-pu-meta"}, t("product_understanding_missing_help")))
+                   raw(_label(t("product_understanding_missing"), "var(--amber)"))),
+                 h("div", {"class_": "sl-pu-meta"}, help_text))
     target = current.get("target") or {}
     target_name = target.get("name") or target.get("identity") or target.get("url") or "—"
     status_labels = {
@@ -88,6 +96,21 @@ def _product_understanding_html(project: dict, store=None) -> str:
                (raw(_label(t("pu_conflicts_n", n=conflicts), "var(--red)")) if conflicts else None)),
              h("div", {"class_": "sl-pu-meta"}, meta),
              h("ul", {"class_": "sl-pu-caps"}, fragment(*cap_rows)))
+
+
+def _cohort_selection_html(preflight: dict) -> str:
+    """Render the server-projected between-gates setup action, if current."""
+    if preflight.get("state") != "waiting" or preflight.get("gate") != "cohort_selection":
+        return ""
+    return h(
+        "section",
+        {"class_": "sl-pu-card sl-pu-card--missing", "id": "cohort-selection",
+         "role": "status", "aria-label": t("cohort_selection_help")},
+        h("div", {"class_": "sl-pu-head"},
+          h("strong", {}, raw(_icon("personas")), t("cohort_selection_h")),
+          raw(_label(t("cohort_integrity_missing"), "var(--amber)"))),
+        h("div", {"class_": "sl-pu-meta"}, t("cohort_selection_help")),
+    )
 
 
 def _project_lineage_html(project: dict, store) -> str:
@@ -225,7 +248,12 @@ def register_projects(app) -> None:
         # The project run-state chip (`▶ Run · state`) belongs to the project head, not
         # the topbar: the topbar already has the global runs widget.
         from .._runs_widget import project_run_chip
-        run_chip = project_run_chip(proj["id"], store)
+        try:
+            health = services.project_health(proj["id"], store=store)
+        except Exception:
+            health = {}
+        preflight = health.get("preflight") or {}
+        run_chip = project_run_chip(proj["id"], store, run_state=health)
         # The graph projection is deliberately lean and does not carry request-boundary
         # attribution. Read the canonical project row for this one presentation field;
         # only its display snapshot is rendered (never the opaque actor id).
@@ -246,8 +274,13 @@ def register_projects(app) -> None:
                       t("project_created_by", label=creator_label)) if creator_label else None),
                    h("div", {"class_": "pills"}, raw(run_chip)),
                    bar),
-                 raw(_product_understanding_html(proj, store)),
-                 raw(render_cohort_integrity(proj, store)),
+                 raw(_product_understanding_html(proj, store, preflight)),
+                 raw(_cohort_selection_html(preflight)),
+                 raw(render_cohort_integrity(
+                     proj, store,
+                     show_missing=(preflight.get("state") == "waiting"
+                                   and preflight.get("gate") == "cohort_integrity"),
+                 )),
                  raw(_project_lineage_html(proj, store)),
                  main_view) + raw(project_icon_edit_script())
         # Write affordances (web CRUD, V10 §9): the ONE visible "…" overflow — Edit opens the
