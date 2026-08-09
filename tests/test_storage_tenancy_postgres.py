@@ -14,7 +14,7 @@ import uuid
 import base64
 from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
-from threading import Barrier
+from threading import Barrier, Event
 
 import pytest
 from PIL import Image
@@ -28,6 +28,7 @@ from sonaloop import config, services
 from sonaloop import plan as P
 from sonaloop.storage import Store
 from sonaloop.storage._backend import PostgresBackend, _tenant_tables
+from sonaloop._project_locks import workspace_project_creation_lock
 
 _ADMIN = os.getenv("SONALOOP_TEST_PG_DSN")
 pytestmark = pytest.mark.skipif(not _ADMIN, reason="set SONALOOP_TEST_PG_DSN to run Postgres tenancy")
@@ -173,6 +174,39 @@ def test_postgres_concurrent_distinct_starts_claim_one_workspace_run(pg):
     assert runs[0]["run_id"] in errors[0].message
     persisted = _scoped(["ws_run_race"], "ws_run_race", lambda: Store().list_runs(project["id"]))
     assert len(persisted) == 1 and persisted[0]["status"] == "active"
+
+
+def test_workspace_project_creation_waits_for_shared_maintenance_lock(pg):
+    """An exhaustive workspace operation cannot race a new project insert."""
+    workspace_id = "ws_project_creation_lock"
+    attempted = Event()
+    completed = Event()
+
+    def create_while_locked():
+        attempted.set()
+        try:
+            return _scoped([workspace_id], workspace_id, lambda: services.start_project(
+                "Created after maintenance", "g",
+                operation_id="pg:workspace-lock:create", store=Store(),
+            ))
+        finally:
+            completed.set()
+
+    token = config.set_request_tenant_scope([workspace_id], workspace_id)
+    try:
+        with Store() as maintenance, ThreadPoolExecutor(max_workers=1) as pool:
+            with workspace_project_creation_lock(maintenance):
+                future = pool.submit(create_while_locked)
+                assert attempted.wait(timeout=5)
+                assert not completed.wait(timeout=0.25)
+                maintenance.conn.commit()
+            created = future.result(timeout=10)
+    finally:
+        config.reset_request_tenant_scope(token)
+
+    assert completed.is_set()
+    assert created["title"] == "Created after maintenance"
+    assert _titles([workspace_id], workspace_id) == ["Created after maintenance"]
 
 
 def test_postgres_project_with_run_history_requires_archive(pg):

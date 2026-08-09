@@ -40,43 +40,51 @@ class ResearchMixin:
         Used by retry-safe ``start_project(operation_id=...)``. The explicit conflict target is
         tenant-expanded by the Postgres backend, while SQLite uses the same statement verbatim.
         """
-        cur = self.conn.execute(
-            "INSERT INTO research_projects (id, slug, title, data, created_at, updated_at) "
-            "VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING",
-            (project["id"], project["slug"], project["title"],
-             json.dumps(project, ensure_ascii=False), project["created_at"],
-             project.get("updated_at", project["created_at"])),
-        )
-        self.conn.commit()
-        return cur.rowcount == 1
+        from .._project_locks import workspace_project_creation_lock
+
+        with workspace_project_creation_lock(self):
+            cur = self.conn.execute(
+                "INSERT INTO research_projects (id, slug, title, data, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING",
+                (project["id"], project["slug"], project["title"],
+                 json.dumps(project, ensure_ascii=False), project["created_at"],
+                 project.get("updated_at", project["created_at"])),
+            )
+            self.conn.commit()
+            return cur.rowcount == 1
 
     def upsert_research_project(self, project: dict[str, Any]) -> None:
         # Split insert from update so the first physical insert atomically owns ``created_by`` even
         # when two creators race through a legacy/non-operation-id path. The losing writer may still
         # update normal project fields, but it must carry forward the winner's snapshot exactly.
-        inserted = self.conn.execute(
-            "INSERT INTO research_projects (id, slug, title, data, created_at, updated_at) "
-            "VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING",
-            (project["id"], project["slug"], project["title"], json.dumps(project, ensure_ascii=False),
-             project["created_at"], project.get("updated_at", project["created_at"])),
-        )
-        if inserted.rowcount == 1:
+        from .._project_locks import workspace_project_creation_lock
+
+        with workspace_project_creation_lock(self):
+            inserted = self.conn.execute(
+                "INSERT INTO research_projects (id, slug, title, data, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING",
+                (project["id"], project["slug"], project["title"],
+                 json.dumps(project, ensure_ascii=False), project["created_at"],
+                 project.get("updated_at", project["created_at"])),
+            )
+            if inserted.rowcount == 1:
+                self.conn.commit()
+                return
+            row = self.conn.execute(
+                "SELECT data FROM research_projects WHERE id=?", (project["id"],),
+            ).fetchone()
+            if not row:  # pragma: no cover - a committed conflict row must be visible
+                self.conn.rollback()
+                raise RuntimeError("research project upsert conflict without an existing row")
+            existing = json.loads(row["data"])
+            candidate = self._preserve_project_creator(existing, project)
+            self.conn.execute(
+                "UPDATE research_projects SET slug=?, title=?, data=?, updated_at=? WHERE id=?",
+                (candidate["slug"], candidate["title"],
+                 json.dumps(candidate, ensure_ascii=False),
+                 candidate.get("updated_at", candidate["created_at"]), candidate["id"]),
+            )
             self.conn.commit()
-            return
-        row = self.conn.execute(
-            "SELECT data FROM research_projects WHERE id=?", (project["id"],),
-        ).fetchone()
-        if not row:  # pragma: no cover - a committed conflict row must be visible
-            self.conn.rollback()
-            raise RuntimeError("research project upsert conflict without an existing row")
-        existing = json.loads(row["data"])
-        candidate = self._preserve_project_creator(existing, project)
-        self.conn.execute(
-            "UPDATE research_projects SET slug=?, title=?, data=?, updated_at=? WHERE id=?",
-            (candidate["slug"], candidate["title"], json.dumps(candidate, ensure_ascii=False),
-             candidate.get("updated_at", candidate["created_at"]), candidate["id"]),
-        )
-        self.conn.commit()
 
     def compare_and_swap_research_project(
         self, expected: dict[str, Any], project: dict[str, Any]

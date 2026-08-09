@@ -36,6 +36,38 @@ def _lock_number(identity: str) -> int:
     )
 
 
+@contextmanager
+def workspace_project_creation_lock(store: Any) -> Iterator[None]:
+    """Serialize tenant project creation with workspace-wide maintenance.
+
+    Project ids are independent, so the per-project lifecycle locks cannot make
+    an exhaustive workspace snapshot safe against a concurrent insert. Tenant
+    Postgres callers that create projects and privileged maintenance callers
+    therefore share this transaction-scoped advisory lock. It is deliberately a
+    no-op for SQLite and non-tenant stores, where the Cloud workspace race does
+    not exist.
+
+    The caller owns the transaction and must commit or roll it back. Postgres
+    releases the advisory lock with that transaction.
+    """
+    if (
+        getattr(store.backend, "dialect", "sqlite") != "postgres"
+        or not getattr(store.backend, "tenant", False)
+    ):
+        yield
+        return
+
+    scope = request_tenant_scope()
+    workspace_id = str((scope or ((), ""))[1] or "")
+    if not workspace_id:
+        raise RuntimeError("workspace project creation requires an active workspace")
+    identity = f"sonaloop-workspace-project-creation:{workspace_id}"
+    store.conn.execute(
+        "SELECT pg_advisory_xact_lock(?)", (_lock_number(identity),),
+    ).fetchone()
+    yield
+
+
 def _sqlite_lock_path(store: Any, identity: str) -> Path:
     """Return a stable, non-user-controlled file used for cross-process locking."""
     database = Path(store.path).resolve()

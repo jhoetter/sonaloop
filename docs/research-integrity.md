@@ -301,6 +301,11 @@ Project cleanup is non-destructive by default:
   Jobs search, pagination and the visible count operate only on non-archived Jobs. Deletion remains a
   separate, explicit destructive operation.
 
+On tenant Postgres, every project insert/upsert and any privileged exhaustive workspace maintenance
+share one transaction-scoped workspace creation lock. This prevents a maintenance snapshot from
+silently omitting a concurrent project insert; normal RLS and project lifecycle locks remain the
+authorization and per-project mutation boundaries.
+
 Both writes are retry-safe under their operation id. The inspector renders lineage but does not
 recommend a canonical record unless that relationship was explicitly persisted.
 
