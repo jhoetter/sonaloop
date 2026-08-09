@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+import multiprocessing
+from pathlib import Path
 from threading import Barrier
 
 import pytest
@@ -11,6 +13,24 @@ from sonaloop import methodology as M
 from sonaloop import plan as P
 from sonaloop import services
 from sonaloop.mcp_server import build_server
+
+
+def _hold_project_lifecycle_lock(
+    database_path: str, project_id: str,
+    attempting: multiprocessing.synchronize.Event,
+    entered: multiprocessing.synchronize.Event,
+    release: multiprocessing.synchronize.Event,
+) -> None:
+    """Spawn-safe helper proving that the SQLite guard crosses process boundaries."""
+    from sonaloop._project_locks import project_lifecycle_locks
+    from sonaloop.storage import Store
+
+    with Store(Path(database_path)) as scoped:
+        attempting.set()
+        with project_lifecycle_locks(scoped, [project_id]):
+            entered.set()
+            if not release.wait(timeout=10):
+                raise RuntimeError("test lifecycle lock was not released")
 
 
 def test_methodology_display_names_and_spelling_variants_resolve_to_stable_key(store):
@@ -195,6 +215,261 @@ def test_concurrent_start_run_operation_claims_one_run():
     assert sum(bool(row.get("idempotent_replay")) for row in runs) == 1
     with Store() as check:
         assert len(check.list_runs(project["id"])) == 1
+
+
+@pytest.mark.parametrize("operation_ids", [
+    ("concurrent:run:left", "concurrent:run:right"),
+    (None, None),
+])
+def test_concurrent_distinct_run_starts_fail_closed_on_one_active_owner(operation_ids):
+    """Different intents (including legacy unkeyed calls) cannot race two active rows in."""
+    from sonaloop.storage import Store
+
+    with Store() as setup:
+        project = services.start_project("One active owner", "g", store=setup)
+    barrier = Barrier(2)
+
+    def create_run(operation_id):
+        with Store() as thread_store:
+            barrier.wait(timeout=10)
+            try:
+                return services.start_run(
+                    project["id"], operation_id=operation_id, store=thread_store)
+            except P.PlanError as exc:
+                return exc
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = [future.result() for future in [
+            pool.submit(create_run, operation_ids[0]),
+            pool.submit(create_run, operation_ids[1]),
+        ]]
+
+    runs = [row for row in results if isinstance(row, dict)]
+    errors = [row for row in results if isinstance(row, P.PlanError)]
+    assert len(runs) == 1 and len(errors) == 1
+    assert errors[0].code == "ACTIVE_RUN_EXISTS"
+    assert runs[0]["run_id"] in errors[0].message
+    assert f"start_run(project_id={project['id']!r}, run_id={runs[0]['run_id']!r})" \
+        in errors[0].message
+    with Store() as check:
+        persisted = check.list_runs(project["id"])
+        assert len(persisted) == 1 and persisted[0]["status"] == "active"
+
+
+def test_second_run_names_safe_resume_and_terminal_run_releases_owner(store):
+    project = services.start_project("Resume the owner", "g", store=store)
+    first = services.start_run(
+        project["id"], budget=9, operation_id="one-active:first", store=store)
+
+    with pytest.raises(P.PlanError) as blocked:
+        services.start_run(
+            project["id"], budget=9, operation_id="one-active:second", store=store)
+    assert blocked.value.code == "ACTIVE_RUN_EXISTS"
+    assert first["run_id"] in blocked.value.message
+    assert "then continue with run_step" in blocked.value.message
+
+    # Existing identity replay and explicit run-id resume remain valid through the guard.
+    assert services.start_run(
+        project["id"], budget=9, operation_id="one-active:first", store=store
+    )["idempotent_replay"] is True
+    assert services.start_run(
+        project["id"], run_id=first["run_id"], store=store
+    )["idempotent_replay"] is True
+
+    services.finish_run(first["run_id"], "stopped", store=store)
+    second = services.start_run(
+        project["id"], operation_id="one-active:second", store=store)
+    assert second["run_id"] != first["run_id"]
+    assert [row["status"] for row in store.list_runs(project["id"])] == ["active", "stopped"]
+
+
+def test_legacy_active_run_is_adopted_without_rewriting_history(store):
+    project = services.start_project("Adopt legacy run", "g", store=store)
+    legacy = {
+        "run_id": "run_legacy_owner", "project_id": project["id"], "status": "active",
+        "cursor": 0, "steps": [], "dispatches": [], "critic_rounds": [],
+        "created_at": "2026-08-07T12:00:00+00:00",
+        "updated_at": "2026-08-07T12:01:00+00:00",
+    }
+    store.upsert_run(legacy)  # pre-invariant storage shape: no active_run_claims row
+
+    with pytest.raises(P.PlanError) as blocked:
+        services.start_run(project["id"], operation_id="post-upgrade:new", store=store)
+    assert blocked.value.code == "ACTIVE_RUN_EXISTS"
+    assert legacy["run_id"] in blocked.value.message
+    assert store.list_runs(project["id"]) == [legacy]
+
+
+@pytest.mark.parametrize("close_kind", ["archive", "supersede"])
+def test_closed_project_cannot_acquire_a_new_run(store, close_kind):
+    project = services.start_project("Closed predecessor", "g", store=store)
+    if close_kind == "archive":
+        services.archive_project(
+            project["id"], "close:archive", "Preserve it", store=store,
+        )
+    else:
+        successor = services.start_project("Successor", "g", store=store)
+        services.supersede_project(
+            successor["id"], project["id"], "close:supersede", "Explicit lineage",
+            store=store,
+        )
+
+    with pytest.raises(P.PlanError) as blocked:
+        services.start_run(project["id"], operation_id="closed:new-run", store=store)
+
+    assert blocked.value.code == "PROJECT_CLOSED"
+    assert store.list_runs(project["id"]) == []
+
+
+def test_archive_and_run_start_serialize_without_closed_active_state():
+    from sonaloop.storage import Store
+
+    with Store() as setup:
+        project = services.start_project("Lifecycle race", "g", store=setup)
+    barrier = Barrier(2)
+
+    def start():
+        with Store() as scoped:
+            barrier.wait(timeout=10)
+            try:
+                return services.start_run(
+                    project["id"], operation_id="lifecycle:race:run", store=scoped,
+                )
+            except Exception as exc:  # the archive-won outcome is expected
+                return exc
+
+    def archive():
+        with Store() as scoped:
+            barrier.wait(timeout=10)
+            try:
+                return services.archive_project(
+                    project["id"], "lifecycle:race:archive", "Explicit race test",
+                    store=scoped,
+                )
+            except Exception as exc:  # the run-won outcome is expected
+                return exc
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        start_result, archive_result = [future.result() for future in (
+            pool.submit(start), pool.submit(archive),
+        )]
+
+    with Store() as check:
+        persisted = check.get_research_project(project["id"])
+        active = [row for row in check.list_runs(project["id"]) if row["status"] == "active"]
+    lifecycle = str(persisted.get("status") or "active")
+    assert not (lifecycle == "archived" and active)
+    if lifecycle == "archived":
+        assert isinstance(start_result, P.PlanError)
+        assert start_result.code == "PROJECT_CLOSED"
+        assert not active
+    else:
+        assert len(active) == 1
+        assert isinstance(archive_result, ValueError)
+        assert "ACTIVE_RUN_ARCHIVE_BLOCKED" in str(archive_result)
+
+
+def test_sqlite_project_lifecycle_lock_serializes_separate_processes(store):
+    project = services.start_project("Process lifecycle lock", "g", store=store)
+    context = multiprocessing.get_context("spawn")
+    attempting_one, attempting_two = context.Event(), context.Event()
+    entered_one, release_one = context.Event(), context.Event()
+    entered_two, release_two = context.Event(), context.Event()
+    first = context.Process(
+        target=_hold_project_lifecycle_lock,
+        args=(str(store.path), project["id"], attempting_one, entered_one, release_one),
+    )
+    second = context.Process(
+        target=_hold_project_lifecycle_lock,
+        args=(str(store.path), project["id"], attempting_two, entered_two, release_two),
+    )
+    try:
+        first.start()
+        assert attempting_one.wait(timeout=5)
+        assert entered_one.wait(timeout=5)
+        second.start()
+        assert attempting_two.wait(timeout=5)
+        assert not entered_two.wait(timeout=0.3)
+        release_one.set()
+        assert entered_two.wait(timeout=5)
+        release_two.set()
+        first.join(timeout=5)
+        second.join(timeout=5)
+        assert first.exitcode == second.exitcode == 0
+    finally:
+        release_one.set()
+        release_two.set()
+        for process in (first, second):
+            if process.is_alive():
+                process.terminate()
+            process.join(timeout=2)
+
+
+def test_delete_and_run_start_serialize_without_orphaned_run():
+    from sonaloop.storage import Store
+
+    with Store() as setup:
+        project = services.start_project("Delete lifecycle race", "g", store=setup)
+    barrier = Barrier(2)
+
+    def start():
+        with Store() as scoped:
+            barrier.wait(timeout=10)
+            try:
+                return services.start_run(
+                    project["id"], operation_id="lifecycle:delete-race:run", store=scoped,
+                )
+            except Exception as exc:
+                return exc
+
+    def delete():
+        with Store() as scoped:
+            barrier.wait(timeout=10)
+            try:
+                # The destructive API accepts legacy slugs, but must canonicalize the lock
+                # to the same id used by start_run.
+                return services.delete_research_project(project["slug"], store=scoped)
+            except Exception as exc:
+                return exc
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        start_result, delete_result = [future.result() for future in (
+            pool.submit(start), pool.submit(delete),
+        )]
+
+    with Store() as check:
+        persisted = check.get_research_project(project["id"])
+        runs = check.list_runs(project["id"])
+        claims = check.conn.execute(
+            "SELECT COUNT(*) AS n FROM active_run_claims WHERE project_id=?", (project["id"],),
+        ).fetchone()["n"]
+    if persisted is None:
+        assert isinstance(delete_result, dict)
+        assert delete_result["project_id"] == project["id"]
+        assert isinstance(start_result, P.PlanError)
+        assert start_result.code == "UNKNOWN_PROJECT"
+        assert runs == [] and claims == 0
+    else:
+        assert isinstance(start_result, dict)
+        assert len(runs) == 1 and runs[0]["status"] == "active" and claims == 1
+        assert isinstance(delete_result, ValueError)
+        assert "PROJECT_DELETE_RUN_HISTORY_BLOCKED" in str(delete_result)
+
+
+def test_project_with_terminal_run_history_must_be_archived_not_deleted(store):
+    project = services.start_project("Durable run history", "g", store=store)
+    run = services.start_run(project["id"], operation_id="history:durable", store=store)
+    services.finish_run(run["run_id"], "stopped", store=store)
+
+    with pytest.raises(ValueError, match="PROJECT_DELETE_RUN_HISTORY_BLOCKED"):
+        services.delete_research_project(project["id"], store=store)
+
+    archived = services.archive_project(
+        project["id"], "history:archive", "Preserve governed run history", store=store,
+    )
+    assert archived["status"] == "archived"
+    assert store.get_research_project(project["id"])["status"] == "archived"
+    assert store.list_runs(project["id"])[0]["run_id"] == run["run_id"]
 
 
 def test_checkpoint_step_deduplicates_retried_deterministic_key(store):

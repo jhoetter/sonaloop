@@ -159,6 +159,21 @@ def test_project_delete_404():
     assert _post(_client(), "/jobs/nope/delete", confirm="x").status_code == 404
 
 
+def test_project_delete_preserves_governed_run_history(store):
+    proj = services.create_research_project("Archive this history", store=store)
+    run = services.start_run(proj["id"], store=store)
+    services.finish_run(run["run_id"], "stopped", store=store)
+
+    response = _post(
+        _client(), f'/jobs/{proj["id"]}/delete', confirm="Archive this history",
+    )
+
+    assert response.status_code == 409
+    assert "cannot be hard-deleted" in response.text
+    assert services.get_research_project(proj["id"], store=store)
+    assert services.run_journal(run["run_id"], store=store)["status"] == "stopped"
+
+
 # ------------------------------------------------------------------------ personas
 
 def test_persona_metadata_edit_happy_validation_csrf_404(store):

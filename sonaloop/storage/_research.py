@@ -3,10 +3,21 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from ..config import utc_now_iso
+from ..config import request_tenant_scope, utc_now_iso
 
 
 class ResearchMixin:
+    def _active_claim_workspace(self) -> str | None:
+        """Return the explicit write workspace for tenant-expanded claim queries."""
+        if (getattr(self.backend, "dialect", "sqlite") != "postgres"
+                or not getattr(self.backend, "tenant", False)):
+            return None
+        scope = request_tenant_scope()
+        workspace_id = str((scope or ((), ""))[1] or "")
+        if not workspace_id:
+            raise RuntimeError("active run ownership requires an active workspace")
+        return workspace_id
+
     # ---- Research graph: projects / edges / open questions / reports ----
     def insert_research_project_if_absent(self, project: dict[str, Any]) -> bool:
         """Atomically claim a deterministic project id without overwriting its owner.
@@ -54,6 +65,17 @@ class ResearchMixin:
             "SELECT data FROM research_projects WHERE id=? OR slug=?", (project_id, project_id)).fetchone()
         return json.loads(row["data"]) if row else None
 
+    def get_research_project_for_active_workspace(self, project_id: str) -> dict[str, Any] | None:
+        """Resolve one mutable project only inside the active tenant write workspace."""
+        workspace_id = self._active_claim_workspace()
+        if not workspace_id:
+            return self.get_research_project(project_id)
+        row = self.conn.execute(
+            "SELECT data FROM research_projects WHERE (id=? OR slug=?) AND workspace_id=?",
+            (project_id, project_id, workspace_id),
+        ).fetchone()
+        return json.loads(row["data"]) if row else None
+
     def list_research_projects(self) -> list[dict[str, Any]]:
         rows = self.conn.execute("SELECT data FROM research_projects ORDER BY created_at DESC").fetchall()
         return [json.loads(r["data"]) for r in rows]
@@ -86,25 +108,143 @@ class ResearchMixin:
     # ---- ESV: the resumable run object ----
     def insert_run_if_absent(self, run: dict[str, Any]) -> bool:
         """Atomically claim a caller-addressable run id without overwriting it."""
+        from .._project_locks import project_lifecycle_locks
+
+        project_id = str(run["project_id"])
+        workspace_id = self._active_claim_workspace()
+        project_scope = " AND workspace_id=?" if workspace_id else ""
+        with project_lifecycle_locks(self, [project_id]):
+            cur = self.conn.execute(
+                "INSERT INTO runs (run_id, project_id, status, cursor, data, created_at, updated_at) "
+                "SELECT ?, ?, ?, ?, ?, ?, ? WHERE EXISTS ("
+                "SELECT 1 FROM research_projects WHERE id=?" + project_scope
+                + ") ON CONFLICT(run_id) DO NOTHING",
+                (
+                    run["run_id"], project_id, run.get("status", "active"),
+                    int(run.get("cursor", 0)), json.dumps(run, ensure_ascii=False),
+                    run["created_at"], run.get("updated_at", run["created_at"]), project_id,
+                    *((workspace_id,) if workspace_id else ()),
+                ),
+            )
+            self.conn.commit()
+            return cur.rowcount == 1
+
+    def claim_active_run(self, run: dict[str, Any]) -> dict[str, Any]:
+        """Atomically create ``run`` only when its project has no active run owner.
+
+        ``runs`` is an append-preserving journal and old stores may already contain more
+        than one active row, so a partial UNIQUE index cannot be installed safely during
+        schema application.  ``active_run_claims`` is the migration-safe ownership lock:
+
+        * a stale claim is repaired from canonical run status;
+        * one deterministic legacy active row is adopted before a new claim is attempted;
+        * the ownership claim and journal insert commit in the same transaction.
+
+        The primary key is tenant-expanded by the Postgres backend, making the invariant
+        workspace-local there.  The returned ``run_id`` is either the newly created owner
+        or the existing owner callers must resume.
+        """
+        project_id = str(run["project_id"])
+        run_id = str(run["run_id"])
+        workspace_id = self._active_claim_workspace()
+        claim_scope = " AND active_run_claims.workspace_id=?" if workspace_id else ""
+        run_scope = " AND workspace_id=?" if workspace_id else ""
+        claim_scope_params = (workspace_id,) if workspace_id else ()
+        try:
+            # Repair a crash after terminal status persistence but before claim release.
+            # This is safe inside the same write transaction as the subsequent claim.
+            self.conn.execute(
+                "DELETE FROM active_run_claims WHERE project_id=?" + claim_scope + " AND NOT EXISTS ("
+                "SELECT 1 FROM runs WHERE runs.run_id=active_run_claims.run_id "
+                "AND runs.project_id=active_run_claims.project_id "
+                "AND runs.status='active'"
+                + (" AND runs.workspace_id=active_run_claims.workspace_id" if workspace_id else "")
+                + ")",
+                (project_id, *claim_scope_params),
+            )
+            # Existing databases can contain active rows created before the invariant. Adopt
+            # the most recently touched one deterministically; reads retain every legacy row.
+            self.conn.execute(
+                "INSERT INTO active_run_claims (project_id, run_id, claimed_at) "
+                "SELECT ?, run_id, ? FROM runs WHERE project_id=? AND status='active' "
+                + run_scope + " "
+                "ORDER BY updated_at DESC, created_at DESC, run_id DESC LIMIT 1 "
+                "ON CONFLICT(project_id) DO NOTHING",
+                (project_id, run.get("created_at", utc_now_iso()), project_id,
+                 *((workspace_id,) if workspace_id else ())),
+            )
+            claimed = self.conn.execute(
+                "INSERT INTO active_run_claims (project_id, run_id, claimed_at) "
+                "VALUES (?, ?, ?) ON CONFLICT(project_id) DO NOTHING",
+                (project_id, run_id, run.get("created_at", utc_now_iso())),
+            )
+            if claimed.rowcount == 1:
+                inserted = self.conn.execute(
+                    "INSERT INTO runs (run_id, project_id, status, cursor, data, created_at, updated_at) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(run_id) DO NOTHING",
+                    (
+                        run_id, project_id, run.get("status", "active"),
+                        int(run.get("cursor", 0)), json.dumps(run, ensure_ascii=False),
+                        run["created_at"], run.get("updated_at", run["created_at"]),
+                    ),
+                )
+                if inserted.rowcount != 1:
+                    # A same-id writer from an older process may have won during a rolling
+                    # upgrade. Keep the claim only when that canonical row is this project's
+                    # active owner; otherwise fail without leaving a poisoned lock.
+                    existing = self.conn.execute(
+                        "SELECT project_id, status FROM runs WHERE run_id=?" + run_scope,
+                        (run_id, *((workspace_id,) if workspace_id else ())),
+                    ).fetchone()
+                    if (not existing or str(existing["project_id"]) != project_id
+                            or str(existing["status"]) != "active"):
+                        raise RuntimeError("active run claim collided with an incompatible run id")
+                self.conn.commit()
+                return {"created": inserted.rowcount == 1, "run_id": run_id}
+            owner = self.conn.execute(
+                "SELECT run_id FROM active_run_claims WHERE project_id=?" + claim_scope,
+                (project_id, *claim_scope_params),
+            ).fetchone()
+            if not owner:  # pragma: no cover - a committed conflict must expose its owner
+                raise RuntimeError("active run claim lost without an owner")
+            self.conn.commit()
+            return {"created": False, "run_id": str(owner["run_id"])}
+        except Exception:
+            self.conn.rollback()
+            raise
+
+    def release_active_run_claim(self, project_id: str, run_id: str) -> bool:
+        """Release only the terminal run's own claim; a newer owner is never touched."""
+        workspace_id = self._active_claim_workspace()
+        scope_sql = " AND workspace_id=?" if workspace_id else ""
         cur = self.conn.execute(
-            "INSERT INTO runs (run_id, project_id, status, cursor, data, created_at, updated_at) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(run_id) DO NOTHING",
-            (
-                run["run_id"], run["project_id"], run.get("status", "active"),
-                int(run.get("cursor", 0)), json.dumps(run, ensure_ascii=False),
-                run["created_at"], run.get("updated_at", run["created_at"]),
-            ),
+            "DELETE FROM active_run_claims WHERE project_id=? AND run_id=?" + scope_sql,
+            (project_id, run_id, *((workspace_id,) if workspace_id else ())),
         )
         self.conn.commit()
         return cur.rowcount == 1
 
     def upsert_run(self, run: dict[str, Any]) -> None:
-        self.conn.execute(
-            "INSERT OR REPLACE INTO runs (run_id, project_id, status, cursor, data, created_at, updated_at) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (run["run_id"], run["project_id"], run.get("status", "active"), int(run.get("cursor", 0)),
-             json.dumps(run, ensure_ascii=False), run["created_at"], run.get("updated_at", run["created_at"])))
-        self.conn.commit()
+        from .._project_locks import project_lifecycle_locks
+
+        project_id = str(run["project_id"])
+        workspace_id = self._active_claim_workspace()
+        project_scope = " AND workspace_id=?" if workspace_id else ""
+        with project_lifecycle_locks(self, [project_id]):
+            cur = self.conn.execute(
+                "INSERT INTO runs (run_id, project_id, status, cursor, data, created_at, updated_at) "
+                "SELECT ?, ?, ?, ?, ?, ?, ? WHERE EXISTS ("
+                "SELECT 1 FROM research_projects WHERE id=?" + project_scope
+                + ") ON CONFLICT(run_id) DO UPDATE SET "
+                "project_id=excluded.project_id, status=excluded.status, cursor=excluded.cursor, "
+                "data=excluded.data, created_at=excluded.created_at, updated_at=excluded.updated_at",
+                (run["run_id"], project_id, run.get("status", "active"),
+                 int(run.get("cursor", 0)), json.dumps(run, ensure_ascii=False), run["created_at"],
+                 run.get("updated_at", run["created_at"]), project_id,
+                 *((workspace_id,) if workspace_id else ())))
+            self.conn.commit()
+            if cur.rowcount != 1:
+                raise KeyError(f"unknown research project: {project_id}")
 
     def compare_and_swap_run(self, expected: dict[str, Any], run: dict[str, Any]) -> bool:
         """Replace one run only when its complete persisted JSON is unchanged.
@@ -135,6 +275,17 @@ class ResearchMixin:
         rows = self.conn.execute(
             "SELECT data FROM runs WHERE project_id=? ORDER BY created_at DESC", (project_id,)).fetchall()
         return [json.loads(r["data"]) for r in rows]
+
+    def _list_runs_for_active_workspace(self, project_id: str) -> list[dict[str, Any]]:
+        """Read run history for a mutation guard without borrowing another readable tenant."""
+        workspace_id = self._active_claim_workspace()
+        if not workspace_id:
+            return self.list_runs(project_id)
+        rows = self.conn.execute(
+            "SELECT data FROM runs WHERE project_id=? AND workspace_id=? ORDER BY created_at DESC",
+            (project_id, workspace_id),
+        ).fetchall()
+        return [json.loads(row["data"]) for row in rows]
 
     # ---- Methodology engine: user-defined specs + per-phase judgments ----
     def upsert_methodology(self, spec: dict[str, Any]) -> None:
@@ -188,7 +339,11 @@ class ResearchMixin:
         project_id do not: leaving them behind makes Library/global views point at a
         missing project and breaks trace annotation.
         """
-        p = self.get_research_project(project_id)
+        workspace_id = self._active_claim_workspace()
+        scope_sql = " AND workspace_id=?" if workspace_id else ""
+        scope_params = (workspace_id,) if workspace_id else ()
+
+        p = self.get_research_project_for_active_workspace(project_id)
         if not p:
             return {}
         pid = p["id"]
@@ -203,30 +358,42 @@ class ResearchMixin:
         for table, entity_type in (("council_sessions", "council"),
                                    ("syntheses", "synthesis")):
             rows = self.conn.execute(
-                f"SELECT id FROM {table} WHERE json_extract(data, '$.project_id')=?", (pid,)).fetchall()
+                f"SELECT id FROM {table} WHERE json_extract(data, '$.project_id')=?" + scope_sql,
+                (pid, *scope_params)).fetchall()
             event_entities[entity_type] = [str(r["id"]) for r in rows]
-        run_rows = self.conn.execute("SELECT run_id FROM runs WHERE project_id=?", (pid,)).fetchall()
+        run_rows = self.conn.execute(
+            "SELECT run_id FROM runs WHERE project_id=?" + scope_sql,
+            (pid, *scope_params)).fetchall()
         event_entities["run"] = [str(r["run_id"]) for r in run_rows]
         # Delete prototype sessions before prototypes; prototype_sessions has no project_id.
-        proto_rows = self.conn.execute("SELECT id FROM prototypes WHERE project_id=?", (pid,)).fetchall()
+        proto_rows = self.conn.execute(
+            "SELECT id FROM prototypes WHERE project_id=?" + scope_sql,
+            (pid, *scope_params)).fetchall()
         proto_ids = [r["id"] for r in proto_rows]
         if proto_ids:
             qmarks = ",".join("?" for _ in proto_ids)
-            cur = self.conn.execute(f"DELETE FROM prototype_sessions WHERE prototype_id IN ({qmarks})", proto_ids)
+            cur = self.conn.execute(
+                f"DELETE FROM prototype_sessions WHERE prototype_id IN ({qmarks})" + scope_sql,
+                (*proto_ids, *scope_params))
             deleted["prototype_sessions"] = cur.rowcount
 
         # Survey responses hang off surveys, not project_id.
-        survey_rows = self.conn.execute("SELECT id FROM surveys WHERE project_id=?", (pid,)).fetchall()
+        survey_rows = self.conn.execute(
+            "SELECT id FROM surveys WHERE project_id=?" + scope_sql,
+            (pid, *scope_params)).fetchall()
         survey_ids = [r["id"] for r in survey_rows]
         if survey_ids:
             qmarks = ",".join("?" for _ in survey_ids)
-            cur = self.conn.execute(f"DELETE FROM survey_responses WHERE survey_id IN ({qmarks})", survey_ids)
+            cur = self.conn.execute(
+                f"DELETE FROM survey_responses WHERE survey_id IN ({qmarks})" + scope_sql,
+                (*survey_ids, *scope_params))
             deleted["survey_responses"] = cur.rowcount
 
         for table in (
             "research_open_questions",
             "methodology_judgments",
             "research_plans",
+            "active_run_claims",
             "runs",
             "prediction_outcomes",
             "prototypes",
@@ -235,26 +402,33 @@ class ResearchMixin:
             "decision_records",
             "usability_sessions",
         ):
-            cur = self.conn.execute(f"DELETE FROM {table} WHERE project_id=?", (pid,))
+            cur = self.conn.execute(
+                f"DELETE FROM {table} WHERE project_id=?" + scope_sql,
+                (pid, *scope_params))
             deleted[table] = cur.rowcount
         for table in ("council_sessions", "syntheses"):
             cur = self.conn.execute(
-                f"DELETE FROM {table} WHERE json_extract(data, '$.project_id')=?", (pid,))
+                f"DELETE FROM {table} WHERE json_extract(data, '$.project_id')=?" + scope_sql,
+                (pid, *scope_params))
             deleted[table] = cur.rowcount
         # The lifecycle bus is a bounded live-view cache, not durable audit history.
         # Exact project_id is the normal path; exact typed entity ids cover legacy rows
         # that predate project_id propagation (notably synthesis.recorded).
-        cur = self.conn.execute("DELETE FROM events WHERE project_id=?", (pid,))
+        cur = self.conn.execute(
+            "DELETE FROM events WHERE project_id=?" + scope_sql,
+            (pid, *scope_params))
         deleted["events"] = cur.rowcount
         for entity_type, entity_ids in event_entities.items():
             if not entity_ids:
                 continue
             qmarks = ",".join("?" for _ in entity_ids)
             cur = self.conn.execute(
-                f"DELETE FROM events WHERE entity_type=? AND entity_id IN ({qmarks})",
-                (entity_type, *entity_ids))
+                f"DELETE FROM events WHERE entity_type=? AND entity_id IN ({qmarks})" + scope_sql,
+                (entity_type, *entity_ids, *scope_params))
             deleted["events"] += cur.rowcount
-        cur = self.conn.execute("DELETE FROM research_projects WHERE id=?", (pid,))
+        cur = self.conn.execute(
+            "DELETE FROM research_projects WHERE id=?" + scope_sql,
+            (pid, *scope_params))
         deleted["research_projects"] = cur.rowcount
         self.conn.commit()
         return deleted

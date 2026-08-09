@@ -20,6 +20,7 @@ from ..research_integrity import (
     resolve_project_ref,
 )
 from ..storage import Store
+from .._project_locks import project_lifecycle_locks
 
 
 PROJECT_HEALTH_SCHEMA = "sonaloop.project_health.v1"
@@ -149,7 +150,7 @@ def project_health(project_id: str, store: Store | None = None,
     runs = store.list_runs(project_id)
     active_runs = [row for row in runs if row.get("status") == "active"]
     finished_runs = [row for row in runs if row.get("status") == "finished"]
-    run = _latest(active_runs) or _latest(finished_runs) or _latest(runs)
+    run = _latest(active_runs) or _latest(runs)
     # The currently actionable run is authoritative.  A historical finished
     # journal must never upgrade a newer active attempt to "finished" while
     # the recovery action correctly says to resume that active attempt.
@@ -270,11 +271,20 @@ def project_health(project_id: str, store: Store | None = None,
         driver_state = "not_engine_finished"
         state = "unverified"
     else:
-        driver_state = "stalled"
+        # A plan that has never acquired a run is actionable, but it is not an
+        # interrupted run. A stopped/capped historical run is not resumable either.
+        # Keep both in the attention lane while exposing the truthful lifecycle
+        # distinction to UI and automation callers.
+        driver_state = "not_started" if not runs else "stopped"
         state = "stalled"
 
     if state == "stalled" and not issues:
-        issue("driver_missing", "Open plan work has no recently active governed driver.")
+        if not runs:
+            issue("run_not_started", "Open plan work has not started a governed run yet.")
+        elif not active_runs:
+            issue("run_inactive", "Open plan work has no active governed run.")
+        else:
+            issue("driver_missing", "Open plan work has no recently active governed driver.")
 
     last_success = ({"kind": "checkpoint", "key": latest_step.get("key", ""),
                      "task_id": latest_step.get("task_id", ""),
@@ -397,8 +407,8 @@ def resume_project_run(project_id: str, run_id: str, operation_id: str = "",
     }
 
 
-def supersede_project(project_id: str, supersedes_project_id: str, operation_id: str,
-                      reason: str, store: Store | None = None) -> dict[str, Any]:
+def _supersede_project_locked(project_id: str, supersedes_project_id: str, operation_id: str,
+                              reason: str, store: Store | None = None) -> dict[str, Any]:
     """Explicitly preserve old→new lineage and mark the old project obsolete, never delete it."""
     store = store or Store()
     op = _opaque_operation_id(operation_id)
@@ -411,6 +421,10 @@ def supersede_project(project_id: str, supersedes_project_id: str, operation_id:
     older = store.get_research_project(supersedes_project_id)
     if not newer or not older:
         raise KeyError("both project_id and supersedes_project_id must exist in this workspace")
+    if any(row.get("status") == "active" for row in store.list_runs(supersedes_project_id)):
+        raise ValueError(
+            "ACTIVE_RUN_SUPERSEDE_BLOCKED: recover or explicitly stop the active run first"
+        )
 
     # Follow explicit lineage only; title/goal similarity is never used.
     cursor, seen = older, {project_id}
@@ -466,8 +480,18 @@ def supersede_project(project_id: str, supersedes_project_id: str, operation_id:
             "reason": reason, "evidence_deleted": False, "idempotent": bool(existing)}
 
 
-def archive_project(project_id: str, operation_id: str, reason: str,
-                    store: Store | None = None) -> dict[str, Any]:
+def supersede_project(project_id: str, supersedes_project_id: str, operation_id: str,
+                      reason: str, store: Store | None = None) -> dict[str, Any]:
+    """Serialize explicit lineage with run starts; preserved history is never raced closed."""
+    store = store or Store()
+    with project_lifecycle_locks(store, [project_id, supersedes_project_id]):
+        return _supersede_project_locked(
+            project_id, supersedes_project_id, operation_id, reason, store=store,
+        )
+
+
+def _archive_project_locked(project_id: str, operation_id: str, reason: str,
+                            store: Store | None = None) -> dict[str, Any]:
     """Explicit non-destructive archive. Active runs must be recovered/stopped first."""
     store = store or Store()
     op = _opaque_operation_id(operation_id)
@@ -495,3 +519,11 @@ def archive_project(project_id: str, operation_id: str, reason: str,
             return {"project_id": project_id, "status": "archived", "operation_id": op,
                     "evidence_deleted": False, "idempotent": False}
     raise RuntimeError("ARCHIVE_CONTENTION: retry the same operation_id")
+
+
+def archive_project(project_id: str, operation_id: str, reason: str,
+                    store: Store | None = None) -> dict[str, Any]:
+    """Serialize archive with run starts and preserve all existing evidence."""
+    store = store or Store()
+    with project_lifecycle_locks(store, [project_id]):
+        return _archive_project_locked(project_id, operation_id, reason, store=store)

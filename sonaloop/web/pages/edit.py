@@ -281,7 +281,17 @@ def register_edit(app) -> None:  # noqa: C901  (route table — one block per en
                         (t("delete_project"), None)],
                 actions=project_actions(proj, confirm_error=t("confirm_mismatch"))),
                 status_code=400)
-        services.delete_research_project(project_id, store=store)
+        try:
+            services.delete_research_project(project_id, store=store)
+        except ValueError as exc:
+            if "PROJECT_DELETE_RUN_HISTORY_BLOCKED" not in str(exc):
+                raise
+            return HTMLResponse(_dialog_error_page(
+                store, title=proj["title"], active="projects",
+                crumbs=[(t("projects"), "/jobs"), (proj["title"], f"/jobs/{project_id}"),
+                        (t("delete_project"), None)],
+                actions=project_actions(proj, confirm_error=t("delete_run_history_blocked"))),
+                status_code=409)
         return see_other("/jobs")
 
     # ---------------------------------------------------------------- personas

@@ -1,9 +1,9 @@
 """Live "agents running" chrome widget (ticket agents-running-panel).
 
 Self-contained (CSS + markup + JS, the _palette.py pattern), rendered by _layout into
-the topbar of every page: a status dot + active-run count, with a small flyout listing
-the active runs (project, last activity) and a link to the full /runs page. The dot
-turns amber when any project is stalled — the silent failure mode must be loud.
+the topbar of every page: a status dot + attention/active count, with a small flyout
+listing affected jobs (project, last activity) and a link to the full /runs page.
+Attention takes precedence over unrelated active runs — the silent failure mode must be loud.
 
 Live updates ride the EXISTING SSE stream: _live.py re-dispatches every /api/events
 frame as a `sl:live-event` DOM event; this widget debounces those into a refetch of
@@ -67,6 +67,8 @@ def collect_run_states(store: Store | None = None) -> dict[str, list[dict[str, A
         out[bucket].append({
             "project_id": p["id"], "title": p["title"], "url": f'/jobs/{p["id"]}',
             "last_activity": health.get("last_activity", ""),
+            "driver_state": health.get("driver_state", ""),
+            "run_inventory": health.get("run_inventory") or {},
             "next_ready": (health.get("tasks") or {}).get("next_ready") or [],
             "unmet_invariant": health.get("unmet_invariant"),
             "last_successful_operation": health.get("last_successful_operation"),
@@ -180,7 +182,11 @@ def project_run_chip(project_id: str, store: Store) -> str:
               h("span", {"class_": "muted small"},
                 f'{t("run_last_activity")}: {last}') if last else None),
             h("p", {"class_": "sl-run-attention"},
-              t("health_attention_stalled") if state == "stalled"
+              (t("health_attention_not_started")
+               if state == "stalled" and rs.get("driver_state") == "not_started"
+               else t("health_attention_stopped")
+               if state == "stalled" and rs.get("driver_state") == "stopped"
+               else t("health_attention_stalled")) if state == "stalled"
               else t("health_attention_unverified"))
             if state in {"stalled", "unverified"} else None,
             raw(run_diagnostics_html(rs)),
@@ -250,12 +256,16 @@ def _fly_rows(active: list[dict]) -> str:
 
 
 def chip_label(n_active: int, n_stalled: int) -> str:
-    """The status-chip text (§9 V7): "1 run active" / "{n} runs active", or the stalled
-    read when nothing is active but something hangs. '' at full zero (the chip hides)."""
-    if n_active:
-        return t("run_active_n", n=n_active)
+    """Status-chip text: attention wins, otherwise show active governed runs.
+
+    Silent failures must remain loud even while another project is progressing. The
+    attention count includes both interrupted runs and jobs whose governed run never
+    started, so it must not claim that every counted item is a stalled run.
+    """
     if n_stalled:
         return t("run_stalled_n", n=n_stalled)
+    if n_active:
+        return t("run_active_n", n=n_active)
     return ""
 
 
@@ -341,10 +351,10 @@ if(!window.EventSource) return;   // static fallback: the server-rendered state 
 function render(d){
   var w=el('runsw'), list=el('runsw-list'), cnt=el('runsw-count'); if(!w||!list||!cnt) return;
   var act=d.active||[], st=d.stalled||[];
-  // status-chip semantics (V7): hidden at full zero, "N run(s) active" (else stalled) otherwise
+  // Attention remains loud even when another run is active; full zero stays hidden.
   var n=act.length, s=st.length, lbl='';
-  if(n) lbl=(n===1)?w.getAttribute('data-l-active-one'):w.getAttribute('data-l-active-n').replace('{n}',n);
-  else if(s) lbl=(s===1)?w.getAttribute('data-l-stalled-one'):w.getAttribute('data-l-stalled-n').replace('{n}',s);
+  if(s) lbl=(s===1)?w.getAttribute('data-l-stalled-one'):w.getAttribute('data-l-stalled-n').replace('{n}',s);
+  else if(n) lbl=(n===1)?w.getAttribute('data-l-active-one'):w.getAttribute('data-l-active-n').replace('{n}',n);
   cnt.textContent=lbl||'';
   w.hidden=!(n||s);
   w.classList.toggle('has-active',n>0);

@@ -82,6 +82,10 @@ def test_purge_clears_research_graph(store):
     services.record_decision(pid, "Wipe decision", "Stop stale rows",
                              [{"kind": "council", "id": "c1"}],
                              key="wipe-decision", store=store)
+    services.start_run(pid, operation_id="wipe:run", store=store)
+    assert store.conn.execute(
+        "SELECT COUNT(*) AS n FROM active_run_claims WHERE project_id=?", (pid,)
+    ).fetchone()["n"] == 1
     proto = services.register_prototype("wipe-proto", "Wipe proto", ".",
                                         project_id=pid, store=store)
     services.record_usability_session(
@@ -104,6 +108,20 @@ def test_purge_clears_research_graph(store):
     assert store.list_prototypes() == []
     assert store.list_usability_sessions() == []
     assert store.list_personas() == []
+    assert store.conn.execute("SELECT COUNT(*) AS n FROM active_run_claims").fetchone()["n"] == 0
+
+
+def test_clear_simulations_removes_projects_runs_and_active_claims_together(store):
+    project = services.start_project("Clear all driver state", "g", store=store)
+    services.start_run(project["id"], operation_id="clear:run", store=store)
+
+    deleted = store.clear_simulation_state()
+
+    assert deleted["research_projects"] == 1
+    assert deleted["runs"] == 1
+    assert deleted["active_run_claims"] == 1
+    assert store.list_runs(project["id"]) == []
+    assert store.conn.execute("SELECT COUNT(*) AS n FROM active_run_claims").fetchone()["n"] == 0
 
 
 def test_deletes_cascade_and_detach(store):
@@ -167,10 +185,10 @@ def test_delete_research_project_cascades_project_scoped_outputs(store):
     assert project_events_before
     assert any(e["event"] == "synthesis.recorded" and e["entity_id"] == synthesis["id"]
                for e in project_events_before)
-
     out = services.delete_research_project(pid, store=store)
     assert out["deleted"]["research_projects"] == 1
     assert out["deleted"]["prediction_outcomes"] == 1
+    assert out["deleted"]["active_run_claims"] == 0
     assert out["deleted"]["events"] == len(project_events_before) + 1
     assert services.list_research_projects(store=store) == []
     assert [c for c in store.list_council_sessions() if c.get("project_id") == pid] == []
@@ -181,6 +199,9 @@ def test_delete_research_project_cascades_project_scoped_outputs(store):
     assert store.list_prototypes(pid) == []
     assert store.list_usability_sessions(project_id=pid) == []
     assert store.list_prediction_outcomes(pid) == []
+    assert store.conn.execute(
+        "SELECT COUNT(*) AS n FROM active_run_claims WHERE project_id=?", (pid,)
+    ).fetchone()["n"] == 0
     remaining_events = store.list_recent_events()
     assert all(e.get("project_id") != pid for e in remaining_events)
     assert all(e["id"] != legacy_synthesis_event_id for e in remaining_events)

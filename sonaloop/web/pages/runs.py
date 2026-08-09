@@ -1,9 +1,9 @@
 """Runs page — every project's DRIVER status on one read-only surface (ticket
 agents-running-panel). The stalled Codex project sat invisible for hours; this page
-makes the silent failure mode loud: stalled projects lead (amber, with the existing
-resume-affordance note rendered as a copyable `start_run(...)` snippet), active runs
-follow (last activity + next-ready steps), finished plans collapse at the bottom.
-Every row links to its project page; the data is services.project_run_state, read
+makes the silent failure mode loud: never-started, quiet-active and stopped jobs lead
+(amber, with the canonical safe action behind diagnostics), active runs follow, and
+finished plans collapse at the bottom. Every row links to its project page; the data
+comes from services.project_health, read
 through the shared collect_run_states() (web/_runs_widget.py).
 
 Extension seam (mirrors the nav registry in web/_ext.py): downstream private packages
@@ -60,11 +60,17 @@ def _meta_line(r: dict) -> str:
 
 def _run_row(r: dict, *, stalled: bool = False, unverified: bool = False) -> str:
     state_label = (t("runs_unverified_h") if unverified else
-                   t("stalled") if stalled else t("runs_active_h"))
+                   (t("runs_not_started") if r.get("driver_state") == "not_started"
+                    else t("runs_stopped") if r.get("driver_state") == "stopped"
+                    else t("stalled")) if stalled else t("runs_active_h"))
     state_color = "var(--red)" if unverified else "var(--amber)" if stalled else "var(--green)"
     attention = (
         t("health_attention_unverified") if unverified
-        else t("health_attention_stalled") if stalled else ""
+        else (t("health_attention_not_started")
+              if r.get("driver_state") == "not_started"
+              else t("health_attention_stopped")
+              if r.get("driver_state") == "stopped"
+              else t("health_attention_stalled")) if stalled else ""
     )
     return h("div", {"class_": "runrow" + (" runrow-stalled" if stalled else "")
                      + (" runrow-unverified" if unverified else ""),

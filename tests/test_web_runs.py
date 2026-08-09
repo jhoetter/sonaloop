@@ -32,10 +32,10 @@ def test_runs_page_groups_active_stalled_finished(store):
     # available only behind an intentionally closed diagnostics disclosure.
     assert web.STRINGS["en"]["runs_stalled_h"] in html
     assert "start_run(" in html and f"data-copy=" in html and sid in html
-    assert web.STRINGS["en"]["health_attention_stalled"] in html
+    assert web.STRINGS["en"]["health_attention_not_started"] in html
     diag_tag = html[html.index("data-run-diagnostics") - 80:html.index("data-run-diagnostics") + 80]
     assert "<details" in diag_tag and " open" not in diag_tag
-    assert html.index(web.STRINGS["en"]["health_attention_stalled"]) \
+    assert html.index(web.STRINGS["en"]["health_attention_not_started"]) \
         < html.index("data-run-diagnostics") < html.index("start_run(")
     # Internal next-ready task keys remain support-visible, but only after the
     # intentionally closed diagnostics disclosure.
@@ -54,6 +54,8 @@ def test_runs_page_stalled_detection_honors_quiet_open_run(store):
     html = _client().get("/runs?lang=en").text
     assert web.STRINGS["en"]["runs_stalled_h"] in html
     assert run["run_id"] in html                                # resume call names the run
+    assert web.STRINGS["en"]["health_attention_stalled"] in html
+    assert web.STRINGS["en"]["health_attention_not_started"] not in html
 
 
 def test_runs_page_empty_state(store):
@@ -69,8 +71,8 @@ def test_topbar_widget_present_on_every_page(store):
     _planned(store, "Stalled Proj")
     html = _client().get("/personas?lang=en").text             # any page — the widget is chrome
     assert 'id="runsw"' in html and "has-active" in html and "has-stalled" in html
-    # the indicator reads like a status chip now (§9 V7): "1 run active", not "• 1"
-    assert ">1 run active</span>" in html.split('id="runsw-count"')[1][:60]
+    # Attention remains loud even while another project is progressing.
+    assert ">1 job needs attention</span>" in html.split('id="runsw-count"')[1][:80]
     assert "Active Proj" in html.split('id="runsw-fly"')[0] or "Active Proj" in html
     assert 'href="/runs"' in html                               # flyout links the full page
     assert "sl:live-event" in html                              # live update wiring (SSE re-dispatch)
@@ -89,7 +91,7 @@ def test_topbar_widget_hidden_at_zero_runs(store):
     html = _client().get("/personas?lang=en").text
     tag = _runsw_tag(html)
     assert " hidden" not in tag and "has-stalled" in tag
-    assert ">1 run stalled</span>" in html.split('id="runsw-count"')[1][:60]
+    assert ">1 job needs attention</span>" in html.split('id="runsw-count"')[1][:80]
 
 
 def test_project_head_run_chip_with_progressive_diagnostics(store):
@@ -120,12 +122,12 @@ def test_project_head_run_chip_with_progressive_diagnostics(store):
     assert web.STRINGS["en"]["runs_lead"] in pop
     assert pop.index(web.STRINGS["en"]["runs_lead"]) < pop.index(web.STRINGS["en"]["run_last_activity"])
     assert web.STRINGS["en"]["run_last_activity"] in pop
-    assert web.STRINGS["en"]["health_attention_stalled"] in pop
+    assert web.STRINGS["en"]["health_attention_not_started"] in pop
     assert "data-run-diagnostics" in pop
     details_tag = pop[pop.index("<details"):pop.index(">", pop.index("<details")) + 1]
     assert " open" not in details_tag
     invariant = S.project_health(sid, store=store)["unmet_invariant"]["message"]
-    assert pop.index(web.STRINGS["en"]["health_attention_stalled"]) \
+    assert pop.index(web.STRINGS["en"]["health_attention_not_started"]) \
         < pop.index("data-run-diagnostics") < pop.index(invariant) < pop.index("start_run(")
     assert pop.index("data-run-diagnostics") < pop.index("frame__discover")
     assert 'data-copy=' in html and 'href="/runs"' in html            # journal link

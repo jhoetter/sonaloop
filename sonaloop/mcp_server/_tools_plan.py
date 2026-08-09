@@ -257,7 +257,9 @@ def register_plan(mcp):
         """Create (or resume) the run object — the SINGLE entry to the governed loop. Returns the run +
         its journal. For initial creation pass a stable operation_id and reuse it on transport retries;
         pass an existing run_id only to resume (a project flagged 'stalled' wants a resume, not a fresh
-        run). MANDATORY LOOP: repeatedly call run_step(run_id), execute each returned dispatch with
+        run). A project cannot acquire a second active run: ACTIVE_RUN_EXISTS names the exact existing
+        run_id; resume that id and never create a replacement. MANDATORY LOOP: repeatedly call
+        run_step(run_id), execute each returned dispatch with
         its exact `dispatch_token`; token-aware recorders link and checkpoint automatically — until
         run_step returns kind=='done'. Do NOT record
         evidence outside this loop; gates passed != finished — only kind=='done' closes the project."""

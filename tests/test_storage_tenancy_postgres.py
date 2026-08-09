@@ -12,7 +12,9 @@ from __future__ import annotations
 import os
 import uuid
 import base64
+from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
+from threading import Barrier
 
 import pytest
 from PIL import Image
@@ -115,6 +117,106 @@ def test_run_operation_id_is_scoped_per_workspace(pg):
 
     assert ra["run_id"] == rb["run_id"] == replay_a["run_id"]
     assert replay_a["idempotent_replay"] is True
+
+
+def test_claim_release_targets_only_the_active_workspace_under_multi_read_scope(pg):
+    project_operation = "same-project-across-workspaces"
+    run_operation = "same-run-across-workspaces"
+    pa = _scoped(["wsA"], "wsA", lambda: services.start_project(
+        "Same", "g", operation_id=project_operation, store=Store()))
+    pb = _scoped(["wsB"], "wsB", lambda: services.start_project(
+        "Same", "g", operation_id=project_operation, store=Store()))
+    ra = _scoped(["wsA"], "wsA", lambda: services.start_run(
+        pa["id"], operation_id=run_operation, store=Store()))
+    rb = _scoped(["wsB"], "wsB", lambda: services.start_run(
+        pb["id"], operation_id=run_operation, store=Store()))
+    assert pa["id"] == pb["id"] and ra["run_id"] == rb["run_id"]
+
+    _scoped(["wsA", "wsB"], "wsA", lambda: services.finish_run(
+        ra["run_id"], "stopped", store=Store()))
+
+    def claim_count(workspace_id):
+        with Store() as scoped:
+            return scoped.conn.execute(
+                "SELECT COUNT(*) AS n FROM active_run_claims WHERE project_id=?",
+                (pa["id"],),
+            ).fetchone()["n"]
+
+    assert _scoped(["wsA"], "wsA", lambda: claim_count("wsA")) == 0
+    assert _scoped(["wsB"], "wsB", lambda: claim_count("wsB")) == 1
+
+
+def test_postgres_concurrent_distinct_starts_claim_one_workspace_run(pg):
+    project = _scoped(["ws_run_race"], "ws_run_race", lambda: services.start_project(
+        "Postgres one active run", "g", store=Store()))
+    barrier = Barrier(2)
+
+    def create(operation_id: str):
+        def _inside():
+            with Store() as st:
+                barrier.wait(timeout=10)
+                try:
+                    return services.start_run(
+                        project["id"], operation_id=operation_id, store=st)
+                except P.PlanError as exc:
+                    return exc
+        return _scoped(["ws_run_race"], "ws_run_race", _inside)
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = [future.result() for future in [
+            pool.submit(create, "pg:run:left"), pool.submit(create, "pg:run:right")]]
+
+    runs = [row for row in results if isinstance(row, dict)]
+    errors = [row for row in results if isinstance(row, P.PlanError)]
+    assert len(runs) == 1 and len(errors) == 1
+    assert errors[0].code == "ACTIVE_RUN_EXISTS"
+    assert runs[0]["run_id"] in errors[0].message
+    persisted = _scoped(["ws_run_race"], "ws_run_race", lambda: Store().list_runs(project["id"]))
+    assert len(persisted) == 1 and persisted[0]["status"] == "active"
+
+
+def test_postgres_project_with_run_history_requires_archive(pg):
+    workspace_id = "ws_delete_run_history"
+    project = _scoped([workspace_id], workspace_id, lambda: services.start_project(
+        "Preserve governed history", "g", store=Store()))
+    run = _scoped([workspace_id], workspace_id, lambda: services.start_run(
+        project["id"], operation_id="pg:durable:run", store=Store()))
+    _scoped([workspace_id], workspace_id, lambda: services.finish_run(
+        run["run_id"], "stopped", store=Store()))
+
+    def blocked_delete():
+        with pytest.raises(ValueError, match="PROJECT_DELETE_RUN_HISTORY_BLOCKED"):
+            services.delete_research_project(project["id"], store=Store())
+    _scoped([workspace_id], workspace_id, blocked_delete)
+
+    archived = _scoped([workspace_id], workspace_id, lambda: services.archive_project(
+        project["id"], "pg:durable:archive", "Preserve history", store=Store()))
+    assert archived["status"] == "archived"
+
+
+def test_delete_guard_and_cascade_use_only_the_active_workspace(pg):
+    operation_id = "pg:same-project-delete-scope"
+    run_operation = "pg:same-run-delete-scope"
+    pa = _scoped(["wsA"], "wsA", lambda: services.start_project(
+        "Same tenant identity", "g", operation_id=operation_id, store=Store()))
+    pb = _scoped(["wsB"], "wsB", lambda: services.start_project(
+        "Same tenant identity", "g", operation_id=operation_id, store=Store()))
+    rb = _scoped(["wsB"], "wsB", lambda: services.start_run(
+        pb["id"], operation_id=run_operation, store=Store()))
+    assert pa["id"] == pb["id"]
+
+    # B's readable run history must neither block nor be cascaded by deleting A.
+    deleted = _scoped(["wsA", "wsB"], "wsA", lambda: services.delete_research_project(
+        pa["id"], store=Store()))
+    assert deleted["deleted"]["research_projects"] == 1
+
+    assert _scoped(["wsA"], "wsA", lambda: Store().list_runs(pa["id"])) == []
+    assert _scoped(["wsA"], "wsA", lambda: Store().get_research_project(pa["id"])) is None
+    persisted_b = _scoped(["wsB"], "wsB", lambda: Store().list_runs(pb["id"]))
+    assert _scoped(["wsB"], "wsB", lambda: Store().get_research_project(pb["id"])) is not None
+    assert [(row["run_id"], row["status"]) for row in persisted_b] == [
+        (rb["run_id"], "active"),
+    ]
 
 
 def test_product_understanding_and_dispatch_tokens_are_tenant_scoped(pg):
@@ -330,7 +432,7 @@ def test_project_delete_cascade_is_scoped_to_the_active_workspace(pg):
         with Store() as st:
             return services.delete_research_project(project_id, store=st)
 
-    deleted = _scoped(["ws_alpha"], "ws_alpha", _delete_alpha)
+    deleted = _scoped(["ws_alpha", "ws_beta"], "ws_alpha", _delete_alpha)
     assert deleted["deleted"]["prediction_outcomes"] == 1
     assert deleted["deleted"]["events"] == 1
     assert _state("ws_alpha") == {"project": False, "outcomes": 0, "events": 0}

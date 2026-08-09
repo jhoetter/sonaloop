@@ -69,6 +69,51 @@ def test_project_health_names_incomplete_dispatch_and_safe_existing_resume(store
         services.finish_run(run["run_id"], "finished", store=store)
 
 
+def test_project_health_distinguishes_never_started_from_quiet_active(store):
+    never = services.start_project(
+        "Created only", "q", methodology="double_diamond", store=store)
+    never_health = services.project_health(never["id"], stale_hours=1, store=store)
+    assert never_health["state"] == "stalled"
+    assert never_health["driver_state"] == "not_started"
+    assert never_health["run_inventory"] == {
+        "active": 0, "historical_finished": 0, "total": 0,
+    }
+    assert never_health["unmet_invariant"]["code"] == "run_not_started"
+    assert never_health["safe_next_action"]["kind"] == "start_governed_run"
+
+    quiet = services.start_project(
+        "Quiet owner", "q", methodology="double_diamond", store=store)
+    run = services.start_run(quiet["id"], store=store)
+    run["updated_at"] = "2020-01-01T00:00:00+00:00"
+    store.upsert_run(run)
+    quiet_health = services.project_health(quiet["id"], stale_hours=1, store=store)
+    assert quiet_health["state"] == "stalled"
+    assert quiet_health["driver_state"] == "stalled"
+    assert quiet_health["run_inventory"]["total"] == 1
+    assert quiet_health["safe_next_action"]["kind"] == "resume_existing_run"
+
+
+def test_project_health_prefers_a_newer_stopped_attempt_over_historical_finish(store):
+    project = services.start_project("Reopened then stopped", "q", store=store)
+    finished = services.start_run(
+        project["id"], operation_id="history:finished", store=store,
+    )
+    finished["status"] = "finished"
+    finished["updated_at"] = "2026-08-08T10:00:00+00:00"
+    store.upsert_run(finished)
+    newer = services.start_run(
+        project["id"], operation_id="history:stopped", store=store,
+    )
+    services.finish_run(newer["run_id"], "stopped", store=store)
+
+    health = services.project_health(project["id"], store=store)
+
+    assert health["run_id"] == newer["run_id"]
+    assert health["driver_state"] == "stopped"
+    assert health["state"] == "stalled"
+    assert health["safe_next_action"]["kind"] == "start_governed_run"
+
+
 def test_unverified_is_distinct_from_engine_finished(store):
     project = services.start_project("Legacy complete", "q", operation_id="legacy-complete", store=store)
     services.record_frame(project["id"], "frame__root", ["q?"], memory_refs=["memory:a"], store=store)

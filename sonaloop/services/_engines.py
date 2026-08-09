@@ -40,6 +40,7 @@ from ..storage import Store
 from ..taxonomy import GENERIC_TOOLS, normalized_tool_ids, normalized_tools
 from .. import memory as memory_mod
 from .. import evaluation as evaluation_mod
+from .._project_locks import project_lifecycle_locks
 from ..llm_simulation import (
     build_cohort_critic_prompt,
     build_consolidation_prompt,
@@ -1064,14 +1065,24 @@ def bind_dispatch_output(ctx: dict[str, Any], ref: dict[str, Any], summary: str,
                              summary, store)
 
 
-def start_run(project_id: str, budget: int | None = None, run_id: str | None = None,
-              store: Store | None = None, operation_id: str | None = None) -> dict[str, Any]:
+def _start_run_locked(project_id: str, budget: int | None = None, run_id: str | None = None,
+                      store: Store | None = None,
+                      operation_id: str | None = None) -> dict[str, Any]:
     """Create (or load) the run object for a project — the resumable journal the driver advances. If
     `run_id` already exists, it is returned as-is (resume). A stable ``operation_id`` gives callers
-    retry-safe initial creation when they do not yet know the generated run id."""
+    retry-safe initial creation when they do not yet know the generated run id. A project can own
+    only one active run: a second create fails with the exact existing id and resume call."""
     store = store or Store()
-    if not store.get_research_project(project_id):
+    project = store.get_research_project(project_id)
+    if not project:
         raise PlanError("UNKNOWN_PROJECT", f"unknown research project: {project_id}")
+    lifecycle = str(project.get("status") or "active")
+    if lifecycle in {"archived", "superseded"}:
+        raise PlanError(
+            "PROJECT_CLOSED",
+            f"PROJECT_CLOSED: project {project_id} is {lifecycle}; preserved projects cannot "
+            "acquire a new run.",
+        )
     operation_id = _start_project_operation_id(operation_id)
     if operation_id and run_id:
         raise ValueError("start_run accepts either run_id (resume) or operation_id (retry-safe create), not both")
@@ -1119,16 +1130,36 @@ def start_run(project_id: str, budget: int | None = None, run_id: str | None = N
     if operation_id:
         run["operation_id"] = operation_id
         run["operation_fingerprint"] = fingerprint
-    if effective_run_id:
-        claimed = store.insert_run_if_absent(run)
-        if not claimed:
-            existing = store.get_run(effective_run_id)
-            if not existing:  # pragma: no cover - committed conflict must be visible
-                raise RuntimeError("run operation claim lost without an existing run")
-            return replay_or_conflict(existing)
-    else:
-        store.upsert_run(run)
-    return run
+    owner = store.claim_active_run(run)
+    owner_run_id = str(owner["run_id"])
+    if owner_run_id == run["run_id"]:
+        if owner.get("created"):
+            return run
+        existing = store.get_run(owner_run_id)
+        if not existing:  # pragma: no cover - committed claim must expose its journal
+            raise RuntimeError("run operation claim exists without its run journal")
+        return replay_or_conflict(existing)
+    raise PlanError(
+        "ACTIVE_RUN_EXISTS",
+        f"ACTIVE_RUN_EXISTS: project {project_id} already has active run {owner_run_id}. "
+        f"Resume it with start_run(project_id={project_id!r}, run_id={owner_run_id!r}), "
+        f"then continue with run_step(run_id={owner_run_id!r}); do not create a replacement run.",
+    )
+
+
+def start_run(project_id: str, budget: int | None = None, run_id: str | None = None,
+              store: Store | None = None, operation_id: str | None = None) -> dict[str, Any]:
+    """Create or resume the project's sole active governed run.
+
+    Lifecycle changes and new run ownership are serialized across processes, so an archive or
+    supersede can never race a new active journal onto a closed project.
+    """
+    store = store or Store()
+    with project_lifecycle_locks(store, [project_id]):
+        return _start_run_locked(
+            project_id, budget=budget, run_id=run_id, store=store,
+            operation_id=operation_id,
+        )
 
 
 def run_journal(run_id: str, store: Store | None = None) -> dict[str, Any]:
@@ -1380,11 +1411,15 @@ def finish_run(run_id: str, status: str = "finished", store: Store | None = None
                 ". Continue with run_step(run_id); do not force-finish the run.",
             )
     if r.get("status") == status:
+        store.release_active_run_claim(r["project_id"], run_id)
         return {"run_id": run_id, "status": status, "steps": len(r.get("steps") or []),
                 "deduplicated": True}
     r["status"] = status
     r["updated_at"] = utc_now_iso()
     store.upsert_run(r)
+    # Status is canonical; releasing the matching ownership row is repairable. A
+    # concurrent newer owner cannot be removed because deletion also matches run_id.
+    store.release_active_run_claim(r["project_id"], run_id)
     emit_lifecycle_event("run.finished", {"run_id": run_id, "project_id": r["project_id"],  # noqa: F821 (bound)
                                           "status": status, "steps": len(r["steps"])}, store)
     return {"run_id": run_id, "status": status, "steps": len(r["steps"]),

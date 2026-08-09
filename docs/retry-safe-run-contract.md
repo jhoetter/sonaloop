@@ -58,7 +58,30 @@ intent. Reuse that key if the initial response is ambiguous; the same project an
 original run with `idempotent_replay=true`. A different project or budget under the same key raises
 `RUN_IDEMPOTENCY_CONFLICT`. Once the returned `run_id` is known, resume with
 `start_run(project_id, run_id=...)`; do not pass both identities in one call. Legacy calls without
-either key still create a fresh run.
+either key may still create a first run, but they cannot create a second active run for the project.
+
+One project has at most one newly created active run. The storage layer claims the project's active
+slot and inserts its journal in one transaction, including concurrent calls with different operation
+ids or no ids. An identical operation replay and an explicit existing `run_id` resume are checked
+before this creation guard and continue to return the original journal. Any other create attempt
+raises `ACTIVE_RUN_EXISTS` and names both the existing run id and the exact safe
+`start_run(project_id=..., run_id=...)` continuation; clients must not create a replacement. When a
+run reaches `finished`, `stopped` or `capped`, its matching claim is released and a later run may be
+started.
+
+The claim table is intentionally separate from the append-preserving run journal. On an upgraded
+store, it lazily adopts the most recently touched legacy active row and leaves all historical rows
+readable; stale claims for terminal/missing rows repair on the next create. This avoids a partial
+unique-index migration that would fail merely because an old store already contains several active
+rows. Such legacy duplicates remain an explicit recovery/archive concern, but no new `start_run`
+call can add another one.
+
+Project lifecycle changes and deletion share the same project-scoped cross-process lock as run
+creation. Postgres uses a session advisory lock; SQLite combines a re-entrant process lock with an
+OS file lock. `archive_project`, `supersede_project` and `delete_research_project` therefore cannot
+race a new active journal onto a closed or vanished project. Archive/supersede require any existing
+active run to be explicitly recovered or stopped first. Hard delete is limited to never-started
+containers with no run history; once a governed journal exists, preserve the job with archive instead.
 
 For support/recovery surfaces, prefer `resume_project_run(project_id, run_id, operation_id?)`.
 It validates that the named run is active and belongs to the project, then returns the existing

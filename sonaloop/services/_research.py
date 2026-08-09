@@ -69,6 +69,7 @@ from ..llm_simulation import (
 
 
 from ._common import *  # noqa: F401,F403  (shared helpers + constants)
+from .._project_locks import project_lifecycle_locks
 
 
 _PROJECT_GRAPH_CACHE: contextvars.ContextVar[dict[tuple[int, str], dict[str, Any]] | None] = \
@@ -767,8 +768,29 @@ def delete_research_project(project_id: str, store: Store | None = None) -> dict
     Personas and their memory remain global; project outputs do not.
     """
     store = store or Store()
-    p = _require_research_project(store, project_id)
-    return {"deleted": store.delete_research_project(p["id"]), "project_id": p["id"]}
+    # Destructive references may arrive as an id or legacy slug. Resolve once to the
+    # canonical id before choosing the lock, then re-read under that exact lock. Otherwise
+    # delete(slug) and start_run(id) would protect different identities for the same row.
+    candidate = store.get_research_project_for_active_workspace(project_id)
+    if not candidate:
+        raise KeyError(f"Unknown research project: {project_id}")
+    canonical_id = str(candidate["id"])
+    # Deletion is structural. Serialize the entire decision with start/archive/supersede.
+    # A project that ever acquired a run is
+    # durable research history: hard deletion would race in-flight dispatch/output writers,
+    # so it must be preserved through archive_project instead. Hard delete remains available
+    # only for a never-started duplicate container.
+    with project_lifecycle_locks(store, [canonical_id]):
+        p = store.get_research_project_for_active_workspace(canonical_id)
+        if not p:
+            raise KeyError(f"Unknown research project: {canonical_id}")
+        runs = store._list_runs_for_active_workspace(p["id"])
+        if runs:
+            raise ValueError(
+                "PROJECT_DELETE_RUN_HISTORY_BLOCKED: this project has governed run history; "
+                "preserve it with archive_project(project_id, operation_id, reason) instead"
+            )
+        return {"deleted": store.delete_research_project(p["id"]), "project_id": p["id"]}
 
 
 

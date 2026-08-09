@@ -307,6 +307,18 @@ CREATE TABLE IF NOT EXISTS runs (
 );
 CREATE INDEX IF NOT EXISTS idx_runs_project ON runs(project_id);
 
+-- The run journal deliberately keeps all historical attempts.  This separate ownership
+-- row is the atomic, migration-safe invariant for NEW starts: one project may own at most
+-- one active run.  It avoids a partial UNIQUE index on runs, which could not be installed
+-- on legacy stores that already contain duplicate active rows.  start_run lazily adopts one
+-- such legacy row and terminal completion releases the claim.
+CREATE TABLE IF NOT EXISTS active_run_claims (
+  project_id TEXT PRIMARY KEY,
+  run_id TEXT NOT NULL,
+  claimed_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_active_run_claims_run ON active_run_claims(run_id);
+
 -- Methodology engine (spec/methodology-engine-and-prototyping.md): user-defined
 -- methodology specs + the LLM-judged gate decisions recorded per phase.
 CREATE TABLE IF NOT EXISTS methodologies (

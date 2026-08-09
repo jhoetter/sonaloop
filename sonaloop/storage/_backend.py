@@ -188,6 +188,9 @@ class _PgConnection:
     def commit(self) -> None:
         self._raw.commit()
 
+    def rollback(self) -> None:
+        self._raw.rollback()
+
     def close(self) -> None:
         if self._pool is not None:
             try:
