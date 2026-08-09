@@ -133,6 +133,27 @@ def test_creator_is_not_model_controlled_and_ui_renders_only_a_label(store):
         operation_id="creator:ui:1", store=store,
     )
     legacy = services.start_project("Legacy UI", "No attribution", store=store)
+
+    # Public project listings intentionally project the persisted audit snapshot down
+    # to its display label.  Internal subject ids, roles, request channels and capture
+    # timestamps must not cross the service or MCP list boundary.
+    expected_public_creator = {"label": "Alice <Admin>"}
+    summary = next(
+        p for p in services.list_research_project_summaries(store=store)
+        if p["id"] == attributed["id"]
+    )
+    listed = next(
+        p for p in services.list_research_projects(store=store)
+        if p["id"] == attributed["id"]
+    )
+    assert summary["created_by"] == expected_public_creator
+    assert listed["created_by"] == expected_public_creator
+    _, mcp_result = asyncio.run(build_server().call_tool("list_research_projects", {}))
+    mcp_listed = next(p for p in mcp_result["data"] if p["id"] == attributed["id"])
+    assert mcp_listed["created_by"] == expected_public_creator
+    assert not ({"id", "role", "channel", "captured_at", "schema"}
+                & set(mcp_listed["created_by"]))
+
     client = TestClient(web.create_app())
 
     english = client.get(f"/jobs/{attributed['id']}?lang=en").text

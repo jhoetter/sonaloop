@@ -185,10 +185,31 @@ def update_research_project(project_id: str, patch: dict[str, Any],
     return project
 
 
+def _public_creator_projection(value: Any) -> dict[str, str] | None:
+    """Return the deliberately tiny creator shape allowed on public list surfaces.
+
+    The persisted request-actor snapshot also contains an opaque subject id, role,
+    channel and capture timestamp.  Those fields are useful for server-side audit and
+    portable snapshots, but a cross-workspace project listing needs only the immutable
+    display label.  Revalidate imported/legacy rows here instead of assuming every
+    stored mapping passed through the current request-boundary normalizer.
+    """
+    if not isinstance(value, dict):
+        return None
+    label = value.get("label")
+    if not isinstance(label, str):
+        return None
+    label = label.strip()
+    if not label or len(label) > 160 or not label.isprintable():
+        return None
+    return {"label": label}
+
+
 def list_research_project_summaries(store: Store | None = None) -> list[dict[str, Any]]:
     """Lean project metadata for list pages — NO graph builds, NO run-state, NO counts.
     Returns id/slug/title/goal/status/icon/persona_ids/themes plus the immutable
-    creator display snapshot when one was captured. The list page
+    public creator display label when one was captured. Opaque actor ids,
+    roles, channels and audit timestamps remain server-side. The list page
     paginates this lean list, then enriches only the visible page with
     `enrich_research_project` (graph counts, run state)."""
     store = store or Store()
@@ -199,8 +220,8 @@ def list_research_project_summaries(store: Store | None = None) -> list[dict[str
          "url": web_url(f"/jobs/{p['id']}"),  # noqa: F821 (bound)
          "persona_ids": list(p.get("persona_ids") or []),
          "themes": p.get("themes", []),
-         **({"created_by": copy.deepcopy(p["created_by"])}
-            if isinstance(p.get("created_by"), dict) else {})}
+         **({"created_by": public_creator}
+            if (public_creator := _public_creator_projection(p.get("created_by"))) else {})}
         for p in store.list_research_projects()
     ]
 
