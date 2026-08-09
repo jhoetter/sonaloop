@@ -161,8 +161,16 @@ APP_JS = """
     document.querySelectorAll('.doc-main [id]').forEach(function(s){ obs.observe(s); });
   }
   // ---- favorites / stars (client-side, localStorage) ----
-  var SK=__FAV_STORAGE_KEY__, ICN=__FAV_ICONS__;
-  function readStars(){ if(!SK) return {}; try{return JSON.parse(localStorage.getItem(SK)||'{}');}catch(e){return {};} }
+  var SK=__FAV_STORAGE_KEY__, ICN=__FAV_ICONS__, HF={}, HU={};
+  (__HIDDEN_PROJECT_FAVORITES__||[]).forEach(function(k){ HF[k]=1; });
+  (__HIDDEN_PROJECT_URLS__||[]).forEach(function(url){ HU[String(url).split(/[?#]/)[0]]=1; });
+  function readStars(){ if(!SK) return {}; try{
+    var raw=JSON.parse(localStorage.getItem(SK)||'{}'), m=(raw&&typeof raw==='object'&&!Array.isArray(raw))?raw:{}, dirty=false;
+    Object.keys(m).forEach(function(k){ var f=m[k]||{}, path=String(f.href||'').split(/[?#]/)[0];
+      if(HF[k]||(f.type==='project'&&HU[path])){ delete m[k]; dirty=true; } });
+    if(dirty) localStorage.setItem(SK,JSON.stringify(m));
+    return m;
+  }catch(e){return {};} }
   function writeStars(m){ if(!SK) return; try{localStorage.setItem(SK,JSON.stringify(m));}catch(e){} }
   function renderStars(){
     var m=readStars();
@@ -492,34 +500,80 @@ _FAV_ICONS_JSON = json.dumps({
 })
 
 
-def _favorites_storage_key() -> str | None:
-    """Return the browser-local favorites bucket for the current data boundary.
+def _workspace_browser_storage_key(*, legacy_key: str, scoped_prefix: str,
+                                   feature: str) -> str | None:
+    """Return one browser-local storage bucket for the current data boundary.
 
-    Open-core/SQLite keeps the historical ``pc-stars`` key unchanged.  In shared
+    Open-core/SQLite keeps its historical key unchanged.  In shared
     Postgres, the shell is rendered inside an authenticated, request-bound tenant
-    scope; using the active workspace id keeps an owner's personal favorites out of
-    customer-preview workspaces.  A correctly bound principal with no membership has
-    the explicit empty scope ``((), "")``; favorites are disabled for that state so
-    no account-independent localStorage bucket can expose metadata across sign-ins.
+    scope; using the active workspace id keeps browser state out of other workspaces.
+    A correctly bound principal with no membership has
+    the explicit empty scope ``((), "")``; browser persistence is disabled for that
+    state so no account-independent localStorage bucket can expose metadata across sign-ins.
     Never fall back to the legacy key in row-tenancy: a missing or malformed scope is
     a boundary error and must fail closed.
     """
     if not _config.postgres_row_tenancy_enabled():
-        return "pc-stars"
+        return legacy_key
 
     scope = _config.request_tenant_scope()
     if scope is None:
-        raise RuntimeError("row-tenanted favorites require a request tenant scope")
+        raise RuntimeError(f"row-tenanted {feature} require a request tenant scope")
     accessible_ids, active_id = scope
     active = str(active_id or "")
     accessible = {str(workspace_id) for workspace_id in accessible_ids}
     if not active and not accessible:
         return None
     if not active or active not in accessible:
-        raise PermissionError("active favorites workspace is outside the request tenant scope")
+        raise PermissionError(
+            f"active {feature} workspace is outside the request tenant scope"
+        )
     if not re.fullmatch(r"ws_[A-Za-z0-9][A-Za-z0-9_.-]{0,126}", active):
-        raise ValueError(f"unsafe active workspace id for favorites: {active!r}")
-    return f"pc-stars:{active}"
+        raise ValueError(f"unsafe active workspace id for {feature}: {active!r}")
+    return f"{scoped_prefix}:{active}"
+
+
+def _favorites_storage_key() -> str | None:
+    """The favorites bucket, scoped exactly like the active server-side workspace."""
+    return _workspace_browser_storage_key(
+        legacy_key="pc-stars", scoped_prefix="pc-stars", feature="favorites",
+    )
+
+
+def _recents_storage_key() -> str | None:
+    """The Cmd+K recents bucket, scoped exactly like favorites."""
+    return _workspace_browser_storage_key(
+        legacy_key="sl-recent", scoped_prefix="sl-recent", feature="recents",
+    )
+
+
+def _archived_project_discovery_denylist(
+        store: Store) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """Browser keys/URLs that must leave ordinary discovery after archival.
+
+    Only Project entities are denied.  Child evidence, Activity, lineage and exact
+    detail reads deliberately remain available.  Both durable ID and slug paths are
+    covered; the legacy ``/projects`` alias removes pointers written by older releases too.
+    """
+    archived_projects = sorted(
+        (str(project.get("id") or ""), str(project.get("slug") or "").strip())
+        for project in store.list_research_projects()
+        if str(project.get("id") or "")
+        and str(project.get("status") or "active").strip().casefold() == "archived"
+    )
+    favorite_keys = tuple(f"project:{project_id}" for project_id, _slug in archived_projects)
+    identifiers = tuple(dict.fromkeys(
+        identifier
+        for project_id, slug in archived_projects
+        for identifier in (project_id, slug)
+        if identifier
+    ))
+    urls = tuple(
+        url
+        for identifier in identifiers
+        for url in (f"/jobs/{identifier}", f"/projects/{identifier}")
+    )
+    return favorite_keys, urls
 
 
 # Customer brand logo (customer-theme contract): height-capped so any aspect ratio sits
@@ -558,6 +612,8 @@ def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
     # chrome that an SPA navigation would otherwise keep alive.
     shell_language = _lang()
     favorites_key = _favorites_storage_key()
+    recents_key = _recents_storage_key()
+    hidden_project_favorites, hidden_project_urls = _archived_project_discovery_denylist(store)
     shell_brand = brand_name()
     shell_brand_logo = str(brand_logo() or "")
     shell_theme_css = theme_override_css()
@@ -570,7 +626,10 @@ def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
     # client, so hash a deliberately inactive rendering. Extension nav/palette entries
     # are otherwise persistent browser chrome and must rotate the context token.
     shell_nav_contract = _nav("\0shell-contract", store)
-    shell_palette = palette_markup()
+    shell_palette = palette_markup(
+        recents_key=recents_key,
+        hidden_project_urls=hidden_project_urls,
+    )
     shell_token = _make_shell_token(
         language=shell_language,
         favorites_key=favorites_key,
@@ -617,6 +676,10 @@ def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
     # too — same __PLACEHOLDER__ -> t() pattern used for the voices chart).
     app_js = (APP_JS.replace("__FAV_STORAGE_KEY__", json.dumps(favorites_key))
               .replace("__FAV_ICONS__", _FAV_ICONS_JSON)
+              .replace("__HIDDEN_PROJECT_FAVORITES__",
+                       json.dumps(hidden_project_favorites).replace("<", "\\u003c"))
+              .replace("__HIDDEN_PROJECT_URLS__",
+                       json.dumps(hidden_project_urls).replace("<", "\\u003c"))
               .replace("__UNSTAR__", json.dumps(t("unstar"))))
     # Brand lockup: the wordmark sets the "loop" of "Sona·loop" in Sona Pixel (the shared
     # .sl-logo treatment). For a product brand ("Sonaloop Cloud" / "Sonaloop Research") the

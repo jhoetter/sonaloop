@@ -371,6 +371,37 @@ def test_api_runs_returns_grouped_states(store):
     assert data["stalled"] == [] and data["finished"] == []
 
 
+def test_archived_projects_are_absent_from_all_run_surfaces(store):
+    """Archiving removes a job from ordinary discovery everywhere, including
+    the run journal and its global status projection.  A current run remains
+    visible, so an accidentally empty projector cannot satisfy this contract.
+    """
+    visible = _planned(store, "VISIBLE ACTIVE RUN")
+    S.start_run(visible, operation_id="runs:visible-active", store=store)
+    archived = _planned(store, "HIDDEN ARCHIVED RUN")
+    S.archive_project(
+        archived, "runs:archive-hidden", "Preserve historical evidence", store=store,
+    )
+
+    runs_html = _client().get("/runs?lang=en").text
+    assert f'href="/jobs/{visible}"' in runs_html
+    assert "VISIBLE ACTIVE RUN" in runs_html
+    assert f'href="/jobs/{archived}"' not in runs_html
+    assert "HIDDEN ARCHIVED RUN" not in runs_html
+
+    grouped = _client().get("/api/runs").json()
+    projected = [row for rows in grouped.values() for row in rows]
+    assert any(row["project_id"] == visible for row in projected)
+    assert all(row["project_id"] != archived for row in projected)
+
+    chrome = _client().get("/personas?lang=en").text
+    assert 'id="runsw"' in chrome
+    assert f'href="/jobs/{visible}"' in chrome
+    assert "VISIBLE ACTIVE RUN" in chrome
+    assert f'href="/jobs/{archived}"' not in chrome
+    assert "HIDDEN ARCHIVED RUN" not in chrome
+
+
 def test_runs_section_extension_seam(store):
     """register_runs_section: a downstream package (sonaloop-cloud) contributes an
     extra section to /runs without the core importing it. Idempotent by id."""

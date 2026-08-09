@@ -5,8 +5,9 @@ page — built on the vendored design-system `.sl-cmdk-*` contract (sonaloop-des
 the classes; this module ships the inspector's markup over them).
 
 Anatomy (Linear-grade, quiet groups):
-  - EMPTY: **Recent** (the last 6 visited entities — tracked client-side in localStorage
-    from server-stamped `visit_marker` beacons on detail/slide-over renders) · **Navigate**
+  - EMPTY: **Recent** (the last 6 visited entities — tracked client-side in a
+    workspace-bound localStorage bucket from server-stamped `visit_marker` beacons on
+    detail/slide-over renders) · **Navigate**
     (the 4 workspace items + Settings/Documentation/Keyboard, icons everywhere; the Library
     kind lists are ONE expandable "Library" entry — → expands, ← collapses — never 13 flat
     links, C10) · **Actions** (theme toggle, tour, feedback — riding the existing
@@ -55,10 +56,11 @@ def visit_marker(title: str, project: str = "") -> str:
     """The recents beacon (V6): every detail renderer stamps WHO is being viewed as an
     inert JSON `<script data-cmdk-visit>`; the palette JS picks it up (initial load, SPA
     swaps AND slide-over fetches — a MutationObserver watches for new beacons) and records
-    {type, title, project, url} into localStorage ('sl-recent', last 6, deduped by url) —
-    the palette's Recent group. Emits NOTHING unless the current request path is a
-    searchable detail URL (/{prefix}/{id} with a SEARCH_SOURCES prefix), so list pages,
-    sub-pages (/jobs/{id}/plan) and excused routes never pollute the recents."""
+    {type, title, project, url} into the active workspace's localStorage bucket (last
+    6, deduped by url) — the palette's Recent group. Emits NOTHING unless the current
+    request path is a searchable detail URL (/{prefix}/{id} with a SEARCH_SOURCES
+    prefix), so list pages, sub-pages (/jobs/{id}/plan) and excused routes never
+    pollute the recents."""
     from ._slide import request_path
     path = (request_path() or "").partition("?")[0]
     seg = [s for s in path.split("/") if s]
@@ -72,10 +74,16 @@ def visit_marker(title: str, project: str = "") -> str:
     return h("script", {"type": "application/json", "data-cmdk-visit": True}, raw(payload))
 
 
-def palette_markup() -> str:
+def palette_markup(*, recents_key: str | None = "sl-recent",
+                   hidden_project_urls: tuple[str, ...] | list[str] = ()) -> str:
     """Per-request overlay markup (localised). The structured Navigate model (with the
     Library children), the actions, group labels, per-type icons and the grouping order
-    are all seeded as JSON FROM the coverage registry — nothing is hand-copied here."""
+    are all seeded as JSON FROM the coverage registry — nothing is hand-copied here.
+
+    ``recents_key`` follows the active server-side data boundary.  Archived project
+    URLs are shipped as a bounded denylist so the browser can remove historical Job
+    recents that predate the archive operation without hiding retained evidence rows.
+    """
     actions = [
         {"title": t("cmdk_theme"), "url": "#", "act": "theme", "ico": _picon("moon")},
     ]
@@ -98,6 +106,8 @@ def palette_markup() -> str:
         "icons": {"go": _picon("arrowRight"), **{tp: _picon(src.icon) for tp, src in SEARCH_SOURCES.items()}},
         "caret": _picon("caretRight"),
         "order": list(SEARCH_SOURCES),
+        "recentsKey": recents_key,
+        "hiddenProjectUrls": list(hidden_project_urls),
     }).replace("<", "\\u003c")
     foot = h("div", {"class_": "sl-cmdk-foot"},
              h("span", {}, h("kbd", {"class_": "sl-kbd"}, "↑↓"), t("cmdk_nav")),
@@ -119,15 +129,28 @@ def palette_markup() -> str:
 PALETTE_JS = r"""<script>(function(){
 var ov=document.getElementById('cmdk'); if(!ov) return;
 var inp=document.getElementById('cmdk-in'), list=document.getElementById('cmdk-list');
-var CFG={nav:[],actions:[],labels:{},icons:{},order:[]};
+var CFG={nav:[],actions:[],labels:{},icons:{},order:[],recentsKey:null,hiddenProjectUrls:[]};
 try{ CFG=JSON.parse(document.getElementById('cmdk-cfg').textContent)||CFG; }catch(e){}
 var ORDER=CFG.order||[], L=CFG.labels||{}, sel=0, timer=null, libOpen=false;
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 function fold(s){ s=String(s==null?'':s); try{ s=s.normalize('NFKD').replace(/[\u0300-\u036f]/g,''); }catch(e){} return s.toLowerCase(); }
-// ---- Recent: server-stamped [data-cmdk-visit] beacons -> localStorage (last 6, deduped).
-var RK='sl-recent';
-function recents(){ try{ var l=JSON.parse(localStorage.getItem(RK)||'[]'); return Array.isArray(l)?l.slice(0,6):[]; }catch(e){ return []; } }
-function record(v){ if(!v||!v.url||!v.title||!CFG.icons[v.type]) return;
+// ---- Recent: server-stamped beacons -> the current workspace bucket.  The server's
+// archived-Job denylist prunes stale rows left by a page rendered before archival.
+var RK=CFG.recentsKey||null, HR={};
+(CFG.hiddenProjectUrls||[]).forEach(function(url){ HR[String(url).split(/[?#]/)[0]]=1; });
+// Row-tenanted releases used one global key before recents became workspace-bound.
+// Never import it (that would cross the boundary); erase it once a scoped shell loads.
+if(RK&&RK!=='sl-recent'){ try{ localStorage.removeItem('sl-recent'); }catch(e){} }
+function recents(){ if(!RK) return []; try{
+  var raw=JSON.parse(localStorage.getItem(RK)||'[]'), l=Array.isArray(raw)?raw:[], clean=[];
+  l.forEach(function(r){ var path=String((r&&r.url)||'').split(/[?#]/)[0]; if(!HR[path]) clean.push(r); });
+  clean=clean.slice(0,6);
+  if(clean.length!==l.length) localStorage.setItem(RK,JSON.stringify(clean));
+  return clean;
+}catch(e){ return []; } }
+recents();  // prune on shell load, even before the palette is opened
+function record(v){ if(!RK||!v||!v.url||!v.title||!CFG.icons[v.type]) return;
+  if(HR[String(v.url).split(/[?#]/)[0]]) return;
   var l=recents().filter(function(r){ return r.url!==v.url; });
   l.unshift({type:v.type,title:v.title,subtitle:v.project||'',url:v.url});
   try{ localStorage.setItem(RK,JSON.stringify(l.slice(0,6))); }catch(e){} }

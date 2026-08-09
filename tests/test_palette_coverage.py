@@ -235,6 +235,71 @@ def test_archived_job_is_not_an_ordinary_palette_result(store):
     )
 
 
+def test_archived_job_prunes_browser_discovery_without_hiding_retained_evidence(store):
+    """Archive removes the Project entity from persistent browser discovery too.
+
+    The exact detail URL and child evidence remain inspectable; only Project
+    recents/favorites are denied, including stale legacy ``/projects`` URLs.
+    """
+    import json
+
+    current = services.create_research_project(
+        "Current browser discovery fixture", goal="current", store=store)
+    archived = services.create_research_project(
+        "Archived browser discovery fixture", goal="retained evidence", store=store)
+    note = services.create_note(
+        archived["id"], "Retained archived evidence body",
+        title="Retained archived evidence", store=store,
+    )
+    client = TestClient(web.create_app())
+    slug_detail = client.get(f'/jobs/{archived["slug"]}?lang=en').text
+    slug_visit = json.loads(
+        slug_detail.split("data-cmdk-visit>", 1)[1].split("</script>", 1)[0]
+    )
+    assert slug_visit["url"] == f'/jobs/{archived["slug"]}'
+    before_archive = client.get("/personas?lang=en").text
+    before_token = before_archive.split('data-sonaloop-shell="', 1)[1].split('"', 1)[0]
+    services.archive_project(
+        archived["id"], "archive:browser-discovery", "Hide historical Job", store=store)
+
+    shell = client.get("/personas?lang=en").text
+    after_token = shell.split('data-sonaloop-shell="', 1)[1].split('"', 1)[0]
+    assert after_token != before_token  # a kept SPA shell must reload the new denylist
+    marker = '<script id="cmdk-cfg" type="application/json">'
+    cfg = json.loads(shell.split(marker, 1)[1].split("</script>", 1)[0])
+    assert set(cfg["hiddenProjectUrls"]) == {
+        f'/jobs/{archived["id"]}', f'/projects/{archived["id"]}',
+        f'/jobs/{archived["slug"]}', f'/projects/{archived["slug"]}',
+    }
+    assert f'"project:{archived["id"]}"' in shell
+    assert "if(HF[k]||(f.type==='project'&&HU[path]))" in shell
+    assert "if(HR[String(v.url).split(/[?#]/)[0]]) return" in shell
+    assert "recents();  // prune on shell load" in shell
+
+    archived_detail = client.get(f'/jobs/{archived["id"]}?lang=en')
+    assert archived_detail.status_code == 200
+    assert archived["title"] in archived_detail.text
+    assert "data-project-archived" in archived_detail.text
+    assert f'data-star="project:{archived["id"]}"' not in archived_detail.text
+    assert "data-cmdk-visit>" not in archived_detail.text
+    archived_slide = client.get(f'/jobs/{archived["id"]}?slide=1&lang=en').text
+    assert f'data-star="project:{archived["id"]}"' not in archived_slide
+    assert "data-cmdk-visit>" not in archived_slide
+    archived_slug_detail = client.get(f'/jobs/{archived["slug"]}?lang=en').text
+    assert archived["title"] in archived_slug_detail
+    assert f'data-star="project:{archived["id"]}"' not in archived_slug_detail
+    assert "data-cmdk-visit>" not in archived_slug_detail
+
+    current_detail = client.get(f'/jobs/{current["id"]}?lang=en').text
+    assert f'data-star="project:{current["id"]}"' in current_detail
+    assert "data-cmdk-visit>" in current_detail
+
+    # Archive keeps authored evidence in the global evidence browser/search.
+    evidence = search_rows("Retained archived evidence", store=store)
+    assert any(row["type"] == "note" and row["url"] == f'/notes/{note["id"]}'
+               for row in evidence)
+
+
 def test_search_caps_results_per_kind(store):
     proj = services.create_research_project("Caps", goal="g", store=store)
     for i in range(8):

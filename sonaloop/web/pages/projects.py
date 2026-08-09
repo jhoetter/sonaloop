@@ -304,11 +304,16 @@ def register_projects(app) -> None:
         # metadata dialog over the page, Delete the typed-confirm modal. No create buttons
         # (notes/sections/jobs are created by the MCP/CLI host).
         from .edit import project_actions
-        actions = fragment(top_btn,
-                           raw(project_actions(proj)),
-                           raw(_star("project", proj["id"], proj["title"], f'/jobs/{proj["id"]}')))
+        archived = str(project_record.get("status") or "active").strip().casefold() == "archived"
+        actions = fragment(
+            top_btn,
+            raw(project_actions(proj)),
+            (raw(_star("project", proj["id"], proj["title"], f'/jobs/{proj["id"]}'))
+             if not archived else None),
+        )
         from .._palette import visit_marker   # the palette's recents beacon (UX V6)
-        return _layout(proj["title"], body + visit_marker(proj["title"]), store, active="projects",
+        beacon = visit_marker(proj["title"]) if not archived else ""
+        return _layout(proj["title"], body + beacon, store, active="projects",
                        crumbs=[(t("projects"), "/jobs"), (proj["title"], None)], actions=actions)
 
     # ---- Hypotheses/decisions still anchor on their project page (the bets/decisions rows),

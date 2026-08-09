@@ -1,6 +1,8 @@
-"""Favorites are browser-local, but their bucket must follow the server data boundary."""
+"""Browser-local favorites/recents must follow the server data boundary."""
 
 from __future__ import annotations
+
+import json
 
 import pytest
 from fastapi import FastAPI
@@ -24,6 +26,11 @@ def _render_for_workspace(store, workspace_id: str) -> str:
         config.reset_request_tenant_scope(token)
 
 
+def _palette_config(page: str) -> dict:
+    marker = '<script id="cmdk-cfg" type="application/json">'
+    return json.loads(page.split(marker, 1)[1].split("</script>", 1)[0])
+
+
 def test_row_tenancy_renders_a_distinct_favorites_key_per_active_workspace(
         store, monkeypatch):
     _enable_row_tenancy(monkeypatch)
@@ -35,9 +42,14 @@ def test_row_tenancy_renders_a_distinct_favorites_key_per_active_workspace(
     assert 'var SK="pc-stars:ws_customer-2"' in customer
     assert 'var SK="pc-stars:ws_customer-2"' not in personal
     assert 'var SK="pc-stars:ws_personal.1"' not in customer
+    assert _palette_config(personal)["recentsKey"] == "sl-recent:ws_personal.1"
+    assert _palette_config(customer)["recentsKey"] == "sl-recent:ws_customer-2"
     # A tenant render must never read or seed itself from the legacy bucket.
     assert 'var SK="pc-stars",' not in personal
     assert 'var SK="pc-stars",' not in customer
+    assert _palette_config(personal)["recentsKey"] != "sl-recent"
+    assert _palette_config(customer)["recentsKey"] != "sl-recent"
+    assert "localStorage.removeItem('sl-recent')" in personal
 
 
 def test_async_middleware_scope_reaches_a_sync_page_renderer(store, monkeypatch):
@@ -48,6 +60,14 @@ def test_async_middleware_scope_reaches_a_sync_page_renderer(store, monkeypatch)
     async-to-sync boundary intact.
     """
     _enable_row_tenancy(monkeypatch)
+    # This test deliberately passes the fixture's SQLite Store across a worker-thread
+    # boundary solely to exercise context propagation.  Keep unrelated data reads out
+    # of that synthetic renderer; production routes construct Store in the sync worker.
+    from sonaloop.web import _components
+    monkeypatch.setattr(
+        _components, "_archived_project_discovery_denylist", lambda _store: ((), ()),
+    )
+    monkeypatch.setattr(_components, "runs_widget_markup", lambda _store: "")
     app = FastAPI()
 
     @app.middleware("http")
@@ -66,6 +86,7 @@ def test_async_middleware_scope_reaches_a_sync_page_renderer(store, monkeypatch)
 
     assert response.status_code == 200
     assert 'var SK="pc-stars:ws_threaded"' in response.text
+    assert _palette_config(response.text)["recentsKey"] == "sl-recent:ws_threaded"
 
 
 def test_row_tenant_without_a_workspace_disables_favorites(store, monkeypatch):
@@ -80,6 +101,8 @@ def test_row_tenant_without_a_workspace_disables_favorites(store, monkeypatch):
     assert "var SK=null" in page
     assert "function readStars(){ if(!SK) return {};" in page
     assert "localStorage.getItem(null)" not in page
+    assert _palette_config(page)["recentsKey"] is None
+    assert "function recents(){ if(!RK) return [];" in page
 
 
 def test_local_sqlite_mode_preserves_the_legacy_favorites_key(store):
@@ -92,6 +115,8 @@ def test_local_sqlite_mode_preserves_the_legacy_favorites_key(store):
 
     assert 'var SK="pc-stars"' in page
     assert "pc-stars:ws_ignored" not in page
+    assert _palette_config(page)["recentsKey"] == "sl-recent"
+    assert "sl-recent:ws_ignored" not in page
 
 
 @pytest.mark.parametrize(

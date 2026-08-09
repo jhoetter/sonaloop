@@ -54,6 +54,12 @@ def collect_run_states(store: Store | None = None) -> dict[str, list[dict[str, A
         "active": [], "waiting": [], "stalled": [], "finished": [], "unverified": [],
     }
     for p in store.list_research_projects():
+        # Archive is an evidence-preserving lifecycle state, not an active-work
+        # lane.  Keep archived records reachable by their exact detail URL, but
+        # never let their historical plan/run health reappear in the journal,
+        # global attention widget or shared /api/runs projection.
+        if str(p.get("status") or "active").strip().casefold() == "archived":
+            continue
         try:
             health = services.project_health(p["id"], store=store)
         except Exception:
