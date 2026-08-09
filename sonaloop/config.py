@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import os
 import re
+from collections.abc import Mapping
+from copy import deepcopy
+from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 PACKAGE_DIR = Path(__file__).resolve().parent
@@ -122,6 +126,89 @@ def reset_request_tenant_scope(token: contextvars.Token) -> None:
 def request_tenant_scope() -> tuple[tuple[str, ...], str] | None:
     """The active (accessible_ids, active_id) scope, or None (open-core / unscoped)."""
     return _REQUEST_TENANT_SCOPE.get()
+
+
+# --- request-bound ACTOR (server-owned project creator attribution) -----------------------
+# Extensions bind the authenticated principal around one request.  Core deliberately knows
+# nothing about OIDC, email addresses, MCP providers or a particular hosting product: it only
+# snapshots this small provider-neutral contract when a project is first inserted.  No MCP tool
+# accepts this value as an argument, so model-authored content cannot impersonate a creator.
+REQUEST_ACTOR_SCHEMA = "sonaloop.request_actor.v1"
+_REQUEST_ACTOR_KINDS = frozenset({"user", "service", "unknown"})
+_REQUEST_ACTOR: contextvars.ContextVar[dict[str, str] | None] = contextvars.ContextVar(
+    "sonaloop_request_actor", default=None,
+)
+
+
+def _request_actor_text(value: Any, field: str, maximum: int, *, required: bool) -> str:
+    text = str(value or "").strip()
+    if not text and not required:
+        return ""
+    if not text:
+        raise ValueError(f"request actor {field} is required")
+    if len(text) > maximum or not text.isprintable():
+        raise ValueError(
+            f"request actor {field} must be at most {maximum} printable characters"
+        )
+    return text
+
+
+def _normalize_request_actor(actor: Mapping[str, Any]) -> dict[str, str]:
+    schema = str(actor.get("schema") or REQUEST_ACTOR_SCHEMA).strip()
+    if schema != REQUEST_ACTOR_SCHEMA:
+        raise ValueError(f"request actor schema must be {REQUEST_ACTOR_SCHEMA}")
+    kind = _request_actor_text(actor.get("kind"), "kind", 24, required=True).lower()
+    if kind not in _REQUEST_ACTOR_KINDS:
+        raise ValueError(
+            "request actor kind must be one of " + ", ".join(sorted(_REQUEST_ACTOR_KINDS))
+        )
+    actor_id = _request_actor_text(actor.get("id"), "id", 240, required=True)
+    label = _request_actor_text(actor.get("label"), "label", 160, required=True)
+    captured_at = _request_actor_text(
+        actor.get("captured_at") or utc_now_iso(), "captured_at", 64, required=True,
+    )
+    try:
+        parsed = datetime.fromisoformat(captured_at.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError("request actor captured_at must be an ISO-8601 timestamp") from exc
+    if parsed.tzinfo is None:
+        raise ValueError("request actor captured_at must include a timezone")
+    normalized = {
+        "schema": REQUEST_ACTOR_SCHEMA,
+        "kind": kind,
+        "id": actor_id,
+        "label": label,
+        "captured_at": captured_at,
+    }
+    for field, maximum in (("role", 80), ("channel", 80)):
+        value = _request_actor_text(actor.get(field), field, maximum, required=False)
+        if value:
+            normalized[field] = value
+    return normalized
+
+
+def set_request_actor(actor: Mapping[str, Any] | None) -> contextvars.Token:
+    """Bind one authenticated request actor and return the token required for reset.
+
+    The normalized value is copy-isolated at both boundaries: mutating the caller's mapping or a
+    value returned by :func:`current_request_actor` cannot alter the request snapshot.
+    """
+    if actor is None:
+        return _REQUEST_ACTOR.set(None)
+    if not isinstance(actor, Mapping):
+        raise TypeError("request actor must be a mapping or None")
+    return _REQUEST_ACTOR.set(deepcopy(_normalize_request_actor(actor)))
+
+
+def reset_request_actor(token: contextvars.Token) -> None:
+    """Restore the previous request actor; call from the request boundary's finally block."""
+    _REQUEST_ACTOR.reset(token)
+
+
+def current_request_actor() -> dict[str, str] | None:
+    """Return a copy of the active provider-neutral actor snapshot, or ``None``."""
+    actor = _REQUEST_ACTOR.get()
+    return deepcopy(actor) if actor is not None else None
 
 
 def postgres_row_tenancy_enabled() -> bool:

@@ -245,6 +245,9 @@ class ResearchProject:
     #   later folded into a synthesis (study). Tracked here so the project owns its
     #   councils directly, even before a synthesis cites them. Old projects default to []. ---
     council_ids: Json = field(default_factory=list)
+    # Immutable snapshot of the authenticated server request that first created the project.
+    # None/missing is the honest legacy/local value; never infer it from later editors or tool text.
+    created_by: Json | None = None
 
     def to_dict(self) -> Json:
         return asdict(self)

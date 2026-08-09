@@ -19,6 +19,7 @@ from .._cohort_integrity_view import render_cohort_integrity
 register_css(r"""
 .sl-pu-card{border:1px solid var(--line);border-left:3px solid var(--green);border-radius:var(--radius);background:var(--panel);padding:12px 14px;margin:14px 0}.sl-pu-card--missing{border-left-color:var(--red)}
 .sl-pu-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.sl-pu-head strong{display:flex;align-items:center;gap:7px}.sl-pu-meta{color:var(--muted);font-size:var(--t-sm);margin-top:4px}.sl-pu-caps{margin:9px 0 0;padding-left:18px;font-size:var(--t-sm)}
+.sl-project-creator{color:var(--muted);font-size:var(--t-xs);margin:4px 0 0}
 """)
 
 
@@ -225,6 +226,13 @@ def register_projects(app) -> None:
         # the topbar: the topbar already has the global runs widget.
         from .._runs_widget import project_run_chip
         run_chip = project_run_chip(proj["id"], store)
+        # The graph projection is deliberately lean and does not carry request-boundary
+        # attribution. Read the canonical project row for this one presentation field;
+        # only its display snapshot is rendered (never the opaque actor id).
+        creator = services.get_research_project(proj["id"], store=store).get("created_by")
+        creator_label = (
+            str(creator.get("label") or "").strip() if isinstance(creator, dict) else ""
+        )
         # The FilterBar closes the head so it sits INSIDE the 900px measure (V1 — it used to
         # float at the page's far left), aligned with the title/outline left edge.
         body = h("div", {"class_": "proj"},
@@ -234,6 +242,8 @@ def register_projects(app) -> None:
                                            edit_label=t("f_project_icon"))),
                      proj["title"]),
                    h("p", {"class_": "lead"}, proj.get("goal", "")),
+                   (h("p", {"class_": "sl-project-creator"},
+                      t("project_created_by", label=creator_label)) if creator_label else None),
                    h("div", {"class_": "pills"}, raw(run_chip)),
                    bar),
                  raw(_product_understanding_html(proj, store)),

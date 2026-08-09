@@ -26,6 +26,16 @@ canonical plan. It never creates a replacement shell. In row-tenanted Postgres t
 and uniqueness constraint are workspace-scoped, so two workspaces may independently use the same
 client operation id.
 
+An authenticated server adapter may bind a provider-neutral `sonaloop.request_actor.v1` request
+context before project creation. The first physical project insert freezes that bounded snapshot as
+optional `created_by` (`kind`, opaque `id`, display `label`, optional `role`/`channel`, and
+`captured_at`). It is server-owned context, not a `start_project`/`create_research_project` argument,
+and therefore never appears in MCP input schemas. Exact retries and concurrent creators retain the
+first atomic winner; later project edits and whole-row upserts cannot replace it. Historical,
+unbound and local projects remain honestly unattributed—Sonaloop never guesses a creator from a
+later editor, operation id, prompt or tool call. The inspector renders only the frozen display
+label, never the opaque actor id.
+
 Before project or plan storage is touched, `methodology` is resolved against the registry. Stable
 keys and human display names are accepted, with case, whitespace, `_`, `-` and punctuation treated
 as spelling variants. For example, all of these seed `reaction_test`:

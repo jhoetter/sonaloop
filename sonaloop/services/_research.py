@@ -19,7 +19,7 @@ from typing import Any
 
 from ..config import (
     utc_now_iso, content_language, ensure_content_language, language_instruction,
-    critic_threshold, critic_sample_k,
+    critic_threshold, critic_sample_k, current_request_actor,
 )
 from ..models import (
     CalendarEvent,
@@ -117,11 +117,17 @@ def create_research_project(title: str, goal: str = "", persona_ids: list[str] |
     slug, n = base, 2
     while store.get_research_project(slug) is not None:
         slug, n = f"{base}-{n}", n + 1
+    creator = current_request_actor()
     project = ResearchProject(
         id=pid, slug=slug, title=title, goal=goal, description=description,
         persona_ids=persona_ids or [], study_ids=[], study_tags={}, themes=[],
         status="active", created_at=now, updated_at=now, council_ids=[],
+        created_by=creator,
     ).to_dict()
+    if creator is None:
+        # Keep local/unbound and pre-attribution projects indistinguishable: absence is honest and
+        # must never be backfilled from a later editor or retrying request.
+        project.pop("created_by", None)
     if operation_id:
         project["operation_id"] = operation_id
         project["operation_fingerprint"] = operation_fingerprint or ""

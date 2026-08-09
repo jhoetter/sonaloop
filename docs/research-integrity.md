@@ -19,6 +19,12 @@ Projects created through the retry-safe Core front door are stamped with
 `governance_contract="dispatch_v1"`. Historical projects without that stamp remain
 readable and writable through the legacy contract.
 
+Creator attribution is a separate server boundary. A hosting adapter may bind an authenticated
+`sonaloop.request_actor.v1` context around the request; project creation snapshots it once as
+immutable `created_by`. Models cannot supply this field through MCP, retries cannot rewrite it, and
+legacy/unbound projects stay unattributed rather than inheriting the identity of whoever next opens
+or edits them.
+
 ## Dispatch write contract
 
 Every analyze/act/verify result from `run_step` carries a deterministic opaque

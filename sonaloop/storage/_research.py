@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 from typing import Any
 
@@ -19,6 +20,20 @@ class ResearchMixin:
         return workspace_id
 
     # ---- Research graph: projects / edges / open questions / reports ----
+    @staticmethod
+    def _preserve_project_creator(
+        existing: dict[str, Any], project: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Keep the creator (including its honest absence) fixed after the first insert."""
+        candidate = copy.deepcopy(project)
+        creator = existing.get("created_by")
+        if isinstance(creator, dict) and creator:
+            candidate["created_by"] = copy.deepcopy(creator)
+        else:
+            # A legacy/unbound project must not acquire a creator from a later update or replay.
+            candidate.pop("created_by", None)
+        return candidate
+
     def insert_research_project_if_absent(self, project: dict[str, Any]) -> bool:
         """Atomically claim a deterministic project id without overwriting its owner.
 
@@ -36,11 +51,30 @@ class ResearchMixin:
         return cur.rowcount == 1
 
     def upsert_research_project(self, project: dict[str, Any]) -> None:
-        self.conn.execute(
-            "INSERT INTO research_projects (id, slug, title, data, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?) "
-            "ON CONFLICT(id) DO UPDATE SET slug=excluded.slug, title=excluded.title, data=excluded.data, updated_at=excluded.updated_at",
+        # Split insert from update so the first physical insert atomically owns ``created_by`` even
+        # when two creators race through a legacy/non-operation-id path. The losing writer may still
+        # update normal project fields, but it must carry forward the winner's snapshot exactly.
+        inserted = self.conn.execute(
+            "INSERT INTO research_projects (id, slug, title, data, created_at, updated_at) "
+            "VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING",
             (project["id"], project["slug"], project["title"], json.dumps(project, ensure_ascii=False),
              project["created_at"], project.get("updated_at", project["created_at"])),
+        )
+        if inserted.rowcount == 1:
+            self.conn.commit()
+            return
+        row = self.conn.execute(
+            "SELECT data FROM research_projects WHERE id=?", (project["id"],),
+        ).fetchone()
+        if not row:  # pragma: no cover - a committed conflict row must be visible
+            self.conn.rollback()
+            raise RuntimeError("research project upsert conflict without an existing row")
+        existing = json.loads(row["data"])
+        candidate = self._preserve_project_creator(existing, project)
+        self.conn.execute(
+            "UPDATE research_projects SET slug=?, title=?, data=?, updated_at=? WHERE id=?",
+            (candidate["slug"], candidate["title"], json.dumps(candidate, ensure_ascii=False),
+             candidate.get("updated_at", candidate["created_at"]), candidate["id"]),
         )
         self.conn.commit()
 
@@ -48,12 +82,13 @@ class ResearchMixin:
         self, expected: dict[str, Any], project: dict[str, Any]
     ) -> bool:
         """Replace one project only when its persisted JSON has not changed."""
+        candidate = self._preserve_project_creator(expected, project)
         cur = self.conn.execute(
             "UPDATE research_projects SET slug=?, title=?, data=?, updated_at=? "
             "WHERE id=? AND data=?",
             (
-                project["slug"], project["title"], json.dumps(project, ensure_ascii=False),
-                project.get("updated_at", project["created_at"]), project["id"],
+                candidate["slug"], candidate["title"], json.dumps(candidate, ensure_ascii=False),
+                candidate.get("updated_at", candidate["created_at"]), candidate["id"],
                 json.dumps(expected, ensure_ascii=False),
             ),
         )
