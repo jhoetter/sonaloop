@@ -20,6 +20,7 @@ import json
 from typing import Any
 
 from .config import utc_now_iso
+from .research_integrity_output import claim_posture_markdown
 from .storage import Store
 
 
@@ -325,6 +326,14 @@ def admitted_stimuli(project_id: str, store: Store) -> list[dict[str, Any]]:
         except IntegrityError:
             continue
         out.append({"kind": "artifact", "id": artifact["id"], "title": artifact.get("title", "")})
+    # Runnable prototypes are first-class project stimuli; the resolver enforces ownership.
+    for prototype in store.list_prototypes(project_id):
+        try:
+            resolve_project_ref(project_id, {"kind": "prototype", "id": prototype.get("id")}, store)
+        except IntegrityError:
+            continue
+        out.append({"kind": "prototype", "id": prototype["id"],
+                    "title": prototype.get("name", "")})
     for session in store.list_usability_sessions(project_id=project_id):
         if session.get("grounded_verified"):
             out.append({"kind": "session", "id": session["id"],
@@ -555,30 +564,6 @@ def artifact_posture_gaps(record: dict[str, Any], label: str) -> list[str]:
     return gaps
 
 
-def claim_posture_markdown(envelope: dict[str, Any] | None, *, de: bool = False) -> list[str]:
-    """Self-contained Markdown block used by council/report exports."""
-    if not envelope:
-        return []
-    heading = "Claim-Herkunft" if de else "Claim provenance"
-    state = (("vollständig" if envelope.get("verified") else "unverifizierter Hypothesenentwurf")
-             if de else
-             ("complete" if envelope.get("verified") else "unverified hypothesis draft"))
-    lines = [f"## {heading}", f"**Status:** {state}"]
-    if envelope.get("prose_uncovered"):
-        lines.append("**Warnung:** Nicht inventarisierte Prosa." if de
-                     else "**Warning:** Uninventoried prose.")
-    for claim in envelope.get("claims") or []:
-        refs = ", ".join(
-            f"{ref.get('kind')}:{ref.get('id')}"
-            + (f"@{ref.get('anchor')}" if ref.get("anchor") else "")
-            for ref in claim.get("refs") or []
-        )
-        suffix = f" — {refs}" if refs else ""
-        lines.append(f"- `{claim.get('posture', 'unsupported')}` {claim.get('text', '')}{suffix}")
-    lines.append("")
-    return lines
-
-
 def reaction_task_gaps(project_id: str, task: dict[str, Any], plan: dict[str, Any],
                        store: Store) -> list[str]:
     """Blocking gaps for Reaction Test act/verify completion."""
@@ -604,7 +589,18 @@ def reaction_task_gaps(project_id: str, task: dict[str, Any], plan: dict[str, An
 
     if task.get("bucket") not in {"act", "verify"}:
         return gaps
-    refs = [r for r in (task.get("produces") or []) if r.get("kind") != "frame"]
+    # Parked output stays visible but deliberately does not feed this gate.
+    task_id = str(task.get("id") or "")
+    parked = {
+        str(token) for row in (plan.get("parked_refs") or [])
+        if str(row.get("task_id") or "") in {"", task_id}
+        for token in (row.get("refs") or [])
+    }
+    refs = [
+        r for r in (task.get("produces") or [])
+        if r.get("kind") != "frame"
+        and f"{str(r.get('kind') or '')}:{str(r.get('id') or '')}" not in parked
+    ]
     if not refs:
         gaps.append("task has no linked evidence")
         return gaps

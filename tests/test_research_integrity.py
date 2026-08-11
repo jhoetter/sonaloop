@@ -7,6 +7,7 @@ import asyncio
 import pytest
 
 from sonaloop import plan as P
+from sonaloop import research_integrity as RI
 from sonaloop import services
 from sonaloop.research_integrity import IntegrityError, resolve_project_ref
 from sonaloop.mcp_server import build_server
@@ -326,6 +327,74 @@ def test_observed_behavior_anchor_must_name_a_real_session_step(store):
                 observed_behavior=True,
             )
         assert exc.value.code == "OBSERVATION_ANCHOR_REQUIRED"
+
+
+def test_reaction_stimuli_include_project_owned_prototypes(store, tmp_path, monkeypatch):
+    from sonaloop import prototypes
+
+    project = services.start_project("Prototype stimulus", "Question?", store=store)
+    monkeypatch.setattr(prototypes, "prototypes_dir", lambda: tmp_path)
+    prototype = services.scaffold_artifact(
+        "task-lens-test",
+        "Task Lens",
+        {
+            "title": "Task Lens",
+            "frames": [{"id": "start", "title": "Choose a task", "layers": []}],
+        },
+        type="canvas",
+        project_id=project["id"],
+        store=store,
+    )
+
+    stimuli = RI.admitted_stimuli(project["id"], store)
+    assert {"kind": "prototype", "id": prototype["id"], "title": "Task Lens"} in stimuli
+
+
+def test_reaction_gate_excludes_explicitly_parked_task_evidence(store, monkeypatch):
+    project = services.start_project("Reaction parked", "Question?", store=store)
+    pid = project["id"]
+    council_id = "council_reaction_parked"
+    store.insert_council_session({
+        "id": council_id,
+        "project_id": pid,
+        "persona_ids": [],
+        "created_at": "2026-08-11T00:00:00+00:00",
+        "claim_posture": {
+            "schema": "sonaloop.claim_posture.v1",
+            "verified": True,
+            "prose_uncovered": False,
+            "counts": {"unsupported": 0},
+            "claims": [{"refs": [{"kind": "asset", "id": "screen_1"}]}],
+        },
+    })
+    task = {
+        "id": "act__build",
+        "bucket": "act",
+        "produces": [
+            {"kind": "artifact", "id": "prototype_visible_but_not_evidence"},
+            {"kind": "council", "id": council_id},
+        ],
+    }
+    plan = {
+        "parked_refs": [{
+            "task_id": "act__build",
+            "refs": ["artifact:prototype_visible_but_not_evidence"],
+            "reason": "The prototype is visible; the council is the decision evidence.",
+        }],
+    }
+    monkeypatch.setattr(RI, "is_reaction_project", lambda *_: True)
+    monkeypatch.setattr(RI, "current_product_understanding", lambda *_: {"id": "pu_1"})
+    monkeypatch.setattr(RI, "project_policy", lambda *_: {"cohort_preflight_required": False})
+    monkeypatch.setattr(
+        RI, "reaction_stimuli", lambda *_: [{"kind": "asset", "id": "screen_1"}],
+    )
+
+    assert RI.reaction_task_gaps(pid, task, plan, store) == []
+
+    plan["parked_refs"][0]["task_id"] = "another_task"
+    assert RI.reaction_task_gaps(pid, task, plan, store) == [
+        "artifact:prototype_visible_but_not_evidence is not an admitted Reaction Test evidence type"
+    ]
 
 
 def test_legacy_project_remains_backward_compatible_with_explicit_provenance(store):

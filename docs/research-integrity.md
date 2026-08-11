@@ -260,6 +260,11 @@ explicit top-level `claims` inventory; otherwise `prose_uncovered=true`. Screens
 flows prove product state, **not user behavior**. A synthetic council cannot prove observed
 behavior either.
 
+`park_evidence` is the explicit exception for an output that should remain visible without feeding
+a completion gate. A task-scoped park excludes that ref only from the named task; omitting `task_id`
+parks it project-wide. Parking never makes an act task evidence-free: another admitted council,
+synthesis, prototype, or grounded session must still carry the decision evidence.
+
 Reference ids are resolved server-side rather than trusted because they look plausible. A
 `persona` ref must name a stored persona in the project's frozen cohort. An `evidence` ref must
 name a stored evidence record owned by one of those personas. A `memory` or `recall` ref must
