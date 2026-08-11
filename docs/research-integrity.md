@@ -65,6 +65,19 @@ For a browser-verified prototype reaction from the terminal, use the one-process
 observed-state log alive through recording while preserving the active run's exact
 dispatch scope.
 
+For a `build` dispatch, the runnable `artifact`/`prototype` is the single primary
+output. Grounded `session`/`usability_session`/`prototype_session` records are
+supporting evidence: they are linked to the same task but cannot finish or checkpoint
+the build without its artifact. Open dispatches issued before this distinction are
+repaired narrowly and audit the former and replacement primary kinds.
+
+A dispatch whose expected output is `build` reserves its one primary-output slot for an
+`artifact` or `prototype`. A `session`, `usability_session`, or `prototype_session` is linked as
+supporting evidence and cannot complete the build on its own. Dispatches issued before this split
+are upgraded on replay; an uncheckpointed legacy `session` primary can be replaced only by the
+corresponding build artifact/prototype, with the repair retained in the run audit trail. Completed
+or unrelated dispatch claims remain immutable.
+
 ## Product Understanding preflight
 
 Reaction Test plans insert a mandatory root analyze task with capability

@@ -124,8 +124,74 @@ def test_proto_drive_forwards_governed_dispatch_token(store, tmp_path, monkeypat
         assert out["recorded"]["grounded_verified"] is True
         saved = store.get_prototype_session(out["recorded"]["id"])
         assert saved["dispatch_provenance"]["dispatch_token"] == dispatch["dispatch_token"]
+        assert out["dispatch"]["state"] == "completed"
+        assert out["dispatch"]["checkpointed"] is True
+
+        saved_plan = services.get_plan(project["id"], store=store)
+        saved_task = saved_plan["tasks"][0]
+        assert saved_task["status"] == "done"
+        assert saved_task["produces"] == [{"kind": "session", "id": out["recorded"]["id"]}]
+
+        saved_run = services.run_journal(run["run_id"], store=store)
+        assert saved_run["status"] == "active"
+        assert saved_run["cursor"] == 1
+        assert saved_run["steps"][0]["produced_refs"] == [f"session:{out['recorded']['id']}"]
+        saved_dispatch = next(row for row in saved_run["dispatches"]
+                              if row["dispatch_token"] == dispatch["dispatch_token"])
+        assert saved_dispatch["status"] == "completed"
+        assert saved_dispatch["produced_refs"] == [f"session:{out['recorded']['id']}"]
     finally:
         prototypes.stop_prototype("harness-drive-governed", store=store)
+
+
+def test_cli_proto_drive_forwards_dispatch_token(tmp_path, monkeypatch, capsys):
+    """The public CLI flag reaches the one-process service call with its record payload."""
+    from sonaloop import cli
+
+    script_path = tmp_path / "actions.json"
+    record_path = tmp_path / "reaction.json"
+    script_path.write_text('{"actions": [{"type": "wait"}]}', encoding="utf-8")
+    record_path.write_text(
+        '{"summary": "saw the start screen", "observed_state_refs": ["Vergleichen"]}',
+        encoding="utf-8",
+    )
+    captured = {}
+
+    def fake_proto_drive(prototype_id=None, url=None, persona_id=None, actions=None,
+                         reaction=None, date_value=None, dispatch_token=None, store=None):
+        captured.update({
+            "prototype_id": prototype_id,
+            "url": url,
+            "persona_id": persona_id,
+            "actions": actions,
+            "reaction": reaction,
+            "date_value": date_value,
+            "dispatch_token": dispatch_token,
+            "store": store,
+        })
+        return {"dispatch": {"state": "completed", "checkpointed": True}}
+
+    monkeypatch.setattr(services, "proto_drive", fake_proto_drive)
+    assert cli.main([
+        "proto-drive", str(script_path),
+        "--prototype", "prototype_cli",
+        "--persona", "persona_cli",
+        "--record", str(record_path),
+        "--date", "2026-06-10",
+        "--dispatch-token", "dispatch_cli",
+    ]) == 0
+
+    assert captured == {
+        "prototype_id": "prototype_cli",
+        "url": None,
+        "persona_id": "persona_cli",
+        "actions": [{"type": "wait"}],
+        "reaction": {"summary": "saw the start screen", "observed_state_refs": ["Vergleichen"]},
+        "date_value": "2026-06-10",
+        "dispatch_token": "dispatch_cli",
+        "store": None,
+    }
+    assert '"checkpointed": true' in capsys.readouterr().out
 
 
 def test_proto_drive_unavailable_is_graceful(store, tmp_path, monkeypatch):

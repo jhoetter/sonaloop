@@ -618,6 +618,8 @@ def proto_drive(prototype_id=None, url=None, persona_id=None, actions=None,
                                        dispatch_token=dispatch_token, store=store)
         out["recorded"] = {"id": rec["prototype_session"]["id"],
                            "grounded_verified": rec.get("grounded_verified")}
+        if rec.get("dispatch"):
+            out["dispatch"] = rec["dispatch"]
     else:
         out["note"] = ("groundedness: the session log lives in THIS process — record the reaction in "
                        "the same proto_drive call (reaction=…) or this same process; a later "
@@ -773,6 +775,63 @@ def _dispatch_token(run_id: str, project_id: str, task_id: str, key: str) -> str
     return stable_id("dispatch", workspace_id, run_id, project_id, task_id, key)
 
 
+_BASE_SUPPORTING_OUTPUT_KINDS = (
+    "asset", "flow", "reference", "evidence", "cohort_selection",
+)
+_BASE_CLOSING_OUTPUT_KINDS = ("judgment", "task_completion")
+_BUILD_PRIMARY_OUTPUT_KINDS = ("artifact", "prototype")
+_BUILD_SUPPORTING_OUTPUT_KINDS = (
+    "session", "usability_session", "prototype_session",
+)
+
+
+def _ordered_output_kinds(*groups: Any) -> list[str]:
+    """Return stable, de-duplicated output-kind names from contract fragments."""
+    out: list[str] = []
+    for group in groups:
+        for value in group or []:
+            kind = str(value or "").strip()
+            if kind and kind not in out:
+                out.append(kind)
+    return out
+
+
+def _normalized_output_contract(
+    expected_kind: str,
+    *,
+    allowed_primary_kinds: list[str] | None = None,
+    existing: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Build the effective persisted contract, including narrow upgrade seams.
+
+    A ``build`` task is complete only when it produces the thing being built.
+    Sessions can support that artifact, but must not consume its single primary
+    output slot.  Normalizing here also lets an already-issued dispatch expose
+    the corrected contract when ``run_step`` is replayed after a deployment.
+    """
+    current = dict(existing or {})
+    declared_primary = list(allowed_primary_kinds or [])
+    if expected_kind == "build":
+        primary = list(_BUILD_PRIMARY_OUTPUT_KINDS)
+    else:
+        primary = declared_primary
+    supporting = _ordered_output_kinds(
+        current.get("supporting_kinds"),
+        _BASE_SUPPORTING_OUTPUT_KINDS,
+        _BUILD_SUPPORTING_OUTPUT_KINDS if expected_kind == "build" else (),
+    )
+    closing = _ordered_output_kinds(
+        current.get("closing_kinds"), _BASE_CLOSING_OUTPUT_KINDS)
+    return {
+        **current,
+        "schema": str(current.get("schema") or "sonaloop.dispatch_output_contract.v1"),
+        "max_primary_outputs": 1,
+        "allowed_primary_kinds": primary,
+        "supporting_kinds": supporting,
+        "closing_kinds": closing,
+    }
+
+
 def _issue_dispatch(run_id: str, project_id: str, task_id: str, bucket: str,
                     key: str, store: Store, public_step_id: str | None = None,
                     trace_contract: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -788,6 +847,8 @@ def _issue_dispatch(run_id: str, project_id: str, task_id: str, bucket: str,
         "cohort_integrity": ["cohort_preflight"],
         "synthesis": ["synthesis"],
     }.get(expected_kind, [])
+    output_contract = _normalized_output_contract(
+        expected_kind, allowed_primary_kinds=exact_primary)
     input_fingerprint = canonical_payload_fingerprint(trace_contract) if trace_contract else ""
     for _attempt in range(16):
         current = store.get_run(run_id)
@@ -807,6 +868,28 @@ def _issue_dispatch(run_id: str, project_id: str, task_id: str, bucket: str,
             if (input_fingerprint and existing.get("input_fingerprint")
                     and existing.get("input_fingerprint") != input_fingerprint):
                 raise PlanError("DISPATCH_INPUT_CONFLICT", "dispatch inputs changed after issuance")
+            # Contract-only upgrades are safe: they preserve dispatch identity,
+            # authored inputs, payload claims, and any existing primary output.
+            # In particular, do not rewrite a legacy ``session`` primary here;
+            # prepare_dispatch_write repairs that claim only when the real build
+            # artifact arrives while the dispatch is still mutable.
+            if expected_kind == "build":
+                normalized = _normalized_output_contract(
+                    expected_kind,
+                    allowed_primary_kinds=exact_primary,
+                    existing=dict(existing.get("output_contract") or {}),
+                )
+                if normalized != dict(existing.get("output_contract") or {}):
+                    updated = copy.deepcopy(current)
+                    target = next(
+                        d for d in (updated.get("dispatches") or [])
+                        if str(d.get("dispatch_token") or "") == token
+                    )
+                    target["output_contract"] = normalized
+                    updated["updated_at"] = utc_now_iso()
+                    if store.compare_and_swap_run(current, updated):
+                        return target
+                    continue
             return existing
         updated = copy.deepcopy(current)
         dispatch = {
@@ -822,15 +905,7 @@ def _issue_dispatch(run_id: str, project_id: str, task_id: str, bucket: str,
             "dispatch_cursor": int(current.get("cursor") or len(current.get("steps") or [])),
             "expected_output_kind": expected_kind,
             "input_fingerprint": input_fingerprint,
-            "output_contract": {
-                "schema": "sonaloop.dispatch_output_contract.v1",
-                "max_primary_outputs": 1,
-                "allowed_primary_kinds": exact_primary,
-                "supporting_kinds": [
-                    "asset", "flow", "reference", "evidence", "cohort_selection",
-                ],
-                "closing_kinds": ["judgment", "task_completion"],
-            },
+            "output_contract": output_contract,
             "primary_output_kind": "",
             "payload_fingerprints": {},
             "payload_revisions": {},
@@ -935,35 +1010,52 @@ def prepare_dispatch_write(
     if found_run.get("status") != "active" and not checkpoint:
         raise PlanError("DISPATCH_CLOSED", "run closed before this dispatch produced a checkpoint")
     output_contract = dict(found.get("output_contract") or {})
+    expected_kind = str(found.get("expected_output_kind") or "")
     support = set(output_contract.get("supporting_kinds") or
                   ["asset", "flow", "reference", "evidence"])
     # Server-added supporting repairs must work on an already-issued production
     # dispatch. They never claim/replace its one primary output.
     support.add("cohort_selection")
+    if expected_kind == "build":
+        # Compatibility for dispatches issued before build outputs were split
+        # into the artifact itself (primary) and observed sessions (supporting).
+        support.update(_BUILD_SUPPORTING_OUTPUT_KINDS)
     closing = set(output_contract.get("closing_kinds") or ["judgment", "task_completion"])
     is_primary = output_kind not in support | closing
     allowed = set(output_contract.get("allowed_primary_kinds") or [])
+    if expected_kind == "build":
+        # Do not trust the historical ``["build"]`` declaration: ``build`` is
+        # the task intent, not a recordable primitive kind.
+        allowed = set(_BUILD_PRIMARY_OUTPUT_KINDS)
     if is_primary and allowed and output_kind not in allowed:
         raise PlanError(
             "DISPATCH_OUTPUT_KIND_CONFLICT",
             f"dispatch expects {sorted(allowed)!r}, not {output_kind!r}",
         )
     claimed_kind = str(found.get("primary_output_kind") or "")
-    if is_primary and claimed_kind and claimed_kind != output_kind:
-        raise PlanError(
-            "DISPATCH_OUTPUT_KIND_CONFLICT",
-            f"single-output dispatch is already bound to {claimed_kind!r}, not {output_kind!r}",
-        )
     fingerprint = str(payload_fingerprint or "").strip()
     prior_fingerprint = str((found.get("payload_fingerprints") or {}).get(output_kind) or "")
     output_locked = bool(checkpoint or found.get("status") == "completed"
                          or (task or {}).get("status") == "done")
+    repairs_legacy_build_primary = bool(
+        is_primary
+        and expected_kind == "build"
+        and claimed_kind in _BUILD_SUPPORTING_OUTPUT_KINDS
+        and output_kind in _BUILD_PRIMARY_OUTPUT_KINDS
+        and not output_locked
+    )
+    if (is_primary and claimed_kind and claimed_kind != output_kind
+            and not repairs_legacy_build_primary):
+        raise PlanError(
+            "DISPATCH_OUTPUT_KIND_CONFLICT",
+            f"single-output dispatch is already bound to {claimed_kind!r}, not {output_kind!r}",
+        )
     if fingerprint and prior_fingerprint and prior_fingerprint != fingerprint and output_locked:
         raise PlanError(
             "DISPATCH_OUTPUT_CONFLICT",
             "the committed dispatch output cannot be replayed with different authored content",
         )
-    needs_claim = ((is_primary and not claimed_kind)
+    needs_claim = ((is_primary and (not claimed_kind or repairs_legacy_build_primary))
                    or (fingerprint and fingerprint != prior_fingerprint))
     if needs_claim:
         for _attempt in range(16):
@@ -973,15 +1065,33 @@ def prepare_dispatch_write(
             if not current_run or not current_dispatch:
                 raise PlanError("UNKNOWN_DISPATCH_TOKEN", "dispatch disappeared while claiming output")
             current_kind = str(current_dispatch.get("primary_output_kind") or "")
-            if is_primary and current_kind and current_kind != output_kind:
+            current_checkpoint = next((s for s in (current_run.get("steps") or [])
+                                       if str(s.get("dispatch_token") or "") == token), None)
+            current_plan = _plan.get_plan(project_id, store=store) or {}
+            current_task = next(
+                (row for row in (current_plan.get("tasks") or [])
+                 if str(row.get("id") or "") == str(current_dispatch.get("task_id") or "")),
+                task,
+            )
+            current_output_locked = bool(
+                current_checkpoint
+                or current_dispatch.get("status") == "completed"
+                or (current_task or {}).get("status") == "done"
+            )
+            repairs_current_build_primary = bool(
+                is_primary
+                and expected_kind == "build"
+                and current_kind in _BUILD_SUPPORTING_OUTPUT_KINDS
+                and output_kind in _BUILD_PRIMARY_OUTPUT_KINDS
+                and not current_output_locked
+            )
+            if (is_primary and current_kind and current_kind != output_kind
+                    and not repairs_current_build_primary):
                 raise PlanError("DISPATCH_OUTPUT_KIND_CONFLICT",
                                 "another primary output already claimed this dispatch")
             current_fp = str((current_dispatch.get("payload_fingerprints") or {}).get(output_kind) or "")
-            current_checkpoint = next((s for s in (current_run.get("steps") or [])
-                                       if str(s.get("dispatch_token") or "") == token), None)
             if (fingerprint and current_fp and current_fp != fingerprint
-                    and (current_checkpoint or current_dispatch.get("status") == "completed"
-                         or (task or {}).get("status") == "done")):
+                    and current_output_locked):
                 raise PlanError("DISPATCH_OUTPUT_CONFLICT",
                                 "the committed dispatch output cannot be revised")
             updated = copy.deepcopy(current_run)
@@ -989,6 +1099,19 @@ def prepare_dispatch_write(
                           if str(d.get("dispatch_token") or "") == token)
             if is_primary:
                 target["primary_output_kind"] = output_kind
+                if repairs_current_build_primary:
+                    target.setdefault("primary_output_repair_history", []).append({
+                        "from": current_kind,
+                        "to": output_kind,
+                        "repaired_at": utc_now_iso(),
+                        "reason": "legacy build session was classified as the primary output",
+                    })
+            if expected_kind == "build":
+                target["output_contract"] = _normalized_output_contract(
+                    expected_kind,
+                    allowed_primary_kinds=list(_BUILD_PRIMARY_OUTPUT_KINDS),
+                    existing=dict(target.get("output_contract") or {}),
+                )
             if fingerprint:
                 fps = target.setdefault("payload_fingerprints", {})
                 revisions = target.setdefault("payload_revisions", {})
@@ -1018,6 +1141,9 @@ def prepare_dispatch_write(
         "checkpointed": bool(checkpoint),
         "expected_output_kind": str(found.get("expected_output_kind") or ""),
         "input_fingerprint": str(found.get("input_fingerprint") or ""),
+        "output_role": (
+            "primary" if is_primary else "closing" if output_kind in closing else "supporting"
+        ),
         "payload_fingerprint": prior_fingerprint,
         "payload_revision": int((found.get("payload_revisions") or {}).get(output_kind) or 0),
     }
@@ -1139,7 +1265,10 @@ def bind_dispatch_output(ctx: dict[str, Any], ref: dict[str, Any], summary: str,
         return {"state": ctx.get("state", "outside_run"), "checkpointed": False,
                 "provenance": "not governed by an active dispatch"}
     _plan.link_evidence(str(ctx["project_id"]), str(ctx["task_id"]), ref, store=store)
-    if not complete:
+    # Supporting evidence belongs in the task trace, but it cannot finish a
+    # single-primary dispatch by itself. Callers may still explicitly suppress
+    # completion for legacy contexts that predate output-role classification.
+    if not complete or ctx.get("output_role") == "supporting":
         return {"state": "linked", "checkpointed": False, "task_id": ctx["task_id"],
                 "produced_ref": _dispatch_ref_token(ref)}
     return finalize_dispatch({**ctx, "output_kind": str(ref.get("kind") or ctx.get("output_kind") or "")},
