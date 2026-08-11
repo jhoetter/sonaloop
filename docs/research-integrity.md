@@ -26,6 +26,11 @@ legacy/unbound projects stay unattributed rather than inheriting the identity of
 or edits them. A Cloud operator may fill a legacy gap only from an exact project-to-current-member
 mapping explicitly attested by a current workspace owner. That exceptional path is dry-run-first,
 tenant-bound and audited; it never infers identity from titles, prompts, timestamps or later activity.
+Cloud can also retain a separate immutable, closed connector-family snapshot from the first
+`begin_research_job` transport boundary. This is presented as `via Mistral` / `via ChatGPT` / etc.,
+not as a model claim. Raw `clientInfo`, User-Agent and bearer data are never exposed, unknown or
+conflicting observations stay absent, and model-authored `provider`/`model` arguments never power the
+display.
 
 ## Dispatch write contract
 
@@ -260,6 +265,14 @@ ids and records owned by a different project's cohort fail closed before the cla
 Unsupported/uncovered material is persisted for inspection rather than discarded, but the
 artifact is labelled an unverified hypothesis draft and cannot satisfy act/verify or finish
 gates. Council/report UI and Markdown/JSON exports retain posture and refs.
+
+Project-scope reports use their native section provenance rather than duplicating the generic
+`claim_posture` envelope used by councils and convergence syntheses. Every authored report section
+must cite at least one study from that section's frozen `source_study_ids`, and the cited study must
+exist in the report's graph snapshot. Missing citations keep the report visible but unverified;
+undeclared or missing study ids also surface as invalid evidence refs. This verification contract is
+separate from structural hand-off completion: a lead plus fully authored section bodies makes the
+report deliverable, while its section citations decide whether the delivered prose is evidence-backed.
 
 ## Canonical project health and recovery
 

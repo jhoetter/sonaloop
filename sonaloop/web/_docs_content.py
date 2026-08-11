@@ -7,6 +7,7 @@ render time by the page builders. No rendering happens here.
 from __future__ import annotations
 
 from . import _docs_styles as _docs_styles  # noqa: F401  (registers hub styles)
+from ._docs_privacy_content import CLOUD_PRIVACY_DE, CLOUD_PRIVACY_EN
 
 # ============================ Page registry ============================ #
 # Ordered: drives the tab bar AND prev/next. Shape: (slug, icon, (label_de, label_en)). "" == Overview.
@@ -60,22 +61,7 @@ PRINCIPLES = [
       "that connect (a report can become evidence for the next study).")),
     ("network",
      ("Workspace-isoliert", "Workspace-isolated"),
-     ("In Sonaloop Cloud bleibt jeder Datensatz in seinem Workspace. Mitglieder kommen über eine "
-      "adressierte, einmalige Einladung und eine verifizierte E-Mail-Identität hinein — nie automatisch "
-      "über eine ganze Domain. Admins können den aktiven Workspace vorübergehend mit den Rechten eines "
-      "regulären Mitglieds ansehen; ihre dauerhafte Rolle bleibt dabei unverändert. Passwörter verwaltet "
-      "der konfigurierte Login-Anbieter, nicht Sonaloop. Bei neuen Cloud-Jobs zeigt die Übersicht den "
-      "unveränderlichen, authentifizierten Ersteller. Ältere Jobs bleiben ohne Zuschreibung, solange "
-      "nicht ein Workspace-Owner eine exakte Projekt-zu-Mitglied-Zuordnung ausdrücklich bestätigt; "
-      "eine solche Support-Korrektur wird auditiert und nie aus Titeln oder späteren Bearbeitern erraten.",
-      "In Sonaloop Cloud, every record stays inside its workspace. Members enter through an addressed, "
-      "single-use invitation and a verified email identity — never automatically through an entire "
-      "domain. Admins can temporarily inspect the active workspace with a regular member's permissions; "
-      "their persistent role remains unchanged. Passwords are managed by the configured identity provider, "
-      "not by Sonaloop. For new Cloud jobs, the overview shows the immutable authenticated creator. "
-      "Older jobs remain unattributed unless a workspace owner explicitly attests an exact "
-      "project-to-member mapping; that support correction is audited and never guessed from titles "
-      "or later editors.")),
+     (CLOUD_PRIVACY_DE, CLOUD_PRIVACY_EN)),
     ("target",
      ("Claims bleiben ehrlich", "Claims stay honest"),
      ("Reaction Tests starten mit einem versionierten **Product Understanding** aus echten Screens, "
@@ -518,8 +504,9 @@ INSPECTOR_SECTIONS = [
      ("Oben in der Leiste zeigt ein Status-Punkt, ob gerade Studien **aktiv** laufen — er wird "
       "**gelb**, wenn ein Projekt feststeckt (das stille Scheitern soll laut sein). Im "
       "Projekt-Kopf trägt jedes Projekt seinen eigenen **Run-Chip** (Zustand · letzte Aktivität). "
-      "Fehlende Einrichtung erscheint dort als genau ein nächster Schritt, nicht als große Karte auf "
-      "der Job-Fläche; bereits vorhandene Produkt-/Kohorten-Prüfevidenz bleibt hinter einer kleinen, "
+      "Benötigte Eingabe erscheint dort ruhig als **Wartet auf Eingabe** mit genau einem nächsten "
+      "Schritt, nicht als Fehler oder große Karte auf der Job-Fläche; bereits vorhandene "
+      "Produkt-/Kohorten-Prüfevidenz bleibt hinter einer kleinen, "
       "geschlossenen Detailzeile inspizierbar. "
       "Wenn der Server beim ersten Anlegen einen authentifizierten Akteur gebunden hat, zeigt der "
       "Projekt-Kopf außerdem dessen unveränderlichen Anzeigenamen. Retries und spätere Bearbeiter "
@@ -557,7 +544,11 @@ INSPECTOR_SECTIONS = [
       "Studie muss mit `new_job_intent=true` und einer frischen ID markiert werden. "
       "Jeder Schritt trägt ein begrenztes Dispatch-Token mit Workspace-, Run-, Task-, Input- und Output-Vertrag; ein "
       "identischer Retry liefert dasselbe Ergebnis, eine Inhaltsänderung nach dem Checkpoint scheitert. "
-      "Das Speichern verknüpft und checkpointet den Schritt reparierbar genau einmal. Der Trace zeigt Sonaloops MCP-Grenze und Journal — nicht "
+      "Das Speichern verknüpft und checkpointet den Schritt reparierbar genau einmal. "
+      "Der finale Projekt-Report ist ebenfalls ein fortsetzbarer Schritt: Ein Scaffold oder einzelne "
+      "Abschnitte sind nur Fortschritt. Erst ein Lead plus alle ausgefüllten Abschnitte checkpointen den "
+      "Report; nach einem Abbruch zeigt derselbe Run wieder denselben Report und den nächsten offenen Abschnitt. "
+      "Der Trace zeigt Sonaloops MCP-Grenze und Journal — nicht "
       "verdeckte Provider-Prompts, Reasoning, Berechtigungsdialoge oder host-interne Retries. "
       "Ein gültiger W3C-Trace wird fortgeführt und jeder Toolcall erhält einen eigenen Span; ohne "
       "Trace-Kontext bleibt jeder Call ein ehrlicher Interaktions-Trace, während der Run sie als "
@@ -573,8 +564,9 @@ INSPECTOR_SECTIONS = [
       "A status dot in the top bar shows whether studies are **running** right now — it turns "
       "**amber** when a project is stalled (the silent failure mode should be loud). In the "
       "project header every project carries its own **run chip** (state · last activity). "
-      "Missing setup appears there as exactly one next step rather than a large card on the job "
-      "canvas; recorded product/cohort check evidence remains inspectable behind one small, closed "
+      "Needed input appears there quietly as **Waiting for input** with exactly one next step rather "
+      "than an error or large card on the job canvas; recorded product/cohort check evidence remains "
+      "inspectable behind one small, closed "
       "details row. "
       "When the server bound an authenticated actor at the first create, the project header also "
       "shows that immutable display name. Retries and later editors cannot replace it. Legacy Cloud "
@@ -607,7 +599,10 @@ INSPECTOR_SECTIONS = [
       "`new_job_intent=true` and a fresh id. Each step carries a scoped dispatch token; recording its result links and "
       "checkpoints it repairably once, even after a retry. The token binds workspace, run, task, input "
       "and output contract; identical replay returns the same result and changed post-checkpoint content "
-      "fails closed. Critic retries also remain one independent completion check. "
+      "fails closed. The final project report is resumable too: a scaffold or partial sections are only "
+      "progress. Only a lead plus every authored section checkpoints the report; after interruption the "
+      "same run returns the same report and next unfinished section. Critic retries also remain one "
+      "independent completion check. "
       "The trace covers Sonaloop's MCP boundary and journal, not hidden provider prompts, reasoning, "
       "permission dialogs or host-internal retries. Cloud trace content stays redacted by default: "
       "A valid W3C trace continues and every tool call gets its own span; without trace context, "

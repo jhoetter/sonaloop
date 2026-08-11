@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from .storage import Store
+from .report_handoff import report_handoff_state
 
 
 def run_state(project_id: str, plan: dict[str, Any], store: Store) -> dict[str, Any] | None:
@@ -201,6 +202,8 @@ def assess_project(project_id: str, store: Store | None = None) -> dict[str, Any
     # only a SUBSTANTIAL project (a methodology run, or one that produced prototypes) is held to the
     # finish bar — a minimal freeform inquiry (a lone frame) is legitimately complete as-is.
     substantial = bool(plan.get("methodology")) or bool(store.list_prototypes(project_id))
+    handoff = report_handoff_state(None)
+    handoff_ok = not substantial
     try:
         project = store.get_research_project(project_id) or {}
         if substantial and not (project.get("sections") or []):
@@ -215,9 +218,16 @@ def assess_project(project_id: str, store: Store | None = None) -> dict[str, Any
             finish_gaps.append("no substantial CONCLUSION — author a rich terminal solution-presentation "
                                "synthesis (the answer, who-wins + non-targets, validated solvers, build spec)")
         try:
-            if substantial and not store.list_reports(project_id):
+            handoff = report_handoff_state(store.list_reports(project_id))
+            handoff_ok = not substantial or handoff["complete"]
+            if substantial and not handoff["exists"]:
                 finish_gaps.append("no REPORT — author the project narrative/handover (scaffold_synthesis)")
+            elif substantial and not handoff["complete"]:
+                finish_gaps.append(
+                    "REPORT incomplete — author every scaffolded section with "
+                    "record_synthesis_section before handing it off")
         except Exception:
+            handoff_ok = not substantial
             finish_gaps.append("REPORT state unavailable — retry the read before completion")
     except Exception:
         # Unknown evidence is never evidence of completion.  This path is read-only,
@@ -228,8 +238,9 @@ def assess_project(project_id: str, store: Store | None = None) -> dict[str, Any
         gaps.extend(finish_gaps)
     finish = {"organized": not any("organized" in g for g in finish_gaps),
               "concluded": not any("CONCLUSION" in g for g in finish_gaps),
-              "handed_off": not any("no REPORT" in g for g in finish_gaps),
-              "finished": not finish_gaps, "gaps": finish_gaps}
+              "handed_off": handoff_ok,
+              "finished": not finish_gaps, "gaps": finish_gaps,
+              "report_handoff": handoff}
     # memory_depth (ESV6): councils are only as deep as the simulated lives behind them — flag a thin
     # cohort so a run deepens memory (simulate-cohort) before concluding it has explored deeply.
     memory_depth = {}

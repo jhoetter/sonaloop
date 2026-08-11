@@ -120,7 +120,7 @@ run = start_run(project, budget, operation_id=stable_run_create_key)
 while budget_remaining(run):
     a = assess_project(project)
     if a.recommendation == "finish":            # gates met, not finished → organize+conclude+handoff
-        do_finish_steps(a.finish)               # auto-organize (D.1), conclusion subagent, meta-report
+        do_finish_steps(a.finish)               # auto-organize, conclusion, resumable report dispatch
         continue
     if a.recommendation == "complete":          # plan done AND finished → run the CRITIC gate (B)
         if critic_passes_twice(project): finish_run(run, "finished"); break  # engine-verified only
@@ -146,6 +146,10 @@ the bucket contract (A.4). The subagent persists via MCP and returns **only** id
 - **verify:** consolidate `n.verify.fan_evidence` into a rich `record_synthesis` (structured blocks:
   clusters/key_problems/ranking/shortlist), record the gate judgment, `assess_progress`,
   `complete_task`. Return the synthesis id.
+- **terminal report hand-off (`step_id="__report_handoff__"`):** keep the returned `report_id` and
+  `dispatch_token`; author every `incomplete_section_id` via `brief_synthesis_section` →
+  `record_synthesis_section`. A partial report remains progress and a retry returns the same dispatch;
+  only the complete lead + final section bind/checkpoint the report before the critic can run.
 
 ### A.5 Resume semantics
 `resumeFromRunId` (Workflow) OR `start_run(run_id=...)` replays the journal: each already-checkpointed
@@ -321,8 +325,10 @@ phase (Discover/Define/…/Deliver — labels from the step names, no hardcoded 
 "Prototype-ladder" section (all artifacts), a "Deliver — Conclusion" section (the terminal synthesis),
 and a "Run-Journal" section (the run's notes). Idempotent (keyed by title). The driver calls it during
 `do_finish_steps`; `assess_project.finish.organized` then flips true automatically. Add
-`scaffold_meta_report(project_id)` that seeds the meta-report outline from the graph so the conclusion
-handoff is one author step, not from scratch.
+`scaffold_synthesis(project_id, dispatch_token=...)` seeds the project-report outline from the graph.
+The outline is never completion: the engine's stable report-handoff dispatch stays open until the lead
+and every section are authored, then the final section checkpoints it. A killed host resumes the same
+report and first unfinished section rather than creating a duplicate.
 *Acceptance:* after `derive_sections`, a completed methodology project has ≥4 sections covering all
 phases + a prototypes + a deliver section; `assess_project.finish.organized == true`.
 

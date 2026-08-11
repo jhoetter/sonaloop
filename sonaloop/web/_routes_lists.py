@@ -19,14 +19,18 @@ from ._docs import register_docs
 
 
 def _row(href: str, ric, title, right=None, *, color: str | None = None, sub=None,
-         byline=None) -> str:
+         byline=None, byline_hint: str | None = None) -> str:
     """A list row: leading icon/avatar (`ric`), title (+ optional muted `sub`), right-aligned meta."""
     lead = ric if color is None else h("span", {"class_": "rico", "style": f"color:{color}"}, raw(_icon(ric)))
     return h("a", {"class_": "row", "href": href}, lead,
              h("span", {"class_": "title" + (" has-byline" if byline else "")},
                h("span", {"class_": "row-title-text"}, title) if byline else title,
                h("span", {"class_": "muted small"}, f" · {sub}") if sub else None,
-               h("span", {"class_": "row-byline"}, byline) if byline else None),
+               h("span", {
+                   "class_": "row-byline",
+                   **({"title": byline_hint,
+                       "aria-label": f"{byline}. {byline_hint}"} if byline_hint else {}),
+               }, byline) if byline else None),
              h("span", {"class_": "right"}, right))
 
 
@@ -172,9 +176,19 @@ def _projects_page(page: int = 1, q: str = "") -> str:
                         raw(_star("project", p["id"], p["title"], f'/jobs/{p["id"]}')))
         creator = p.get("created_by") if isinstance(p.get("created_by"), dict) else {}
         creator_label = str(creator.get("label") or "").strip()
+        origin = p.get("created_via") if isinstance(p.get("created_via"), dict) else {}
+        origin_label = str(origin.get("label") or "").strip()
+        byline = (
+            t("project_created_by_via", label=creator_label, client=origin_label)
+            if creator_label and origin_label
+            else t("project_created_by", label=creator_label) if creator_label
+            else None
+        )
         rows.append(_row(
             f'/jobs/{p["id"]}', raw(project_icon_html(p)), p["title"], meta,
-            byline=(t("project_created_by", label=creator_label) if creator_label else None),
+            byline=byline,
+            byline_hint=(t("project_created_via_hint", client=origin_label)
+                         if creator_label and origin_label else None),
         ))
     if not rows and not q and not all_projects and not store.list_personas():
         # Truly fresh database (no projects AND no personas): orient instead of an empty list.

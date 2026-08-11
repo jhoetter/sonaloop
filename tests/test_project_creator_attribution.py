@@ -11,6 +11,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from sonaloop import browser, config, services, web
+from sonaloop.creator_attribution import public_client_origin_projection
 from sonaloop.mcp_server import build_server
 from sonaloop.storage import Store
 
@@ -133,11 +134,24 @@ def test_creator_is_not_model_controlled_and_ui_renders_only_a_label(store):
         operation_id="creator:ui:1", store=store,
     )
     legacy = services.start_project("Legacy UI", "No attribution", store=store)
+    canonical = store.get_research_project(attributed["id"])
+    canonical["research_job_ingress"] = {
+        # This caller declaration must not power the UI. Only the separately
+        # captured, closed server observation below may do so.
+        "provider_declared": "mistral",
+        "client_at_creation": {
+            "schema": "sonaloop.ingress_client_snapshot.v1",
+            "family": "chatgpt",
+            "evidence_source": "initialize_client_info_binding",
+        },
+    }
+    store.upsert_research_project(canonical)
 
     # Public project listings intentionally project the persisted audit snapshot down
     # to its display label.  Internal subject ids, roles, request channels and capture
     # timestamps must not cross the service or MCP list boundary.
     expected_public_creator = {"label": "Alice <Admin>"}
+    expected_public_origin = {"family": "chatgpt", "label": "ChatGPT"}
     summary = next(
         p for p in services.list_research_project_summaries(store=store)
         if p["id"] == attributed["id"]
@@ -147,10 +161,13 @@ def test_creator_is_not_model_controlled_and_ui_renders_only_a_label(store):
         if p["id"] == attributed["id"]
     )
     assert summary["created_by"] == expected_public_creator
+    assert summary["created_via"] == expected_public_origin
     assert listed["created_by"] == expected_public_creator
+    assert listed["created_via"] == expected_public_origin
     _, mcp_result = asyncio.run(build_server().call_tool("list_research_projects", {}))
     mcp_listed = next(p for p in mcp_result["data"] if p["id"] == attributed["id"])
     assert mcp_listed["created_by"] == expected_public_creator
+    assert mcp_listed["created_via"] == expected_public_origin
     assert not ({"id", "role", "channel", "captured_at", "schema"}
                 & set(mcp_listed["created_by"]))
 
@@ -161,14 +178,16 @@ def test_creator_is_not_model_controlled_and_ui_renders_only_a_label(store):
     legacy_html = client.get(f"/jobs/{legacy['id']}?lang=en").text
     english_list = client.get("/jobs?lang=en").text
     german_list = client.get("/jobs?lang=de").text
-    assert "Created by Alice &lt;Admin&gt;" in english
-    assert "Erstellt von Alice &lt;Admin&gt;" in german
+    assert "Created by Alice &lt;Admin&gt; · via ChatGPT" in english
+    assert "Erstellt von Alice &lt;Admin&gt; · via ChatGPT" in german
+    assert "This does not prove the model or inference provider used." in english
+    assert "Das belegt nicht das verwendete Modell oder den Inference-Anbieter." in german
     assert "private-subject" not in english + german
     assert 'class="sl-project-creator"' not in legacy_html
     assert "Created by" not in legacy_html
     # The overview keeps attribution as a quiet second line, not another pill.
-    assert 'class="row-byline">Created by Alice &lt;Admin&gt;</span>' in english_list
-    assert 'class="row-byline">Erstellt von Alice &lt;Admin&gt;</span>' in german_list
+    assert "Created by Alice &lt;Admin&gt; · via ChatGPT" in english_list
+    assert "Erstellt von Alice &lt;Admin&gt; · via ChatGPT" in german_list
     assert "private-subject" not in english_list + german_list
     legacy_row = english_list.split(f'href="/jobs/{legacy["id"]}"', 1)[1].split(
         'class="row"', 1,
@@ -176,10 +195,42 @@ def test_creator_is_not_model_controlled_and_ui_renders_only_a_label(store):
     assert "row-byline" not in legacy_row and "Created by" not in legacy_row
 
 
+def test_client_origin_projection_fails_closed_for_declared_unknown_and_untrusted_values():
+    assert public_client_origin_projection({
+        "schema": "sonaloop.ingress_client_snapshot.v1",
+        "family": "mistral",
+        "evidence_source": "initialize_client_info_binding",
+    }) == {"family": "mistral", "label": "Mistral"}
+    for value in (
+        None,
+        {"provider_declared": "openai"},
+        {"schema": "sonaloop.ingress_client_snapshot.v1", "family": "unknown",
+         "evidence_source": "unknown"},
+        {"schema": "sonaloop.ingress_client_snapshot.v1", "family": "chatgpt",
+         "evidence_source": "ambiguous_token_reuse"},
+        {"schema": "sonaloop.ingress_client_snapshot.v1", "family": "chatgpt",
+         "evidence_source": "user_agent"},
+        {"schema": "sonaloop.ingress_client_snapshot.v1", "family": "chatgpt",
+         "evidence_source": "initialize_client_info"},
+        {"schema": "sonaloop.ingress_client_snapshot.v1", "family": "<script>",
+         "evidence_source": "user_agent"},
+    ):
+        assert public_client_origin_projection(value) is None
+
+
 @pytest.mark.skipif(not browser.available(), reason="chromium not installed")
 def test_creator_byline_stays_visible_without_colliding_at_wide_and_narrow_widths(store):
     actor = _actor("layout-private-subject", "Johannes Hötter", channel="mcp")
     project = _start_as(actor, operation_id="creator:layout:1", store=store)
+    canonical = store.get_research_project(project["id"])
+    canonical["research_job_ingress"] = {
+        "client_at_creation": {
+            "schema": "sonaloop.ingress_client_snapshot.v1",
+            "family": "vscode",
+            "evidence_source": "initialize_client_info_binding",
+        },
+    }
+    store.upsert_research_project(canonical)
 
     import uvicorn
     with socket.socket() as sock:
@@ -205,7 +256,8 @@ def test_creator_byline_stays_visible_without_colliding_at_wide_and_narrow_width
                 row = page.locator(f'a.row[href="/jobs/{project["id"]}"]')
                 byline = row.locator(".row-byline")
                 assert byline.is_visible()
-                assert byline.inner_text() == "Created by Johannes Hötter"
+                assert byline.inner_text() == (
+                    "Created by Johannes Hötter · via Visual Studio Code")
                 geometry = row.evaluate("""el => {
                   const box = n => { const r=n.getBoundingClientRect(); return {
                     left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height}; };

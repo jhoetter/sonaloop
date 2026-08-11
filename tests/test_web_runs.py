@@ -176,12 +176,12 @@ def test_reaction_preflights_project_one_truthful_waiting_state_in_de_and_en(sto
     assert grouped["stalled"] == []
 
     for language, waiting, recovery, global_label in (
-        ("de", "Run · Vorbereitung nötig",
+        ("de", "Run · Wartet auf Eingabe",
          "Echte Screens oder Assets erfassen und dann denselben Run fortsetzen.",
-         "1 Job braucht Vorbereitung"),
-        ("en", "Run · Needs setup",
+         "1 Job wartet auf Eingabe"),
+        ("en", "Run · Waiting for input",
          "Capture real screens or assets, then continue the same run.",
-         "1 job needs setup"),
+         "1 job awaits input"),
     ):
         list_html = _client().get(f"/jobs?lang={language}").text
         detail_html = _client().get(f"/jobs/{project['id']}?lang={language}").text
@@ -321,7 +321,7 @@ def test_setup_and_stalled_runs_keep_separate_lanes_and_neutral_mixed_count(stor
     assert ">2 jobs need attention</span>" in chrome.split('id="runsw-count"')[1][:100]
     assert 'data-run-lane="waiting"' in chrome
     assert 'data-run-lane="stalled"' in chrome
-    assert "1 job needs setup" not in chrome.split('id="runsw-count"')[1][:100]
+    assert "1 job awaits input" not in chrome.split('id="runsw-count"')[1][:100]
 
     runs = _client().get("/runs?lang=en").text
     main = runs.split("<section>", 1)[1]

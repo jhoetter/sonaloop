@@ -139,8 +139,12 @@ def register_sections(mcp):
         return _env("derive_sections", services.derive_sections(project_id), t)
 
     @mcp.tool()
-    def scaffold_synthesis(project_id: str) -> dict[str, Any]:
+    def scaffold_synthesis(project_id: str, operation_id: str | None = None,
+                           dispatch_token: str | None = None) -> dict[str, Any]:
         """Seed a project REPORT outline from the project's phases so the conclusion hand-off is one author
-        step (brief_synthesis_section → record_synthesis_section). Idempotent. Flips finish.handed_off true."""
+        step (brief_synthesis_section → record_synthesis_section). This creates resumable progress,
+        not a completed hand-off. During a governed run pass the hand-off dispatch_token; the final
+        authored section checkpoints that dispatch. Reuse operation_id on transport retries."""
         t = time.perf_counter()
-        return _env("scaffold_synthesis", services.scaffold_synthesis(project_id), t)
+        return _env("scaffold_synthesis", services.scaffold_synthesis(
+            project_id, operation_id=operation_id, dispatch_token=dispatch_token), t)

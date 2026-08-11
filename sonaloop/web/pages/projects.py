@@ -5,6 +5,7 @@ from fastapi import Request
 from fastapi.responses import RedirectResponse
 
 from ... import result_outcomes
+from ...creator_attribution import public_creator_projection, public_project_client_origin
 from ._ctx import *  # noqa: F401,F403  (shared render toolkit)
 from .._graph_outline_sessions import outline_session_groups
 from .._job_outcomes import render_schema_outcomes
@@ -277,9 +278,18 @@ def register_projects(app) -> None:
         # attribution. Read the canonical project row for this one presentation field;
         # only its display snapshot is rendered (never the opaque actor id).
         project_record = services.get_research_project(proj["id"], store=store)
-        creator = project_record.get("created_by")
-        creator_label = (
-            str(creator.get("label") or "").strip() if isinstance(creator, dict) else ""
+        creator = public_creator_projection(project_record.get("created_by")) or {}
+        creator_label = str(creator.get("label") or "")
+        origin = public_project_client_origin(project_record) or {}
+        origin_label = str(origin.get("label") or "")
+        creator_text = (
+            t("project_created_by_via", label=creator_label, client=origin_label)
+            if creator_label and origin_label
+            else t("project_created_by", label=creator_label) if creator_label
+            else ""
+        )
+        origin_hint = (
+            t("project_created_via_hint", client=origin_label) if origin_label else ""
         )
         # The FilterBar closes the head so it sits INSIDE the 900px measure (V1 — it used to
         # float at the page's far left), aligned with the title/outline left edge.
@@ -290,8 +300,12 @@ def register_projects(app) -> None:
                                            edit_label=t("f_project_icon"))),
                      proj["title"]),
                    h("p", {"class_": "lead"}, proj.get("goal", "")),
-                   (h("p", {"class_": "sl-project-creator"},
-                      t("project_created_by", label=creator_label)) if creator_label else None),
+                   (h("p", {
+                       "class_": "sl-project-creator",
+                       **({"title": origin_hint,
+                           "aria-label": f"{creator_text}. {origin_hint}"}
+                          if origin_hint else {}),
+                   }, creator_text) if creator_label else None),
                    (h("p", {"class_": "sl-project-meta", "data-project-archived": True},
                       t("archive_non_destructive"))
                     if str(project_record.get("status") or "") == "archived" else None),

@@ -1639,12 +1639,133 @@ def _rl_dispatch(run: dict[str, Any], n: dict[str, Any], store: Store) -> dict[s
                           "so do not checkpoint a second time when dispatch.checkpointed=true."), **trace}
 
 
+def _rl_report_handoff_dispatch(
+    run: dict[str, Any], project_id: str, store: Store,
+) -> dict[str, Any]:
+    """Issue/replay the one resumable, authored report hand-off dispatch.
+
+    A report outline is only progress.  The same dispatch stays open while the
+    host authors its sections, and the final ``record_synthesis_section`` binds
+    the report and checkpoints it.  Re-entering ``run_step`` after a host/model
+    interruption therefore points at the same report and first unfinished
+    section instead of creating another Job/report or advancing to the critic.
+    """
+    plan = _plan.get_plan(project_id, store=store) or {}
+    tasks = list(plan.get("tasks") or [])
+    terminal = next(
+        (str(task.get("id") or "") for task in reversed(tasks)
+         if str(task.get("bucket") or "") == "verify" and str(task.get("id") or "")),
+        "",
+    ) or next(
+        (str(task.get("id") or "") for task in reversed(tasks)
+         if str(task.get("id") or "")),
+        "",
+    )
+    if not terminal:
+        raise PlanError(
+            "REPORT_HANDOFF_TASK_MISSING",
+            "REPORT_HANDOFF_TASK_MISSING: the completed project has no plan task to own its report",
+        )
+    key = run_key(str(run["run_id"]), "report-handoff")
+    dispatch = _issue_dispatch(
+        str(run["run_id"]), project_id, terminal, "verify", key, store,
+        public_step_id="__report_handoff__",
+        trace_contract={
+            "expected_output_kind": "report",
+            "allowed_primary_kinds": ["report"],
+            "terminal": True,
+            "consume_refs": [f"task:{terminal}"],
+            "must_link_before_complete": True,
+        },
+    )
+    report = scaffold_synthesis(  # noqa: F821 (bound by services package)
+        project_id,
+        operation_id=str(dispatch["operation_id"]),
+        dispatch_token=str(dispatch["dispatch_token"]),
+        store=store,
+    )
+    report_dispatch = dict(report.get("dispatch") or {})
+    # This can happen only when another exact retry authored the final section
+    # between assessment and scaffold.  Advance from the now-checkpointed state
+    # instead of asking the host to touch a finalized report.
+    if report_dispatch.get("checkpointed"):
+        return run_step(str(run["run_id"]), store=store)
+
+    handoff = dict(report.get("handoff") or {})
+    report_state = next(iter(handoff.get("reports") or []), {})
+    pending = [str(value) for value in
+               (report_state.get("incomplete_section_ids") or []) if str(value)]
+    all_sections = [str(section.get("id") or "")
+                    for section in (report.get("sections") or [])
+                    if str(section.get("id") or "")]
+    next_section = pending[0] if pending else ""
+    if next_section:
+        next_call = {
+            "tool": "brief_synthesis_section",
+            "arguments": {
+                "project_id": project_id,
+                "section_id": next_section,
+                "report_id": str(report["id"]),
+            },
+        }
+        recovery = (
+            "Call brief_synthesis_section for the next incomplete section; author its markdown and "
+            "citations from that brief; then call record_synthesis_section with this exact report_id "
+            "and dispatch_token. Repeat for every incomplete_section_id. The final section "
+            "auto-links and checkpoints the report; then call run_step again."
+        )
+    else:
+        # A legacy partially authored report can have complete bodies but no
+        # cover lead.  Keep it resumable and explicit rather than silently
+        # manufacturing an authored claim.
+        next_call = {
+            "tool": "brief_synthesis_outline",
+            "arguments": {"project_id": project_id},
+        }
+        recovery = (
+            "The existing report bodies are preserved, but its lead is empty. Call "
+            "brief_synthesis_outline, author a non-empty build_order_narrative with the exact existing "
+            "section structure, then call record_synthesis_outline with this exact report_id and "
+            "dispatch_token, omitting operation_id for this in-place lead repair. The completed report "
+            "auto-links and checkpoints; then call run_step again."
+        )
+    blocking_action = {
+        "code": "REPORT_HANDOFF_INCOMPLETE",
+        "reason": "The project report is a draft until its lead and every section are authored.",
+        "next_call": next_call,
+        "recovery_sequence": recovery,
+    }
+    return {
+        "kind": "verify",
+        "step_id": "__report_handoff__",
+        "task_id": terminal,
+        "key": key,
+        "dispatch_token": dispatch["dispatch_token"],
+        "operation_id": dispatch["operation_id"],
+        "dispatch_cursor": dispatch["dispatch_cursor"],
+        "input_fingerprint": dispatch["input_fingerprint"],
+        "output_contract": dict(dispatch["output_contract"]),
+        "terminal_verify": terminal,
+        "report_id": str(report["id"]),
+        "section_ids": all_sections,
+        "incomplete_section_ids": pending,
+        "lead_missing": bool(report_state.get("lead_missing")),
+        "blocking_action": blocking_action,
+        "directive": recovery,
+        "consume_refs": [f"task:{terminal}"],
+        "expected_output_kind": "report",
+        "allowed_primary_kinds": ["report"],
+        "must_link_before_complete": True,
+    }
+
+
 def run_step(run_id: str, store: Store | None = None) -> dict[str, Any]:
     """The deterministic brain. Returns the next dispatch for the host to execute:
     {kind: analyze|act|verify, step_id, key, next_action, directive} → spawn ONE authoring subagent
     then checkpoint_step; {kind: critic, brief} → spawn an INDEPENDENT critic then record_critic_round;
-    {kind: done, status, summary} → stop. Deterministic finish work (organize + report outline +
-    critic-gap injection) is done inline. Idempotent / resumable: it reads the live plan state."""
+    {kind: done, status, summary} → stop. Deterministic finish work organizes the graph and issues
+    one resumable authored report hand-off before the critic; critic-gap injection remains inline.
+    Idempotent / resumable: it reads the live plan and report state."""
     store = store or Store()
     run = store.get_run(run_id)
     if not run:
@@ -1671,7 +1792,10 @@ def run_step(run_id: str, store: Store | None = None) -> dict[str, Any]:
         }
     budget = run.get("budget")
     if budget is not None and len(run.get("steps", [])) >= budget:
-        derive_sections(pid, store=store); scaffold_synthesis(pid, store=store)  # noqa: F821 (bound)
+        # A capped run may organize what exists, but must not manufacture an
+        # empty report that looks like a hand-off.  The next resumed/new run can
+        # issue the governed report-authoring dispatch when the evidence is ready.
+        derive_sections(pid, store=store)  # noqa: F821 (bound)
         finish_run(run_id, "capped", store=store)
         return {"kind": "done", "status": "capped", "summary": _rl_summary(pid, store)}
     _rl_inject_pending(pid, run, store)
@@ -1684,8 +1808,6 @@ def run_step(run_id: str, store: Store | None = None) -> dict[str, Any]:
     if rec == "finish" or (a["complete"] and not a["finish"]["finished"]):
         if not a["finish"].get("organized"):
             derive_sections(pid, store=store)              # noqa: F821 (bound)
-        if not a["finish"].get("handed_off"):
-            scaffold_synthesis(pid, store=store)          # noqa: F821 (bound)
         a = assess_project(pid, store=store)
         if not a["finish"].get("concluded"):
             terminal = next((t["id"] for t in reversed((_plan.get_plan(pid, store=store) or {}).get("tasks", []))
@@ -1709,6 +1831,8 @@ def run_step(run_id: str, store: Store | None = None) -> dict[str, Any]:
                                   "who-wins + deliberate non-targets, validated solvers, build spec) and "
                                   "pass this dispatch_token. The recorder auto-links it to terminal verify task "
                                   f"`{terminal}` and checkpoints the conclusion.")}
+        if not a["finish"].get("handed_off"):
+            return _rl_report_handoff_dispatch(run, pid, store)
     if a["complete"] and a["finish"]["finished"]:
         rounds = run.get("critic_rounds", [])
         if _rl_trailing_dry(rounds) >= _RUN_K_DRY:

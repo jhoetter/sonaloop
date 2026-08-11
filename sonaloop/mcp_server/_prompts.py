@@ -180,7 +180,11 @@ start_project(... same stable operation_id) -> start_run(... stable run operatio
 run_step(run_id). Execute each analyze|act|verify dispatch with its exact dispatch_token: author the
 step grounded in next_action and persist via the token-aware recorder (automatic evidence link + task
 checkpoint; do not checkpoint it again when dispatch.checkpointed=true). Verify also records its gate
-judgment with the same token. For critic dispatches author
+judgment with the same token. A verify dispatch with step_id="__report_handoff__" is special: follow
+its blocking_action, keep its exact report_id + dispatch_token, and iterate
+brief_synthesis_section → record_synthesis_section for every incomplete_section_id. Do not create a
+second report; only the final authored section checkpoints, after which you call run_step again. For
+critic dispatches author
 the completeness verdict via record_completeness_critic + record_critic_round) until run_step returns
 kind=='done'. The engine — not your judgment — ends the run: gates passed != finished, and "Discover
 and Define are complete" is the midpoint, not an ending. assess_project is the pulse along the way.
@@ -239,6 +243,9 @@ Resume/continue the autonomous run of project {project_id} until the ENGINE says
    - s.kind == 'done'   -> the run is over (finished | capped | stopped). Only THIS ends the run.
    - s.kind == 'critic' -> author the completeness verdict from s.brief (independent judgment) ->
      record_completeness_critic + record_critic_round; the engine injects each missing gap as work.
+   - s.step_id == '__report_handoff__' -> follow s.blocking_action with the exact report_id and
+     dispatch_token; brief + author each incomplete section, then run_step again. Never create a
+     replacement report, and do not manually checkpoint the partial draft.
    - else (analyze|act|verify) -> author ONE step grounded in s.next_action and pass s.dispatch_token
      into every write. Analyze: record_frame (or record_product_understanding when requested).
      Act/verify: persist the output primitive; token-aware recorders link it and checkpoint automatically.

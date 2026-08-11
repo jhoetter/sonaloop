@@ -39,6 +39,15 @@ retries cannot invoke it, and unattributed projects remain unchanged without tha
 The inspector renders only the frozen display label on the Jobs overview and Job detail, never the
 opaque actor id or migration receipt.
 
+Cloud may independently freeze a closed `sonaloop.ingress_client_snapshot.v1` under the first
+`begin_research_job` ingress. It contains only a recognized connector family from the token-bound
+`initialize.clientInfo` observation, never raw client metadata,
+tokens, prompts, or model names. Public project projections map that closed family to a fixed product
+label such as **Mistral**, **ChatGPT**, **Claude**, or **Codex** and render it as `via …` beside the
+creator. Unknown or ambiguity-closed clients are omitted. The caller-authored `provider` and `model`
+arguments remain trace declarations and can never produce this byline; the tooltip explicitly says
+that a connector observation does not prove the hidden model or inference provider.
+
 Before project or plan storage is touched, `methodology` is resolved against the registry. Stable
 keys and human display names are accepted, with case, whitespace, `_`, `-` and punctuation treated
 as spelling variants. For example, all of these seed `reaction_test`:
@@ -132,6 +141,15 @@ Critic dispatches carry their own `operation_id` and `key`. Pass both plus the r
 `record_completeness_critic`, then bind its returned report id with `record_critic_round`. Retries
 return the same report/round. The run derives pass/missing state from that persisted report; one
 logical critic response can therefore never masquerade as two independent dry rounds.
+
+The terminal project report is itself a governed multi-write dispatch. `run_step` returns
+`step_id="__report_handoff__"` with one stable `report_id`, the exact `dispatch_token`, and the
+remaining section ids. The scaffold and each partial section are progress only. The host calls
+`brief_synthesis_section` and `record_synthesis_section` against that same report/token until the lead
+and every section have authored bodies; only the final write links `report:<id>` and checkpoints. If
+the host or provider stops, another `run_step` returns the same dispatch and first unfinished section.
+It never creates a replacement report, and the completeness critic cannot start while the hand-off is
+partial. A capped run does not manufacture an empty report.
 
 ## Completion ownership
 

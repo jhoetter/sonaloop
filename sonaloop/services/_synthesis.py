@@ -40,6 +40,8 @@ from ..taxonomy import GENERIC_TOOLS, normalized_tool_ids, normalized_tools
 from .. import memory as memory_mod
 from .. import evaluation as evaluation_mod
 from ..research_integrity import apply_claim_postures, claim_posture_markdown
+from ..report_handoff import report_handoff_state
+from .._project_locks import project_lifecycle_locks
 from ..llm_simulation import (
     build_cohort_critic_prompt,
     build_consolidation_prompt,
@@ -531,32 +533,13 @@ def brief_synthesis_outline(project_id: str, store: Store | None = None) -> dict
 
 
 
-def record_synthesis_outline(project_id: str, outline: dict[str, Any], store: Store | None = None) -> dict[str, Any]:
-    """Persist the host-authored outline as a new project-scope SYNTHESIS (a report); its sections are
-    authored next via record_synthesis_section. (A report IS a synthesis — one concept.)"""
-    store = store or Store()
-    project = _require_research_project(store, project_id)
-    data = validate_synthesis_outline_payload(outline, study_ids=project["study_ids"])
-    now = utc_now_iso()
-    # merge the outline's structure into the unified section shape (content filled by record_synthesis_section).
-    sections = [{**sec, "markdown": "", "citations": [], "figures": []} for sec in data["sections"]]
-    report = Synthesis(
-        id=stable_id("report", project["id"], now), title=data.get("title") or f"{project['title']} — Report",
-        start_input="", council_ids=[], arc_narrative="", gesamtbild="", positionierung="", references=[],
-        created_at=now, scope="project", project_id=project["id"], lead=data["build_order_narrative"],
-        sections=sections, graph_snapshot=get_project_graph(project["id"], store=store),
-    ).to_dict()
-    report["limitations"] = list(project.get("research_limitations") or [])
-    store.upsert_synthesis(report)
-    return report
-
-
-
 def _latest_report(store: Store, project_id: str, report_id: str | None) -> dict[str, Any]:
     if report_id:
         r = store.get_report(report_id)
         if not r:
             raise KeyError(f"Unknown report: {report_id}")
+        if str(r.get("project_id") or "") != project_id:
+            raise ValueError("REPORT_SCOPE_MISMATCH: report does not belong to project")
         return r
     reports = store.list_reports(project_id)
     if not reports:
@@ -579,24 +562,6 @@ def brief_synthesis_section(project_id: str, section_id: str, report_id: str | N
              "studies": [_study_full(store, sid) for sid in section.get("source_study_ids", [])]}
     return {"project_id": project["id"], "report_id": report["id"], "section_id": section_id,
             "schema": "synthesis_section", "instructions": build_synthesis_section_prompt(frame) + MARKDOWN_CONTRACT, "frame": frame}
-
-
-
-def record_synthesis_section(project_id: str, section_id: str, content: dict[str, Any],
-                             report_id: str | None = None, store: Store | None = None) -> dict[str, Any]:
-    """Author one section's body (markdown + citations + figures) into the project-scope synthesis."""
-    store = store or Store()
-    project = _require_research_project(store, project_id)
-    report = _latest_report(store, project["id"], report_id)
-    sec = next((s for s in report.get("sections", []) if s.get("id") == section_id), None)
-    if not sec:
-        raise KeyError(f"Unknown section {section_id} in report {report['id']}")
-    data = validate_synthesis_section_payload(content)
-    sec["markdown"] = data["markdown"]
-    sec["citations"] = data["citations"]
-    sec["figures"] = data.get("figures", [])
-    store.upsert_synthesis(report)
-    return report
 
 
 

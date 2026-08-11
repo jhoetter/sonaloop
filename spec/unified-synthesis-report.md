@@ -77,6 +77,22 @@ Synthesis:
 The two layers compose: a synthesis renders **whatever it has** — findings (incl. the 2×2) and/or
 narrative sections.
 
+### Project-report lifecycle and completion truth
+
+A project-scope outline is a resumable draft (`status="in_progress"`), not a hand-off. Completion is
+derived from content rather than trusting a stored status: the lead must be non-empty, at least one
+section must exist, and every section must contain authored markdown. `record_synthesis_outline`
+reuses a body-empty scaffold, supports explicit `report_id` plus retry-stable `operation_id`, and
+refuses structural replacement once prose exists. Section writes share the project lock, so concurrent
+authors cannot clobber one another. In a governed run, scaffold/outline/partial sections remain dispatch
+progress; the final section links and checkpoints the single report. `assess_project`, project health
+and the critic all use this same derived state, so an empty `done` legacy row cannot finish a run.
+
+Structural hand-off and evidence verification remain distinct. A project report does not need the
+generic council/synthesis `claim_posture` envelope. Instead, every authored section must cite at least
+one existing study from that section's frozen `source_study_ids`; uncited prose or a citation outside
+that declared source set keeps the report visible but marks project health unverified.
+
 ## 3. One renderer, one export
 
 A single report-grade renderer (the `web/_report.py` pipeline, generalised) renders **any** synthesis:

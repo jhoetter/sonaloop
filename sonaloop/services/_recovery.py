@@ -23,6 +23,7 @@ from ..research_integrity import (
 from ..cohort_integrity import current_cohort_preflight, preflight_satisfies_project
 from ..storage import Store
 from .._project_locks import project_lifecycle_locks
+from ..report_handoff import report_handoff_state, report_provenance_state
 
 
 PROJECT_HEALTH_SCHEMA = "sonaloop.project_health.v1"
@@ -304,25 +305,63 @@ def project_health(project_id: str, store: Store | None = None,
     linked = {(str(ref.get("kind") or ""), str(ref.get("id") or ""))
               for task in tasks for ref in (task.get("produces") or [])
               if ref.get("kind") and ref.get("id")}
+    parked = {str(ref) for row in (plan or {}).get("parked_refs") or []
+              for ref in (row.get("refs") or []) if str(ref)}
     artifact_rows = _artifact_rows(project_id, store)
     claim_contract_required = is_reaction_project(project, plan)
     for label, record in artifact_rows:
         kind, rid = label.split(":", 1)
-        if (kind, rid) not in linked:
+        is_project_report = (str(record.get("scope") or "") == "project"
+                             and str(record.get("project_id") or "") == project_id)
+        aliases = {label, rid, f"{kind}:{rid}"}
+        if is_project_report:
+            aliases.add(f"report:{rid}")
+        linked_alias = ((kind, rid) in linked
+                        or (is_project_report and ("report", rid) in linked))
+        # A project report is the terminal hand-off, not an intermediate plan
+        # artifact that needs a downstream consumer. Explicitly parked evidence
+        # is likewise intentional, not orphaned.
+        if not is_project_report and not linked_alias and not (aliases & parked):
             issue("orphaned_evidence", f"{label} is not linked to a plan task.",
                   target=f"/{'councils' if kind == 'council' else 'syntheses'}/{rid}")
-        if claim_contract_required or record.get("claim_posture"):
+        if is_project_report:
+            report_provenance = report_provenance_state(record)
+            for gap in report_provenance["gaps"]:
+                if gap["reason"] == "invalid_source_citations":
+                    message = f"{label} contains citations outside its declared section sources"
+                else:
+                    message = (f"{label} section {gap['heading']!r} contains authored prose "
+                               "without a valid citation to one of its declared source studies")
+                issue("claim_provenance_incomplete", message,
+                      target=f"/syntheses/{rid}#claim-health")
+            for citation in report_provenance["invalid_citations"]:
+                issue(
+                    "invalid_evidence_ref",
+                    f"{label} section {citation['heading']!r} cites an undeclared or missing "
+                    f"source study {citation['study_id']!r}.",
+                    target=f"/syntheses/{rid}#claim-health",
+                )
+        elif claim_contract_required or record.get("claim_posture"):
             for gap in artifact_posture_gaps(record, label):
                 issue("claim_provenance_incomplete", gap,
                       target=f"/{'councils' if kind == 'council' else 'syntheses'}/{rid}#claim-health")
         envelope = record.get("claim_posture") or {}
-        for claim in envelope.get("claims") or []:
+        for claim in ([] if is_project_report else envelope.get("claims") or []):
             for ref in claim.get("refs") or []:
                 if not _ref_exists(project_id, ref, store):
                     cid = str(claim.get("id") or "")
                     issue("invalid_evidence_ref", f"{label} claim {cid or 'unknown'} has an invalid reference.",
                           target=(f"/{'councils' if kind == 'council' else 'syntheses'}/{rid}"
                                   + (f"#{cid}" if cid else "#claim-health")))
+
+    report_handoff = report_handoff_state(store.list_reports(project_id))
+    if report_handoff["exists"] and not report_handoff["complete"]:
+        latest_report_id = str(report_handoff.get("latest_report_id") or "")
+        issue(
+            "report_incomplete",
+            "The project report is still a draft; every section needs an authored body before hand-off.",
+            target=(f"/syntheses/{latest_report_id}" if latest_report_id else f"/jobs/{project_id}"),
+        )
 
     latest_step = _latest(list((run or {}).get("steps") or []))
     incomplete_dispatches = [row for row in (run or {}).get("dispatches") or []
@@ -357,8 +396,14 @@ def project_health(project_id: str, store: Store | None = None,
             issue("conclusion_missing", "The completed plan has no substantial terminal conclusion.",
                   target=f"/jobs/{project_id}")
         if not finish.get("handed_off"):
-            issue("report_missing", "The completed plan has no project report hand-off.",
-                  target=f"/jobs/{project_id}")
+            if report_handoff["exists"]:
+                issue("report_incomplete",
+                      "The completed plan has a report draft, but its sections are not all authored.",
+                      target=(f"/syntheses/{report_handoff['latest_report_id']}"
+                              if report_handoff.get("latest_report_id") else f"/jobs/{project_id}"))
+            else:
+                issue("report_missing", "The completed plan has no project report hand-off.",
+                      target=f"/jobs/{project_id}")
 
     dry_rounds = 0
     for row in reversed(list((run or {}).get("critic_rounds") or [])):
@@ -377,6 +422,7 @@ def project_health(project_id: str, store: Store | None = None,
         "product_understanding_missing", "orphaned_evidence", "claim_provenance_incomplete",
         "invalid_evidence_ref", "assessment_unavailable", "engine_completion_missing",
         "expected_sections_missing", "conclusion_missing", "report_missing",
+        "report_incomplete",
         "result_contract_missing", "cohort_preflight_missing", "cohort_preflight_stale",
         "cohort_preflight_needs_deepening", "cohort_preflight_needs_reselection",
     } for row in issues)
@@ -487,6 +533,7 @@ def project_health(project_id: str, store: Store | None = None,
         "evidence": "missing" if preflight.get("state") == "waiting" or any(row["code"] in {
             "product_understanding_missing", "claim_provenance_incomplete", "invalid_evidence_ref",
             "orphaned_evidence", "expected_sections_missing", "conclusion_missing", "report_missing",
+            "report_incomplete",
             "cohort_preflight_missing", "cohort_preflight_stale",
             "cohort_preflight_needs_deepening", "cohort_preflight_needs_reselection",
         } for row in issues) else "projected_complete",
@@ -519,6 +566,7 @@ def project_health(project_id: str, store: Store | None = None,
         "evidence": {"posture_counts": dict(sorted(posture_counts.items())),
                      "source_counts": dict(sorted(source_counts.items())),
                      "orphaned": sum(1 for row in issues if row["code"] == "orphaned_evidence")},
+        "report_handoff": report_handoff,
         "product_understanding": pu,
         "preflight": preflight,
         "safe_next_action": safe_action,

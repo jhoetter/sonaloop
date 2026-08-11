@@ -85,10 +85,18 @@ def register_research(mcp):
         return _env("brief_synthesis_outline", services.brief_synthesis_outline(project_id), t)
 
     @mcp.tool()
-    def record_synthesis_outline(project_id: str, outline: dict[str, Any]) -> dict[str, Any]:
-        """Persist the host-authored report outline (sections derived from the graph)."""
+    def record_synthesis_outline(project_id: str, outline: dict[str, Any],
+                                 report_id: str | None = None,
+                                 operation_id: str | None = None,
+                                 dispatch_token: str | None = None) -> dict[str, Any]:
+        """Persist the host-authored report outline (sections derived from the graph). A body-empty
+        scaffold is reused; pass report_id to target a draft, reuse operation_id on transport retries,
+        and pass the governed hand-off dispatch_token. The outline does not checkpoint until every
+        section is authored."""
         t = time.perf_counter()
-        return _env("record_synthesis_outline", services.record_synthesis_outline(project_id, outline), t)
+        return _env("record_synthesis_outline", services.record_synthesis_outline(
+            project_id, outline, report_id=report_id, operation_id=operation_id,
+            dispatch_token=dispatch_token), t)
 
     @mcp.tool()
     def brief_synthesis_section(project_id: str, section_id: str, report_id: str | None = None) -> dict[str, Any]:
@@ -105,12 +113,15 @@ def register_research(mcp):
         return _env("suggest_chart_kinds", services.suggest_chart_kinds(), t)
 
     @mcp.tool()
-    def record_synthesis_section(project_id: str, section_id: str, content: dict[str, Any], report_id: str | None = None) -> dict[str, Any]:
+    def record_synthesis_section(project_id: str, section_id: str, content: dict[str, Any],
+                                 report_id: str | None = None,
+                                 dispatch_token: str | None = None) -> dict[str, Any]:
         """Persist one authored report section. `content`: {markdown, citations:[{study_id|council_id}],
         figures:[…]}. Figures can embed a chart — {kind:'chart', of:'<of>', series:[…], caption?} — to
         visualize the point; call suggest_chart_kinds for which `of` fits and its series shape."""
         t = time.perf_counter()
-        return _env("record_synthesis_section", services.record_synthesis_section(project_id, section_id, content, report_id), t)
+        return _env("record_synthesis_section", services.record_synthesis_section(
+            project_id, section_id, content, report_id, dispatch_token=dispatch_token), t)
 
     # ----- Deletes (CRUD complete; MCP/CLI-only, never the read-only UI). Relocated here (M3): these
     # are research-artifact deletions (project/synthesis/council/persona), not prototype tools. -----

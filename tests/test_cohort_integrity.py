@@ -513,6 +513,9 @@ def test_override_requires_rationale_and_survives_in_report_limitations(store):
                             "independent validation."),
         dispatch_token=dispatch["dispatch_token"], store=store)
     assert result["status"] == "overridden" and result["raw_status"] == "needs_reselection"
+    # This assertion exercises the outside-run report renderer, not an early
+    # report write owned by the active Cohort Integrity dispatch.
+    services.finish_run(_run["run_id"], "stopped", store=store)
     report = services.scaffold_synthesis(project["id"], store=store)
     assert report["limitations"][0]["cohort_preflight_id"] == result["id"]
     exported = services.export_report(project["id"], report["id"], store=store)

@@ -316,8 +316,8 @@ def test_synthesis_preserves_structured_blocks_and_warns_when_thin(store):
 
 def test_derive_sections_and_scaffold_synthesis_finish_by_construction(store):
     """ESV1: derive_sections organizes a completed methodology project (phase + prototype + deliver +
-    run-journal sections, idempotent) and scaffold_synthesis seeds a project report — together flipping
-    assess_project.finish to organized + handed-off, so a finished run is organized BY CONSTRUCTION."""
+    run-journal sections, idempotent) and scaffold_synthesis seeds a resumable report draft. The
+    draft becomes a hand-off only after every section has an authored body."""
     proj = services.start_project("ESV1", "hmw?", "double_diamond", persona_ids=["p1"], store=store)
     pid = proj["id"]
     services.record_frame(pid, "frame__discover", ["q?"], memory_refs=["m1"], store=store)
@@ -338,7 +338,14 @@ def test_derive_sections_and_scaffold_synthesis_finish_by_construction(store):
     report = services.scaffold_synthesis(pid, store=store)
     assert report["lead"] and "Auto-seeded outline" not in report["lead"]
     f = services.assess_project(pid, store=store)["finish"]
-    assert f["organized"] is True and f["handed_off"] is True
+    assert f["organized"] is True and f["handed_off"] is False
+    assert report["status"] == "in_progress"
+    for section in report["sections"]:
+        report = services.record_synthesis_section(
+            pid, section["id"], {"markdown": f"Authored {section['heading']}."},
+            report_id=report["id"], store=store)
+    assert report["status"] == "done"
+    assert services.assess_project(pid, store=store)["finish"]["handed_off"] is True
     # idempotent: re-deriving doesn't duplicate
     n1 = len(services.list_sections(pid, store=store))
     services.derive_sections(pid, store=store)

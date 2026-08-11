@@ -355,7 +355,10 @@ def register_plan(mcp):
     def run_step(run_id: str) -> dict[str, Any]:
         """The ESV driver's brain (deterministic). Returns the next dispatch to execute:
         {kind: analyze|act|verify, step_id, key, dispatch_token, next_action, directive} → spawn ONE
-        authoring subagent and pass the token into its recorder (auto-link + auto-checkpoint);
+        authoring subagent and pass the token into its recorder (auto-link + auto-checkpoint). For
+        step_id='__report_handoff__', follow blocking_action exactly: author every listed report section
+        against the same report_id/token; retries return the same first unfinished section and only the
+        final section checkpoints;
         {kind: critic, brief} → spawn an INDEPENDENT critic then
         record_completeness_critic + record_critic_round; {kind: done, status, summary} → stop.
         Loop run_step until kind=='done'. Resumable: it reads the live plan state."""

@@ -343,6 +343,23 @@ def _drive_job(fixture: dict[str, Any], protocol: dict[str, Any], project_id: st
         except Exception as exc:
             _capture_error(state, "run_step", exc)
             return
+        if dispatch.get("step_id") == "__report_handoff__":
+            report_copy = protocol["report"]
+            bodies = [report_copy["arc_narrative"], report_copy["gesamtbild"],
+                      report_copy["positionierung"]]
+            try:
+                for index, section_id in enumerate(dispatch.get("incomplete_section_ids") or []):
+                    services.brief_synthesis_section(
+                        project_id, section_id, report_id=dispatch["report_id"], store=store)
+                    services.record_synthesis_section(
+                        project_id, section_id,
+                        {"markdown": bodies[index % len(bodies)], "citations": []},
+                        report_id=dispatch["report_id"],
+                        dispatch_token=_token(protocol, dispatch), store=store)
+                dispatch = services.run_step(run_id, store=store)
+            except Exception as exc:
+                _capture_error(state, "report_handoff", exc)
+                return
         if dispatch.get("kind") == "done":
             return
         if dispatch.get("kind") != "critic":

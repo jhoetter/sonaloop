@@ -36,21 +36,46 @@ def _stub_author(s, pid, store, ctr):
     """Execute one run_step dispatch with canned evidence (the deterministic authoring backend)."""
     kind, step = s["kind"], s["step_id"]
     n = s.get("next_action", {})
+    if step == "__report_handoff__":
+        report = store.get_report(s["report_id"])
+        if s.get("lead_missing"):
+            services.record_synthesis_outline(
+                pid,
+                {
+                    "build_order_narrative": "Evidence to decision.",
+                    "sections": [
+                        {key: section.get(key) for key in (
+                            "id", "heading", "intent", "theme_tags", "source_study_ids")}
+                        for section in report.get("sections") or []
+                    ],
+                },
+                report_id=report["id"],
+                operation_id=s["operation_id"],
+                dispatch_token=s["dispatch_token"],
+                store=store,
+            )
+        for section_id in s.get("incomplete_section_ids") or []:
+            services.record_synthesis_section(
+                pid, section_id,
+                {"markdown": f"Authored report section {section_id}.", "citations": []},
+                report_id=report["id"], dispatch_token=s["dispatch_token"], store=store,
+            )
+        return True
     if kind == "analyze":
         services.record_frame(pid, step, ["q?"], memory_refs=["m1"], store=store)
-        return
+        return False
     if step == "__conclusion__":
         syn = services.record_synthesis("Conclusion", "x", [], {"gesamtbild": "G" * 300,
             "positionierung": "P" * 300, "findings": [{"text": "solver", "kind": "pain_solver"}]}, key=s["key"], store=store)
         services.link_evidence(pid, s["terminal_verify"], {"kind": "synthesis", "id": syn["id"]}, store=store)
-        return
+        return False
     plan = services.get_plan(pid, store=store)
     task = next((t for t in plan["tasks"] if t["id"] == step), None)
     if kind == "act":                                   # an injected concept/segment act task
         cid = _council(store, f"c-{step}-{ctr[0]}")
         services.link_evidence(pid, step, {"kind": "council", "id": cid}, store=store)
         services.complete_task(pid, step, store=store)
-        return
+        return False
     # kind == "verify"
     if n.get("act"):                                    # fan incomplete → add act councils
         for c in task["consumes"]:
@@ -60,7 +85,7 @@ def _stub_author(s, pid, store, ctr):
                 a = services.add_task(pid, "act", "explore", f"angle {ctr[0]}", consumes=[c], store=store)
                 services.link_evidence(pid, a["id"], {"kind": "council", "id": cid}, store=store)
                 services.complete_task(pid, a["id"], store=store)
-        return
+        return False
     # gate met → judgment + synthesis + complete
     fan = [r["id"] for t in plan["tasks"] if t["bucket"] == "act"
            and set(t["consumes"]) & set(task["consumes"]) for r in t["produces"] if r["kind"] == "council"]
@@ -69,6 +94,7 @@ def _stub_author(s, pid, store, ctr):
         "positionierung": "P" * 300, "findings": [{"text": "kp", "kind": "key_problem"}]}, key=s["key"], store=store)
     services.link_evidence(pid, step, {"kind": "synthesis", "id": syn["id"]}, store=store)
     services.complete_task(pid, step, store=store)
+    return False
 
 
 def _drive(run_id, pid, store, stop_after=None):
@@ -90,9 +116,10 @@ def _drive(run_id, pid, store, stop_after=None):
                 pid, v, run_id, s["operation_id"], store=store)
             services.record_critic_round(run_id, rec["id"], s["key"], store=store)
             continue
-        _stub_author(s, pid, store, ctr)
-        services.checkpoint_step(run_id, {"task_id": s["step_id"], "bucket": s["kind"],
-                                          "key": s.get("key", ""), "summary": "stub"}, store=store)
+        auto_checkpointed = _stub_author(s, pid, store, ctr)
+        if not auto_checkpointed:
+            services.checkpoint_step(run_id, {"task_id": s["step_id"], "bucket": s["kind"],
+                                              "key": s.get("key", ""), "summary": "stub"}, store=store)
         steps += 1
         if stop_after and steps >= stop_after:
             return {"kind": "stopped_for_test", "steps": steps}
@@ -127,6 +154,129 @@ def test_runloop_resumes_identically_after_kill(store):
     # no duplicate keyed work: completing is idempotent, the plan reached a single finished state
     assert services.assess_project(pid, store=store)["finish"]["finished"] is True
     assert set(ev_mid).issubset(set(s["id"] for s in store.list_syntheses()))   # earlier evidence preserved
+
+
+def test_report_handoff_replays_same_dispatch_and_report_until_every_section_is_authored(store):
+    _register_tiny_methodology(store)
+    pid = services.start_project(
+        "Resumable report handoff", "hmw?", "esv_test", persona_ids=["p1"], store=store,
+    )["id"]
+    run = services.start_run(pid, budget=60, store=store)
+    ctr = [0]
+
+    for _ in range(40):
+        step = services.run_step(run["run_id"], store=store)
+        assert step["kind"] != "critic", "critic must wait for the authored report hand-off"
+        if step.get("step_id") == "__report_handoff__":
+            break
+        assert step["kind"] != "done"
+        assert _stub_author(step, pid, store, ctr) is False
+        services.checkpoint_step(
+            run["run_id"],
+            {"task_id": step["step_id"], "bucket": step["kind"],
+             "key": step.get("key", ""), "summary": "stub"},
+            store=store,
+        )
+    else:  # pragma: no cover - diagnostic guard
+        raise AssertionError("run never issued its report hand-off")
+
+    assert step["kind"] == "verify"
+    assert step["expected_output_kind"] == "report"
+    assert step["blocking_action"]["next_call"]["tool"] == "brief_synthesis_section"
+    assert len(step["incomplete_section_ids"]) >= 2
+    report_id = step["report_id"]
+    token = step["dispatch_token"]
+    first_section, *remaining = step["incomplete_section_ids"]
+    partial = services.record_synthesis_section(
+        pid, first_section, {"markdown": "First section is authored.", "citations": []},
+        report_id=report_id, dispatch_token=token, store=store,
+    )
+    assert partial["dispatch"]["state"] == "progress"
+    assert partial["dispatch"]["checkpointed"] is False
+
+    replay = services.run_step(run["run_id"], store=store)
+    assert replay["step_id"] == "__report_handoff__"
+    assert replay["report_id"] == report_id
+    assert replay["dispatch_token"] == token
+    assert first_section not in replay["incomplete_section_ids"]
+    assert replay["incomplete_section_ids"] == remaining
+
+    final = None
+    for section_id in replay["incomplete_section_ids"]:
+        final = services.record_synthesis_section(
+            pid, section_id, {"markdown": f"Authored {section_id}.", "citations": []},
+            report_id=report_id, dispatch_token=token, store=store,
+        )
+    assert final and final["dispatch"]["checkpointed"] is True
+    assert final["handoff"]["complete"] is True
+    assert services.run_step(run["run_id"], store=store)["kind"] == "critic"
+
+
+def test_report_handoff_repairs_legacy_empty_lead_without_replacing_authored_bodies(store):
+    _register_tiny_methodology(store)
+    pid = services.start_project(
+        "Legacy lead repair", "hmw?", "esv_test", persona_ids=["p1"], store=store,
+    )["id"]
+    run = services.start_run(pid, budget=60, store=store)
+    ctr = [0]
+
+    for _ in range(40):
+        step = services.run_step(run["run_id"], store=store)
+        assert step["kind"] != "critic"
+        if step.get("step_id") == "__report_handoff__":
+            break
+        assert step["kind"] != "done"
+        assert _stub_author(step, pid, store, ctr) is False
+        services.checkpoint_step(
+            run["run_id"],
+            {"task_id": step["step_id"], "bucket": step["kind"],
+             "key": step.get("key", ""), "summary": "stub"},
+            store=store,
+        )
+    else:  # pragma: no cover - diagnostic guard
+        raise AssertionError("run never issued its report hand-off")
+
+    report = store.get_report(step["report_id"])
+    report["lead"] = ""
+    report["status"] = "done"  # legacy rows could falsely claim completion
+    for section in report["sections"]:
+        section["markdown"] = f"Preserved authored body for {section['id']}."
+        section["status"] = "done"
+    store.upsert_synthesis(report)
+
+    recovery = services.run_step(run["run_id"], store=store)
+    assert recovery["step_id"] == "__report_handoff__"
+    assert recovery["report_id"] == step["report_id"]
+    assert recovery["dispatch_token"] == step["dispatch_token"]
+    assert recovery["lead_missing"] is True
+    assert recovery["incomplete_section_ids"] == []
+    assert "omitting operation_id" in recovery["directive"]
+
+    repaired_outline = {
+        "build_order_narrative": "A truthful evidence-to-decision lead.",
+        "sections": [
+            {key: section.get(key) for key in (
+                "id", "heading", "intent", "theme_tags", "source_study_ids")}
+            for section in report["sections"]
+        ],
+    }
+    repaired = services.record_synthesis_outline(
+        pid, repaired_outline, report_id=report["id"],
+        dispatch_token=recovery["dispatch_token"], store=store,
+    )
+    assert repaired["id"] == report["id"]
+    assert repaired["handoff"]["complete"] is True
+    assert repaired["dispatch"]["checkpointed"] is True
+    assert [section["markdown"] for section in repaired["sections"]] == [
+        section["markdown"] for section in report["sections"]]
+
+    retry = services.record_synthesis_outline(
+        pid, repaired_outline, report_id=report["id"],
+        dispatch_token=recovery["dispatch_token"], store=store,
+    )
+    assert retry["idempotent_replay"] is True
+    assert retry["dispatch"]["checkpointed"] is True
+    assert services.run_step(run["run_id"], store=store)["kind"] == "critic"
 
 
 def test_pipeline_regression_score_and_memory_depth(store):

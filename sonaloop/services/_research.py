@@ -37,7 +37,10 @@ from ..models import (
     Synthesis,
 )
 from ..storage import Store
-from ..creator_attribution import public_creator_projection
+from ..creator_attribution import (
+    public_creator_projection,
+    public_project_client_origin,
+)
 from .. import artifacts as _A
 from ..taxonomy import GENERIC_TOOLS, normalized_tool_ids, normalized_tools
 from .. import memory as memory_mod
@@ -69,6 +72,7 @@ from ..llm_simulation import (
 )
 from ._common import *  # noqa: F401,F403  (shared helpers + constants)
 from .._project_locks import project_lifecycle_locks
+from ..report_handoff import report_handoff_state
 
 
 _PROJECT_GRAPH_CACHE: contextvars.ContextVar[dict[tuple[int, str], dict[str, Any]] | None] = \
@@ -187,8 +191,9 @@ def update_research_project(project_id: str, patch: dict[str, Any],
 def list_research_project_summaries(store: Store | None = None) -> list[dict[str, Any]]:
     """Lean project metadata for list pages — NO graph builds, NO run-state, NO counts.
     Returns id/slug/title/goal/status/icon/persona_ids/themes plus the immutable
-    public creator display label when one was captured. Opaque actor ids,
-    roles, channels and audit timestamps remain server-side. The list page
+    public creator display label and closed first-ingress client label when captured.
+    Opaque actor ids, roles, channels, evidence source and audit timestamps remain
+    server-side. The list page
     paginates this lean list, then enriches only the visible page with
     `enrich_research_project` (graph counts, run state)."""
     store = store or Store()
@@ -200,7 +205,9 @@ def list_research_project_summaries(store: Store | None = None) -> list[dict[str
          "persona_ids": list(p.get("persona_ids") or []),
          "themes": p.get("themes", []),
          **({"created_by": public_creator}
-            if (public_creator := public_creator_projection(p.get("created_by"))) else {})}
+            if (public_creator := public_creator_projection(p.get("created_by"))) else {}),
+         **({"created_via": public_origin}
+            if (public_origin := public_project_client_origin(p)) else {})}
         for p in store.list_research_projects()
     ]
 
@@ -692,56 +699,6 @@ def derive_sections(project_id: str, store: Store | None = None) -> dict[str, An
     _upsert("Run-Journal", "invented", journal_ids, note="Plan-Rationale + Iterations-Journal")
     return {"project_id": project_id, "created": created,
             "sections": len(list_sections(project_id, store=store))}
-
-
-def scaffold_synthesis(project_id: str, store: Store | None = None) -> dict[str, Any]:
-    """ESV1 — seed a project REPORT outline from the project's phases so the conclusion hand-off is one
-    author step (brief_synthesis_section → record_synthesis_section), not authored from scratch. Makes
-    assess_project.finish.handed_off flip true. Idempotent: returns the existing report if one exists."""
-    store = store or Store()
-    existing = store.list_reports(project_id)
-    if existing:
-        report = existing[0]
-        # ESV originally exposed its internal scaffolding note as the customer-facing cover
-        # lead ("Auto-seeded outline for …"). Repair only that exact legacy placeholder;
-        # authored leads are never overwritten and the report keeps its stable id/trace links.
-        if str(report.get("lead") or "").startswith("Auto-seeded outline for "):
-            report["lead"] = (
-                "Dieser Bericht führt die Evidenz entlang der Forschungsphasen von der "
-                "Ausgangsfrage bis zu den priorisierten Schlussfolgerungen zusammen."
-                if content_language() == "de"
-                else "This report traces the evidence through the research phases from the "
-                "initial question to the prioritized conclusions."
-            )
-            report["updated_at"] = utc_now_iso()
-            store.upsert_synthesis(report)
-        return report
-    graph = get_project_graph(project_id, store=store)
-    nodes = graph["nodes"]
-    steps = (graph.get("methodology_state") or {}).get("steps") or []
-    by_phase: dict[str, list[str]] = {}
-    for n in nodes:
-        by_phase.setdefault(n.get("phase", ""), []).append(n["study_id"])
-    # one section PER PHASE in order (fans AND verifies) — Discover/Define/Ideate/Down-Select/Refine/
-    # Deliver — so the outline tells the WHOLE story, not just the diverge phases.
-    sections = []
-    for s in steps:
-        srcs = [x for x in dict.fromkeys(by_phase.get(s["key"], [])) if x]
-        label = (s.get("name") or s["key"]).split("·")[-1].strip() or s["key"]
-        role = "diverge" if s.get("is_fan") else "converge"
-        sections.append({"heading": label, "theme_tags": [], "source_study_ids": srcs,
-                         "intent": f"Author the {label} phase ({role}) grounded in its evidence + what it produced."})
-    if not sections:                                  # freeform / no methodology: one catch-all section
-        sections = [{"heading": "Findings", "intent": "Author the project's findings + conclusion.",
-                     "theme_tags": [], "source_study_ids": graph.get("build_order", [])}]
-    outline = {"build_order_narrative": (
-                   "Dieser Bericht führt die Evidenz entlang der Forschungsphasen von der "
-                   "Ausgangsfrage bis zu den priorisierten Schlussfolgerungen zusammen."
-                   if content_language() == "de"
-                   else "This report traces the evidence through the research phases from the "
-                        "initial question to the prioritized conclusions."),
-               "sections": sections}
-    return record_synthesis_outline(project_id, outline, store=store)
 
 
 def get_research_frontier(project_id: str, store: Store | None = None) -> dict[str, Any]:
