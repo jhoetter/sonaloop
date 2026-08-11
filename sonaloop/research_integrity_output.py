@@ -4,6 +4,22 @@ from __future__ import annotations
 from typing import Any
 
 
+def artifact_posture_gaps(record: dict[str, Any], label: str) -> list[str]:
+    """Return blocking provenance gaps for one council/synthesis record."""
+    posture = record.get("claim_posture") or {}
+    if not posture:
+        return [f"{label} has no sonaloop.claim_posture.v1 envelope"]
+    gaps = []
+    if posture.get("prose_uncovered"):
+        gaps.append(f"{label} contains prose not covered by an explicit claim inventory")
+    unsupported = int((posture.get("counts") or {}).get("unsupported") or 0)
+    if unsupported:
+        gaps.append(f"{label} contains {unsupported} unsupported claim(s)")
+    if not posture.get("verified"):
+        gaps.append(f"{label} is an unverified hypothesis draft")
+    return gaps
+
+
 def claim_posture_markdown(envelope: dict[str, Any] | None, *, de: bool = False) -> list[str]:
     """Return the self-contained claim-provenance block used by council/report exports."""
     if not envelope:

@@ -398,9 +398,11 @@ def test_reaction_gate_excludes_explicitly_parked_task_evidence(store, monkeypat
 
     plan["parked_refs"] = []
     monkeypatch.setattr(
-        RI,
-        "reaction_stimuli",
-        lambda *_: [{"kind": "prototype", "id": "prototype_visible_but_not_evidence"}],
+        store,
+        "list_prototypes",
+        lambda project_id=None: [{
+            "id": "prototype_visible_but_not_evidence", "project_id": pid,
+        }],
     )
     task["produces"] = [{"kind": "artifact", "id": "prototype_visible_but_not_evidence"}]
     assert RI.reaction_task_gaps(pid, task, plan, store) == []

@@ -20,7 +20,7 @@ import json
 from typing import Any
 
 from .config import utc_now_iso
-from .research_integrity_output import claim_posture_markdown
+from .research_integrity_output import artifact_posture_gaps, claim_posture_markdown
 from .storage import Store
 
 
@@ -549,21 +549,6 @@ def stamp_derived_finding(finding: dict[str, Any],
     return out
 
 
-def artifact_posture_gaps(record: dict[str, Any], label: str) -> list[str]:
-    posture = record.get("claim_posture") or {}
-    if not posture:
-        return [f"{label} has no {CLAIM_POSTURE_SCHEMA} envelope"]
-    gaps = []
-    if posture.get("prose_uncovered"):
-        gaps.append(f"{label} contains prose not covered by an explicit claim inventory")
-    unsupported = int((posture.get("counts") or {}).get("unsupported") or 0)
-    if unsupported:
-        gaps.append(f"{label} contains {unsupported} unsupported claim(s)")
-    if not posture.get("verified"):
-        gaps.append(f"{label} is an unverified hypothesis draft")
-    return gaps
-
-
 def reaction_task_gaps(project_id: str, task: dict[str, Any], plan: dict[str, Any],
                        store: Store) -> list[str]:
     """Blocking gaps for Reaction Test act/verify completion."""
@@ -605,6 +590,10 @@ def reaction_task_gaps(project_id: str, task: dict[str, Any], plan: dict[str, An
         gaps.append("task has no linked evidence")
         return gaps
     stimulus_ids = {(s["kind"], s["id"]) for s in stimuli}
+    # A built, project-owned prototype is an admissible act output even when immutable Product
+    # Understanding correctly freezes the original remote-screen manifest as the input stimulus.
+    prototype_ids = {str(row.get("id") or "") for row in store.list_prototypes(project_id)}
+    stimulus_ids.update((kind, rid) for rid in prototype_ids for kind in ("prototype", "artifact"))
     # Plan/build adapters historically call runnable prototypes ``artifact`` evidence; accept that
     # open graph tag as an alias without changing the prototype's canonical stimulus kind.
     stimulus_ids.update(("artifact", rid) for kind, rid in tuple(stimulus_ids)
