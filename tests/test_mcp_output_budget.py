@@ -614,6 +614,145 @@ def _result_chars(server, name: str, args: dict) -> int:
                for c in content)
 
 
+def test_typed_council_report_brief_is_bounded_with_visible_truncation(store):
+    project = services.start_project("Large council report", "What did people notice?", store=store)
+    council = services.record_council(
+        project["id"], "What did you notice first?", [f"p{i}" for i in range(8)],
+        [{"persona_id": f"p{i}", "text": f"voice-{i}: " + "x" * 5_000}
+         for i in range(8)],
+        summary="A deliberately large source.", key="large-typed-council", store=store)
+    report = services.record_synthesis_outline(project["id"], {
+        "build_order_narrative": "One large council.",
+        "sections": [{"heading": "Finding", "intent": "Summarize it.",
+                      "theme_tags": [],
+                      "source_study_ids": [f'council:{council["id"]}']}],
+    }, store=store)
+    section_id = report["sections"][0]["id"]
+
+    brief = services.brief_synthesis_section(
+        project["id"], section_id, report_id=report["id"], store=store)
+    assert brief["frame"]["source_budget"]["truncated"] is True
+    assert brief["frame"]["source_budget"]["omitted_sources"] == 0
+    assert brief["frame"]["studies"][0]["study_id"] == f'council:{council["id"]}'
+
+    from sonaloop.mcp_server import build_server
+    assert _result_chars(build_server(), "brief_synthesis_section", {
+        "project_id": project["id"], "section_id": section_id, "report_id": report["id"],
+    }) < BUDGET_CHARS
+
+
+def test_report_briefs_bound_pretty_nested_sources_and_large_outlines(store):
+    project = services.start_project(
+        "Deep report sources", "What did we learn?", methodology="double_diamond", store=store)
+    note_ids = []
+    for index in range(50):
+        note = services.create_note(
+            project["id"], f"Observation {index}", title=f"Note {index}",
+            data={f"field_{item}": {"nested": {"value": "small"}}
+                  for item in range(20)}, store=store)
+        note_ids.append(note["id"])
+    report = services.record_synthesis_outline(project["id"], {
+        "build_order_narrative": "Fifty nested notes.",
+        "sections": [{"heading": "All notes", "intent": "Consolidate them.",
+                      "theme_tags": [],
+                      "source_study_ids": [f"note:{note_id}" for note_id in note_ids]}],
+    }, store=store)
+    section_id = report["sections"][0]["id"]
+
+    section_brief = services.brief_synthesis_section(
+        project["id"], section_id, report_id=report["id"], store=store)
+    section_budget = section_brief["frame"]["source_budget"]
+    assert section_budget["truncated"] is True
+    assert section_budget["omitted_serialized_chars"] > 0
+    assert section_budget["omitted_fields"] > 0
+
+    council_ids = []
+    for index in range(220):
+        council_id = f"large_outline_council_{index}"
+        council_ids.append(council_id)
+        store.insert_council_session({
+            "id": council_id, "project_id": project["id"],
+            "created_at": f"2026-08-11T00:{index:02d}:00+00:00",
+            "prompt": f"Council {index}", "persona_ids": ["p1"], "statements": [],
+            "votes": [], "proposal": "", "summary": "s" * 5_000,
+            "exec_summary": "e" * 5_000, "selection_reason": "fixture",
+        })
+    persisted = store.get_research_project(project["id"])
+    persisted["council_ids"] = list(dict.fromkeys(
+        list(persisted.get("council_ids") or []) + council_ids))
+    store.upsert_research_project(persisted)
+    terminal_id = "large_outline_terminal_synthesis"
+    store.upsert_synthesis({
+        "id": terminal_id, "project_id": project["id"], "scope": "study", "status": "done",
+        "created_at": "2026-08-11T23:59:00+00:00", "title": "Terminal conclusion",
+        "goal": "Conclude the work", "council_ids": [council_ids[-1]],
+        "statements": [], "findings": [], "gesamtbild": "The required final conclusion.",
+    })
+    plan = services.get_plan(project["id"], store=store)
+    terminal_verify = [task for task in plan["tasks"] if task["bucket"] == "verify"][-1]
+    services.link_evidence(
+        project["id"], terminal_verify["id"], {"kind": "synthesis", "id": terminal_id},
+        store=store)
+
+    from sonaloop.mcp_server import build_server
+    server = build_server()
+    assert _result_chars(server, "brief_synthesis_section", {
+        "project_id": project["id"], "section_id": section_id, "report_id": report["id"],
+    }) < BUDGET_CHARS
+    outline_brief = services.brief_synthesis_outline(project["id"], store=store)
+    graph_budget = outline_brief["frame"]["graph_budget"]
+    assert graph_budget["truncated"] is True
+    assert graph_budget["build_order_total"] > graph_budget["build_order_returned"]
+    assert outline_brief["study_ids_total"] == graph_budget["build_order_total"]
+    assert len(outline_brief["study_ids"]) == graph_budget["build_order_returned"]
+    assert f"synthesis:{terminal_id}" in outline_brief["study_ids"]
+    assert f"synthesis:{terminal_id}" in graph_budget["pinned_source_ids"]
+    assert _result_chars(server, "brief_synthesis_outline", {
+        "project_id": project["id"],
+    }) < BUDGET_CHARS
+
+
+def test_outline_budget_applies_to_the_composed_graph_frame(store):
+    project = services.start_project("Combined outline budget", "g" * 5_000, store=store)
+    council_ids = []
+    for index in range(100):
+        stamp = f"2026-08-11T{index // 60:02d}:{index % 60:02d}:00+00:00"
+        council_id = f"combined_council_{index}"
+        council_ids.append(council_id)
+        store.insert_council_session({
+            "id": council_id, "project_id": project["id"], "created_at": stamp,
+            "prompt": f"Normal council {index}", "persona_ids": ["p1"],
+            "statements": [], "votes": [], "proposal": "", "summary": "short",
+            "exec_summary": "short", "selection_reason": "fixture",
+        })
+        store.upsert_synthesis({
+            "id": f"combined_synthesis_{index}", "project_id": project["id"],
+            "scope": "study", "status": "done", "created_at": stamp,
+            "title": f"Normal synthesis {index}", "goal": "short",
+            "council_ids": [council_id], "statements": [], "findings": [],
+            "gesamtbild": "short",
+        })
+    persisted = store.get_research_project(project["id"])
+    persisted["council_ids"] = council_ids
+    persisted["themes"] = [(f"theme-{index}-" + "t" * 100) for index in range(100)]
+    store.upsert_research_project(persisted)
+    services.record_open_questions(
+        project["id"], [f"Question {index}: " + "q" * 600 for index in range(100)], store=store)
+
+    brief = services.brief_synthesis_outline(project["id"], store=store)
+    budget = brief["frame"]["graph_budget"]
+    assert budget["truncated"] is True
+    assert budget["frame_pretty_chars"] <= budget["frame_limit_chars"]
+    assert budget["edges_omitted"] > 0
+    assert budget["open_questions_omitted"] > 0
+    assert budget["project_truncated"] is True
+
+    from sonaloop.mcp_server import build_server
+    assert _result_chars(build_server(), "brief_synthesis_outline", {
+        "project_id": project["id"],
+    }) < BUDGET_CHARS
+
+
 def test_every_read_tool_stays_under_output_budget(store, tmp_path, monkeypatch):
     from sonaloop import prototypes
     from sonaloop.mcp_server import build_server

@@ -40,7 +40,7 @@ from ..taxonomy import GENERIC_TOOLS, normalized_tool_ids, normalized_tools
 from .. import memory as memory_mod
 from .. import evaluation as evaluation_mod
 from ..research_integrity import apply_claim_postures, claim_posture_markdown
-from ..report_handoff import report_handoff_state
+from ..report_handoff import report_handoff_state, terminal_synthesis_source_ids
 from .._project_locks import project_lifecycle_locks
 from ..llm_simulation import (
     build_cohort_critic_prompt,
@@ -73,6 +73,12 @@ from ._synthesis_share import (
     share_inline_images as _share_inline_images_impl,
     share_rewrite_links as _share_rewrite_links,
     theme_block as _theme_block,
+)
+from ._report_sources import (
+    bound_report_outline_frame,
+    bound_report_sources,
+    report_source_compact as _study_compact,
+    report_source_full as _study_full,
 )
 
 
@@ -490,46 +496,24 @@ def delete_synthesis(synthesis_id: str, store: Store | None = None) -> dict[str,
 
 
 
-def _study_compact(store: Store, study_id: str, tags: list[str]) -> dict[str, Any]:
-    syn = store.get_synthesis(study_id) or {}
-    return {"study_id": study_id, "title": syn.get("title", study_id), "goal": syn.get("goal", ""),
-            "theme_tags": tags, "gesamtbild": syn.get("gesamtbild", ""),
-            "positionierung": syn.get("positionierung", ""),
-            "top_recommendations": [txt for txt, _a, _n in _A.synthesis_recommendations(syn)[:3]],
-            "created_at": syn.get("created_at", "")}
-
-
-
-def _study_full(store: Store, study_id: str) -> dict[str, Any]:
-    syn = store.get_synthesis(study_id) or {}
-    councils = []
-    for cid in syn.get("council_ids", []) or []:
-        c = store.get_council_session(cid) or {}
-        councils.append({"council_id": cid, "prompt": c.get("prompt", ""), "exec_summary": c.get("exec_summary", "")})
-    return {"study_id": study_id, "title": syn.get("title", study_id), "goal": syn.get("goal", ""),
-            "arc_narrative": syn.get("arc_narrative", ""), "gesamtbild": syn.get("gesamtbild", ""),
-            "positionierung": syn.get("positionierung", ""), "pain_solvers": _A.finding_texts(syn, "pain_solver"),
-            "handlungsempfehlungen": [{"text": t, "aufwand": a, "nutzen": n} for t, a, n in _A.synthesis_recommendations(syn)],
-            "voices": [{"persona_id": v.get("persona_id"),
-                        "sentiment": _A._STANCE_SENTIMENT.get((v.get("stance") or {}).get("value"), "neutral"),
-                        "key_argument": v.get("text")} for v in _A.synthesis_statements(syn)],
-            "offene_fragen": _A.finding_texts(syn, "open_question"), "councils": councils}
-
-
-
 def brief_synthesis_outline(project_id: str, store: Store | None = None) -> dict[str, Any]:
     """GATHER the whole project graph + each study's compact content so the host can
     author the project REPORT outline (then author its sections)."""
     store = store or Store()
     graph = get_project_graph(project_id, store=store)
     tags = _require_research_project(store, project_id).get("study_tags", {})
-    frame = {
-        "project": graph["project"], "build_order": graph["build_order"],
-        "edges": graph["edges"], "open_questions": [o for o in graph["open_questions"] if o.get("status") == "open"],
-        "studies": [_study_compact(store, sid, tags.get(sid, [])) for sid in graph["build_order"]],
-    }
+    pinned_sources = terminal_synthesis_source_ids(graph)
+    if not pinned_sources:
+        pinned_sources = next(([source_id] for source_id in reversed(graph["build_order"])
+                               if str(source_id).startswith("synthesis:")), [])
+    studies, source_budget = bound_report_sources(
+        [_study_compact(store, sid, tags.get(sid, [])) for sid in graph["build_order"]],
+        max_chars=12_000, pinned_source_ids=pinned_sources)
+    frame, visible_ids = bound_report_outline_frame(
+        graph, studies, source_budget, pinned_source_ids=pinned_sources)
     return {"project_id": graph["project"]["id"], "schema": "synthesis_outline",
-            "study_ids": graph["build_order"], "instructions": build_synthesis_outline_prompt(frame) + MARKDOWN_CONTRACT, "frame": frame}
+            "study_ids": visible_ids, "study_ids_total": len(graph["build_order"]),
+            "instructions": build_synthesis_outline_prompt(frame) + MARKDOWN_CONTRACT, "frame": frame}
 
 
 
@@ -558,8 +542,10 @@ def brief_synthesis_section(project_id: str, section_id: str, report_id: str | N
     section = next((s for s in report.get("sections", []) if s["id"] == section_id), None)
     if not section:
         raise KeyError(f"Unknown section {section_id} in report {report['id']}")
+    studies, source_budget = bound_report_sources(
+        [_study_full(store, sid) for sid in section.get("source_study_ids", [])])
     frame = {"heading": section["heading"], "intent": section.get("intent", ""), "theme_tags": section.get("theme_tags", []),
-             "studies": [_study_full(store, sid) for sid in section.get("source_study_ids", [])]}
+             "studies": studies, "source_budget": source_budget}
     return {"project_id": project["id"], "report_id": report["id"], "section_id": section_id,
             "schema": "synthesis_section", "instructions": build_synthesis_section_prompt(frame) + MARKDOWN_CONTRACT, "frame": frame}
 

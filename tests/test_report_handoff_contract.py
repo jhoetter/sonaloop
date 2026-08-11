@@ -62,6 +62,70 @@ def test_reaction_scaffold_freezes_graph_sources_for_structural_sections(store):
     assert any(section["source_study_ids"] == frozen for section in report["sections"])
 
 
+def test_report_briefs_resolve_typed_council_and_synthesis_sources(store):
+    project = services.start_project("Typed report sources", "What did we learn?", store=store)
+    council = services.record_council(
+        project["id"], "Where do you look first?", ["p1"],
+        [{"persona_id": "p1", "text": "I start at the hero."}],
+        summary="The hero was the first scan anchor.",
+        exec_summary="Hero first; trust proof later.", key="typed-report-council", store=store,
+    )
+    synthesis = services.record_synthesis(
+        "Corrected read", "What did we learn?", [council["id"]],
+        {"gesamtbild": "The blind replication corrected the primed result."},
+        project_id=project["id"], store=store,
+    )
+
+    outline_brief = services.brief_synthesis_outline(project["id"], store=store)
+    compact = {row["study_id"]: row for row in outline_brief["frame"]["studies"]}
+    assert compact[f'council:{council["id"]}']["gesamtbild"] == "Hero first; trust proof later."
+    assert compact[f'synthesis:{synthesis["id"]}']["title"] == "Corrected read"
+
+    report = services.scaffold_synthesis(project["id"], store=store)
+    section = next(row for row in report["sections"]
+                   if f'synthesis:{synthesis["id"]}' in row["source_study_ids"])
+    section_brief = services.brief_synthesis_section(
+        project["id"], section["id"], report_id=report["id"], store=store)
+    full = {row["study_id"]: row for row in section_brief["frame"]["studies"]}
+
+    assert full[f'council:{council["id"]}']["title"] == "Where do you look first?"
+    assert full[f'council:{council["id"]}']["voices"][0]["key_argument"] == "I start at the hero."
+    assert full[f'synthesis:{synthesis["id"]}']["gesamtbild"] == \
+        "The blind replication corrected the primed result."
+
+
+def test_typed_note_report_source_cannot_collide_with_a_synthesis(store):
+    project = services.start_project("Typed note source", "What is the idea?", store=store)
+    note = services.create_note(
+        project["id"], "The real note content.", title="Real note", store=store)
+    store.upsert_synthesis({
+        "id": note["id"], "title": "Wrong colliding synthesis",
+        "project_id": project["id"], "scope": "study", "status": "done",
+        "created_at": "2026-08-11T00:00:00Z", "council_ids": [],
+        "statements": [], "findings": [], "gesamtbild": "Must never leak.",
+    })
+    report = services.record_synthesis_outline(project["id"], {
+        "build_order_narrative": "The note is the only source.",
+        "sections": [{"heading": "Idea", "intent": "Explain the note.",
+                      "theme_tags": [], "source_study_ids": [f'note:{note["id"]}']}],
+    }, store=store)
+
+    brief = services.brief_synthesis_section(
+        project["id"], report["sections"][0]["id"], report_id=report["id"], store=store)
+    source = brief["frame"]["studies"][0]
+
+    assert source["kind"] == "note"
+    assert source["title"] == "Real note"
+    assert source["gesamtbild"] == "The real note content."
+    assert "Must never leak" not in str(source)
+
+    from sonaloop.services._report_sources import report_source_full
+    unknown = report_source_full(store, f'artifact:{note["id"]}')
+    assert unknown["kind"] == "artifact"
+    assert unknown["missing"] is True
+    assert "Must never leak" not in str(unknown)
+
+
 def test_scaffold_validates_sources_against_graph_not_partial_legacy_study_ids(store):
     project = services.start_project("Hybrid report graph", "Question", store=store)
     legacy = services.record_synthesis(

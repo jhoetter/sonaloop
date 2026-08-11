@@ -167,6 +167,14 @@ bounded compatibility fallback; chronology and the rest of the frozen snapshot a
 inputs. Consequently an upstream synthesis is `consumed`, the report is the terminal node, and both
 the project outline and report detail can explain the relationship.
 
+Report authoring briefs resolve those typed graph ids before loading evidence: `council:<id>` yields
+the council summary and persona voices, `synthesis:<id>` yields the authored convergence, and
+`note:<id>` yields the authored observation. The ids stay typed in citations and edges; only the
+storage lookup strips the prefix. Large section sources are bounded with an in-band truncation record,
+so transport limits cannot silently turn omitted evidence into an apparent negative finding. Large
+outline graphs likewise return one bounded source/build-order slice plus full totals and a stable
+build-order digest; edges and open questions carry returned/omitted counts.
+
 Source ids are validated against the graph used for the report (`build_order` plus its nodes), not
 the legacy `project.study_ids` projection. A repair remains inside the old immutable snapshot; a new
 or refreshed report freezes the complete current graph.
