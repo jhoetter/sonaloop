@@ -62,6 +62,28 @@ def test_reaction_scaffold_freezes_graph_sources_for_structural_sections(store):
     assert any(section["source_study_ids"] == frozen for section in report["sections"])
 
 
+def test_scaffold_validates_sources_against_graph_not_partial_legacy_study_ids(store):
+    project = services.start_project("Hybrid report graph", "Question", store=store)
+    legacy = services.record_synthesis(
+        "Legacy synthesis", "Question", [], {"gesamtbild": "Earlier evidence."},
+        project_id=project["id"], store=store)
+    persisted = store.get_research_project(project["id"])
+    persisted["study_ids"] = [legacy["id"]]
+    store.upsert_research_project(persisted)
+    terminal = services.record_synthesis(
+        "Current terminal synthesis", "Question", [], {"gesamtbild": "Current conclusion."},
+        project_id=project["id"], store=store)
+
+    graph_sources = services.get_project_graph(project["id"], store=store)["build_order"]
+    report = services.scaffold_synthesis(project["id"], store=store)
+    report_sources = {source for section in report["sections"]
+                      for source in section["source_study_ids"]}
+
+    assert f"synthesis:{legacy['id']}" in graph_sources
+    assert f"synthesis:{terminal['id']}" in graph_sources
+    assert set(graph_sources) <= report_sources
+
+
 def test_reaction_report_health_uses_section_citations_not_a_generic_claim_envelope(store):
     project = services.start_project(
         "Cited Reaction report", "Question", methodology="Reaction Test", store=store)
@@ -185,6 +207,23 @@ def test_scaffold_operation_id_replays_existing_draft(store):
     assert first["id"] == replay["id"]
     assert replay["idempotent_replay"] is True
     assert len(store.list_reports(project["id"])) == 1
+
+
+def test_implicit_scaffold_noop_does_not_grow_operation_claims(store):
+    project = services.create_research_project("Implicit scaffold retry", goal="g", store=store)
+    first = services.scaffold_synthesis(project["id"], store=store)
+    claims = list(first.get("outline_operations") or [])
+    updated_at = first["updated_at"]
+
+    second = services.scaffold_synthesis(project["id"], store=store)
+    third = services.scaffold_synthesis(project["id"], store=store)
+
+    assert second["idempotent_replay"] is True
+    assert third["idempotent_replay"] is True
+    assert second["outline_operations"] == claims
+    assert third["outline_operations"] == claims
+    assert second["updated_at"] == updated_at
+    assert third["updated_at"] == updated_at
 
 
 def test_lead_and_every_section_are_required_and_completion_updates_status(store):
@@ -379,6 +418,169 @@ def test_dispatch_bound_scaffold_is_progress_and_final_section_checkpoints(store
         report_id=result["id"], dispatch_token=dispatch["dispatch_token"], store=store)
     assert replay["idempotent_replay"] is True
     assert replay["dispatch"]["checkpointed"] is True
+
+
+def test_governed_handoff_replaces_stale_completed_report_and_replays_new_report(store):
+    services.register_methodology({
+        "key": "report_lineage_guard", "name": "Report lineage guard",
+        "description": "d", "when_to_use": "w",
+        "steps": [
+            {"id": "explore", "name": "Explore", "tags": ["explore"], "intent": "explore"},
+            {"id": "decide", "name": "Decide", "tags": ["decide"],
+             "consumes": ["explore"], "requires": {"min_inputs": 0},
+             "produces": {"role": "conclusion"}},
+        ],
+    }, store=store)
+    project = services.start_project(
+        "Stale report replacement", "Question", methodology="report_lineage_guard", store=store)
+    plan = services.get_plan(project["id"], store=store)
+    frame_task = next(task for task in plan["tasks"] if task["bucket"] == "analyze")
+    verify_task = next(task for task in plan["tasks"] if task["bucket"] == "verify")
+    services.record_frame(
+        project["id"], frame_task["id"], ["What changed?"],
+        memory_refs=["memory:seed"], store=store)
+    preliminary = services.record_synthesis(
+        "Preliminary synthesis", "Question", [], {"gesamtbild": "Early answer."},
+        project_id=project["id"], store=store)
+    stale = services.scaffold_synthesis(project["id"], store=store)
+    for section in stale["sections"]:
+        stale = services.record_synthesis_section(
+            project["id"], section["id"], {"markdown": "Early report body."},
+            report_id=stale["id"], store=store)
+    assert stale["handoff"]["complete"] is True
+
+    terminal = services.record_synthesis(
+        "Terminal synthesis", "Question", [],
+        {"gesamtbild": "G" * 300, "positionierung": "P" * 300},
+        project_id=project["id"], store=store)
+    terminal_ref = f"synthesis:{terminal['id']}"
+    services.link_evidence(
+        project["id"], verify_task["id"], {"kind": "synthesis", "id": terminal["id"]},
+        store=store)
+
+    finish = services.assess_project(project["id"], store=store)["finish"]
+    assert finish["handed_off"] is False
+    assert stale["id"] in finish["report_handoff"]["stale_report_ids"]
+    assert finish["report_handoff"]["latest_stale"] is True
+    assert terminal_ref in finish["report_handoff"]["required_source_ids"]
+    stale_health = services.project_health(project["id"], store=store)
+    assert stale_health["report_handoff"]["complete"] is False
+    assert any(row["code"] == "report_stale"
+               for row in stale_health["integrity_findings"])
+    assert not any(row["code"] == "report_incomplete"
+                   for row in stale_health["integrity_findings"])
+
+    # The same public repair named by assess_project works outside a run and is
+    # retry-safe. It freezes a new graph instead of widening the old report.
+    outside = services.scaffold_synthesis(project["id"], store=store)
+    outside_retry = services.scaffold_synthesis(project["id"], store=store)
+    assert outside["id"] != stale["id"]
+    assert outside_retry["id"] == outside["id"]
+    assert outside_retry["idempotent_replay"] is True
+    assert terminal_ref in outside["graph_snapshot"]["build_order"]
+    draft_health = services.project_health(project["id"], store=store)
+    assert any(row["code"] == "report_incomplete"
+               for row in draft_health["integrity_findings"])
+    assert not any(row["code"] == "report_stale"
+                   for row in draft_health["integrity_findings"])
+
+    persisted_project = store.get_research_project(project["id"])
+    persisted_project["governance_contract"] = "dispatch_v1"
+    store.upsert_research_project(persisted_project)
+    run = services.start_run(
+        project["id"], operation_id="run:stale-report-replacement", store=store)
+    dispatch = _engines._issue_dispatch(
+        run["run_id"], project["id"], verify_task["id"], "verify",
+        "report:stale-replacement", store,
+        trace_contract={"expected_output_kind": "report", "allowed_primary_kinds": ["report"]},
+    )
+
+    # A client cannot checkpoint the new hand-off by replaying a body from the
+    # immutable stale report with the fresh dispatch token.
+    old_section = stale["sections"][0]
+    stale_replay = services.record_synthesis_section(
+        project["id"], old_section["id"],
+        {"markdown": old_section["markdown"],
+         "citations": old_section.get("citations") or [],
+         "figures": old_section.get("figures") or []},
+        report_id=stale["id"], dispatch_token=dispatch["dispatch_token"], store=store)
+    assert stale_replay["dispatch"]["checkpointed"] is False
+    assert stale_replay["dispatch"]["source_coverage_missing"] == [terminal_ref]
+    assert services.get_plan(project["id"], store=store)["tasks"][-1]["status"] != "done"
+
+    fresh = services.scaffold_synthesis(
+        project["id"], dispatch_token=dispatch["dispatch_token"], store=store)
+    retry = services.scaffold_synthesis(
+        project["id"], dispatch_token=dispatch["dispatch_token"], store=store)
+
+    assert fresh["id"] != stale["id"]
+    assert fresh["id"] == outside["id"]
+    assert retry["id"] == fresh["id"]
+    assert retry["idempotent_replay"] is True
+    assert len(store.list_reports(project["id"])) == 2
+    assert terminal_ref in fresh["graph_snapshot"]["build_order"]
+    assert any(terminal_ref in section["source_study_ids"] for section in fresh["sections"])
+    guarded = report_handoff_state(
+        store.list_reports(project["id"]), required_source_ids=[terminal_ref])
+    assert guarded["complete"] is False
+    assert guarded["latest_report_id"] == fresh["id"]
+    assert f"synthesis:{preliminary['id']}" in stale["graph_snapshot"]["build_order"]
+
+
+def test_finishing_a_preterminal_draft_cannot_persist_done_or_checkpoint(store):
+    services.register_methodology({
+        "key": "stale_draft_guard", "name": "Stale draft guard",
+        "description": "d", "when_to_use": "w",
+        "steps": [
+            {"id": "explore", "name": "Explore", "tags": ["explore"], "intent": "explore"},
+            {"id": "decide", "name": "Decide", "tags": ["decide"],
+             "consumes": ["explore"], "requires": {"min_inputs": 0},
+             "produces": {"role": "conclusion"}},
+        ],
+    }, store=store)
+    project = services.start_project(
+        "Preterminal report draft", "Question", methodology="stale_draft_guard", store=store)
+    plan = services.get_plan(project["id"], store=store)
+    frame_task = next(task for task in plan["tasks"] if task["bucket"] == "analyze")
+    verify_task = next(task for task in plan["tasks"] if task["bucket"] == "verify")
+    services.record_frame(
+        project["id"], frame_task["id"], ["What changed?"],
+        memory_refs=["memory:seed"], store=store)
+    draft = services.scaffold_synthesis(project["id"], store=store)
+    for section in draft["sections"][:-1]:
+        draft = services.record_synthesis_section(
+            project["id"], section["id"], {"markdown": "Earlier body."},
+            report_id=draft["id"], store=store)
+
+    terminal = services.record_synthesis(
+        "Terminal synthesis", "Question", [],
+        {"gesamtbild": "G" * 300, "positionierung": "P" * 300},
+        project_id=project["id"], store=store)
+    terminal_ref = f"synthesis:{terminal['id']}"
+    services.link_evidence(
+        project["id"], verify_task["id"], {"kind": "synthesis", "id": terminal["id"]},
+        store=store)
+    persisted_project = store.get_research_project(project["id"])
+    persisted_project["governance_contract"] = "dispatch_v1"
+    store.upsert_research_project(persisted_project)
+    run = services.start_run(
+        project["id"], operation_id="run:stale-draft-guard", store=store)
+    dispatch = _engines._issue_dispatch(
+        run["run_id"], project["id"], verify_task["id"], "verify",
+        "report:stale-draft-guard", store,
+        trace_contract={"expected_output_kind": "report", "allowed_primary_kinds": ["report"]},
+    )
+
+    last = draft["sections"][-1]
+    result = services.record_synthesis_section(
+        project["id"], last["id"], {"markdown": "Late body on the old snapshot."},
+        report_id=draft["id"], dispatch_token=dispatch["dispatch_token"], store=store)
+
+    assert result["status"] == "in_progress"
+    assert result["handoff"]["latest_stale"] is True
+    assert result["dispatch"]["checkpointed"] is False
+    assert result["dispatch"]["source_coverage_missing"] == [terminal_ref]
+    assert store.get_report(draft["id"])["status"] == "in_progress"
 
 
 def test_mcp_report_writes_expose_retry_and_dispatch_contract():

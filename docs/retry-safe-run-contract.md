@@ -148,8 +148,17 @@ remaining section ids. The scaffold and each partial section are progress only. 
 `brief_synthesis_section` and `record_synthesis_section` against that same report/token until the lead
 and every section have authored bodies; only the final write links `report:<id>` and checkpoints. If
 the host or provider stops, another `run_step` returns the same dispatch and first unfinished section.
-It never creates a replacement report, and the completeness critic cannot start while the hand-off is
-partial. A capped run does not manufacture an empty report.
+An interrupted, still-partial hand-off never creates a replacement report, and the completeness
+critic cannot start while that hand-off is partial. A capped run does not manufacture an empty
+report.
+
+That resume guarantee does not let an older, already-authored report hide newer terminal work. When
+the plan has produced a current verify synthesis, hand-off completion additionally requires that
+exact synthesis to exist in the report's frozen graph and to be declared by at least one section as
+an input. A content-complete report that predates it is **stale**, not a valid hand-off. The next
+governed scaffold derives a stable refresh operation from the original operation plus the required
+terminal synthesis and creates one new immutable report snapshot; retries return that same
+replacement. The historical report remains unchanged and inspectable.
 
 The project graph preserves the authored section provenance at hand-off. Each deduplicated
 `sections[].source_study_ids` becomes a visible `based_on` edge from that source node to the terminal
@@ -157,6 +166,10 @@ The project graph preserves the authored section provenance at hand-off. Each de
 bounded compatibility fallback; chronology and the rest of the frozen snapshot are never guessed as
 inputs. Consequently an upstream synthesis is `consumed`, the report is the terminal node, and both
 the project outline and report detail can explain the relationship.
+
+Source ids are validated against the graph used for the report (`build_order` plus its nodes), not
+the legacy `project.study_ids` projection. A repair remains inside the old immutable snapshot; a new
+or refreshed report freezes the complete current graph.
 
 ## Completion ownership
 

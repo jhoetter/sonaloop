@@ -133,11 +133,14 @@ def _projects_page(page: int = 1, q: str = "") -> str:
                     return key
 
         def _run_label() -> str | None:
-            try:
-                health = services.project_health(p["id"], store=store)
-            except Exception:
-                health = p.get("run_state") or services.project_run_state(p["id"], store=store) or {}
-            state = health.get("state")
+            # ``enrich_research_project`` already projects the canonical run state for
+            # every visible row.  Re-running ``project_health`` here used to repeat the
+            # full evidence/ref/report integrity walk solely to paint the badge (up to
+            # 25 extra deep projections on one page).  If enrichment could not project
+            # a state, omit the optional badge rather than issuing the same expensive
+            # read path again.
+            projected = p.get("run_state") or {}
+            state = projected.get("canonical_state") or projected.get("state")
             if not state:
                 return None
             label = {

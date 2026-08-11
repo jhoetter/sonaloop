@@ -454,6 +454,63 @@ def test_plan_graph_absorbs_unplanned_project_evidence(store):
     assert listed["councils"] == 1 and listed["studies"] == 1
 
 
+def test_plan_linked_synthesis_keeps_its_declared_council_inputs(store):
+    """A governed synthesis is already a plan node, so it never takes the absorption path.
+
+    Its own council citations must nevertheless remain visible even when those councils were
+    recorded outside the task fan (the exact shape produced by continuation/recovery work).
+    """
+    project = services.start_project("Continued study", "What changed?", "double_diamond",
+                                     store=store)
+    council = services.record_council(
+        project["id"], "Blind countercheck", [],
+        [{"persona_id": "p1", "text": "The hero appeared first."}],
+        store=store, key="outside-fan-council",
+    )
+    synthesis = services.record_synthesis(
+        "Corrected convergence", "What changed?", council_ids=[council["id"]],
+        project_id=project["id"], store=store,
+    )
+    services.link_evidence(project["id"], "verify__define",
+                           {"kind": "synthesis", "id": synthesis["id"]}, store=store)
+
+    graph = services.get_project_graph(project["id"], store=store)
+
+    assert {
+        "from_study": f'council:{council["id"]}',
+        "to_study": f'synthesis:{synthesis["id"]}',
+        "type": "refines",
+        "rationale": "",
+    } in graph["edges"]
+
+
+def test_planless_declared_synthesis_inputs_are_stably_deduplicated(store):
+    project = services.start_project("Legacy graph", "What repeats?", store=store)
+    council = services.record_council(
+        project["id"], "One source", [], [{"persona_id": "p1", "text": "Signal."}],
+        store=store, key="one-planless-source",
+    )
+    synthesis = services.record_synthesis(
+        "Repeated citation", "What repeats?", council_ids=[council["id"], council["id"]],
+        project_id=project["id"], store=store,
+    )
+    persisted = store.get_research_project(project["id"])
+    persisted["study_ids"] = [synthesis["id"]]
+    store.upsert_research_project(persisted)
+    store.conn.execute("DELETE FROM research_plans WHERE project_id=?", (project["id"],))
+
+    graph = services.get_project_graph(project["id"], store=store)
+    matches = [
+        edge for edge in graph["edges"]
+        if edge["from_study"] == f'council:{council["id"]}'
+        and edge["to_study"] == synthesis["id"]
+        and edge["type"] == "refines"
+    ]
+
+    assert len(matches) == 1
+    assert graph["counts"]["edges"] == 1
+
+
 def test_synthesis_absorption_does_not_leak_across_projects(store):
     """A synthesis citing ANOTHER project's councils (or nothing at all) stays off this
     project's graph; project-scope reports keep riding _attach_reports, never the node list."""

@@ -12,7 +12,51 @@ from collections.abc import Iterable
 from typing import Any
 
 
-def _report_state(report: dict[str, Any]) -> dict[str, Any]:
+def terminal_synthesis_source_ids(plan_or_graph: dict[str, Any] | None) -> list[str]:
+    """Return the latest verify-produced synthesis as a report source id.
+
+    Callers may pass either a plan directly or a project graph containing ``plan``. Keeping this
+    derivation beside the hand-off contract prevents assessment, recovery and report writes from
+    disagreeing about which conclusion the final report must consume.
+    """
+    value = dict(plan_or_graph or {})
+    plan = dict(value.get("plan") or {}) if "plan" in value else value
+    for task in reversed(list(plan.get("tasks") or [])):
+        if str(task.get("bucket") or "") != "verify":
+            continue
+        for ref in reversed(list(task.get("produces") or [])):
+            if str(ref.get("kind") or "") == "synthesis" and str(ref.get("id") or ""):
+                return [f"synthesis:{ref['id']}"]
+    return []
+
+
+def _report_source_coverage(report: dict[str, Any]) -> tuple[set[str], set[str]]:
+    """Return the frozen source universe and the sources the report actually declares.
+
+    A report only covers evidence that was both present in its immutable graph snapshot and
+    explicitly named by a section.  Historical sections without ``source_study_ids`` may use their
+    snapshot-valid citations as the compatibility source, matching the visible-lineage contract.
+    """
+    snapshot = dict(report.get("graph_snapshot") or {})
+    known = {str(value) for value in (snapshot.get("build_order") or []) if str(value)}
+    known.update(str(node.get("study_id") or "") for node in (snapshot.get("nodes") or [])
+                 if str(node.get("study_id") or ""))
+    declared: set[str] = set()
+    for section in report.get("sections") or []:
+        sources = {str(value) for value in (section.get("source_study_ids") or []) if str(value)}
+        if sources:
+            declared.update(sources & known)
+            continue
+        declared.update(
+            str(citation.get("study_id") or "")
+            for citation in (section.get("citations") or [])
+            if isinstance(citation, dict)
+            and str(citation.get("study_id") or "") in known
+        )
+    return known, declared
+
+
+def _report_state(report: dict[str, Any], required_source_ids: set[str] | None = None) -> dict[str, Any]:
     sections = list(report.get("sections") or [])
     lead_missing = not bool(str(report.get("lead") or "").strip())
     authored = [
@@ -25,7 +69,11 @@ def _report_state(report: dict[str, Any]) -> dict[str, Any]:
         for section in sections
         if not str(section.get("markdown") or "").strip()
     ]
-    complete = not lead_missing and bool(sections) and not incomplete
+    content_complete = not lead_missing and bool(sections) and not incomplete
+    required = set(required_source_ids or ())
+    known, declared = _report_source_coverage(report)
+    source_coverage_missing = sorted(required - (known & declared))
+    complete = content_complete and not source_coverage_missing
     return {
         "report_id": str(report.get("id") or ""),
         "status": "done" if complete else "in_progress",
@@ -36,18 +84,24 @@ def _report_state(report: dict[str, Any]) -> dict[str, Any]:
         "incomplete_section_ids": incomplete,
         "body_empty": not authored,
         "lead_missing": lead_missing,
+        "content_complete": content_complete,
+        "required_source_ids": sorted(required),
+        "source_coverage_missing": source_coverage_missing,
     }
 
 
 def report_handoff_state(
     reports: dict[str, Any] | Iterable[dict[str, Any]] | None,
+    *,
+    required_source_ids: Iterable[str] | None = None,
 ) -> dict[str, Any]:
     """Return one shared, content-derived project report hand-off state.
 
     ``Store.list_reports`` is newest-first; callers passing another iterable
     should preserve the order they want exposed as ``latest_report_id``.  Any
-    fully-authored report satisfies the durable hand-off, while unfinished
-    additional drafts remain listed for health/repair surfaces.
+    fully-authored report satisfies the durable hand-off unless ``required_source_ids`` names a
+    current terminal source it does not cover. Unfinished or stale additional drafts remain listed
+    for health/repair surfaces.
     """
     if reports is None:
         rows: list[dict[str, Any]] = []
@@ -55,10 +109,18 @@ def report_handoff_state(
         rows = [reports]
     else:
         rows = list(reports)
-    states = [_report_state(report) for report in rows]
+    required = {str(value) for value in (required_source_ids or []) if str(value)}
+    states = [_report_state(report, required) for report in rows]
     completed = [state for state in states if state["complete"]]
     incomplete = [state for state in states if not state["complete"]]
+    stale = [state for state in states
+             if state["content_complete"] and state["source_coverage_missing"]]
     latest = states[0] if states else None
+    latest_stale = bool(
+        latest
+        and latest.get("content_complete")
+        and latest.get("source_coverage_missing")
+    )
     return {
         "exists": bool(states),
         "complete": bool(completed),
@@ -68,6 +130,9 @@ def report_handoff_state(
         "lead_missing": bool((latest or {}).get("lead_missing")) if latest else False,
         "completed_report_ids": [state["report_id"] for state in completed],
         "incomplete_report_ids": [state["report_id"] for state in incomplete],
+        "stale_report_ids": [state["report_id"] for state in stale],
+        "latest_stale": latest_stale,
+        "required_source_ids": sorted(required),
         "reports": states,
     }
 

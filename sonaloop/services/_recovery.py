@@ -23,7 +23,11 @@ from ..research_integrity import (
 from ..cohort_integrity import current_cohort_preflight, preflight_satisfies_project
 from ..storage import Store
 from .._project_locks import project_lifecycle_locks
-from ..report_handoff import report_handoff_state, report_provenance_state
+from ..report_handoff import (
+    report_handoff_state,
+    report_provenance_state,
+    terminal_synthesis_source_ids,
+)
 
 
 PROJECT_HEALTH_SCHEMA = "sonaloop.project_health.v1"
@@ -384,12 +388,19 @@ def project_health(project_id: str, store: Store | None = None,
                           target=(f"/{'councils' if kind == 'council' else 'syntheses'}/{rid}"
                                   + (f"#{cid}" if cid else "#claim-health")))
 
-    report_handoff = report_handoff_state(store.list_reports(project_id))
+    report_handoff = report_handoff_state(
+        store.list_reports(project_id),
+        required_source_ids=terminal_synthesis_source_ids(plan),
+    )
     if report_handoff["exists"] and not report_handoff["complete"]:
         latest_report_id = str(report_handoff.get("latest_report_id") or "")
+        stale = bool(report_handoff.get("latest_stale"))
         issue(
-            "report_incomplete",
-            "The project report is still a draft; every section needs an authored body before hand-off.",
+            "report_stale" if stale else "report_incomplete",
+            ("The project report predates the current terminal synthesis; scaffold the current "
+             "immutable hand-off before completion."
+             if stale else
+             "The project report is still a draft; every section needs an authored body before hand-off."),
             target=(f"/syntheses/{latest_report_id}" if latest_report_id else f"/jobs/{project_id}"),
         )
 
@@ -427,8 +438,11 @@ def project_health(project_id: str, store: Store | None = None,
                   target=f"/jobs/{project_id}")
         if not finish.get("handed_off"):
             if report_handoff["exists"]:
-                issue("report_incomplete",
-                      "The completed plan has a report draft, but its sections are not all authored.",
+                stale = bool(report_handoff.get("latest_stale"))
+                issue("report_stale" if stale else "report_incomplete",
+                      ("The completed plan's report does not consume its current terminal synthesis."
+                       if stale else
+                       "The completed plan has a report draft, but its sections are not all authored."),
                       target=(f"/syntheses/{report_handoff['latest_report_id']}"
                               if report_handoff.get("latest_report_id") else f"/jobs/{project_id}"))
             else:
@@ -452,7 +466,7 @@ def project_health(project_id: str, store: Store | None = None,
         "product_understanding_missing", "orphaned_evidence", "claim_provenance_incomplete",
         "invalid_evidence_ref", "assessment_unavailable", "engine_completion_missing",
         "expected_sections_missing", "conclusion_missing", "report_missing",
-        "report_incomplete",
+        "report_incomplete", "report_stale",
         "result_contract_missing", "cohort_preflight_missing", "cohort_preflight_stale",
         "cohort_preflight_needs_deepening", "cohort_preflight_needs_reselection",
     } for row in issues)
@@ -564,7 +578,7 @@ def project_health(project_id: str, store: Store | None = None,
         "evidence": "missing" if preflight.get("state") == "waiting" or any(row["code"] in {
             "product_understanding_missing", "claim_provenance_incomplete", "invalid_evidence_ref",
             "orphaned_evidence", "expected_sections_missing", "conclusion_missing", "report_missing",
-            "report_incomplete",
+            "report_incomplete", "report_stale",
             "cohort_preflight_missing", "cohort_preflight_stale",
             "cohort_preflight_needs_deepening", "cohort_preflight_needs_reselection",
         } for row in issues) else "projected_complete",

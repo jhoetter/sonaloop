@@ -127,6 +127,47 @@ def test_topbar_ssr_uses_light_attention_projection_without_full_health(store, m
     assert "has-active" in html and "has-waiting" in html and "has-stalled" in html
 
 
+def test_jobs_list_reuses_enriched_run_state_without_second_health_projection(store, monkeypatch):
+    """One visible row gets one canonical projection during enrichment.
+
+    The row badge must consume that result instead of invoking the deep
+    evidence/report/ref health walk a second time.  The two monkeypatches are
+    intentionally separate: ``project_run_state`` resolves the canonical
+    implementation from ``services._recovery``, while the historical duplicate
+    call went through the public services export.
+    """
+    project_id = _planned(store, "ONE LIST HEALTH PROJECTION")
+    from sonaloop.services import _recovery
+
+    canonical = _recovery.project_health
+    projected: list[str] = []
+
+    def counted(project_id, store=None, stale_hours=6):
+        projected.append(project_id)
+        return canonical(project_id, store=store, stale_hours=stale_hours)
+
+    def duplicate(*_args, **_kwargs):
+        raise AssertionError("/jobs row badge repeated the full health projection")
+
+    monkeypatch.setattr(_recovery, "project_health", counted)
+    monkeypatch.setattr(S, "project_health", duplicate)
+    response = _client().get("/jobs?lang=en")
+
+    assert response.status_code == 200
+    assert projected == [project_id]
+    assert f'{web.STRINGS["en"]["run_chip"]} · {web.STRINGS["en"]["runs_stalled_h"]}' in response.text
+
+
+def test_jobs_list_keeps_canonical_running_badge(store):
+    project_id = _planned(store, "CANONICAL RUNNING BADGE")
+    S.start_run(project_id, operation_id="jobs:canonical-running", store=store)
+
+    response = _client().get("/jobs?lang=en")
+
+    assert response.status_code == 200
+    assert f'{web.STRINGS["en"]["run_chip"]} · {web.STRINGS["en"]["health_running"]}' in response.text
+
+
 def test_light_topbar_lanes_match_canonical_health_projection(store):
     active = _planned(store, "CANONICAL ACTIVE")
     S.start_run(active, operation_id="canonical:active", store=store)

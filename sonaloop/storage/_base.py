@@ -30,10 +30,21 @@ class StoreBase:
     def _stamp_schema_version(self) -> None:
         from ..config import MEMORY_SCHEMA_VERSION
 
+        expected = str(MEMORY_SCHEMA_VERSION)
+        row = self.conn.execute(
+            "SELECT value FROM meta WHERE key='schema_version'"
+        ).fetchone()
+        # Store() is also the read front door.  Once schema initialization has
+        # stamped the current version, opening another read-only Store must not
+        # UPDATE and COMMIT the same global metadata row on every request.  A
+        # missing or older stamp still takes the idempotent upsert path, so cold
+        # startup and version upgrades retain their existing correctness.
+        if row is not None and str(row["value"]) == expected:
+            return
         self.conn.execute(
             "INSERT INTO meta (key, value) VALUES ('schema_version', ?) "
             "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
-            (str(MEMORY_SCHEMA_VERSION),),
+            (expected,),
         )
         self.conn.commit()
 

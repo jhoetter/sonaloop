@@ -39,7 +39,8 @@ def _study_node(store: Store, study_id: str) -> dict[str, Any] | None:
     return {
         "study_id": study_id, "kind": "synthesis", "title": syn.get("title", study_id),
         "status": syn.get("status", "done"), "created_at": syn.get("created_at", ""),
-        "goal": syn.get("goal", ""), "council_count": len(syn.get("council_ids", [])),
+        "goal": syn.get("goal", ""), "council_ids": list(syn.get("council_ids") or []),
+        "council_count": len(syn.get("council_ids", [])),
         "voices": len(spids) or sum(sentiment.values()), "sentiment": sentiment,
         "personas": _persona_stubs(store, spids),
         "recommendations": len(_A.synthesis_recommendations(syn)),
@@ -236,6 +237,7 @@ def _evidence_node(kind: str, eid: str, title: str, prod_task: dict, store: Stor
     elif kind == "synthesis":
         s = store.get_synthesis(eid) or {}
         created = s.get("created_at", "")
+        council_ids = list(s.get("council_ids") or [])
         council_count = len(s.get("council_ids", []))
         n_findings = len(s.get("findings") or [])
         status = s.get("status", "done")
@@ -252,6 +254,7 @@ def _evidence_node(kind: str, eid: str, title: str, prod_task: dict, store: Stor
     tags = [kind] + list(prod_task.get("presentation", {}).get("tags") or [])
     return {"study_id": f"{kind}:{eid}", "kind": kind, "title": title, "phase": step,
             "bucket": prod_task.get("bucket", ""), "created_at": created, "council_count": council_count,
+            **({"council_ids": council_ids} if kind == "synthesis" else {}),
             "voices": voices, "sentiment": {}, "stance_counts": stance_counts,
             "personas": personas, "recommendations": 0, "role": prod_task.get("capability", ""),
             "mode": mode, "n_statements": n_statements, "n_findings": n_findings, "status": status,

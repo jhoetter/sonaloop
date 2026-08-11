@@ -449,8 +449,8 @@ def get_project_graph(project_id: str, store: Store | None = None) -> dict[str, 
         g["project"]["url"] = web_url(f"/jobs/{project_id}")  # noqa: F821 (bound) — the link to hand the user
         return _store_project_graph_cache(cache, cache_key, g)
     # Plan-less fallback (start_project always seeds a plan, so this is only hit by hand-built data /
-    # the study_ids-based report path): nodes from the project's councils/studies + notes — NO
-    # study-edge layer (retired), so no edges.
+    # the study_ids-based report path): nodes from the project's councils/studies + notes. The
+    # retired study-edge layer stays absent, but syntheses still expose their own declared inputs.
     project = _require_research_project(store, project_id)
     tags = project.get("study_tags", {})
     nodes = []
@@ -466,6 +466,7 @@ def get_project_graph(project_id: str, store: Store | None = None) -> dict[str, 
     nodes.extend(note_graph_nodes(project))
     nodes.sort(key=lambda n: n.get("created_at", ""))
     oqs = store.list_open_questions(project["id"])
+    edges = _declared_synthesis_input_edges(nodes)
     g = {
         "project": {"id": project["id"], "slug": project["slug"], "title": project["title"],
                     "goal": project.get("goal", ""), "status": project.get("status", "active"),
@@ -485,15 +486,41 @@ def get_project_graph(project_id: str, store: Store | None = None) -> dict[str, 
         "assets": list(project.get("assets") or []),
         "sections": list(project.get("sections") or []),
         "nodes": nodes,
-        "edges": [],
+        "edges": edges,
         "open_questions": oqs,
         "build_order": [n["study_id"] for n in nodes],
-        "counts": {"studies": len(nodes), "edges": 0,
+        "counts": {"studies": len(nodes), "edges": len(edges),
                    "open_questions": sum(1 for o in oqs if o.get("status") == "open"),
                    "themes": len(project.get("themes", []))},
     }
     return _store_project_graph_cache(cache, cache_key, _attach_reports(g, project_id, store))
 
+
+
+def _declared_synthesis_input_edges(nodes: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Expose every synthesis's authored council inputs, independent of plan placement.
+
+    A synthesis can be produced by a governed verify task, absorbed as outside-run evidence,
+    or live in a legacy plan-less project.  Its own ``council_ids`` remain the authoritative
+    input declaration in all three cases; task-fan inference must not be required for the
+    relationship to appear in the inspector.
+    """
+    node_ids = {str(node.get("study_id") or "") for node in nodes}
+    edges: list[dict[str, Any]] = []
+    seen_edges: set[tuple[str, str, str]] = set()
+    for node in nodes:
+        if node.get("kind") != "synthesis":
+            continue
+        target = str(node.get("study_id") or "")
+        for council_id in node.get("council_ids") or []:
+            source = next((candidate for candidate in (f"council:{council_id}", str(council_id))
+                           if candidate in node_ids), "")
+            key = (source, target, "refines")
+            if source and target and source != target and key not in seen_edges:
+                edges.append({"from_study": source, "to_study": target,
+                              "type": "refines", "rationale": ""})
+                seen_edges.add(key)
+    return edges
 
 
 def plan_graph(project_id: str, store: Store | None = None) -> dict[str, Any]:
@@ -551,7 +578,6 @@ def plan_graph(project_id: str, store: Store | None = None) -> dict[str, Any]:
         stub = {"bucket": "act", "consumes": [_phase_at(c.get("created_at", ""))]}
         nodes.append(_evidence_node("council", cid, c.get("prompt", cid), stub, store))
     owned = {nid.split(":", 1)[1] for nid in seen if nid.startswith("council:")}
-    absorbed_syntheses: list[tuple[str, list[str]]] = []
     for syn in store.list_syntheses():
         sid, nid = syn["id"], f"synthesis:{syn['id']}"
         cited = list(syn.get("council_ids") or [])
@@ -563,19 +589,11 @@ def plan_graph(project_id: str, store: Store | None = None) -> dict[str, Any]:
         seen.add(nid)
         stub = {"bucket": "act", "consumes": [_phase_at(syn.get("created_at", ""))]}
         nodes.append(_evidence_node("synthesis", sid, syn.get("title", sid), stub, store))
-        absorbed_syntheses.append((sid, cited))
     nodes.extend(note_graph_nodes(project))  # note nodes are first-class (composable primitive)
     nodes.sort(key=lambda n: n.get("created_at", ""))
     # edges: each verify task's synthesis consolidates its act fan's councils (refines)
-    edges: list[dict[str, Any]] = []
+    edges = _declared_synthesis_input_edges(nodes)
     node_ids = {n["study_id"] for n in nodes}
-    # An absorbed synthesis still declares its evidence: cited councils that are graph nodes
-    # connect with the same `refines` semantics the verify-fan edges carry.
-    for sid, cited in absorbed_syntheses:
-        for cid in cited:
-            if f"council:{cid}" in node_ids:
-                edges.append({"from_study": f"council:{cid}", "to_study": f"synthesis:{sid}",
-                              "type": "refines", "rationale": ""})
     for t in plan["tasks"]:
         if t["bucket"] != "verify":
             continue
@@ -614,6 +632,17 @@ def plan_graph(project_id: str, store: Store | None = None) -> dict[str, Any]:
             if up_syn and up_syn != this_syn and f"synthesis:{up_syn}" in node_ids:
                 edges.append({"from_study": f"synthesis:{up_syn}", "to_study": f"synthesis:{this_syn}",
                               "type": "informs", "rationale": ""})
+    # A fan inference can rediscover an authored council input. Keep one stable edge while
+    # preserving the first (explicit) provenance-free graph shape expected by existing clients.
+    unique_edges: list[dict[str, Any]] = []
+    edge_keys: set[tuple[str, str, str]] = set()
+    for edge in edges:
+        key = (str(edge.get("from_study") or ""), str(edge.get("to_study") or ""),
+               str(edge.get("type") or ""))
+        if key not in edge_keys:
+            unique_edges.append(edge)
+            edge_keys.add(key)
+    edges = unique_edges
     # ONE note entity: a BUILT note (data.prototype_id) routes through its prototype (the layout draws
     # note→prototype→tested-synthesis); a plain note is a standalone observation. No concept-kind edge.
     ms = _plan_methodology_state(project, plan, store)

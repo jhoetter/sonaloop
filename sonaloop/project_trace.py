@@ -100,14 +100,46 @@ def collect_project_trace_edges(graph: dict[str, Any], nodes: list[dict[str, Any
     seen = {str(n.get("study_id")) for n in nodes if n.get("study_id")}
     edges = list(base_edges or [])
 
+    def edge_key(value: Any) -> Any:
+        """Hash the JSON-shaped edge without changing dict-equality semantics.
+
+        Trace metadata is JSON-shaped, but a few adapters add lists/dicts.  A
+        recursive immutable key keeps duplicate checks O(1) without restricting
+        those extensions to scalar values.
+        """
+        if isinstance(value, dict):
+            return ("dict", tuple(sorted((str(k), edge_key(v)) for k, v in value.items())))
+        if isinstance(value, list):
+            return ("list", tuple(edge_key(v) for v in value))
+        if isinstance(value, tuple):
+            return ("tuple", tuple(edge_key(v) for v in value))
+        if isinstance(value, set):
+            return ("set", tuple(sorted((edge_key(v) for v in value), key=repr)))
+        try:
+            hash(value)
+        except TypeError:
+            return ("repr", repr(value))
+        return ("scalar", value)
+
+    edge_keys = {edge_key(row) for row in edges}
+    incident_nodes = {
+        str(node_id)
+        for row in edges
+        for node_id in (row.get("from_study"), row.get("to_study"))
+        if node_id
+    }
+
     def edge(a: str, b: str, typ: str, label: str = "",
              extra: dict[str, Any] | None = None) -> None:
         if a and b and a != b and a in seen and b in seen:
             extra_clean = {k: v for k, v in (extra or {}).items()
                            if k not in {"from_study", "to_study", "type", "label"}}
             e = trace_edge(a, b, typ, label=label, **extra_clean)
-            if e not in edges:
+            key = edge_key(e)
+            if key not in edge_keys:
                 edges.append(e)
+                edge_keys.add(key)
+                incident_nodes.update((a, b))
 
     for p in graph.get("prototypes") or []:
         pid = _node_id("prototype", p.get("id", ""))
@@ -202,7 +234,7 @@ def collect_project_trace_edges(graph: dict[str, Any], nodes: list[dict[str, Any
         for aid in artifact_nodes.values():
             if aid in parked_nodes:
                 continue
-            if not any(e.get("from_study") == aid or e.get("to_study") == aid for e in edges):
+            if aid not in incident_nodes:
                 edge(aid, first_council, "uses_material", "material",
                      {"provenance": "inferred", "source": "outline.material_fallback"})
 
@@ -214,7 +246,7 @@ def collect_project_trace_edges(graph: dict[str, Any], nodes: list[dict[str, Any
             oid = _node_id("open_question", o["id"])
             if oid in parked_nodes:
                 continue
-            if not any(e.get("from_study") == oid or e.get("to_study") == oid for e in edges):
+            if oid not in incident_nodes:
                 edge(oid, first_study, "derived_from", "frames",
                      {"provenance": "inferred", "source": "outline.open_question_fallback"})
 

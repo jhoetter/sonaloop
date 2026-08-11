@@ -85,6 +85,31 @@ def test_project_report_sources_form_one_terminal_handoff_edge():
     }
 
 
+def test_trace_edge_dedupe_handles_nested_metadata_and_preserves_fallback_incidence():
+    """The O(1) edge-key/index path accepts the JSON-shaped adapter metadata.
+
+    An existing material edge also marks the artifact incident, so the fallback
+    must not mint a second inferred edge for it.
+    """
+    nodes = [
+        {"study_id": "url_artifact:a1", "kind": "url_artifact", "created_at": "1"},
+        {"study_id": "council:c1", "kind": "council", "created_at": "2"},
+    ]
+    base = [{
+        "from_study": "url_artifact:a1", "to_study": "council:c1",
+        "type": "uses_material", "label": "material", "provenance": "authored",
+        "source": "fixture", "meta": {"screens": ["one", "two"]},
+    }]
+    graph = {
+        "artifacts": [{"id": "a1", "url": "https://example.test"}],
+        "open_questions": [],
+    }
+
+    edges = collect_project_trace_edges(graph, nodes, base_edges=base)
+
+    assert edges == base
+
+
 def test_plan_trace_resolves_frame_hops_into_prototype_inputs():
     nodes = [
         {"study_id": "synthesis:def", "kind": "synthesis"},

@@ -306,7 +306,13 @@ the mandatory phase anchor, while additional cross-phase citations are allowed o
 immutable graph snapshot. Missing anchor citations keep the report visible but unverified; studies
 outside the snapshot also surface as invalid evidence refs. This verification contract is separate
 from structural hand-off completion: a lead plus fully authored section bodies makes the report
-deliverable, while its section citations decide whether the delivered prose is evidence-backed.
+deliverable, while its section citations decide whether the delivered prose is evidence-backed. For
+governed project completion, the latest synthesis produced by a verify task is a required terminal
+source as well: it must be present in the frozen report graph and explicitly declared by a section.
+An older content-complete report that does not consume it is marked stale and cannot satisfy the
+hand-off. Sonaloop preserves that historical snapshot and creates one deterministic replacement on
+the next governed scaffold; retries converge on the same replacement rather than widening the old
+report in place.
 Lead-only repair of an already authored report never refreshes its graph snapshot: evidence added to
 the project later cannot retroactively legitimize an earlier report citation.
 

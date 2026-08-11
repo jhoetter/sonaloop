@@ -9,7 +9,7 @@ from ..llm_simulation import (
     validate_synthesis_section_payload,
 )
 from ..models import Synthesis
-from ..report_handoff import report_handoff_state
+from ..report_handoff import report_handoff_state, terminal_synthesis_source_ids
 from ..storage import Store
 from .._project_locks import project_lifecycle_locks
 from ._common import *  # noqa: F401,F403  (shared helpers + constants)
@@ -36,6 +36,29 @@ def _outline_claims(report: dict[str, Any]) -> list[dict[str, Any]]:
     return claims
 
 
+def _graph_source_ids(graph: dict[str, Any]) -> list[str]:
+    """The canonical source universe exposed by a live or frozen project graph."""
+    values = [str(value) for value in (graph.get("build_order") or []) if str(value)]
+    values.extend(str(node.get("study_id") or "") for node in (graph.get("nodes") or [])
+                  if str(node.get("study_id") or ""))
+    return list(dict.fromkeys(values))
+
+
+def _report_covers_sources(report: dict[str, Any], required: list[str]) -> bool:
+    if not required:
+        return True
+    state = report_handoff_state(report, required_source_ids=required)
+    return not bool(state["reports"][0]["source_coverage_missing"])
+
+
+def _project_report_handoff(project_id: str, reports: Any, store: Store) -> dict[str, Any]:
+    plan = store.get_research_plan(project_id) or {}
+    return report_handoff_state(
+        reports,
+        required_source_ids=terminal_synthesis_source_ids(plan),
+    )
+
+
 def _report_has_authored_body(report: dict[str, Any]) -> bool:
     return any(str(section.get("markdown") or "").strip()
                for section in (report.get("sections") or []))
@@ -49,20 +72,29 @@ def _outline_structure(sections: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def _report_dispatch_result(ctx: dict[str, Any], report: dict[str, Any],
                             store: Store) -> dict[str, Any]:
-    state = report_handoff_state(report)
+    project_id = str(report.get("project_id") or ctx.get("project_id") or "")
+    state = _project_report_handoff(project_id, report, store)
     if state["complete"]:
         return bind_dispatch_output(  # noqa: F821 (bound)
             ctx, {"kind": "report", "id": report["id"]},
             "authored complete project report hand-off", store,
         )
     if ctx.get("dispatch_token"):
+        current = state["reports"][0]
+        source_gaps = list(current.get("source_coverage_missing") or [])
         return {"state": "progress", "checkpointed": False,
                 "task_id": str(ctx.get("task_id") or ""),
                 "report_id": report["id"],
-                "lead_missing": bool(state["reports"][0]["lead_missing"]),
+                "lead_missing": bool(current["lead_missing"]),
                 "incomplete_section_ids": list(
-                    state["reports"][0]["incomplete_section_ids"]),
-                "needs": "author the report lead and every section before the hand-off can checkpoint"}
+                    current["incomplete_section_ids"]),
+                "source_coverage_missing": source_gaps,
+                "needs": (
+                    "report is stale; call scaffold_synthesis with this dispatch token to create "
+                    "the deterministic current hand-off"
+                    if source_gaps else
+                    "author the report lead and every section before the hand-off can checkpoint"
+                )}
     return {"state": ctx.get("state", "outside_run"), "checkpointed": False,
             "provenance": "not governed by an active dispatch"}
 
@@ -75,16 +107,38 @@ def _record_synthesis_outline_locked(
     operation_id: str | None,
     dispatch_ctx: dict[str, Any] | None,
     store: Store,
+    force_new: bool = False,
 ) -> dict[str, Any]:
     project = _require_research_project(store, project_id)  # noqa: F821 (bound)
-    data = validate_synthesis_outline_payload(outline, study_ids=project["study_ids"])
     operation_id = _report_operation_id(operation_id)
-    fingerprint = _outline_fingerprint(project["id"], data)
     reports = store.list_reports(project["id"])
+    claimed = [(report, row) for report in reports for row in _outline_claims(report)
+               if operation_id and str(row.get("operation_id") or "") == operation_id]
+
+    target: dict[str, Any] | None = None
+    if report_id:
+        target = store.get_report(report_id)
+        if not target:
+            raise KeyError(f"Unknown report: {report_id}")
+        if str(target.get("project_id") or "") != project["id"]:
+            raise ValueError("REPORT_SCOPE_MISMATCH: report does not belong to project")
+    elif claimed:
+        target = claimed[0][0]
+    elif not force_new:
+        target = next((report for report in reports
+                       if not report_handoff_state(report)["complete"]
+                       and not _report_has_authored_body(report)), None)
+
+    # The outline is authored against a graph, not the legacy project.study_ids list.  A report
+    # repair stays inside its immutable snapshot; a new report uses the complete current graph.
+    source_graph = dict((target or {}).get("graph_snapshot") or {})
+    if not source_graph:
+        source_graph = get_project_graph(project["id"], store=store)  # noqa: F821 (bound)
+    data = validate_synthesis_outline_payload(
+        outline, study_ids=_graph_source_ids(source_graph))
+    fingerprint = _outline_fingerprint(project["id"], data)
 
     if operation_id:
-        claimed = [(report, row) for report in reports for row in _outline_claims(report)
-                   if str(row.get("operation_id") or "") == operation_id]
         if claimed:
             report, claim = claimed[0]
             if report_id and report["id"] != report_id:
@@ -95,27 +149,15 @@ def _record_synthesis_outline_locked(
                     "REPORT_OUTLINE_OPERATION_CONFLICT: operation_id was reused with a different outline")
             out = dict(report)
             out["idempotent_replay"] = True
-            out["handoff"] = report_handoff_state(report)
+            out["handoff"] = _project_report_handoff(project["id"], report, store)
             out["dispatch"] = _report_dispatch_result(dispatch_ctx or {}, report, store)
             return out
-
-    target: dict[str, Any] | None = None
-    if report_id:
-        target = store.get_report(report_id)
-        if not target:
-            raise KeyError(f"Unknown report: {report_id}")
-        if str(target.get("project_id") or "") != project["id"]:
-            raise ValueError("REPORT_SCOPE_MISMATCH: report does not belong to project")
-    else:
-        target = next((report for report in reports
-                       if not report_handoff_state(report)["complete"]
-                       and not _report_has_authored_body(report)), None)
 
     if target and _report_has_authored_body(target):
         if str(target.get("outline_payload_fingerprint") or "") == fingerprint:
             out = dict(target)
             out["idempotent_replay"] = True
-            out["handoff"] = report_handoff_state(target)
+            out["handoff"] = _project_report_handoff(project["id"], target, store)
             out["dispatch"] = _report_dispatch_result(dispatch_ctx or {}, target, store)
             return out
         if report_id and _outline_structure(list(target.get("sections") or [])) == \
@@ -141,12 +183,12 @@ def _record_synthesis_outline_locked(
                     "run_id": dispatch_ctx["run_id"], "task_id": dispatch_ctx["task_id"],
                     "operation_id": dispatch_ctx.get("operation_id") or operation_id or "",
                 }
-            state = report_handoff_state(report)
+            state = _project_report_handoff(project["id"], report, store)
             report["status"] = "done" if state["complete"] else "in_progress"
             store.upsert_synthesis(report)
             out = dict(report)
             out["idempotent_replay"] = False
-            out["handoff"] = state
+            out["handoff"] = _project_report_handoff(project["id"], report, store)
             out["dispatch"] = _report_dispatch_result(dispatch_ctx or {}, report, store)
             return out
         raise ValueError(
@@ -200,7 +242,7 @@ def _record_synthesis_outline_locked(
     store.upsert_synthesis(report)
     out = dict(report)
     out["idempotent_replay"] = False
-    out["handoff"] = report_handoff_state(report)
+    out["handoff"] = _project_report_handoff(project["id"], report, store)
     out["dispatch"] = _report_dispatch_result(dispatch_ctx or {}, report, store)
     return out
 
@@ -218,13 +260,12 @@ def record_synthesis_outline(
     with project_lifecycle_locks(store, [project_id]):
         project = _require_research_project(store, project_id)  # noqa: F821 (bound)
         operation_id = _report_operation_id(operation_id)
-        data = validate_synthesis_outline_payload(outline, study_ids=project["study_ids"])
         dispatch_ctx = prepare_dispatch_write(  # noqa: F821 (bound)
             project["id"], dispatch_token, operation_id or None, "report", store,
             allowed_buckets={"verify"},
         )
         return _record_synthesis_outline_locked(
-            project["id"], data, report_id=report_id, operation_id=operation_id,
+            project["id"], outline, report_id=report_id, operation_id=operation_id,
             dispatch_ctx=dispatch_ctx, store=store,
         )
 
@@ -262,7 +303,7 @@ def record_synthesis_section(project_id: str, section_id: str, content: dict[str
             sec["status"] = "done" if data["markdown"] else "pending"
             sec.setdefault("created_at", now)
             sec["updated_at"] = now
-            state = report_handoff_state(report)
+            state = _project_report_handoff(project["id"], report, store)
             report["status"] = "done" if state["complete"] else "in_progress"
             report["updated_at"] = now
             if dispatch_ctx.get("dispatch_token"):
@@ -274,7 +315,7 @@ def record_synthesis_section(project_id: str, section_id: str, content: dict[str
             store.upsert_synthesis(report)
         out = dict(report)
         out["idempotent_replay"] = same
-        out["handoff"] = report_handoff_state(report)
+        out["handoff"] = _project_report_handoff(project["id"], report, store)
         out["dispatch"] = _report_dispatch_result(dispatch_ctx, report, store)
         return out
 
@@ -290,21 +331,48 @@ def scaffold_synthesis(project_id: str, store: Store | None = None,
             project_id, dispatch_token, operation_id, "report", store,
             allowed_buckets={"verify"},
         )
+        graph = get_project_graph(project_id, store=store)  # noqa: F821 (bound)
+        required_sources = terminal_synthesis_source_ids(graph)
+        require_fresh = bool(required_sources)
         existing = store.list_reports(project_id)
-        if operation_id:
+        requested_operation_id = _report_operation_id(
+            operation_id or dispatch_ctx.get("operation_id"))
+        implicit_default_operation = not bool(requested_operation_id)
+        effective_operation_id = requested_operation_id or "sonaloop:scaffold-report:v1"
+        refresh_derived = False
+        if effective_operation_id:
             replay_report = next((
                 report for report in existing
-                if any(str(claim.get("operation_id") or "") == operation_id
+                if any(str(claim.get("operation_id") or "") == effective_operation_id
                        for claim in _outline_claims(report))
             ), None)
-            if replay_report:
+            # A pre-terminal report may carry the same legacy operation claim. Never widen its
+            # frozen snapshot in place; derive one stable refresh intent from the current terminal
+            # synthesis so every retry converges on the same replacement report.
+            if replay_report and require_fresh and not _report_covers_sources(
+                    replay_report, required_sources):
+                effective_operation_id = stable_id(  # noqa: F821 (bound)
+                    "report_refresh", project_id, effective_operation_id, *required_sources)
+                refresh_derived = True
+                replay_report = next((
+                    report for report in existing
+                    if any(str(claim.get("operation_id") or "") == effective_operation_id
+                           for claim in _outline_claims(report))
+                ), None)
+            # The implicit default scaffold doubles as a repair operation for
+            # legacy generated leads/status. Let the eligible-report path do
+            # that maintenance; explicit/dispatch and derived refresh intents
+            # retain strict idempotent replay semantics.
+            if replay_report and (not implicit_default_operation or refresh_derived):
                 out = dict(replay_report)
                 out["idempotent_replay"] = True
-                out["handoff"] = report_handoff_state(replay_report)
+                out["handoff"] = _project_report_handoff(project_id, replay_report, store)
                 out["dispatch"] = _report_dispatch_result(dispatch_ctx, replay_report, store)
                 return out
-        if existing:
-            report = existing[0]
+        eligible = [report for report in existing
+                    if not require_fresh or _report_covers_sources(report, required_sources)]
+        if eligible:
+            report = eligible[0]
             now = utc_now_iso()
             changed = False
             if str(report.get("lead") or "").startswith("Auto-seeded outline for "):
@@ -316,7 +384,7 @@ def scaffold_synthesis(project_id: str, store: Store | None = None,
                          "initial question to the prioritized conclusions."
                 )
                 changed = True
-            state = report_handoff_state(report)
+            state = _project_report_handoff(project_id, report, store)
             truthful_status = "done" if state["complete"] else "in_progress"
             if report.get("status") != truthful_status:
                 report["status"] = truthful_status
@@ -333,10 +401,12 @@ def scaffold_synthesis(project_id: str, store: Store | None = None,
                     section["updated_at"] = str(
                         report.get("updated_at") or report.get("created_at") or now)
                     changed = True
-            if operation_id:
+            if (effective_operation_id
+                    and not any(str(claim.get("operation_id") or "") == effective_operation_id
+                                for claim in _outline_claims(report))):
                 report["outline_operations"] = [
                     *_outline_claims(report),
-                    {"operation_id": operation_id,
+                    {"operation_id": effective_operation_id,
                      "payload_fingerprint": str(report.get("outline_payload_fingerprint") or ""),
                      "recorded_at": now},
                 ]
@@ -345,10 +415,10 @@ def scaffold_synthesis(project_id: str, store: Store | None = None,
                 report["updated_at"] = now
                 store.upsert_synthesis(report)
             out = dict(report)
-            out["handoff"] = report_handoff_state(report)
+            out["idempotent_replay"] = not changed
+            out["handoff"] = _project_report_handoff(project_id, report, store)
             out["dispatch"] = _report_dispatch_result(dispatch_ctx, report, store)
             return out
-        graph = get_project_graph(project_id, store=store)  # noqa: F821 (bound)
         nodes = graph["nodes"]
         steps = (graph.get("methodology_state") or {}).get("steps") or []
         by_phase: dict[str, list[str]] = {}
@@ -379,6 +449,7 @@ def scaffold_synthesis(project_id: str, store: Store | None = None,
                    "sections": sections}
         return _record_synthesis_outline_locked(
             project_id, outline, report_id=None,
-            operation_id=(operation_id or "sonaloop:scaffold-report:v1"),
+            operation_id=effective_operation_id,
             dispatch_ctx=dispatch_ctx, store=store,
+            force_new=bool(require_fresh and existing),
         )

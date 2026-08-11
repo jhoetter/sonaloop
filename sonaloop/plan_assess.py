@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from .storage import Store
-from .report_handoff import report_handoff_state
+from .report_handoff import report_handoff_state, terminal_synthesis_source_ids
 
 
 def run_state(project_id: str, plan: dict[str, Any], store: Store) -> dict[str, Any] | None:
@@ -57,6 +57,7 @@ def project_run_state(project_id: str, store: Store | None = None,
     state = "active" if health["state"] == "running" else health["state"]
     out = {
         "state": state,
+        "canonical_state": health["state"],
         "last_activity": health["last_activity"],
         "next_ready": list((health.get("tasks") or {}).get("next_ready") or []),
         "canonical_schema": health["schema"],
@@ -213,19 +214,28 @@ def assess_project(project_id: str, store: Store | None = None) -> dict[str, Any
         verify_syn = [r["id"] for t in tasks if t["bucket"] == "verify"
                       for r in t.get("produces", []) if r.get("kind") == "synthesis"]
         concl = store.get_synthesis(verify_syn[-1]) if verify_syn else None
+        required_report_sources = terminal_synthesis_source_ids(plan)
         body = (concl or {}).get("gesamtbild", "") + (concl or {}).get("positionierung", "") if concl else ""
         if substantial and (not concl or len(body.strip()) < 400):
             finish_gaps.append("no substantial CONCLUSION — author a rich terminal solution-presentation "
                                "synthesis (the answer, who-wins + non-targets, validated solvers, build spec)")
         try:
-            handoff = report_handoff_state(store.list_reports(project_id))
+            handoff = report_handoff_state(
+                store.list_reports(project_id),
+                required_source_ids=required_report_sources,
+            )
             handoff_ok = not substantial or handoff["complete"]
             if substantial and not handoff["exists"]:
                 finish_gaps.append("no REPORT — author the project narrative/handover (scaffold_synthesis)")
             elif substantial and not handoff["complete"]:
-                finish_gaps.append(
-                    "REPORT incomplete — author every scaffolded section with "
-                    "record_synthesis_section before handing it off")
+                if handoff.get("latest_stale"):
+                    finish_gaps.append(
+                        "REPORT stale — the current terminal synthesis is not an explicit input; "
+                        "scaffold a new report from the current graph before handing it off")
+                else:
+                    finish_gaps.append(
+                        "REPORT incomplete — author every scaffolded section with "
+                        "record_synthesis_section before handing it off")
         except Exception:
             handoff_ok = not substantial
             finish_gaps.append("REPORT state unavailable — retry the read before completion")

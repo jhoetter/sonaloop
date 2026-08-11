@@ -27,6 +27,44 @@ def test_store_opens_through_the_sqlite_backend(store):
     assert store.schema_version() >= 1
 
 
+def test_current_schema_stamp_is_not_rewritten_on_each_store_open(tmp_path):
+    """Read-only Store construction must not update+commit the global meta row.
+
+    A missing/stale version still takes the idempotent upsert path, preserving
+    cold-start and migration correctness.
+    """
+    class TrackingSqliteBackend(SqliteBackend):
+        def __init__(self, path):
+            super().__init__(path)
+            self.statements: list[str] = []
+
+        def connect(self):
+            conn = super().connect()
+            conn.set_trace_callback(self.statements.append)
+            return conn
+
+    backend = TrackingSqliteBackend(tmp_path / "schema-stamp.db")
+    with Store(backend=backend) as first:
+        expected = first.schema_version()
+    assert any(sql.lstrip().upper().startswith("INSERT INTO META")
+               for sql in backend.statements)
+
+    backend.statements.clear()
+    with Store(backend=backend) as second:
+        assert second.schema_version() == expected
+    assert not any(sql.lstrip().upper().startswith("INSERT INTO META")
+                   for sql in backend.statements)
+
+    # Simulate a process opening a DB stamped by an older application version.
+    with sqlite3.connect(backend.path) as raw:
+        raw.execute("UPDATE meta SET value='0' WHERE key='schema_version'")
+    backend.statements.clear()
+    with Store(backend=backend) as upgraded:
+        assert upgraded.schema_version() == expected
+    assert any(sql.lstrip().upper().startswith("INSERT INTO META")
+               for sql in backend.statements)
+
+
 def test_make_backend_defaults_to_sqlite_at_database_path():
     b = make_backend()
     assert isinstance(b, SqliteBackend) and b.path is not None
