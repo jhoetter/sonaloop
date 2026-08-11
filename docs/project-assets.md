@@ -71,13 +71,17 @@ readable. `record_asset_supersession` is the service seam that writes it.
 - **Library → Assets tab** (`/assets`): every asset across projects, badged by
   kind + direction, owning project on the row.
 - **Project outline** (`/jobs/{id}`): every project asset appears in context
-  under an Assets subgroup for incoming files, or as a deliverable row when the
-  software generated it.
+  under an Assets subgroup for incoming files, or in the final Deliver group
+  when the software generated it. Multiple files form a compact responsive
+  gallery with bounded previews; each file still opens its canonical detail.
+- **Report detail** (`/syntheses/{id}`): consecutive unplaced asset figures form
+  the same kind of responsive gallery. Explicitly positioned figures and charts
+  retain the report's reading width; print/export restores the figures' natural height.
 
 ## Persistence
 
 - In local SQLite mode, assets appear read-only in the web inspector (image
-  thumbnails come from the static `/data` mount); every asset row deep-links to
+  thumbnails come from the static `/data` mount); every asset file deep-links to
   its detail page. Shared-Postgres deployments serve the same previews/downloads
   through the authenticated, active-workspace-only asset route; the raw file tree
   remains unreachable.

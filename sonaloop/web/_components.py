@@ -24,7 +24,7 @@ from ._keymap import KEYMAP_CSS, KEYMAP_JS, keymap_markup
 from ._shell_version import make_shell_token as _make_shell_token, publish_shell_token
 from ._ext import (  # noqa: F401  (extension seams; public surface re-exported by web/__init__)
     register_nav_section, register_nav_item, resolve_label, nav_model,
-    render_slot, theme_override_css, brand_name, brand_logo, title_brand,
+    render_slot, theme_override_css, brand_name, brand_logo, brand_logo_dark, title_brand,
     current_identity,
 )
 
@@ -151,6 +151,34 @@ APP_JS = """
   document.querySelectorAll('[data-theme-set]').forEach(function(b){
     b.addEventListener('click',function(){ applyTheme(b.getAttribute('data-theme-set')); }); });
   markTheme(curTheme());
+  // Persisted timestamps are UTC; display them in the reader's browser timezone.  The
+  // server-rendered value remains a usable no-JS fallback.  Re-run after SPA and drawer
+  // fragment loads so dynamically inserted rows never fall back to host/server time.
+  function localizeTimes(root){
+    var scope=root&&root.querySelectorAll?root:document;
+    scope.querySelectorAll('time[data-local-time]').forEach(function(el){
+      var raw=el.getAttribute('datetime'), d=new Date(raw);
+      if(!raw||Number.isNaN(d.getTime())) return;
+      var locale=document.documentElement.lang||undefined;
+      try{
+        var mode=el.getAttribute('data-local-time')||'datetime';
+        var options=mode==='date'?{day:'numeric',month:'short',year:'numeric'}:
+          mode==='day'?{day:'numeric',month:'short'}:
+          {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'};
+        el.textContent=new Intl.DateTimeFormat(locale,options).format(d);
+        el.title=new Intl.DateTimeFormat(locale,{dateStyle:'medium',timeStyle:'long'}).format(d);
+      }catch(e){}
+    });
+  }
+  localizeTimes(document);
+  document.addEventListener('spa:load',function(){ localizeTimes(document); });
+  new MutationObserver(function(changes){ changes.forEach(function(change){
+    change.addedNodes.forEach(function(node){
+      if(node.nodeType!==1) return;
+      if(node.matches&&node.matches('time[data-local-time]')) localizeTimes(node.parentNode||document);
+      else localizeTimes(node);
+    });
+  }); }).observe(document.body,{childList:true,subtree:true});
   // (the old inline "g then o/p" jump nav moved to the keymap registry — web/_keymap.py)
   var sc=document.querySelector('section'); var tocLinks=[].slice.call(document.querySelectorAll('.toc a'));
   if(sc && tocLinks.length){
@@ -579,30 +607,52 @@ def _archived_project_discovery_denylist(
 # Customer brand logo (customer-theme contract): height-capped so any aspect ratio sits
 # in the lockup row; the wordmark treatment stays untouched when no logo is set.
 _BRAND_LOGO_CSS = register_css(
-    ".sl-logo__img{display:block;height:20px;max-width:150px;object-fit:contain}")
+    ".sl-logo__images{display:inline-flex;align-items:center}"
+    ".sl-logo__img{display:block;height:20px;max-width:150px;object-fit:contain}"
+    ".sl-logo__img--dark{display:none}"
+    ":root[data-theme=dark] .sl-logo__img--light{display:none}"
+    ":root[data-theme=dark] .sl-logo__img--dark{display:block}"
+    "@media(prefers-color-scheme:dark){"
+    ":root:not([data-theme]) .sl-logo__img--light{display:none}"
+    ":root:not([data-theme]) .sl-logo__img--dark{display:block}}")
 
 
-def _brand_logo_img(alt: str, logo_value: str | None = None) -> str:
+def _safe_brand_logo_src(logo: str) -> str:
+    """Resolve one validated brand image for the shell, or return an empty src."""
+    if not logo:
+        return ""
+    if logo.startswith("data:"):
+        return logo
+    from pathlib import Path
+    from .. import config as _config
+    try:
+        relative = Path(logo).resolve().relative_to(_config.partition_dir().resolve())
+    except ValueError:
+        return ""
+    if _config.postgres_row_tenancy_enabled():
+        return ""
+    return "/data/" + relative.as_posix()
+
+
+def _brand_logo_img(alt: str, logo_value: str | None = None,
+                    logo_dark_value: str | None = None) -> str:
     """The customer-logo <img> for the sidebar lockup, or "" when none is set. A data:
     URI is emitted as-is. Local file logos use the single-tenant /data mount. Shared
     row-tenancy has no raw runtime-file route, so its workspace branding must use a
     data URI (or fall back to the wordmark)."""
     logo = brand_logo() if logo_value is None else logo_value
-    if not logo:
+    logo_dark = brand_logo_dark() if logo_dark_value is None else logo_dark_value
+    src = _safe_brand_logo_src(str(logo or ""))
+    src_dark = _safe_brand_logo_src(str(logo_dark or ""))
+    if not src:
         return ""
-    if logo.startswith("data:"):
-        src = logo
-    else:
-        from pathlib import Path
-        from .. import config as _config
-        try:
-            relative = Path(logo).resolve().relative_to(_config.partition_dir().resolve())
-        except ValueError:
-            return ""
-        if _config.postgres_row_tenancy_enabled():
-            return ""
-        src = "/data/" + relative.as_posix()
-    return h("img", {"class_": "sl-logo__img", "src": src, "alt": alt})
+    light = h("img", {"class_": "sl-logo__img sl-logo__img--light" if src_dark else "sl-logo__img",
+                      "src": src, "alt": alt})
+    if not src_dark:
+        return light
+    dark = h("img", {"class_": "sl-logo__img sl-logo__img--dark", "src": src_dark,
+                     "alt": alt})
+    return h("span", {"class_": "sl-logo__images"}, light, dark)
 
 
 def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
@@ -616,6 +666,7 @@ def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
     hidden_project_favorites, hidden_project_urls = _archived_project_discovery_denylist(store)
     shell_brand = brand_name()
     shell_brand_logo = str(brand_logo() or "")
+    shell_brand_logo_dark = str(brand_logo_dark() or "")
     shell_theme_css = theme_override_css()
     shell_head_extra = render_slot("head_extra", store)
     shell_body_end = render_slot("body_end", store)
@@ -635,6 +686,7 @@ def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
         favorites_key=favorites_key,
         brand=shell_brand,
         brand_logo_value=shell_brand_logo,
+        brand_logo_dark_value=shell_brand_logo_dark,
         theme_css=shell_theme_css,
         head_extra=shell_head_extra,
         body_end=shell_body_end,
@@ -688,7 +740,7 @@ def _layout(title: str, body: str, store: Store, crumbs: list | None = None,
     # A customer logo (theming.validate_customer_theme brand.logo, set via set_brand)
     # replaces mark + wordmark entirely — the customer's identity, not a co-brand.
     _bn = shell_brand
-    _lockup = _brand_logo_img(_bn, shell_brand_logo)
+    _lockup = _brand_logo_img(_bn, shell_brand_logo, shell_brand_logo_dark)
     if not _lockup:
         _i = _bn.lower().find("loop")
         if _i != -1:

@@ -223,10 +223,10 @@ def test_export_synthesis_deliverable_without_project_skips_attach(store, tmp_pa
 
 
 def test_assets_render_as_tag_free_outline_rows(store, project, tmp_path, monkeypatch):
-    """UX P2 (spec/ux-contract.md §3.4 / §7.2): assets are outline rows — incoming files in their phase
-    flow, the deliverable at the END (the Deliver group). Since UX U8 the row deep-links to the
+    """UX P2 (spec/ux-contract.md §3.4 / §7.2): assets are file atoms in the outline — incoming
+    files in their phase gallery, the deliverable at the END (the Deliver group). Since UX U8 each deep-links to the
     asset's DETAIL page (slide-over armed, §8.1); the file itself stays one click away as the
-    row's trailing download/open action."""
+    trailing download/open action."""
     monkeypatch.setattr("sonaloop.services._synthesis_pptx.export_synthesis_pptx", lambda sid, store=None: b"PK deck")
     evidence = tmp_path / "field-note.txt"
     evidence.write_text("observed in the field")

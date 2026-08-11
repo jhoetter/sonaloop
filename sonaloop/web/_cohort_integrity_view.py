@@ -9,8 +9,17 @@ from . import ui
 
 
 register_css(r"""
-.sl-cohort-card{border:1px solid var(--line);border-left:3px solid var(--green);border-radius:var(--radius);background:var(--panel);padding:12px 14px;margin:14px 0}.sl-cohort-card--warn,.sl-cohort-card--missing{border-left-color:var(--amber)}.sl-cohort-card--blocked{border-left-color:var(--red)}
-.sl-cohort-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.sl-cohort-head strong{display:flex;align-items:center;gap:7px}.sl-cohort-pills{display:flex;gap:6px;flex-wrap:wrap}.sl-cohort-meta{color:var(--muted);font-size:var(--t-sm);margin-top:5px}.sl-cohort-grid{display:grid;grid-template-columns:repeat(3,minmax(110px,1fr));gap:8px;margin:11px 0}.sl-cohort-stat{border:1px solid var(--line);border-radius:var(--radius-sm);padding:8px;background:var(--panel-2);font-size:var(--t-sm)}.sl-cohort-stat strong{display:block;font-size:var(--t-lg)}.sl-cohort-list{margin:9px 0 0;padding-left:18px;font-size:var(--t-sm)}.sl-cohort-personas{margin:8px 0 0;padding-left:18px;font-size:var(--t-xs);color:var(--muted)}.sl-cohort-limitation{border-left:2px solid var(--amber);padding-left:9px;margin-top:10px;color:var(--muted);font-size:var(--t-sm)}@media(max-width:640px){.sl-cohort-grid{grid-template-columns:1fr}}
+/* Research integrity is supporting evidence, not another report-sized card.  The
+   first layer answers "was this checked?"; exact policy inputs remain one native
+   disclosure away for keyboard, screen-reader and no-JS users. */
+.sl-integrity{width:100%;max-width:760px;margin:14px 0;border:0;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);background:transparent}
+.sl-integrity+.sl-integrity{margin-top:-15px;border-top:0}.sl-integrity>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto 14px;align-items:center;gap:12px;padding:12px 0}.sl-integrity>summary::-webkit-details-marker,.sl-integrity-nested>summary::-webkit-details-marker{display:none}
+.sl-integrity>summary::after{content:'›';color:var(--faint);font-size:20px;line-height:1;transform:rotate(0);transition:transform 120ms}.sl-integrity[open]>summary::after{transform:rotate(90deg)}
+.sl-integrity-heading{display:flex;align-items:flex-start;gap:9px;min-width:0}.sl-integrity-heading>svg{flex:none;width:17px;height:17px;margin-top:2px;color:var(--muted)}.sl-integrity-heading-copy{min-width:0}.sl-integrity-title{display:block;font-weight:650;color:var(--ink)}.sl-integrity-summary{display:block;margin-top:2px;color:var(--muted);font-size:var(--t-sm);line-height:1.4}.sl-integrity-badges{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.sl-integrity-body{padding:2px 0 13px 26px;color:var(--ink);font-size:var(--t-sm)}.sl-integrity-context{max-width:68ch;margin:0 0 7px;color:var(--muted);line-height:1.5}.sl-integrity-nested{border:0;border-top:1px solid var(--line-2);margin-top:7px}.sl-integrity-nested>summary{list-style:none;cursor:pointer;padding:8px 0;color:var(--muted);font-size:var(--t-sm);font-weight:550}.sl-integrity-nested>summary::before{content:'›';display:inline-block;width:14px;color:var(--faint);transform:rotate(0);transition:transform 120ms}.sl-integrity-nested[open]>summary::before{transform:rotate(90deg)}
+.sl-integrity-list{margin:0 0 7px;padding-left:18px;color:var(--muted);font-size:var(--t-sm)}.sl-integrity-list li+li{margin-top:5px}.sl-integrity-metrics{display:grid;gap:5px;margin:0 0 8px}.sl-integrity-metrics>div{display:grid;grid-template-columns:minmax(150px,.65fr) minmax(0,1fr);gap:12px}.sl-integrity-metrics dt{color:var(--muted)}.sl-integrity-metrics dd{margin:0;color:var(--ink);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.sl-integrity-technical{font-family:var(--mono);font-size:var(--t-xs)}
+.sl-integrity-attention{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:11px 0}.sl-integrity-attention .sl-integrity-heading{align-items:center}.sl-integrity-attention .sl-integrity-summary{margin-top:3px}.sl-cohort-required{margin-top:9px}.sl-cohort-required strong{display:block;margin-bottom:4px}.sl-cohort-limitation{margin-top:9px;color:var(--muted);font-size:var(--t-sm)}
+@media(max-width:640px){.sl-integrity>summary{grid-template-columns:minmax(0,1fr) 14px}.sl-integrity-badges{grid-column:1/-1;justify-content:flex-start;padding-left:26px}.sl-integrity-body{padding-left:0}.sl-integrity-metrics>div{grid-template-columns:1fr;gap:1px}.sl-integrity-attention{grid-template-columns:1fr}.sl-integrity-attention>.lbl{margin-left:26px;width:max-content}}
 """)
 
 
@@ -31,12 +40,15 @@ def render_cohort_integrity(project: dict, store=None, *, show_missing: bool = T
             return ""
         return h(
             "section",
-            {"class_": "sl-cohort-card sl-cohort-card--missing", "id": "cohort-integrity",
+            {"class_": "sl-integrity sl-integrity-attention", "id": "cohort-integrity",
              "role": "status", "aria-label": t("cohort_integrity_missing_help")},
-            h("div", {"class_": "sl-cohort-head"},
-              h("strong", {}, raw(_icon("personas")), t("cohort_integrity_h")),
-              raw(_label(t("cohort_integrity_missing"), "var(--amber)"))),
-            h("div", {"class_": "sl-cohort-meta"}, t("cohort_integrity_missing_help")),
+            h("div", {"class_": "sl-integrity-heading"},
+              raw(_icon("personas")),
+              h("span", {"class_": "sl-integrity-heading-copy"},
+                h("strong", {"class_": "sl-integrity-title"}, t("cohort_integrity_h")),
+                h("span", {"class_": "sl-integrity-summary"},
+                  t("cohort_integrity_missing_help")))),
+            raw(_label(t("cohort_integrity_missing"), "var(--amber)")),
         )
 
     stale = not preflight_satisfies_project(project, store)
@@ -53,8 +65,6 @@ def render_cohort_integrity(project: dict, store=None, *, show_missing: bool = T
         "needs_deepening": "var(--amber)", "needs_reselection": "var(--red)",
         "stale": "var(--red)",
     }
-    card_state = ("warn" if status in {"overridden", "needs_deepening"}
-                  else "blocked" if status in {"needs_reselection", "stale"} else "pass")
     totals = (current.get("depth") or {}).get("totals") or {}
     leakage = current.get("leakage") or {}
     lexical_max = _maximum_score(leakage.get("lexical") or [])
@@ -80,45 +90,72 @@ def render_cohort_integrity(project: dict, store=None, *, show_missing: bool = T
         (" · " + ", ".join(row.get("tools") or [])) if row.get("tools") else "",
     ) for row in required_work]
     limitation = current.get("override") or {}
-    meta = t("cohort_policy_meta", version=current.get("policy_version") or "—",
-             evaluated=ui.fmt_ts(current.get("evaluated_at") or ""))
+    time_marker = "__SONALOOP_LOCAL_TIME__"
+    meta_text = t("cohort_policy_meta", version=current.get("policy_version") or "—",
+                  evaluated=time_marker)
+    meta_before, _, meta_after = meta_text.partition(time_marker)
+    meta = fragment(meta_before, ui.local_ts(current.get("evaluated_at") or ""), meta_after)
     aria = f'{t("cohort_integrity_h")}: {labels.get(status, status)}. '
     aria += t("cohort_depth_summary", personas=totals.get("personas", 0),
               items=totals.get("independent_context_items", 0), thin=totals.get("thin", 0))
-    tag = "section" if embedded else "details"
-    wrapper_class = (f"sl-setup-block sl-setup-block--cohort sl-cohort-card--{card_state}"
-                     if embedded else f"sl-cohort-card sl-cohort-card--{card_state}")
-    head_tag = "div" if embedded else "summary"
+    countervoices = representation.get("countervoice_count", 0)
+    countervoice_label = (
+        t("cohort_countervoice_one") if countervoices == 1
+        else t("cohort_countervoices_n", n=countervoices)
+    )
+    thin_profiles = totals.get("thin", 0)
+    thin_label = (
+        t("cohort_no_thin_profiles") if not thin_profiles
+        else t("cohort_thin_profile_one") if thin_profiles == 1
+        else t("cohort_thin_profiles_n", n=thin_profiles)
+    )
+    summary = t(
+        "cohort_compact_summary",
+        personas=totals.get("personas", 0),
+        countervoices=countervoice_label,
+        thin=thin_label,
+    )
+    wrapper_class = "sl-integrity sl-integrity--cohort"
+    if embedded:
+        wrapper_class += " sl-integrity--embedded"
     return h(
-        tag, {"class_": wrapper_class, "id": "cohort-integrity", "aria-label": aria},
-        h(head_tag, {"class_": "sl-cohort-head"},
-          h("strong", {}, raw(_icon("personas")), t("cohort_integrity_h")),
-          h("span", {"class_": "sl-cohort-pills"},
+        "details", {"class_": wrapper_class, "id": "cohort-integrity", "aria-label": aria},
+        h("summary", {},
+          h("span", {"class_": "sl-integrity-heading"},
+            raw(_icon("personas")),
+            h("span", {"class_": "sl-integrity-heading-copy"},
+              h("strong", {"class_": "sl-integrity-title"}, t("cohort_integrity_h")),
+              h("span", {"class_": "sl-integrity-summary"}, summary))),
+          h("span", {"class_": "sl-integrity-badges"},
             raw(_label(labels.get(status, status), colors.get(status, "var(--muted)"))),
-            raw(_label(t("cohort_countervoices_n", n=representation.get("countervoice_count", 0)))),
             (raw(_label(t("cohort_unverified_countervoices_n",
                           n=len(representation.get("unverified_countervoice_persona_ids") or [])),
                         "var(--red)"))
-             if representation.get("unverified_countervoice_persona_ids") else None),
-            raw(_label(t("cohort_thin_n", n=totals.get("thin", 0)),
-                       "var(--amber)" if totals.get("thin") else "var(--green)")))),
-        h("div", {"class_": "sl-cohort-meta"},
-          t("cohort_integrity_stale_help") if stale else t("cohort_boundary_help")),
-        h("div", {"class_": "sl-cohort-meta"}, meta),
-        h("div", {"class_": "sl-cohort-grid"},
-          h("div", {"class_": "sl-cohort-stat"},
-            h("strong", {}, str(totals.get("independent_context_items", 0))),
-            t("cohort_independent_items")),
-          h("div", {"class_": "sl-cohort-stat"},
-            h("strong", {}, f"{lexical_max:.0%}"), t("cohort_lexical_overlap")),
-          h("div", {"class_": "sl-cohort-stat"},
-            h("strong", {}, "—" if semantic_max is None else f"{semantic_max:.0%}"),
-            t("cohort_semantic_overlap"))),
-        (fragment(h("div", {"class_": "sl-cohort-meta"}, t("cohort_required_work")),
-                  h("ul", {"class_": "sl-cohort-list"}, fragment(*work_rows)))
+             if representation.get("unverified_countervoice_persona_ids") else None))),
+        h("div", {"class_": "sl-integrity-body"},
+          h("p", {"class_": "sl-integrity-context"},
+            t("cohort_integrity_stale_help") if stale else t("cohort_boundary_help")),
+        (h("div", {"class_": "sl-cohort-required"},
+           h("strong", {}, t("cohort_required_work")),
+           h("ul", {"class_": "sl-integrity-list"}, fragment(*work_rows)))
          if work_rows else None),
         (h("div", {"class_": "sl-cohort-limitation"},
            h("strong", {}, t("cohort_override_limitation")), " ", limitation.get("rationale", ""))
          if limitation else None),
-        h("ul", {"class_": "sl-cohort-personas"}, fragment(*persona_rows)),
+          h("details", {"class_": "sl-integrity-nested"},
+            h("summary", {}, t("cohort_check_details")),
+            h("dl", {"class_": "sl-integrity-metrics"},
+              h("div", {}, h("dt", {}, t("cohort_independent_items")),
+                h("dd", {}, str(totals.get("independent_context_items", 0)))),
+              h("div", {}, h("dt", {}, t("cohort_lexical_overlap")),
+                h("dd", {}, f"{lexical_max:.0%}")),
+              h("div", {}, h("dt", {}, t("cohort_semantic_overlap")),
+                h("dd", {}, t("cohort_not_calculated") if semantic_max is None
+                  else f"{semantic_max:.0%}")),
+              h("div", {}, h("dt", {}, t("cohort_policy")),
+                h("dd", {"class_": "sl-integrity-technical"}, meta)))),
+          h("details", {"class_": "sl-integrity-nested"},
+            h("summary", {}, t("cohort_persona_basis_n", n=totals.get("personas", 0))),
+            h("ul", {"class_": "sl-integrity-list"}, fragment(*persona_rows))),
+        ),
     )

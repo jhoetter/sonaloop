@@ -146,7 +146,7 @@ def register_hypotheses(app) -> None:
         prop_rows = [
             ("projects", t("project"), proj_link),
             *detail_form_rows("hypothesis", hx),
-            ("dot", t("created"), ui.fmt_date(hx.get("created_at") or "")),
+            ("dot", t("created"), ui.local_date(hx.get("created_at") or "")),
         ]
         return detail_page(
             store, title=hx.get("text", ""), crumbs=crumbs,

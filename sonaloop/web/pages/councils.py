@@ -234,7 +234,7 @@ def register_councils(app) -> None:
             vals = [st["value"] for x in session["votes"] if (st := _A.vote_stance(x)) is not None]
             prop_rows += [("dot", t(r["label_key"]), str(n))
                           for r in _A.stance_terms() if (n := vals.count(r["value"]))]
-        prop_rows.append(("dot", created_h, ui.fmt_date(session["created_at"])))
+        prop_rows.append(("dot", created_h, ui.local_date(session["created_at"])))
         mode_pill = _label(t("council_mode_" + mode), "var(--blue)") if mode in (
             "discovery", "evaluation", "decision") else None
         return detail_page(

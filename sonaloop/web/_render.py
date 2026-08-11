@@ -60,8 +60,10 @@ details.qround>summary:hover .qround-q{border-color:var(--accent)}
 .turn-refs__lbl{color:var(--faint)}
 .srcchip-ts{font-family:var(--mono);font-size:var(--t-xs);color:var(--faint);margin-right:4px;white-space:nowrap}
 .srcchip-mark{color:var(--faint);font-style:italic;margin-right:4px}
-.claim-notice{display:flex;align-items:flex-start;gap:9px;border:1px solid var(--line);border-left:3px solid var(--muted);border-radius:var(--radius);background:var(--panel);padding:10px 13px;margin:0 0 16px;font-size:var(--t-sm)}
-.claim-notice--verified{border-left-color:var(--green)}.claim-notice--unverified{border-left-color:var(--red)}.claim-notice--verified svg{color:var(--green)}.claim-notice--unverified svg{color:var(--red)}.claim-notice svg{width:16px;height:16px;flex:none;margin-top:1px}
+.claim-notice{display:flex;align-items:flex-start;gap:9px;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;padding:4px 0 16px;margin:0 0 16px;font-size:var(--t-sm)}
+/* The icon, explicit heading, role=status and aria-label carry status accessibly.  A repeated
+   coloured left rail added alert-card weight without adding information on detail pages. */
+.claim-notice--verified svg{color:var(--green)}.claim-notice--unverified svg{color:var(--red)}.claim-notice svg{width:16px;height:16px;flex:none;margin-top:1px}
 .claim-health-body{min-width:0;display:flex;flex-direction:column;gap:6px}.claim-counts,.sl-claim-sources{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.claim-issues{margin:0;padding-left:18px}.claim-exact-refs{margin:0}.claim-exact-refs summary{cursor:pointer;color:var(--muted)}
 """)
 
@@ -206,7 +208,8 @@ def render_ref(r: dict, store=None, *, show_role: bool = True) -> str:
     m = _REF_TS.match(txt)
     if m:
         from . import ui
-        ts = ui.fmt_ts(f"{m.group(1)} {m.group(2)}") if m.group(2) else ui.fmt_day(m.group(1))
+        ts = (ui.local_ts(f"{m.group(1)} {m.group(2)}")
+              if m.group(2) else ui.fmt_day(m.group(1)))
         ts_html = h("span", {"class_": "srcchip-ts"}, ts)
         txt = txt[m.end():]
     lm = _REF_LOOP.match(txt)

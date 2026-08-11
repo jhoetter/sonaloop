@@ -1,6 +1,6 @@
 """UX U8 — assets as a first-class surface (spec/ux-contract.md §8.3, ticket
 sonaloop/ux-u8-assets-surface): the Library's Assets tab, the global /assets/{id} detail page
-(U7 anatomy + provenance block), and project outline asset rows — the
+(U7 anatomy + provenance block), and project outline asset galleries — the
 across-many-MCP-messages story stays in context with the research graph."""
 from __future__ import annotations
 
@@ -126,18 +126,34 @@ def test_library_assets_tab_empty_state_teaches_attach_asset(store):
 # ------------------------------------------------------------------- project outline assets (§8.3)
 
 
-def test_outline_asset_and_deliver_rows_are_file_rows(store, project, both_directions):
-    """V9: the project outline's Assets/Deliver asset rows use the compact `.sl-file--row`
-    — ext badge identity instead of a generic icon, one affordance, slide-over armed."""
+def test_outline_asset_and_deliver_rows_are_compact_gallery_files(store, project, both_directions):
+    """Project evidence stays in phase context, but file previews use responsive galleries
+    instead of a potentially very tall vertical screenshot list."""
     html = _client().get(f'/jobs/{project["id"]}?lang=en').text
     assert html.count('data-rkind="asset"') == 2
-    assert html.count('class="sl-file sl-file--row" data-rkind="asset"') == 2
+    assert html.count('class="sl-file" data-rkind="asset" role="listitem"') == 2
+    assert html.count('class="ol-asset-grid" role="list"') == 2
     assert ">Assets (1)<" in html
     assert ">md</span>" in html and ">pptx</span>" in html
     for a in (both_directions["in"], both_directions["out"]):
         assert f'data-drawer="/assets/{a["id"]}"' in html
         chunk = html.split(f'data-drawer="/assets/{a["id"]}"')[1].split("</div></div>")[0]
         assert chunk.count(f'href="{a["url"]}"') == 1, "one download/open affordance per row"
+
+
+def test_outline_asset_gallery_is_responsive_and_bounds_screenshot_height(store, project):
+    for n in range(4):
+        _attach(store, project["id"], f"screen-{n}.png", b"not-a-real-png" + bytes([n]),
+                title=f"Screen {n}", kind="screenshot")
+
+    html = _client().get(f'/jobs/{project["id"]}?lang=en').text
+
+    assert html.count('class="ol-asset-grid" role="list"') == 1
+    assert html.count('class="sl-file" data-rkind="asset" role="listitem"') == 4
+    assert 'grid-template-columns:repeat(auto-fill,minmax(180px,1fr))' in html
+    assert '.outline .ol-asset-grid .sl-file__stage{height:96px}' in html
+    assert '.outline .ol-asset-grid .sl-file__thumb{object-fit:contain' in html
+    assert '@media(max-width:460px)' in html
 
 
 def test_project_header_has_no_files_lens_chip(store, project):

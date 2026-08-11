@@ -60,7 +60,7 @@ These are **non-negotiables** for every inspector screen. They extend
 
 | # | Rule |
 |---|------|
-| C1 | **The row is the atom.** Every primitive (council, synthesis/report, decision, survey, session, asset, note, prototype, hypothesis, persona) renders as one `sl-entity` row: leading visual · title · status pill(s) · right-aligned meta. Identical anatomy in the outline, in the library, in search. |
+| C1 | **The row is the atom.** Every primitive (council, synthesis/report, decision, survey, session, note, prototype, hypothesis, persona) renders as one `sl-entity` row: leading visual · title · status pill(s) · right-aligned meta. An asset uses the equivalent `sl-file` atom; several files in a project/report detail subgroup may form a compact responsive gallery without changing their individual open/detail contract. |
 | C2 | **Peek before page.** Clicking a row opens the `sl-drawer` peek with the essence; the full detail page (with `sl-rail` properties) is one more click (or `Enter` from the peek). No primitive ever dumps its full body into a list context. |
 | C3 | **The project is the home.** The outline is the single canvas; *everything the project produced is an outline row in its phase context.* No appendix sections. Cross-project lists exist for browsing, never as the primary surface. |
 | C4 | **One scroll context per page.** The page scaffold owns scrolling; only structure may be sticky (phase headers, rail). Two nested scroll traps = bug. |
@@ -70,6 +70,7 @@ These are **non-negotiables** for every inspector screen. They extend
 | C8 | **Empty states teach** (`sl-empty` with the next action), **counts are honest** (a chip count always equals what the target shows). |
 | C9 | **No new presentation without a contract.** Pages compose `.sl-*` classes via `web/ui.py` helpers; `style=` and new CSS classes in `web/pages/` are gated (see §5). |
 | C10 | **Concept economy & orientation.** The whole app runs on ONE mental model: *Project → phases → rows; click = peek; everything else is context.* Every concept appears in exactly one place (no duplicate surfaces); every screen answers "Wo bin ich · was sehe ich · was kann ich als Nächstes tun" without training. A feature that needs its own new concept must retire an old one. |
+| C11 | **Time belongs to the reader, not the server.** Persist absolute instants in UTC, render semantic `<time datetime>` values, and localize them in the browser across initial HTML, SPA swaps and drawers. A no-JS fallback says `UTC` explicitly; date-only domain values are never timezone-shifted. |
 
 ## 3. Design
 
@@ -125,9 +126,10 @@ never the only address. Peek content per kind = the row + the *essence*:
 
 ### 3.4 Project page = the outline, period
 
-- Decisions, surveys, assets, hypotheses, open questions become **outline rows in their phase
-  context**: a decision sits in the round whose gate it decided; a survey under the phase that ran
-  it; deliverable assets in a final *Deliver* group; evidence assets next to what they ground.
+- Decisions, surveys, hypotheses and open questions become **outline rows in their phase context**;
+  assets become file atoms in a compact gallery in that same context: a decision sits in the round
+  whose gate it decided; a survey under the phase that ran it; deliverable assets in a final
+  *Deliver* group; evidence assets next to what they ground.
   (Implementation note: these kinds enter `plan_graph`'s node list with their producing task's
   round — the graph builder already knows the linkage via `produces`/judgments.)
 - The appendix sections and `#jump`-chips **retire** (P0's `.projsection` is the bridge until P2).

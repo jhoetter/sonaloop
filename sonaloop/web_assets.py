@@ -59,11 +59,16 @@ svg.ic{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke
 .ol-phase>summary b{font-weight:650;letter-spacing:-.01em}
 .ol-rlabel{display:flex;align-items:center;gap:8px;font-size:var(--t-xs);font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);padding:8px 8px 4px}
 .ol-rlabel__ico{width:24px;display:inline-flex;justify-content:center;color:var(--muted)}
-/* File rows INSIDE the outline follow the outline's FLAT idiom — the boxed .sl-file--row
-   card variant is for the Library assets grid. A box among flat siblings reads as a stray
-   divider + floating card (owner round 5); the spacing harness flags the mixed idiom. */
+/* A single file row inside the outline follows the flat row idiom. Asset SUB-GROUPS use a
+   compact responsive gallery below: fixed-height preview stages prevent tall screenshots
+   from turning the project timeline into one very long vertical strip. */
 .outline .sl-file--row{border:0;background:transparent;border-radius:0;padding:7px 8px}
 .outline .sl-file--row:hover{background:var(--hover);border-radius:var(--radius-sm)}
+.outline .ol-asset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:var(--sl-gap-group);padding:4px 8px 12px}
+.outline .ol-asset-grid .sl-file{min-width:0;background:var(--panel);border-color:var(--line)}
+.outline .ol-asset-grid .sl-file__stage{height:96px}
+.outline .ol-asset-grid .sl-file__thumb{object-fit:contain;background:var(--panel-2)}
+@media(max-width:460px){.outline .ol-asset-grid{grid-template-columns:1fr}}
 .olrow{display:flex;align-items:center;gap:8px;padding:8px;border-radius:var(--radius-sm);color:var(--ink);text-decoration:none;font-size:var(--t-body);z-index:1}
 .olrow:hover{background:var(--hover)}
 .sl-rel-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
@@ -138,10 +143,10 @@ svg.ic{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke
    The P0 bridge section classes + header jump chips retired with UX P2: every kind is an
    outline row in its phase group now (spec/ux-contract.md §3.4). */
 .outline .olrow{transition:opacity .12s,background .12s}
-.outline.is-relating .olrow,.outline.is-relating .sl-file--row{opacity:.62}
-.outline.is-relating .olrow.ol-rel-source,.outline.is-relating .sl-file--row.ol-rel-source{opacity:1;background:var(--hover)}
-.outline.is-relating .olrow.ol-rel-in-row,.outline.is-relating .sl-file--row.ol-rel-in-row,
-.outline.is-relating .olrow.ol-rel-out-row,.outline.is-relating .sl-file--row.ol-rel-out-row{opacity:1}
+.outline.is-relating .olrow,.outline.is-relating .sl-file{opacity:.62}
+.outline.is-relating .olrow.ol-rel-source,.outline.is-relating .sl-file.ol-rel-source{opacity:1;background:var(--hover)}
+.outline.is-relating .olrow.ol-rel-in-row,.outline.is-relating .sl-file.ol-rel-in-row,
+.outline.is-relating .olrow.ol-rel-out-row,.outline.is-relating .sl-file.ol-rel-out-row{opacity:1}
 /* themes stay in the FilterBar facet; rows remain tag-free. */
 /* relations block on detail pages (Linear progressive disclosure) */
 .relcard{margin-top:16px}

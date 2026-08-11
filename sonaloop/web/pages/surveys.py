@@ -145,7 +145,7 @@ def _response_row(resp: dict, qmap: dict, store) -> str:
                h("div", {"class_": "sl-entity__title"}, name)),
              h("span", {"class_": "sl-entity__trailing"},
                h("span", {"class_": "muted small"}, t("n_answers", n=len(answers))),
-               h("span", {"class_": "muted small"}, ui.fmt_day(resp.get("submitted_at") or ""))))
+               h("span", {"class_": "muted small"}, ui.local_day(resp.get("submitted_at") or ""))))
     rows = []
     for a in answers:
         q = qmap.get(a.get("question_id", "")) or {}
@@ -226,7 +226,7 @@ def register_surveys(app) -> None:
             prop_rows=[("projects", t("project"), proj_link),
                        *detail_form_rows("survey", s),
                        ("personas", t("respondents_h"), str(results["respondents"])),
-                       ("clock", t("created"), ui.fmt_date(s.get("created_at", "")))],
+                       ("clock", t("created"), ui.local_date(s.get("created_at", "")))],
             rel_study_id=f"survey:{s['id']}", rel_proj_id=(proj["id"] if proj else None),
             rail_sections=[("sec-questions", t("n_questions", n=len(s["questions"]))),
                            ("sec-responses", t("n_responses", n=n_resp))],

@@ -295,20 +295,29 @@ def test_bilingual_evidence_health_precedes_report_and_has_exact_sources(store):
                               "posture": "inferred", "refs": [ref]}]}, store=store)
 
     client = TestClient(web.create_app())
-    for language, verified, sources, absences, unknown in (
-        ("en", "Claim provenance complete", "Sources", "verified absences", "unknown"),
-        ("de", "Claim-Herkunft vollständig", "Quellen", "verifizierte Abwesenheiten", "unbekannt"),
+    for language, verified, sources, absences, unknown, compact, technical in (
+        ("en", "Claim provenance complete", "Sources", "verified absences", "unknown",
+         "2 of 3 product areas evidenced · 1 still open", "Technical reference"),
+        ("de", "Claim-Herkunft vollständig", "Quellen", "verifizierte Abwesenheiten", "unbekannt",
+         "2 von 3 Produktbereichen belegt · 1 noch offen", "Technische Referenz"),
     ):
         council_html = client.get(f'/councils/{council["id"]}?lang={language}').text
         report_html = client.get(f'/syntheses/{synthesis["id"]}?lang={language}').text
         for html in (council_html, report_html):
             assert verified in html and sources in html
             assert 'id="claim-health"' in html and 'role="status"' in html
+            assert 'class="claim-notice claim-notice--verified"' in html
             assert ref["id"] in html and "Product Understanding" in html
             assert absences in html and unknown in html
+            assert compact in html and technical in html
             # Trust/evidence blocks precede authored result prose.
             assert html.index('id="claim-health"') < html.index('id="product-understanding"')
         assert report_html.index('id="product-understanding"') < report_html.index("captured state and simulated")
+        # Claim health is quiet supporting structure, not a second alert card. Status remains
+        # explicit in DOM copy/icon/ARIA instead of a redundant coloured left rail.
+        assert ('claim-notice{display:flex;align-items:flex-start;gap:9px;border:0;'
+                'border-bottom:1px solid var(--line);border-radius:0;background:transparent') in report_html
+        assert '.claim-notice--verified{border-left-color:' not in report_html
 
 
 def test_project_keeps_persisted_setup_evidence_in_one_closed_quiet_disclosure(store):
@@ -320,11 +329,16 @@ def test_project_keeps_persisted_setup_evidence_in_one_closed_quiet_disclosure(s
     assert 'class="sl-project-setup"' in details_tag and " open" not in details_tag
     assert "Research setup details" in page
     assert 'id="product-understanding"' in page and ref["id"] in page
-    assert 'class="sl-setup-block sl-setup-block--product"' in page
-    # Project evidence uses one outer disclosure, not the full-width card used
-    # on evidence-heavy council/report detail pages.
+    assert 'class="sl-integrity sl-integrity--product sl-integrity--embedded"' in page
+    assert "2 of 3 product areas evidenced · 1 still open" in page
+    assert "Evidenced product areas (2)" in page
+    assert "Areas still to verify (1)" in page
+    assert "Technical reference" in page
+    # Project evidence uses a flat, nested disclosure, not a full-width status
+    # card or a permanently expanded technical inventory.
     setup = page[marker:page.index('class="outlinecard', marker)]
     assert 'class="sl-pu-card"' not in setup
+    assert "border-left:3px" not in setup
 
 
 def test_mcp_and_cli_recovery_surface_is_present():

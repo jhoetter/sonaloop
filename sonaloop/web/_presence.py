@@ -450,11 +450,14 @@ def file_card(asset: dict, store=None, *, row: bool = False, href: str | None = 
     stretched overlay link); `source=True` adds the quiet provenance source line (grid cards);
     `desc` joins the meta line (the Library's owning-project title); `show_direction=False`
     lets the project outline keep rows tag-free; `attrs` extends the container."""
-    from .ui import _fmt_day
+    from .ui import local_day
     open_href = href or f'/assets/{asset.get("id", "")}'
     name = asset.get("filename") or asset.get("title") or asset.get("id", "")
-    meta = " · ".join(x for x in (asset_size(asset), _fmt_day(asset.get("created_at") or ""),
-                                  desc) if x)
+    meta_parts = [x for x in (asset_size(asset),
+                              local_day(asset.get("created_at") or "")
+                              if asset.get("created_at") else "", desc) if x]
+    meta = fragment(*(fragment(" · " if i else "", value)
+                      for i, value in enumerate(meta_parts)))
     src = asset_source_chip(asset, store) if source else ""
     pill = raw(asset_direction_pill(asset)) if show_direction else ""
     # GRID cards keep the filename on its own full-width line (file identity first — the

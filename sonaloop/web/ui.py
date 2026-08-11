@@ -188,8 +188,9 @@ def primitive_row(kind: str, record: dict, store: Any = None, *, href: str | Non
     | survey          | plan icon             | lifecycle pill          | avatars · n responses |
     | session         | activity icon         | verified check          | avatar group · date   |
     | prototype       | prototype icon        | fidelity tag            | avatars · sessions n  |
-    | asset           | the `.sl-file--row` FILE row (V9): ext badge/thumb · filename+ext ·
-    |                 | size · date meta · direction pill · ONE download/open affordance     |
+    | asset           | the `.sl-file` FILE atom (V9): ext badge/thumb · filename+ext ·       |
+    |                 | size · date meta · direction pill · ONE download/open affordance;     |
+    |                 | compact row in Library, responsive gallery card in project detail     |
     | note / hypothesis| panel / target icon  | — / status pill         | date                  |
 
     Late imports keep this module's import graph a leaf (pages → ui, never the reverse). The
@@ -204,7 +205,7 @@ def primitive_row(kind: str, record: dict, store: Any = None, *, href: str | Non
     from ._presence import (decision_status_pill, hypothesis_status_pill, survey_status_pill,
                             synthesis_status_pill)
     rec = record or {}
-    date = _fmt_day(rec.get("created_at") or "")
+    date = local_day(rec.get("created_at") or "") if rec.get("created_at") else ""
     icons = dict(council="councils", synthesis="syntheses", report="syntheses", decision="flag",
                  survey="plan", session="activity", prototype="prototype", flow="compass",
                  url_artifact="link", live_url="external", note="panel",
@@ -365,6 +366,56 @@ def fmt_ts(iso: str) -> str:
         return f"{dt.day} {dt:%b} · {dt:%H:%M}"
     except Exception:
         return iso[:16].replace("T", " ")
+
+
+def _local_time(iso: str, *, mode: str, fallback: str, cls: str = "") -> Safe:
+    """Semantic instant with an honest UTC fallback and browser-local enhancement."""
+    value = str(iso or "")
+    canonical = value
+    valid_instant = False
+    try:
+        from datetime import datetime, timezone
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        canonical = dt.isoformat()
+        valid_instant = True
+    except Exception:
+        pass
+    classes = "sl-local-time" + (f" {cls}" if cls else "")
+    return h("time", {"class_": classes, "datetime": canonical,
+                      "data-local-time": mode if valid_instant else None},
+             t("time_utc", value=fallback) if valid_instant else fallback)
+
+
+def local_ts(iso: str, *, cls: str = "") -> Safe:
+    """Render a timestamp in the reader's actual browser timezone.
+
+    Stored Sonaloop timestamps are UTC. Formatting them on the server made a Swiss
+    user's 15:50 activity look like 13:50 whenever the host ran in UTC. ``APP_JS``
+    replaces the explicit UTC no-JS fallback with a locale-aware value and timezone
+    tooltip. Naive persisted values are historical UTC values, never browser-local.
+    """
+    value = str(iso or "")
+    return _local_time(value, mode="datetime", fallback=fmt_ts(value), cls=cls)
+
+
+def local_date(iso: str, *, cls: str = "") -> Safe:
+    """Local calendar date for an absolute timestamp; true YYYY-MM-DD values stay fixed."""
+    value = str(iso or "")
+    if "T" not in value and not _re.search(r"\d{2}:\d{2}", value):
+        return h("time", {"class_": ("sl-local-time" + (f" {cls}" if cls else "")),
+                          "datetime": value}, fmt_date(value))
+    return _local_time(value, mode="date", fallback=fmt_date(value), cls=cls)
+
+
+def local_day(iso: str, *, cls: str = "") -> Safe:
+    """Compact local day/month for an instant; true date-only domain values stay fixed."""
+    value = str(iso or "")
+    if "T" not in value and not _re.search(r"\d{2}:\d{2}", value):
+        return h("time", {"class_": ("sl-local-time" + (f" {cls}" if cls else "")),
+                          "datetime": value}, fmt_day(value))
+    return _local_time(value, mode="day", fallback=fmt_day(value), cls=cls)
 
 
 def slideover(url: str, trigger: Any, *, title: str = "") -> Safe:

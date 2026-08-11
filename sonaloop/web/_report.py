@@ -74,10 +74,10 @@ def _resolve_figure(f: dict, store, *, project_id: str = "") -> dict | None:
                       if a.get("id") == f["id"]), None)
         if asset:
             from ._presence import asset_content_url
-            return {"url": asset_content_url(asset), "caption": cap}
+            return {"url": asset_content_url(asset), "caption": cap, "kind": "asset"}
         if config.postgres_row_tenancy_enabled():
             return None
-        return {"url": asset_url(f["id"]), "caption": cap}
+        return {"url": asset_url(f["id"]), "caption": cap, "kind": "asset"}
     if kind == "prototype" and f.get("id"):
         p = store.get_prototype(f["id"])
         if p and p.get("shot"):
@@ -112,9 +112,39 @@ def _resolve_figure(f: dict, store, *, project_id: str = "") -> dict | None:
 
 
 def _figure_html(fig: dict) -> str:
-    inner = raw(fig["html"]) if fig.get("html") else h("img", {"src": fig["url"], "alt": fig.get("caption", ""), "loading": "lazy"})
-    return h("figure", {"class_": "rp-fig"}, inner,
+    inner = raw(fig["html"]) if fig.get("html") else h(
+        "img", {"src": fig["url"], "alt": fig.get("caption", ""), "loading": "lazy"})
+    cls = "rp-fig" + (" rp-fig--asset" if fig.get("kind") == "asset" else "")
+    return h("figure", {"class_": cls}, inner,
              h("figcaption", {}, fig["caption"]) if fig.get("caption") else "")
+
+
+def _figure_run(figs: list[dict]) -> str:
+    """Keep charts and explicitly placed figures at reading width, but dose consecutive
+    unplaced asset screenshots as a compact responsive gallery.  The original ordering and
+    captions remain intact; a single asset stays a normal full-width figure."""
+    out: list = []
+    assets: list[dict] = []
+
+    def flush_assets() -> None:
+        if not assets:
+            return
+        rendered = [_figure_html(fig) for fig in assets]
+        out.append(h("div", {"class_": "rp-asset-grid", "role": "list",
+                             "aria-label": t("assets_h")},
+                     fragment(*(h("div", {"role": "listitem"}, figure)
+                                for figure in rendered))) if len(rendered) > 1
+                   else rendered[0])
+        assets.clear()
+
+    for fig in figs:
+        if fig.get("kind") == "asset":
+            assets.append(fig)
+        else:
+            flush_assets()
+            out.append(_figure_html(fig))
+    flush_assets()
+    return fragment(*out)
 
 
 def _prose_run(md_text: str) -> str:
@@ -156,9 +186,9 @@ def _body(md_text: str, figs: list) -> str:
             i = int(part) - 1
             if 0 <= i < len(figs):
                 out.append(_figure_html(figs[i])); used.add(i)
-    for i, fg in enumerate(figs):
-        if i not in used:
-            out.append(_figure_html(fg))
+    remaining = [fg for i, fg in enumerate(figs) if i not in used]
+    if remaining:
+        out.append(_figure_run(remaining))
     return fragment(*out)
 
 
@@ -185,9 +215,12 @@ def render_report(report: dict, store, *, with_toc: bool = False):
     if report.get("scope") != "project":
         # a convergence synthesis, rendered in the unified report shell.
         from ._synthesis import _synthesis_html
-        meta_line = " · ".join(x for x in [
-            (f'{len(report.get("council_ids", []))} {t("councils")}' if report.get("council_ids") else ""),
-            ui.fmt_date(report.get("created_at") or "")] if x)
+        meta_parts = [x for x in [
+            (f'{len(report.get("council_ids", []))} {t("councils")}'
+             if report.get("council_ids") else ""),
+            ui.local_date(report.get("created_at") or "")] if x]
+        meta_line = fragment(*(fragment(" · " if i else "", value)
+                               for i, value in enumerate(meta_parts)))
         cover = h("header", {"class_": "rp-cover"},
                   h("div", {"class_": "rp-eyebrow"}, t("synthesis_kind"), status_pill),
                   raw(_cover_title(project_title)),
@@ -207,11 +240,10 @@ def render_report(report: dict, store, *, with_toc: bool = False):
                      else ("section" if n_sec == 1 else "sections"))
     studies_word = (("Studie" if n_studies == 1 else "Studien") if de
                     else ("study" if n_studies == 1 else "studies"))
-    meta_line = " · ".join([
-        f"{n_sec} {sections_word}",
-        f"{n_studies} {studies_word}",
-        ui.fmt_date(report.get("created_at") or ""),
-    ])
+    meta_parts = [f"{n_sec} {sections_word}", f"{n_studies} {studies_word}",
+                  ui.local_date(report.get("created_at") or "")]
+    meta_line = fragment(*(fragment(" · " if i else "", value)
+                           for i, value in enumerate(meta_parts)))
 
     cover = h("header", {"class_": "rp-cover"},
               h("div", {"class_": "rp-eyebrow"}, t("synthesis_kind"), status_pill),
@@ -335,6 +367,9 @@ register_css(r"""
 .rp-fig{margin:22px 0}
 .rp-fig img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 1px 4px rgba(0,0,0,.07)}
 .rp-fig figcaption{margin-top:9px;font-size:var(--t-sm);color:var(--muted);text-align:center}
+.rp-asset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--sl-gap-group);margin:22px 0}
+.rp-asset-grid .rp-fig{margin:0}.rp-asset-grid .rp-fig img{width:100%;height:180px;object-fit:contain;background:var(--panel-2)}
+@media(max-width:560px){.rp-asset-grid{grid-template-columns:1fr}}
 /* print: drop the app chrome, give the report the page (foundation for the Chromium PDF, Phase 3) */
 @media print{
   .sl-sidebar,.sl-topbar,.sl-cmdk,.sl-drawer,.toc,.rail,.actions,.crumbs{display:none!important}
@@ -346,6 +381,7 @@ register_css(r"""
   .sl-clamp-toggle{display:none}
   .rp-sec{break-inside:avoid}
   .rp-call,.report blockquote,.rp-cites,.rp-fig{break-inside:avoid}
+  .rp-asset-grid .rp-fig img{height:auto}
   .rp-cover{break-after:avoid}
 }
 """)

@@ -173,6 +173,8 @@ def test_compiler_produces_css_brand_charts_deck_and_stable_hash():
         "short_name": "Acme",
         "logo": "data:image/png;base64,iVBORw0KGgo=",
         "logo_role": "lockup",
+        "logo_dark": None,
+        "logo_dark_role": None,
     }
     assert compiled["charts"]["series"][0] == "#007a5a"
     assert compiled["deck"]["series"][0] == "#007a5a"
@@ -194,6 +196,19 @@ def test_individual_surface_helpers_match_compiler():
     assert chart_palette(ds)["status"]["warning"] == "#c37b22"
     assert deck_theme(ds)["font_role"] == "sans"
     assert customer_design_system_css(ds) == customer_theme_css(ds)
+
+
+def test_brand_context_exposes_an_explicit_negative_logo_without_recoloring():
+    ds = _design_system()
+    ds["brand"]["logo_variants"]["lockup_dark"] = {
+        "kind": "image",
+        "src": "data:image/png;base64,ZGFyaw==",
+    }
+
+    brand = brand_context(ds)
+
+    assert brand["logo_dark"] == "data:image/png;base64,ZGFyaw=="
+    assert brand["logo_dark_role"] == "lockup_dark"
 
 
 def test_deck_theme_compiles_pptx_palette_type_and_assets():

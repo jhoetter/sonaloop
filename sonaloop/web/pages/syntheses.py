@@ -80,7 +80,7 @@ def register_syntheses(app) -> None:
             ("projects", t("project"), proj_link),
             *detail_form_rows("synthesis", syn),
             ("link", t("rel_based_on"), raw(_label(t("chip_sources_n", n=n_sources)))),
-            ("clock", t("created"), ui.fmt_date(syn.get("created_at") or "")),
+            ("clock", t("created"), ui.local_date(syn.get("created_at") or "")),
         ]
         from .._forms import overflow_delete
         return detail_page(

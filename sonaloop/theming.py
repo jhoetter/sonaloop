@@ -320,11 +320,15 @@ def brand_context(theme: dict[str, Any]) -> dict[str, str | None]:
     brand = ds["brand"]
     preferred = brand.get("logo_preferred") or "lockup"
     variant = brand.get("logo_variants", {}).get(preferred) or {}
+    variants = brand.get("logo_variants", {})  # Never recolor customer art.
+    dark_role = ("lockup_dark" if variants.get("lockup_dark") else "reversed" if variants.get("reversed") else None)
+    dark_variant = variants.get(dark_role) if dark_role else {}
     return {
-        "name": brand["name"],
-        "short_name": brand.get("short_name") or brand["name"],
+        "name": brand["name"], "short_name": brand.get("short_name") or brand["name"],
         "logo": variant.get("src") or variant.get("asset_ref"),
         "logo_role": preferred,
+        "logo_dark": (dark_variant or {}).get("src") or (dark_variant or {}).get("asset_ref"),
+        "logo_dark_role": dark_role,
     }
 
 

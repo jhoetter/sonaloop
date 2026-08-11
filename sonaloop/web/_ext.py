@@ -268,7 +268,8 @@ def set_brand(name: str, logo: str | None = None) -> None:
         _BRAND_LOGO = logo.strip()
 
 
-def set_runtime_brand(name: str | None = None, logo: str | None = None) -> contextvars.Token:
+def set_runtime_brand(name: str | None = None, logo: str | None = None,
+                      logo_dark: str | None = None) -> contextvars.Token:
     """Set the request-scoped brand lockup. Returns a token; pass it to
     reset_runtime_brand() in a finally block.
 
@@ -281,6 +282,8 @@ def set_runtime_brand(name: str | None = None, logo: str | None = None) -> conte
         payload["name"] = name.strip()
     if logo and logo.strip():
         payload["logo"] = logo.strip()
+    if logo_dark and logo_dark.strip():
+        payload["logo_dark"] = logo_dark.strip()
     return _RUNTIME_BRAND.set(payload or None)
 
 
@@ -298,6 +301,14 @@ def brand_logo() -> str | None:
     if runtime.get("logo"):
         return runtime["logo"]
     return _BRAND_LOGO
+
+
+def brand_logo_dark() -> str | None:
+    """Request-scoped dark-scheme logo, when a workspace supplies an official
+    reversed/negative variant.  Product-global branding deliberately has no inferred
+    dark logo: changing customer artwork with CSS would violate brand assets."""
+    runtime = _RUNTIME_BRAND.get() or {}
+    return runtime.get("logo_dark") or None
 
 
 def title_brand() -> str:

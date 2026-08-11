@@ -73,6 +73,7 @@ def test_shell_context_token_covers_kept_chrome():
         "favorites_key": "pc-stars:ws_a",
         "brand": "Sonaloop Cloud",
         "brand_logo_value": "data:image/png;base64,abc",
+        "brand_logo_dark_value": "data:image/png;base64,dark",
         "theme_css": "<style>:root{--accent:#123}</style>",
         "head_extra": "<style id=workspace-fonts></style>",
         "body_end": "<script>window.cloudShell=1</script>",

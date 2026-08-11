@@ -132,7 +132,11 @@ weak host does not have to invent IDs; the later Cohort Integrity evaluation sti
 independence and countervoice quality.
 
 The compact Product Understanding block is added to council context as **external
-stimulus**, never persona memory.
+stimulus**, never persona memory. In the inspector, Product Understanding and Cohort Integrity are
+supporting setup evidence rather than report sections: each appears as one closed, plain-language
+summary. Exact capability claims and evidence refs, immutable manifest metadata, overlap metrics,
+policy version and per-persona provenance remain available through nested native disclosures. The
+visual compression does not remove evidence from the DOM, exports or service contract.
 
 ## Cohort Integrity preflight
 

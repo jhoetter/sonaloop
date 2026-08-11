@@ -467,3 +467,17 @@ def test_shared_web_renderers_do_not_probe_or_reference_runtime_files(monkeypatc
             assert "data:image/png;base64,YWxwaGE=" in _components._brand_logo_img("Alpha")
         finally:
             _ext.reset_runtime_brand(token)
+
+        token = _ext.set_runtime_brand(
+            "Alpha",
+            "data:image/png;base64,bGlnaHQ=",
+            "data:image/png;base64,ZGFyaw==",
+        )
+        try:
+            lockup = str(_components._brand_logo_img("Alpha"))
+            assert "sl-logo__img--light" in lockup
+            assert "sl-logo__img--dark" in lockup
+            assert "data:image/png;base64,bGlnaHQ=" in lockup
+            assert "data:image/png;base64,ZGFyaw==" in lockup
+        finally:
+            _ext.reset_runtime_brand(token)

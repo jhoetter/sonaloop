@@ -217,11 +217,13 @@ def test_every_row_kind_opens_a_resolving_slideover(store):
         mk = _RKIND.search(chunk.split(">", 1)[0])
         if mk and 'data-drawer="' in chunk:         # normal rows arm the tag; chip rows the stretch link
             rkinds.add(mk.group(1))
-    # asset rows are `.sl-file--row` FILE rows since V9 — the stretched body link arms the drawer
-    for chunk in html.split('class="sl-file ')[1:]:
-        mk = _RKIND.search(chunk.split(">", 1)[0])
-        if mk and 'data-drawer="' in chunk:
-            rkinds.add(mk.group(1))
+    # assets are `.sl-file` atoms since V9 (row in dense lists, gallery card in project
+    # context) — the stretched body link arms the same canonical drawer.
+    for match in _re.finditer(
+        r'<div class="sl-file[^"]*"[^>]*data-rkind="([^"]+)"[^>]*>'
+        r'<a class="sl-file__open"[^>]*data-drawer="', html,
+    ):
+        rkinds.add(match.group(1))
     assert DRAWER_KINDS <= rkinds, f"kinds missing their slide-over arming: {DRAWER_KINDS - rkinds}"
     assert armed, "no slide-over-armed rows rendered"
     for url, href in armed.items():

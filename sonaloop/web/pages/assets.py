@@ -42,11 +42,12 @@ def _provenance_section(a: dict, store) -> str:
     like structure, not prose. The Generated/Received verb already states the direction; the
     header pill is the page's ONE direction encoding (round-4 J2: no repeats)."""
     is_out = asset_direction(a) == "out"
-    when = ui.fmt_ts(a.get("created_at") or "")
+    when = ui.local_ts(a.get("created_at") or "")
     chain = a.get("supersedes") or []
     chain_html = fragment(*(
         h("div", {"class_": "muted small"},
-          f'{s.get("filename", "") or s.get("id", "")} · {ui.fmt_ts(s.get("created_at") or "")}')
+          s.get("filename", "") or s.get("id", ""), " · ",
+          ui.local_ts(s.get("created_at") or ""))
         for s in chain)) if chain else None
     rows = [
         ("dot", t("asset_generated") if is_out else t("asset_received"), when),
@@ -109,7 +110,7 @@ def register_assets(app) -> None:
         prop_rows = [
             ("projects", t("project"), proj_link),
             *detail_form_rows("asset", a),
-            ("dot", t("created"), ui.fmt_date(a.get("created_at") or "")),
+            ("dot", t("created"), ui.local_date(a.get("created_at") or "")),
         ]
         return detail_page(
             store, title=title, active="projects",   # G5: an asset always lives on a project

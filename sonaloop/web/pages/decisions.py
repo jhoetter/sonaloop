@@ -115,7 +115,7 @@ def register_decisions(app) -> None:
             ("projects", t("project"), proj_link),
             *detail_form_rows("decision", d),
             ("link", t("rel_based_on"), raw(_label(t("chip_evidence_n", n=len(d.get("based_on") or []))))),
-            ("dot", t("created"), ui.fmt_date(d.get("created_at") or "")),
+            ("dot", t("created"), ui.local_date(d.get("created_at") or "")),
         ]
         return detail_page(
             store, title=d.get("title", ""), crumbs=crumbs,

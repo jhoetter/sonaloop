@@ -128,7 +128,7 @@ def _memory_html(store: Store, persona_id: str, as_of: str | None, q: str | None
         for f in facts:
             sup = bool(f.get("t_invalid"))
             rows.append(h("div", {"class_": "mem-fact" + (" sup" if sup else "")},
-                          h("span", {"class_": "mem-date"}, ui.fmt_date(f.get("t_valid") or "")),
+                          h("span", {"class_": "mem-date"}, ui.local_date(f.get("t_valid") or "")),
                           h("span", {"class_": "mem-fx"}, f.get("fact", ""),
                             (fragment(" ", sup_label) if sup else None))))
         status = h("span", {"class_": "mem-status"}, e["status"]) if e.get("status") else None

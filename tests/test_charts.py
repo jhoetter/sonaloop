@@ -282,6 +282,33 @@ def test_report_asset_figure_is_project_bound_in_shared_postgres(store, monkeypa
     assert own["id"] not in unscoped and "/data/" not in unscoped
 
 
+def test_report_unplaced_asset_figures_form_responsive_gallery(store):
+    """Several evidence screenshots appended to one report section scan horizontally;
+    charts and explicitly placed figures keep the normal reading-width treatment."""
+    from sonaloop import services
+    from sonaloop.web._html import collect_css
+
+    project = services.create_research_project("Gallery", goal="g", store=store)
+    assets = [services.attach_asset(
+        project["id"], content_base64=base64.b64encode(_PNG_1X1 + bytes([n])).decode(),
+        filename=f"screen-{n}.png", store=store,
+    ) for n in range(3)]
+    report = _report_with_figures([
+        {"kind": "asset", "id": asset["id"], "caption": f"Screen {n}"}
+        for n, asset in enumerate(assets)
+    ])
+    report["project_id"] = project["id"]
+
+    html = str(render_report(report, store))
+
+    assert 'class="rp-asset-grid" role="list"' in html
+    assert html.count('role="listitem"') == 3
+    assert html.count('class="rp-fig rp-fig--asset"') == 3
+    css = collect_css()
+    assert 'grid-template-columns:repeat(auto-fill,minmax(220px,1fr))' in css
+    assert '.rp-asset-grid .rp-fig img{width:100%;height:180px;object-fit:contain' in css
+
+
 def test_pptx_embeds_image_figure(tmp_path):
     """Prototype screenshots / image assets must travel in the deck (the PDF loads them by URL; a PPTX
     has to carry the bytes). An image slide embeds the picture."""

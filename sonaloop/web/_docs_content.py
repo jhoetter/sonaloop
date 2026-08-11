@@ -71,6 +71,7 @@ PRINCIPLES = [
       "Routen oder Zustände bleiben vor dem Research sichtbar. "
       "Eine URL bezeichnet nur das Ziel und ist nie selbst Evidenz. Fehlt Vorbereitung, zeigt "
       "Sonaloop genau den aktuellen Schritt statt einen scheinbar laufenden Run. "
+      "Abgeschlossene Produkt- und Kohortenprüfungen erscheinen kompakt; einzelne Merkmale, Quellen und technische Prüfdaten bleiben bei Bedarf aufklappbar. "
       "Jede Aussage bleibt als beobachtet, memory-geerdet, abgeleitet, simuliert "
       "oder unbelegt sichtbar. Ein Screenshot zeigt Produktzustand — nie beobachtetes Nutzerverhalten.",
       "Reaction Tests begin with versioned **Product Understanding** from real screens, flows, or "
@@ -79,7 +80,8 @@ PRINCIPLES = [
       "screen is delivered individually as real pixels and receipted by the server; missing routes "
       "or states remain visible before research starts. "
       "A URL identifies only the target and is never evidence itself. When setup is missing, Sonaloop "
-      "shows exactly the current step instead of an apparently running job. Every claim stays "
+      "shows exactly the current step instead of an apparently running job. Completed product and "
+      "cohort checks stay compact; individual product areas, sources and technical check data remain available on demand. Every claim stays "
       "visibly observed, memory-grounded, inferred, simulated, or "
       "unsupported. A screenshot shows product state — never observed user behavior.")),
     ("personas",
@@ -429,7 +431,8 @@ INSPECTOR_SECTIONS = [
       "(Deliverables) — erscheinen überall als **Datei-Karten**: Typ-Badge oder Vorschaubild, "
       "Dateiname mit Endung, Größe · Datum, genau ein Download/Öffnen-Symbol; sie haben eigene "
       "Detailseiten mit Herkunft (Quelle, Richtung, ersetzte Versionen). Im Projekt bleiben "
-      "eingehende Dateien als **Assets**-Gruppe in der Outline sichtbar; alle Assets findest du "
+      "eingehende Dateien als kompakte, responsive **Asset-Galerie** in der Outline sichtbar; "
+      "lange Screenshots werden vollständig in begrenzten Vorschauen gezeigt. Alle Assets findest du "
       "zusätzlich im Formats-Browser unter Assets. "
       "Ein Klick auf eine Zeile öffnet die "
       "**ganze Detailseite als Seitenpanel** (Notion-Stil): die Liste bleibt dahinter sichtbar, "
@@ -461,7 +464,8 @@ INSPECTOR_SECTIONS = [
       "type badge or image thumbnail, filename with extension, size · date, exactly one "
       "download/open icon; they have their own detail pages with provenance (source, direction, "
       "superseded versions). Inside a job, incoming files stay visible as an **Assets** group in "
-      "the outline; all assets are also available in the Formats browser under Assets. "
+      "a compact responsive gallery; tall screenshots stay fully visible in bounded previews. "
+      "All assets are also available in the Formats browser under Assets. "
       "Clicking a row opens the **full detail page as a slide-over** (Notion-style): "
       "the list stays visible behind it, and the URL stays the list URL plus `?d=<detail "
       "path>` — reloading or sharing it reproduces exactly this view (list + open panel). "
@@ -493,12 +497,14 @@ INSPECTOR_SECTIONS = [
       "einen Report), erscheint ein kleiner **Toast** mit Link — und die offene Seite lädt sich selbst "
       "neu, wenn es sie betrifft. Der **Activity**-Feed (`g` `a`) listet alles Zuletzt-Passierte "
       "chronologisch. Beim Löschen eines Projekts verschwinden auch dessen veraltete Activity-Links. "
+      "Zeitpunkte erscheinen in der Zeitzone deines Browsers statt in der Serverzeit — auch nach Live-Updates, Navigation und in Seitenpanels. "
       "Du schaust zu, während die Studie entsteht — kein manuelles Neuladen.",
       "Every inspector page is live: when your agent records something (a council, a persona, a report) "
       "a small **toast** appears with a link — and the page you're on reloads itself when it's "
       "affected. The **Activity** feed (`g` `a`) lists everything recent in order. Deleting a project "
-      "also removes its stale Activity links. You watch the study "
-      "come together — no manual refreshing.")),
+      "also removes its stale Activity links. Timestamps use your browser timezone rather than the "
+      "server timezone, including after live updates, navigation and inside slide-overs. "
+      "You watch the study come together — no manual refreshing.")),
     ("runs", "play",
      ("Laufende Runs", "Runs"),
      ("Oben in der Leiste zeigt ein Status-Punkt, ob gerade Studien **aktiv** laufen — er wird "

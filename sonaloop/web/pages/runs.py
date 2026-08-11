@@ -55,7 +55,7 @@ def _meta_line(r: dict) -> str:
     """Human-readable primary metadata; internal task keys live in diagnostics."""
     return h("div", {"class_": "run-meta"},
              h("span", {"class_": "muted small"},
-               f'{t("run_last_activity")}: {ui.fmt_ts(r["last_activity"])}'))
+               f'{t("run_last_activity")}: ', ui.local_ts(r["last_activity"])))
 
 
 def _run_row(r: dict, *, stalled: bool = False, unverified: bool = False) -> str:
@@ -123,7 +123,7 @@ def register_runs(app) -> None:
         finished = [h("div", {"class_": "runrow"},
                       h("div", {"class_": "runrow-head"},
                         h("a", {"href": r["url"]}, raw(_icon("projects")), " ", h("b", {}, r["title"])),
-                        h("span", {"class_": "muted small"}, ui.fmt_ts(r["last_activity"]))),
+                        h("span", {"class_": "muted small"}, ui.local_ts(r["last_activity"]))),
                       raw(run_diagnostics_html(r)))
                     for r in states["finished"]]
         if not (waiting or stalled or active or unverified or finished):

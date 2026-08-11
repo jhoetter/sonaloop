@@ -14,6 +14,7 @@ from ._graph_outline_sessions import merge_session_items
 from ._html import h, raw, fragment
 from ._i18n import t
 from ._primitive_taxonomy import primitive_color, subtype_label, subtype_value
+from . import ui
 # Case-/diacritic-insensitive search form for the `?q=` text search (V1) — ONE shared
 # helper with the ⌘K entity search (V6), so the list filter and the palette never diverge.
 from ._palette_registry import fold as _fold
@@ -223,16 +224,6 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         for m in s.get("member_ids", []):
             node_themes.setdefault(m, []).append(ti)
 
-    def _fmt_ts(order: str) -> tuple[str, str]:
-        """(short, full) from the row's created_at (order may carry a '#seq' pairing suffix)."""
-        iso = str(order).split("#")[0]
-        try:
-            from datetime import datetime
-            dt = datetime.fromisoformat(iso)
-            return f"{dt.day} {dt:%b} · {dt:%H:%M}", dt.strftime("%Y-%m-%d %H:%M")
-        except Exception:
-            return iso[:16].replace("T", " "), iso
-
     by_oid = {n["study_id"]: n for n in nodes}
 
     # ---- U10: the facet model + the server-side filter (ux-contract §8.5) -------------
@@ -394,11 +385,11 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
             rel_out.setdefault(a, set()).add(b)
             rel_in.setdefault(b, set()).add(a)
 
-    def row(it: dict) -> str:
-        # V9 (ux-contract §9): asset rows render as FILES — the compact `.sl-file--row`
-        # (ext badge/thumb identity, filename+ext title, size · date, direction pill, ONE
-        # download/open affordance; the body opens /assets/{id} as the slide-over). The
-        # generic olrow vocabulary stays for every other kind; data-rkind keeps the
+    def row(it: dict, *, asset_gallery: bool = False) -> str:
+        # V9 (ux-contract §9): assets render as FILES — a compact `.sl-file--row` in a
+        # generic row context or a bounded-preview `.sl-file` inside the phase gallery
+        # (ext/thumb identity, filename, size/date and ONE open affordance). The generic
+        # olrow vocabulary stays for every other kind; data-rkind keeps the
         # presence/slide-over contracts addressable.
         oid = str(it["oid"])
         rel_attrs = {"data-oid": oid,
@@ -406,10 +397,12 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
                      "data-rel-out": " ".join(sorted(rel_out.get(oid, ())))}
         if it.get("rkind") in ("asset",):
             from ._presence import file_card
-            return file_card(it.get("node") or {}, row=True, href=it["href"],
+            return file_card(it.get("node") or {}, row=not asset_gallery, href=it["href"],
                              drawer=bool(drawer_url("asset", it["href"])),
                              show_direction=False,
-                             attrs={"data-rkind": "asset", **rel_attrs})
+                             attrs={"data-rkind": "asset",
+                                    "role": "listitem" if asset_gallery else None,
+                                    **rel_attrs})
         tw = ("ol-tw" + (" ol-last" if it.get("last_child") else "")) if it["indent"] else ""  # tree connector
         # Persona presence + stance lean (tracker: sonaloop/inspector-cinematic-
         # detail-density): every row whose DATA carries persona participation shows WHO
@@ -421,7 +414,6 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         crew = ""
         pers = extra.get("personas") or []
         if pers:
-            from . import ui
             group = ui.avatar_group(pers, total=int(extra.get("voices") or 0))
             crew = h("span", {"class_": "ol-crew"}, group)
         # --ti feeds the tree-spine x-offset so a depth-2 child (session under a paired prototype)
@@ -436,7 +428,7 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         # slide-over while pushState makes it the address.
         drawer_attrs = ({"data-drawer": dw_url, "data-drawer-title": str(it["title"])[:90]}
                       if dw_url else {})
-        ts_short, ts_full = _fmt_ts(it["ts"])
+        timestamp = str(it["ts"]).split("#")[0]
         ic = _KIND_ICONS.get(it.get("rkind", ""))
         lead = (raw(it["lead"]) if it.get("lead")           # session/asset rows: avatar / thumb lead
                 else h("span", {"class_": "ol-ico", "style": f'color:{it["color"]}',
@@ -448,7 +440,7 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         cells = [lead,
                  h("span", {"class_": "ol-title"}, it["title"]),
                  crew,
-                 h("span", {"class_": "ol-ts", "title": ts_full}, ts_short)]
+                 h("span", {"class_": "ol-ts"}, ui.local_ts(timestamp))]
         ext = {"target": "_blank", "rel": "noopener"} if it.get("external") else {}
         if it["href"]:
             attrs["href"] = it["href"]
@@ -487,8 +479,19 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
             rows_html.append(h("div", {"class_": "ol-rlabel"},
                                h("span", {"class_": "ol-rlabel__ico"}, raw(_icon("file"))),
                                h("span", {}, f'{t("asset_evidence_h")} ({len(ev)})')))
-            rows_html += [row(it) for it in ev]
-        rows_html += [row(it) for it in deliv]
+            rows_html.append(h(
+                "div",
+                {"class_": "ol-asset-grid", "role": "list",
+                 "aria-label": t("asset_evidence_h")},
+                fragment(*(row(it, asset_gallery=True) for it in ev)),
+            ))
+        if deliv:
+            rows_html.append(h(
+                "div",
+                {"class_": "ol-asset-grid", "role": "list",
+                 "aria-label": t("asset_deliverables_h")},
+                fragment(*(row(it, asset_gallery=True) for it in deliv)),
+            ))
         return rows_html
 
     # PHASE groups (ux-contract §3.4 / the §4 mockup): every row sits under its phase header,

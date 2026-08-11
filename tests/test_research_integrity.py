@@ -118,6 +118,13 @@ def test_product_understanding_is_mandatory_versioned_and_auto_checkpointed(stor
     from sonaloop.web.pages.projects import _product_understanding_html
     rendered = _product_understanding_html(graph["project"])
     assert "Product Understanding" in rendered and "deploy:abc123" in rendered
+    assert rendered.startswith('<details class="sl-integrity sl-integrity--product"')
+    assert "1 of 2 product areas evidenced · 1 still open" in rendered
+    assert "Evidenced product areas (1)" in rendered
+    assert "Areas still to verify (1)" in rendered
+    assert "Technical reference" in rendered
+    assert 'class="sl-integrity-metrics"' in rendered
+    assert "sl-pu-card" not in rendered and "sl-cohort-grid" not in rendered
 
 
 def test_product_understanding_fails_closed_on_absence_without_verification(store):

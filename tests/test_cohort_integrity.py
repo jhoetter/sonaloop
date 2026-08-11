@@ -190,12 +190,26 @@ def test_project_setup_disclosure_contains_product_and_cohort_evidence(store):
     page = TestClient(web.create_app()).get(f'/jobs/{project["id"]}?lang=en').text
     marker = page.index('id="research-setup-details"')
     setup = page[page.rindex("<details", 0, marker):page.index('class="outlinecard', marker)]
-    assert setup.count("<details") == 1
+    # The project keeps one quiet outer setup disclosure.  Inside it each
+    # integrity check is a compact summary with its own progressive details,
+    # rather than dumping metrics and persona rows as full-width cards.
+    assert setup.count('class="sl-project-setup"') == 1
+    assert 'class="sl-integrity sl-integrity--product sl-integrity--embedded"' in setup
+    assert 'class="sl-integrity sl-integrity--cohort sl-integrity--embedded"' in setup
+    assert "The product area is evidenced" in setup
+    assert "personas checked with independent prior context" in setup
+    assert 'class="sl-cohort-grid"' not in setup
+    assert 'class="sl-cohort-card' not in setup
     assert 'id="product-understanding"' in setup
     assert 'id="cohort-integrity"' in setup
     assert ref["id"] in setup
     assert "Synthetic Ira" in setup and "Synthetic Jo" in setup
     assert result["policy_version"] in setup
+
+    de_page = TestClient(web.create_app()).get(f'/jobs/{project["id"]}?lang=de').text
+    assert ("2 Personas mit unabhängigem Vorwissen geprüft · 0 Gegenstimmen · "
+            "2 dünne Profile") in de_page
+    assert "Prüfdetails" in de_page and "Persona-Basis (2)" in de_page
 
 
 def test_deep_independent_cohort_passes_and_retains_disconfirming_sources(store):
@@ -525,6 +539,11 @@ def test_override_requires_rationale_and_survives_in_report_limitations(store):
     rendered = render_cohort_integrity(store.get_research_project(project["id"]), store)
     assert "Cohort Integrity" in rendered
     assert "Time-boxed directional exercise" in rendered
+    assert rendered.startswith('<details class="sl-integrity sl-integrity--cohort"')
+    assert "personas checked with independent prior context" in rendered
+    assert "Check details" in rendered and "Persona basis (2)" in rendered
+    assert "Not calculated" in rendered
+    assert "sl-cohort-grid" not in rendered and "sl-cohort-card" not in rendered
 
 
 def test_mcp_and_cli_contract_expose_structured_cohort_gate():

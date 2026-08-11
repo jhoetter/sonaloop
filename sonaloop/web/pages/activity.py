@@ -105,7 +105,7 @@ def register_activity(app) -> None:
                        h("span", {"class_": "muted small"}, f" · {label}") if label else None,
                        (h("span", {"class_": "pill"}, f'×{g["n"]}') if g["n"] > 1 else None)),
                      h("span", {"class_": "right"},
-                       h("span", {}, ui.fmt_ts(ev["ts"]))))
+                       h("span", {}, ui.local_ts(ev["ts"]))))
 
         # ONE header per run: all of a run's events fold under a single group, anchored at
         # the run's newest event (an unattributable event — e.g. a bus row without a

@@ -18,16 +18,14 @@ from .._cohort_integrity_view import render_cohort_integrity
 # hypotheses, open questions and assets included (_graph_outline_extras builds their items).
 
 register_css(r"""
-.sl-pu-card{border:1px solid var(--line);border-left:3px solid var(--green);border-radius:var(--radius);background:var(--panel);padding:12px 14px;margin:14px 0}.sl-pu-card--missing{border-left-color:var(--amber)}
-.sl-pu-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.sl-pu-head strong{display:flex;align-items:center;gap:7px}.sl-pu-meta{color:var(--muted);font-size:var(--t-sm);margin-top:4px}.sl-pu-caps{margin:9px 0 0;padding-left:18px;font-size:var(--t-sm)}
+.sl-pu-claim{color:var(--ink);line-height:1.5}.sl-pu-claim .lbl{margin-right:5px}.sl-pu-claim .sl-claim-sources{margin-top:3px}.sl-pu-technical code{font-size:inherit;overflow-wrap:anywhere}
 .sl-project-creator{color:var(--muted);font-size:var(--t-xs);margin:4px 0 0}
 .sl-project-meta{color:var(--muted);font-size:var(--t-xs);margin:4px 0 0}
 .sl-project-setup{flex:none;width:100%;max-width:900px;margin:0 auto;padding:0 24px 10px;border:0;background:transparent}
 .sl-project-setup>summary,.sl-project-lineage>summary{list-style:none;cursor:pointer;color:var(--muted);font-size:var(--t-xs);font-weight:500;display:flex;align-items:center;gap:6px;width:max-content}
 .sl-project-setup>summary::-webkit-details-marker,.sl-project-lineage>summary::-webkit-details-marker{display:none}
 .sl-project-setup[open]>summary,.sl-project-lineage[open]>summary{color:var(--ink)}
-.sl-project-setup__body{padding:8px 0 6px}.sl-setup-block{padding:6px 0}.sl-setup-block+.sl-setup-block{margin-top:12px}
-.sl-project-setup .sl-cohort-stat{border:0;background:transparent;padding:0}
+.sl-project-setup__body{padding:8px 0 6px}
 .sl-project-lineage{margin:5px 0 0;border:0;background:transparent;font-size:var(--t-xs)}
 .sl-project-lineage ul{margin:6px 0 0;padding-left:18px;color:var(--muted)}
 """)
@@ -54,13 +52,17 @@ def _product_understanding_html(project: dict, store=None,
                      else t("product_inventory_missing_help")
                      if kind == "product_understanding_required"
                      else t("product_understanding_missing_help"))
-        return h("div", {"class_": "sl-pu-card sl-pu-card--missing", "id": "product-understanding",
-                         "role": "status", "data-setup-kind": kind or "product_understanding_required",
-                         "aria-label": help_text},
-                 h("div", {"class_": "sl-pu-head"},
-                   h("strong", {}, raw(_icon("warning")), t("product_understanding_h")),
-                   raw(_label(t("product_understanding_missing"), "var(--amber)"))),
-                 h("div", {"class_": "sl-pu-meta"}, help_text))
+        return h("section", {"class_": "sl-integrity sl-integrity-attention",
+                              "id": "product-understanding", "role": "status",
+                              "data-setup-kind": kind or "product_understanding_required",
+                              "aria-label": help_text},
+                 h("div", {"class_": "sl-integrity-heading"},
+                   raw(_icon("warning")),
+                   h("span", {"class_": "sl-integrity-heading-copy"},
+                     h("strong", {"class_": "sl-integrity-title"},
+                       t("product_understanding_h")),
+                     h("span", {"class_": "sl-integrity-summary"}, help_text))),
+                 raw(_label(t("product_understanding_missing"), "var(--amber)")))
     target = current.get("target") or {}
     target_name = target.get("name") or target.get("identity") or target.get("url") or "—"
     status_labels = {
@@ -70,7 +72,8 @@ def _product_understanding_html(project: dict, store=None,
         "unknown": t("pu_unknown"),
     }
     capabilities = current.get("capabilities") or []
-    unknowns = sum(1 for row in capabilities if row.get("status") == "unknown")
+    unknowns = sum(1 for row in capabilities
+                   if str(row.get("status") or "unknown") == "unknown")
     verified_absences = sum(1 for row in capabilities if row.get("status") == "observed_absent")
     versions = project.get("product_understanding_versions") or []
     by_key = {}
@@ -81,38 +84,99 @@ def _product_understanding_html(project: dict, store=None,
     conflicts = sum(1 for values in by_key.values()
                     if {"observed_present", "observed_absent"} <= values)
     manifest = current.get("stimulus_manifest") or {}
-    meta = (f"{target_name} · {t('pu_revision')} {current.get('revision') or '—'} · "
-            f"{ui.fmt_ts(current.get('observed_at') or '')} · v{current.get('version', 1)}")
-    if manifest.get("manifest_id"):
-        meta += (
-            f" · {t('pu_manifest')} {manifest['manifest_id']} "
-            f"v{manifest.get('manifest_version') or '—'} · "
-            f"{manifest.get('target_revision') or '—'} · "
-            f"{manifest.get('manifest_digest') or '—'}"
-        )
+    observed_value = current.get("observed_at") or ""
+    observed_at = ui.local_ts(observed_value)
+    time_marker = "__SONALOOP_LOCAL_TIME__"
+    context_text = t(
+        "pu_context_summary", target=target_name,
+        revision=current.get("revision") or "—", observed=time_marker,
+    )
+    context_before, _, context_after = context_text.partition(time_marker)
+    context = fragment(context_before, observed_at, context_after)
     from .._render import render_ref
-    cap_rows = [h("li", {}, raw(_label(status_labels.get(str(row.get("status")), str(row.get("status"))),
-                                             "var(--muted)")), " ", row.get("claim", ""),
-                  h("div", {"class_": "sl-claim-sources"},
-                    fragment(*(raw(render_ref(ref, store)) for ref in row.get("evidence_refs") or [])))
-                  if row.get("evidence_refs") else None)
-                for row in capabilities]
+    def capability_row(row: dict, *, show_status: bool = True):
+        status = str(row.get("status") or "unknown")
+        return h(
+            "li", {"class_": "sl-pu-claim"},
+            (raw(_label(status_labels.get(status, status), "var(--muted)"))
+             if show_status else None),
+            row.get("claim", ""),
+            (h("div", {"class_": "sl-claim-sources"},
+               fragment(*(raw(render_ref(ref, store))
+                          for ref in row.get("evidence_refs") or [])))
+             if row.get("evidence_refs") else None),
+        )
+
+    known_capabilities = [
+        row for row in capabilities if str(row.get("status") or "unknown") != "unknown"
+    ]
+    unknown_capabilities = [
+        row for row in capabilities if str(row.get("status") or "unknown") == "unknown"
+    ]
+    compact_summary = (
+        t("pu_compact_summary_open", reviewed=len(known_capabilities), total=len(capabilities),
+          unknown=len(unknown_capabilities))
+        if unknown_capabilities else
+        t("pu_compact_summary_complete_one") if len(capabilities) == 1 else
+        t("pu_compact_summary_complete", total=len(capabilities))
+    )
+    technical_rows = [
+        h("div", {}, h("dt", {}, t("pu_target")), h("dd", {}, target_name)),
+        h("div", {}, h("dt", {}, t("pu_revision")),
+          h("dd", {"class_": "sl-integrity-technical"}, current.get("revision") or "—")),
+        h("div", {}, h("dt", {}, t("pu_observed_at")), h("dd", {}, observed_at)),
+        h("div", {}, h("dt", {}, t("pu_record_version")),
+          h("dd", {}, f"v{current.get('version', 1)}")),
+    ]
+    if manifest.get("manifest_id"):
+        manifest_value = (
+            f"{manifest['manifest_id']} v{manifest.get('manifest_version') or '—'} · "
+            f"{manifest.get('target_revision') or '—'}"
+        )
+        technical_rows.extend([
+            h("div", {}, h("dt", {}, t("pu_manifest")),
+              h("dd", {"class_": "sl-integrity-technical"}, manifest_value)),
+            h("div", {}, h("dt", {}, t("pu_manifest_digest")),
+              h("dd", {"class_": "sl-integrity-technical"},
+                h("code", {}, manifest.get("manifest_digest") or "—"))),
+        ])
     aria = (f'{t("product_understanding_h")}. {target_name}. {t("pu_revision")} '
             f'{current.get("revision") or "—"}. {t("pu_unknown_n", n=unknowns)}.')
-    tag = "section" if embedded else "details"
-    wrapper_class = "sl-setup-block sl-setup-block--product" if embedded else "sl-pu-card"
-    head_tag = "div" if embedded else "summary"
-    return h(tag, {"class_": wrapper_class, "id": "product-understanding",
-                   "aria-label": aria},
-             h(head_tag, {"class_": "sl-pu-head"},
-               h("strong", {}, raw(_icon("target")), t("product_understanding_h")),
-               raw(_label(t("pu_capabilities_n", n=len(capabilities)))),
-               (raw(_label(t("pu_verified_absences_n", n=verified_absences), "var(--green)"))
-                if verified_absences else None),
-               (raw(_label(t("pu_unknown_n", n=unknowns), "var(--amber)")) if unknowns else None),
-               (raw(_label(t("pu_conflicts_n", n=conflicts), "var(--red)")) if conflicts else None)),
-             h("div", {"class_": "sl-pu-meta"}, meta),
-             h("ul", {"class_": "sl-pu-caps"}, fragment(*cap_rows)))
+    wrapper_class = "sl-integrity sl-integrity--product"
+    if embedded:
+        wrapper_class += " sl-integrity--embedded"
+    return h(
+        "details", {"class_": wrapper_class, "id": "product-understanding",
+                    "aria-label": aria},
+        h("summary", {},
+          h("span", {"class_": "sl-integrity-heading"},
+            raw(_icon("target")),
+            h("span", {"class_": "sl-integrity-heading-copy"},
+              h("strong", {"class_": "sl-integrity-title"}, t("product_understanding_h")),
+              h("span", {"class_": "sl-integrity-summary"}, compact_summary))),
+          h("span", {"class_": "sl-integrity-badges"},
+            (raw(_label(t("pu_verified_absences_n", n=verified_absences), "var(--green)"))
+             if verified_absences else None),
+            (raw(_label(t("pu_conflicts_n", n=conflicts), "var(--red)"))
+             if conflicts else None))),
+        h("div", {"class_": "sl-integrity-body"},
+          h("p", {"class_": "sl-integrity-context"}, context),
+          (h("details", {"class_": "sl-integrity-nested"},
+             h("summary", {}, t("pu_evidenced_n", n=len(known_capabilities))),
+             h("ul", {"class_": "sl-integrity-list"},
+               fragment(*(capability_row(row) for row in known_capabilities))))
+           if known_capabilities else None),
+          (h("details", {"class_": "sl-integrity-nested"},
+             h("summary", {}, t("pu_open_areas_n", n=len(unknown_capabilities))),
+             h("ul", {"class_": "sl-integrity-list"},
+               fragment(*(capability_row(row, show_status=False)
+                          for row in unknown_capabilities))))
+           if unknown_capabilities else None),
+          h("details", {"class_": "sl-integrity-nested sl-pu-technical"},
+            h("summary", {}, t("pu_technical_details")),
+            h("dl", {"class_": "sl-integrity-metrics"}, fragment(*technical_rows))),
+        ),
+    )
 
 
 def _project_lineage_html(project: dict, store) -> str:
@@ -357,7 +421,7 @@ def register_projects(app) -> None:
             ("target", t("result_schema_h"), outcome.get("name") or outcome.get("schema_id", "")),
             ("tag", t("result_kind_h"), result_kind),
             ("link", t("evidence_refs_h"), str(len(evidence_refs))),
-            ("clock", t("created"), ui.fmt_day(outcome.get("created_at", ""))),
+            ("clock", t("created"), ui.local_day(outcome.get("created_at", ""))),
         ]
         title = outcome.get("name") or outcome.get("schema_id", "")
         return detail_page(

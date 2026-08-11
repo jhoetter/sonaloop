@@ -505,7 +505,7 @@ def register_library(app) -> None:
             prop_rows=[("projects", t("project"), h("a", {"href": f'/jobs/{proj["id"]}'}, proj["title"])),
                        *detail_form_rows("open_question", oq),
                        ("flag", t("status_h"), status_label),
-                       ("dot", t("created"), ui.fmt_date(oq.get("created_at") or ""))],
+                       ("dot", t("created"), ui.local_date(oq.get("created_at") or ""))],
             rel_study_id=f"open_question:{oq['id']}", rel_proj_id=proj["id"],
             rail_sections=[("sec-question", t("open_question_kind"))],
             star=("open_question", oq["id"], title, f'/open-questions/{oq["id"]}'))
@@ -542,7 +542,7 @@ def register_library(app) -> None:
                        *detail_form_rows("url_artifact", ref),
                        ("tag", t("variant_label_h"), ref.get("label", "")),
                        ("link", t("url_h"), h("a", {"href": ref.get("url", "#"), "target": "_blank", "rel": "noopener"}, ref.get("url", ""))),
-                       ("dot", t("created"), ui.fmt_date(ref.get("created_at") or ""))],
+                       ("dot", t("created"), ui.local_date(ref.get("created_at") or ""))],
             rel_study_id=f"url_artifact:{ref['id']}", rel_proj_id=proj["id"],
             rail_sections=[("sec-snapshot", t("reference_snapshot_h"))],
             star=("reference", ref["id"], title, f'/references/{ref["id"]}'))
@@ -601,7 +601,7 @@ def register_library(app) -> None:
             # Rail order is the §8.2 anatomy: project → dates.
             prop_rows=[("projects", t("project"), h("a", {"href": f'/jobs/{proj["id"]}'}, proj["title"])),
                        *detail_form_rows("note", note),
-                       ("dot", t("created"), ui.fmt_date(note.get("created_at", "")))],
+                       ("dot", t("created"), ui.local_date(note.get("created_at", "")))],
             rel_study_id=f"note:{note_id}", rel_proj_id=proj["id"],
             rail_sections=[("sec-content", klabel)],
             star=("note", note_id, ntitle, f'/notes/{note_id}'),
@@ -698,7 +698,7 @@ def register_library(app) -> None:
                        ("square", t("fidelity"), prototype_fidelity_value(p)),
                        ("personas", t("sessions"), str(len(sessions))),
                        ("check", t("grounding_h"), f"{n_grounded}/{len(sessions)}" if sessions else "—"),
-                       ("dot", t("created"), ui.fmt_date(p.get("created_at") or ""))],
+                       ("dot", t("created"), ui.local_date(p.get("created_at") or ""))],
             rel_study_id=f"prototype:{p['id']}", rel_proj_id=p.get("project_id"), rel_extra_in=concept_in,
             rail_sections=(([("sec-replays", t("replays_h"))] if replay_html else [])
                            + [("sec-sessions", t("proto_sessions_h"))]),

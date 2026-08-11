@@ -456,7 +456,8 @@ def _synthesis_html(store: Store, syn: dict, *, embed: bool = False):
         parts = row_parts[c["id"]] if compare else []
         strip = (h("span", {"class_": "ref-bar"}, _stacked(parts, thin=True))
                  if any(v for v, _, _ in parts) else None)
-        meta = f'{len(c.get("persona_ids", []))} P · {ui.fmt_day(c.get("created_at", ""))}'
+        meta = fragment(f'{len(c.get("persona_ids", []))} P · ',
+                        ui.local_day(c.get("created_at", "")))
         ref_rows.append(h("a", {"class_": "ref-row", "href": f'/councils/{c["id"]}'},
                           h("span", {"class_": "ref-n"}, f"C{i}"),
                           # full prompt; .ref-t ellipsizes at the row edge (a hard [:96] cut used
@@ -555,7 +556,7 @@ def _synthesis_html(store: Store, syn: dict, *, embed: bool = False):
             mchips.append(h("span", {"class_": "mchip"}, f'{syn["iterations"]} {t("iterations")}'))
         if smeta:
             mchips.append(h("span", {"class_": "mchip"}, raw(t("voices_meta", s=_esc(smeta)))))
-        mchips.append(h("span", {"class_": "mchip"}, ui.fmt_date(syn["created_at"])))
+        mchips.append(h("span", {"class_": "mchip"}, ui.local_date(syn["created_at"])))
         head = h("header", {"class_": "syn-head"},
                  h("h1", {"title": syn["title"]}, raw(_icon("syntheses")), syn["title"]),
                  h("div", {"class_": "syn-meta"}, fragment(*mchips)))

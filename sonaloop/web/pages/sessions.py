@@ -365,11 +365,12 @@ def _proto_session_detail(store: Store, sess: dict) -> str:
     # meta line (V5: plain text, no pill-soup): persona · session kind · date — "Janine Wolf ·
     # Prototyp-Session · 12 Jun". The fidelity pill was redundant with the eyebrow/properties,
     # and the date is meta text, not a status.
+    session_day = (ui.fmt_day(sess.get("date") or "") if sess.get("date")
+                   else ui.local_day(sess.get("created_at", "")))
     sub = h("span", {"class_": "syn-meta"},
             _persona_chip(store, sess.get("persona_id", "")),
             h("span", {"class_": "muted"},
-              f' · {t("session_kind_prototype")} · '
-              f'{ui._fmt_day(sess.get("date") or sess.get("created_at", ""))}'))
+              f' · {t("session_kind_prototype")} · ', session_day))
     shim = _proto_step_shim(sess)
     steps = shim["steps"]
     verdict_html = (raw(_study_lead(ui.clamp(raw(_md(r["verdict"])), threshold=ui.SECTION_CLAMP),
@@ -409,7 +410,7 @@ def _proto_session_detail(store: Store, sess: dict) -> str:
         ("check", t("grounding_h"),
          raw(_label(t("grounded_yes") if grounded else t("grounded_no"),
                     "var(--green)" if grounded else "var(--muted)")) if grounded is not None else ""),
-        ("dot", t("created"), ui.fmt_date(sess.get("created_at") or "")),
+        ("dot", t("created"), ui.local_date(sess.get("created_at") or "")),
     ]
     rail_sections = ([("sec-verdict", t("verdict_h"))] if verdict_html else []) \
         + ([("sec-liked", t("proto_liked_h"))] if liked_html else []) \
@@ -439,7 +440,8 @@ def _session_row(s: dict, store: Store) -> str:
     right = fragment(
         raw(_outcome_chip(s)),
         raw(_label(t("friction_n", n=n_fr), "var(--amber)")) if n_fr else None,
-        h("span", {}, ui.fmt_day(s.get("date") or s.get("created_at", ""))),
+        h("span", {}, (ui.fmt_day(s.get("date") or "") if s.get("date")
+                        else ui.local_day(s.get("created_at", "")))),
         raw(_star("session", s["id"], (s.get("subject") or {}).get("label", "")[:60], f'/sessions/{s["id"]}')))
     sub = (p or {}).get("display_name") or s.get("persona_id", "")
     return h("a", {"class_": "row", "href": f'/sessions/{s["id"]}'}, av,
@@ -627,10 +629,12 @@ def register_sessions(app) -> None:
         # meta line (V5: plain text, no pill-soup): persona · session kind · date. The
         # fidelity pill repeated the eyebrow, the date is meta text, and the tech-comfort
         # capability moved into the Properties rail where the other facts live.
+        session_day = (ui.fmt_day(sess.get("date") or "") if sess.get("date")
+                       else ui.local_day(sess.get("created_at", "")))
         sub = h("span", {"class_": "syn-meta"},
                 _persona_chip(store, sess.get("persona_id", "")),
                 h("span", {"class_": "muted"},
-                  f' · {kind_label} · {ui._fmt_day(sess.get("date") or sess.get("created_at", ""))}'))
+                  f' · {kind_label} · ', session_day))
         steps = sess.get("steps") or []
         timeline = h("div", {"class_": "sec", "id": "sec-replay"},
                      h("h2", {}, t("replay_h"), h("span", {"class_": "h1cnt"}, str(len(steps)))),
@@ -667,7 +671,7 @@ def register_sessions(app) -> None:
             ("check", t("grounding_h"),
              raw(_label(t("grounded_yes") if grounded else t("grounded_no"),
                         "var(--green)" if grounded else "var(--muted)")) if grounded is not None else ""),
-            ("dot", t("created"), ui.fmt_date(sess.get("created_at") or "")),
+            ("dot", t("created"), ui.local_date(sess.get("created_at") or "")),
         ]
         rail_sections = (([("sec-friction", t("friction_rail_h"))] if rail else [])
                          + [("sec-replay", t("replay_h"))]

@@ -22,6 +22,7 @@ from ..storage import Store
 from ._i18n import t
 from ._html import h, raw, fragment, register_css
 from ._ext import register_slot
+from . import ui
 
 GITHUB_ISSUES_URL = "https://github.com/jhoetter/sonaloop-research/issues/new"
 
@@ -126,9 +127,10 @@ def register_feedback(app) -> None:
         store = Store()
         rows = []
         for fb in services.list_feedback(limit=200, mark_read=True, store=store):
-            meta = " · ".join(x for x in (
-                fb.get("created_at", "")[:16].replace("T", " "), fb.get("email") or "",
-                fb.get("page") or "", fb.get("app_version") or "") if x)
+            trailing = " · ".join(x for x in (
+                fb.get("email") or "", fb.get("page") or "", fb.get("app_version") or "") if x)
+            meta = fragment(ui.local_ts(fb.get("created_at") or ""),
+                            (" · " + trailing) if trailing else None)
             rows.append(h("div", {"class_": "fb-row"},
                           h("p", {"class_": "fb-msg"}, fb.get("message", "")),
                           h("p", {"class_": "muted small"}, meta)))

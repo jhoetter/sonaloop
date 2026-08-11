@@ -84,13 +84,14 @@ def make_shell_token(*, language: str, favorites_key: str | None,
                      brand: str, brand_logo_value: str, theme_css: str,
                      head_extra: str, body_end: str, sidebar_extra: str,
                      sidebar_footer: str, user_menu: str, nav_contract: str,
-                     palette_contract: str) -> str:
+                     palette_contract: str, brand_logo_dark_value: str = "") -> str:
     """Return ``release.context`` for the exact persistent chrome rendered."""
     context_digest = _digest_parts(b"sonaloop-web-shell-context-v1", (
         language,
         favorites_key or "",
         brand,
         brand_logo_value,
+        brand_logo_dark_value,
         theme_css,
         head_extra,
         body_end,
