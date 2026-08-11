@@ -69,14 +69,15 @@ For a `build` dispatch, the runnable `artifact`/`prototype` is the single primar
 output. Grounded `session`/`usability_session`/`prototype_session` records are
 supporting evidence: they are linked to the same task but cannot finish or checkpoint
 the build without its artifact. Open dispatches issued before this distinction are
-repaired narrowly and audit the former and replacement primary kinds.
+repaired narrowly and audit the former and replacement primary kinds. Only an uncheckpointed
+legacy session claim can be replaced, and only by its artifact/prototype; completed and unrelated
+dispatch claims remain immutable.
 
-A dispatch whose expected output is `build` reserves its one primary-output slot for an
-`artifact` or `prototype`. A `session`, `usability_session`, or `prototype_session` is linked as
-supporting evidence and cannot complete the build on its own. Dispatches issued before this split
-are upgraded on replay; an uncheckpointed legacy `session` primary can be replaced only by the
-corresponding build artifact/prototype, with the repair retained in the run audit trail. Completed
-or unrelated dispatch claims remain immutable.
+When a retained browser log verifies a prototype reaction, the recorder persists one compact
+`step:N` record per snapshot so the observation remains citable after the browser process exits.
+The durable trace contains only the step order, coarse action type/target ref, URL route, bounded
+title and screenshot basename: page text and action payloads are omitted, while URL userinfo,
+query and fragment are stripped (malformed ports fail closed).
 
 ## Product Understanding preflight
 

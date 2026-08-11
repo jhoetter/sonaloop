@@ -355,6 +355,7 @@ class PrototypeSession:
     observed_state_refs: list[str]
     created_at: str
     statements: list = field(default_factory=list)   # unified primitive (spec/unified-artifact-schema.md)
+    steps: list = field(default_factory=list)        # privacy-safe durable browser snapshots
 
     def to_dict(self) -> Json:
         return asdict(self)

@@ -223,21 +223,23 @@ def _persona_chip(store: Store, persona_id: str):
 # ---------------------------------------------------------------- prototype reaction sessions
 # A protosession_* record (record_prototype_session) is the OTHER first-class session kind
 # (ux-contract §8.2 — sessions are explicitly first-class): same step shape as a usability
-# session (index/action/monologue/state/friction/verdict), but the steps live under
-# reaction.steps and the walked subject is always its prototype. The vm maps it onto the ONE
-# session row vocabulary (ui.primitive_row §3.2) so the Library tab, the prototype page and
-# the slide-over render identical rows; the detail route below reuses the SAME step renderer.
+# session (index/action/monologue/state/friction/verdict). Authored steps live under
+# reaction.steps/timeline; privacy-safe browser snapshots live at top-level ``steps``. The walked
+# subject is always its prototype. The vm maps it onto the ONE session row vocabulary
+# (ui.primitive_row §3.2) so the Library tab, prototype page and slide-over render identical rows;
+# the detail route below reuses the SAME step renderer.
 
 
 def proto_session_vm(sess: dict, store: Store) -> dict:
     """A prototype session in the usability-session record shape the row vocabulary reads:
-    subject = the prototype, steps = reaction.steps, fidelity = the prototype rung."""
+    subject = the prototype, authored or durable steps, fidelity = the prototype rung."""
     r = sess.get("reaction") if isinstance(sess.get("reaction"), dict) else {}
     proto = store.get_prototype(sess.get("prototype_id", "")) or {}
+    steps = r.get("steps") or _timeline_steps(r.get("timeline")) or sess.get("steps") or []
     return {"id": sess["id"], "persona_id": sess.get("persona_id", ""),
             "subject": {"kind": "prototype", "id": proto.get("id") or sess.get("prototype_id", ""),
                         "label": proto.get("name") or sess.get("prototype_id", "")},
-            "fidelity": "prototype", "steps": r.get("steps") or _timeline_steps(r.get("timeline")),
+            "fidelity": "prototype", "steps": steps,
             "grounded_verified": sess.get("grounded_verified"),
             "created_at": sess.get("created_at", ""), "date": sess.get("date", ""),
             "project_id": proto.get("project_id"), "outcome": {"summary": r.get("summary", "")}}
@@ -284,15 +286,16 @@ def _timeline_steps(timeline) -> list[dict]:
 
 
 def _proto_step_shim(sess: dict) -> dict:
-    """The {id, steps} shim _step_html/_friction_rail read: reaction.steps, else the adapted
-    reaction.timeline (_timeline_steps), enriched with the harness's on-disk screenshot
-    convention (data/sessions/<browser session_id>/step-<n>.png) — the id is the BROWSER
-    session dir, so _screenshot_url resolves the file when it exists and the step falls back
-    to its recorded screen text when it doesn't. The enrichment also repairs an explicitly
+    """The {id, steps} shim _step_html/_friction_rail read: authored reaction steps/timeline,
+    else the recorder's privacy-safe durable browser snapshots. It enriches every shape with the
+    harness's on-disk screenshot convention (data/sessions/<browser session_id>/step-<n>.png) —
+    the id is the BROWSER session dir, so _screenshot_url resolves the file when it exists and the
+    step falls back to recorded state when it doesn't. The enrichment also repairs an explicitly
     stored empty screenshot (key present but None/'' — setdefault missed those)."""
     r = sess.get("reaction") if isinstance(sess.get("reaction"), dict) else {}
     steps = []
-    for st in r.get("steps") or _timeline_steps(r.get("timeline")):
+    source_steps = r.get("steps") or _timeline_steps(r.get("timeline")) or sess.get("steps") or []
+    for st in source_steps:
         st = dict(st)
         state = dict(st.get("state") or {})
         if not state.get("screenshot"):

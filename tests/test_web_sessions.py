@@ -327,6 +327,29 @@ def test_prototype_session_full_detail_page(store):
     assert STRINGS["en"]["grounded_no"] in html              # no live session log -> unverified
 
 
+def test_prototype_session_uses_top_level_durable_steps_in_vm_and_replay(store):
+    """Recorder-derived browser snapshots remain visible/countable without authored reaction steps."""
+    from sonaloop.web.pages.sessions import proto_session_vm
+
+    _proj, _proto, _pid, sess = _proto_session(store, steps=[], timeline=[])
+    sess["steps"] = [
+        {"index": 0, "action": {"type": "open"},
+         "state": {"url": "https://example.test/start", "title": "Start"}},
+        {"index": 1, "action": {"type": "click", "target": "e1"},
+         "state": {"url": "https://example.test/result", "title": "Result"}},
+    ]
+    store.insert_prototype_session(sess)
+
+    vm = proto_session_vm(store.get_prototype_session(sess["id"]), store)
+    assert len(vm["steps"]) == 2
+    assert vm["steps"][1]["state"]["title"] == "Result"
+
+    html = _client().get(f'/sessions/{sess["id"]}?lang=en').text
+    assert 'id="step-0"' in html and 'id="step-1"' in html
+    assert "https://example.test/start · Start" in html
+    assert "https://example.test/result · Result" in html
+
+
 def test_prototype_sessions_list_in_library_tab_and_slideover(store):
     proj, proto, pid, sess = _proto_session(store)
     client = _client()

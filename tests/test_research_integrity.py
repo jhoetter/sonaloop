@@ -329,6 +329,122 @@ def test_observed_behavior_anchor_must_name_a_real_session_step(store):
         assert exc.value.code == "OBSERVATION_ANCHOR_REQUIRED"
 
 
+def test_grounded_prototype_session_persists_anchor_and_completes_reaction_task(
+        store, monkeypatch):
+    """A retained browser log must survive as addressable evidence after its process disappears.
+
+    Regression: PrototypeSession was marked grounded but stored no steps, so Reaction-Test
+    completion re-resolved ``step:0`` as a nonexistent range ``0..-1``.
+    """
+    from sonaloop import browser, prototypes
+
+    project, run, preflight = _strict_reaction(store, "prototype-step-anchor")
+    pid = project["id"]
+    screen = _attach_screen(pid, preflight["dispatch_token"], store)
+    _record_understanding(pid, preflight["dispatch_token"], screen["id"], store)
+    _record_fixture_frame(
+        pid, run["run_id"], store, question="What did the participant actually do?")
+    _override_thin_fixture_cohort(pid, run["run_id"], store)
+
+    plan = services.get_plan(pid, store=store)
+    act = next(task for task in plan["tasks"]
+               if task["id"] == "act__react__comprehension")
+    # This regression exercises a session-producing Reaction-Test act through
+    # the same governed completion path as the production pilot.
+    act["expected_output_kind"] = "session"
+    P.save_plan(plan, store=store)
+    dispatch = services.run_step(run["run_id"], store=store)
+    assert dispatch["step_id"] == act["id"]
+
+    proto = prototypes.register_prototype(
+        "durable-anchor-proto", "Durable anchor prototype", "prototypes/durable-anchor-proto",
+        project_id=pid, store=store,
+    )
+    browser_session_id = "psession_durable_anchor"
+    log = [
+        {
+            "kind": "snapshot",
+            "url": "https://user:password@example.test:8443/start?access_token=must-not-persist#private",
+            "title": "Start",
+            "refs": ["e1"],
+            "text": "Full private page copy — Continue",
+            "screenshot": f"{browser_session_id}/step-0.png",
+        },
+        {"kind": "action", "action": {
+            "type": "type", "ref": "e1", "text": "typed-secret-must-not-persist",
+        }},
+        {
+            "kind": "snapshot",
+            "url": "https://example.test/confirmed?receipt=private",
+            "title": "Confirmed",
+            "refs": ["e2"],
+            "text": "Confirmation seen",
+            "screenshot": f"{browser_session_id}/step-1.png",
+        },
+        {
+            "kind": "snapshot",
+            "url": "https://user:password@example.test:not-a-port/unsafe",
+            "title": "Invalid port",
+            "refs": [],
+            "text": "Must still not persist",
+            "screenshot": f"{browser_session_id}/step-2.png",
+        },
+    ]
+    monkeypatch.setitem(browser._RETAINED_LOGS, browser_session_id, log)
+
+    recorded = services.record_prototype_session(
+        "persona_a", proto["id"], browser_session_id, "2026-08-11",
+        {"summary": "continued", "observed_state_refs": ["Confirmation seen"]},
+        dispatch_token=dispatch["dispatch_token"], store=store,
+    )
+    assert recorded["dispatch"]["state"] == "completed"
+    assert recorded["dispatch"]["checkpointed"] is True
+
+    session = store.get_prototype_session(recorded["prototype_session"]["id"])
+    assert session["steps"] == [
+        {
+            "index": 0,
+            "action": {"type": "open"},
+            "state": {
+                "url": "https://example.test:8443/start",
+                "title": "Start",
+                "screenshot": "step-0.png",
+            },
+        },
+        {
+            "index": 1,
+            "action": {"type": "type", "target": "e1"},
+            "state": {
+                "url": "https://example.test/confirmed",
+                "title": "Confirmed",
+                "screenshot": "step-1.png",
+            },
+        },
+        {
+            "index": 2,
+            "action": {"type": "look"},
+            "state": {"title": "Invalid port", "screenshot": "step-2.png"},
+        },
+    ]
+    assert "text" not in session["steps"][0]["state"]
+    assert "access_token" not in session["steps"][0]["state"]["url"]
+    assert "user" not in session["steps"][0]["state"]["url"]
+    assert "password" not in session["steps"][0]["state"]["url"]
+    assert "url" not in session["steps"][2]["state"]
+    assert "typed-secret" not in str(session["steps"])
+
+    resolved = resolve_project_ref(
+        pid,
+        {"kind": "prototype_session", "id": session["id"], "anchor": "step:1"},
+        store,
+        observed_behavior=True,
+    )
+    assert resolved["class"] == "grounded_observation"
+    assert resolved["ref"] == {
+        "kind": "session", "id": session["id"], "anchor": "step:1",
+    }
+
+
 def test_reaction_stimuli_include_project_owned_prototypes(store, tmp_path, monkeypatch):
     from sonaloop import prototypes
 

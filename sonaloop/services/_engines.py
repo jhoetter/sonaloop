@@ -15,6 +15,7 @@ import uuid
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit, urlunsplit
 
 from .. import config
 from ..config import (
@@ -667,6 +668,91 @@ def brief_prototype_session(persona_id, prototype_id, store: Store | None = None
     return brief
 
 
+_DURABLE_BROWSER_ACTION_TYPES = {
+    "click", "type", "fill_credential", "select", "key", "scroll", "wait",
+}
+_DURABLE_SCREENSHOT_RE = re.compile(r"^step-[0-9]+\.png$")
+
+
+def _durable_session_url(value: Any) -> str:
+    """Retain the observed route without query/fragment credentials or tracking data."""
+    raw = str(value or "").strip()
+    if not raw or any(char in raw for char in ("\\", "\r", "\n", "\t")):
+        return ""
+    try:
+        parsed = urlsplit(raw)
+        hostname = parsed.hostname
+        port = parsed.port
+    except ValueError:
+        return ""
+    if parsed.scheme not in {"http", "https"} or not hostname:
+        return ""
+    # Reconstruct from hostname/port instead of parsed.netloc: netloc may still
+    # contain URL userinfo (user:password@host). Invalid ports fail above.
+    safe_host = f"[{hostname}]" if ":" in hostname else hostname
+    safe_netloc = safe_host + (f":{port}" if port is not None else "")
+    return urlunsplit((parsed.scheme, safe_netloc, parsed.path or "/", "", ""))
+
+
+def _durable_session_screenshot(value: Any, session_id: str) -> str:
+    """Accept only harness-owned ``step-N.png`` paths and persist their basename."""
+    raw = str(value or "").strip().replace("\\", "/")
+    if not raw:
+        return ""
+    path = Path(raw)
+    parts = path.parts
+    if path.is_absolute() or ".." in parts or not _DURABLE_SCREENSHOT_RE.fullmatch(path.name):
+        return ""
+    if len(parts) == 1 or (len(parts) == 2 and parts[0] == str(session_id)):
+        return path.name
+    return ""
+
+
+def _durable_prototype_steps(log: list[dict[str, Any]] | None,
+                             session_id: str) -> list[dict[str, Any]]:
+    """Project the retained browser log into a durable, privacy-safe replay trace.
+
+    The in-memory log keeps page text and action payloads only long enough to
+    verify ``observed_state_refs``.  Durable evidence needs addressable
+    ``step:N`` anchors, not a copy of the page or typed values, so each snapshot
+    retains only its order, coarse action type, route, title, and screenshot.
+    """
+    steps: list[dict[str, Any]] = []
+    pending_action: dict[str, Any] | None = None
+    for entry in log or []:
+        kind = str((entry or {}).get("kind") or "")
+        if kind == "action":
+            raw_action = entry.get("action") if isinstance(entry.get("action"), dict) else {}
+            action_type = str((raw_action or {}).get("type") or "")
+            pending_action = {
+                "type": action_type if action_type in _DURABLE_BROWSER_ACTION_TYPES else "act",
+            }
+            target = str((raw_action or {}).get("ref") or "")
+            if re.fullmatch(r"e[0-9]+", target):
+                pending_action["target"] = target
+            continue
+        if kind != "snapshot":
+            continue
+        if not steps:
+            action = {"type": "open"}
+        elif pending_action:
+            action = pending_action
+        else:
+            action = {"type": "look"}
+        state = {
+            "url": _durable_session_url(entry.get("url")),
+            "title": " ".join(str(entry.get("title") or "").split())[:300],
+            "screenshot": _durable_session_screenshot(entry.get("screenshot"), session_id),
+        }
+        steps.append({
+            "index": len(steps),
+            "action": action,
+            "state": {key: value for key, value in state.items() if value},
+        })
+        pending_action = None
+    return steps
+
+
 
 def record_prototype_session(persona_id, prototype_id, session_id, date_value, reaction,
                              key: str | None = None, store: Store | None = None,
@@ -704,7 +790,8 @@ def record_prototype_session(persona_id, prototype_id, session_id, date_value, r
             else stable_id("protosession", persona_id, prototype_id, now)),
         persona_id=persona_id,
         prototype_id=proto["id"], session_id=session_id, date=date_value, reaction=reaction,
-        observed_state_refs=refs, created_at=now, statements=statements).to_dict()
+        observed_state_refs=refs, created_at=now, statements=statements,
+        steps=_durable_prototype_steps(log, session_id)).to_dict()
     sess["grounded_verified"] = grounded
     # A prototype can be updated after this run. Stamp the version observed NOW so later critics do
     # not accidentally attribute historical reactions to whatever version happens to be current.
