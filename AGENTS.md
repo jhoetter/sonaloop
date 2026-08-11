@@ -246,7 +246,8 @@ Memory & multi-resolution simulation (gather → author → write-back):
   completes and checkpoints when gates are ready. Use manual `link_evidence`/`complete_task` only on
   legacy/outside-run writes or when a recorder explicitly reports linked but not checkpointed.
   If output should stay visible but deliberately not feed a downstream gate, call
-  `park_evidence(refs, reason)` instead of leaving it stranded. `complete_task` returns a
+  `park_evidence(refs, reason)` instead of leaving it stranded; if that decision was wrong, use
+  `unpark_evidence(refs, reason)` so the correction remains audited. `complete_task` returns a
   `TRACE_LINK_MISSING` nudge when evidence was completed without a trace link; repair that before
   moving on. `checkpoint_step` should echo `consume_refs`, `produced_refs`, `downstream_refs`,
   `open_questions` and `parked_refs` so the run journal can explain what happened later.

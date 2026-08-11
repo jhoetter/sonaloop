@@ -92,6 +92,7 @@ from ..suggestions import (  # noqa: E402
     suggest_tech_comfort,
 )
 from .. import plan as _plan  # noqa: E402
+from .. import plan_evidence as _plan_evidence  # noqa: E402
 from ..plan import (  # noqa: E402
     PlanError,
     new_plan,
@@ -490,7 +491,12 @@ def record_judgment(project_id, task_id, gate_tag, decided, rationale,
 
 def park_evidence(project_id: str, refs: list[Any], reason: str, task_id: str = "",
                   store: Store | None = None) -> dict[str, Any]:
-    return _plan.park_evidence(project_id, refs, reason, task_id, store=store)
+    return _plan_evidence.park_evidence(project_id, refs, reason, task_id, store=store)
+
+
+def unpark_evidence(project_id: str, refs: list[Any], reason: str, task_id: str = "",
+                    store: Store | None = None) -> dict[str, Any]:
+    return _plan_evidence.unpark_evidence(project_id, refs, reason, task_id, store=store)
 
 
 

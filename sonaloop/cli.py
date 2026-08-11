@@ -411,6 +411,9 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("plan-link")
     p.add_argument("project_id"); p.add_argument("task_id"); p.add_argument("kind"); p.add_argument("evidence_id")
     p.add_argument("--dispatch-token")
+    p = sub.add_parser("plan-unpark")
+    p.add_argument("project_id"); p.add_argument("ref", action="append")
+    p.add_argument("--task-id", default=""); p.add_argument("--reason", required=True)
     p = sub.add_parser("plan-judge")
     p.add_argument("project_id"); p.add_argument("task_id"); p.add_argument("gate_tag")
     p.add_argument("--decided", default="true"); p.add_argument("--rationale", default=""); p.add_argument("--ref", action="append", dest="refs")
@@ -827,6 +830,9 @@ def main(argv: list[str] | None = None) -> int:
             _print(services.link_evidence(
                 args.project_id, args.task_id, {"kind": args.kind, "id": args.evidence_id},
                 dispatch_token=args.dispatch_token))
+        elif args.command == "plan-unpark":
+            _print(services.unpark_evidence(
+                args.project_id, args.ref, args.reason, task_id=args.task_id))
         elif args.command == "plan-judge":
             _print(services.record_judgment(args.project_id, args.task_id, args.gate_tag,
                                             args.decided.lower() == "true", args.rationale, args.refs,

@@ -125,3 +125,12 @@ def register_methodologies(mcp):
         gate/decision. Use this instead of leaving produced evidence orphaned."""
         t = time.perf_counter()
         return _env("park_evidence", services.park_evidence(project_id, refs, reason, task_id), t)
+
+    @mcp.tool()
+    def unpark_evidence(project_id: str, refs: list[Any], reason: str,
+                        task_id: str = "") -> dict[str, Any]:
+        """Correct a prior parking decision for exact refs and scope. The evidence becomes
+        gate-eligible again while the plan retains an audit record of the correction."""
+        t = time.perf_counter()
+        return _env("unpark_evidence", services.unpark_evidence(
+            project_id, refs, reason, task_id), t)

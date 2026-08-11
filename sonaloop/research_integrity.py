@@ -605,6 +605,10 @@ def reaction_task_gaps(project_id: str, task: dict[str, Any], plan: dict[str, An
         gaps.append("task has no linked evidence")
         return gaps
     stimulus_ids = {(s["kind"], s["id"]) for s in stimuli}
+    # Plan/build adapters historically call runnable prototypes ``artifact`` evidence; accept that
+    # open graph tag as an alias without changing the prototype's canonical stimulus kind.
+    stimulus_ids.update(("artifact", rid) for kind, rid in tuple(stimulus_ids)
+                        if kind == "prototype")
     for ref in refs:
         kind, rid = str(ref.get("kind") or ""), str(ref.get("id") or "")
         if kind == "council":

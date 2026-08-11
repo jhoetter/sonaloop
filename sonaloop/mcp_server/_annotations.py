@@ -254,6 +254,7 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     "archive_project": W("Archive project", idempotent=True),
     "link_evidence": W("Link evidence"),
     "park_evidence": W("Park evidence"),
+    "unpark_evidence": W("Unpark evidence"),
     "complete_task": W("Complete task"),
     "iterate_task": W("Iterate task"),
     "assess_progress": W("Record progress assessment"),  # records the assessment

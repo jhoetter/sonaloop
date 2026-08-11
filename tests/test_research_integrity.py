@@ -396,6 +396,49 @@ def test_reaction_gate_excludes_explicitly_parked_task_evidence(store, monkeypat
         "artifact:prototype_visible_but_not_evidence is not an admitted Reaction Test evidence type"
     ]
 
+    plan["parked_refs"] = []
+    monkeypatch.setattr(
+        RI,
+        "reaction_stimuli",
+        lambda *_: [{"kind": "prototype", "id": "prototype_visible_but_not_evidence"}],
+    )
+    task["produces"] = [{"kind": "artifact", "id": "prototype_visible_but_not_evidence"}]
+    assert RI.reaction_task_gaps(pid, task, plan, store) == []
+
+
+def test_unpark_evidence_readmits_exact_refs_and_keeps_audit(store):
+    project = services.start_project("Unpark", "Question?", store=store)
+    pid = project["id"]
+    services.park_evidence(
+        pid,
+        ["artifact:prototype_1", "council:side_1"],
+        "Keep both visible but outside this gate.",
+        task_id="frame__root",
+        store=store,
+    )
+
+    correction = services.unpark_evidence(
+        pid,
+        ["artifact:prototype_1"],
+        "The prototype is the intended build output after all.",
+        task_id="frame__root",
+        store=store,
+    )
+    plan = services.get_plan(pid, store=store)
+    assert correction["refs"] == ["artifact:prototype_1"]
+    assert plan["parked_refs"][0]["refs"] == ["council:side_1"]
+    assert plan["unparked_refs"][-1]["reason"].startswith("The prototype")
+
+    with pytest.raises(P.PlanError) as missing:
+        services.unpark_evidence(
+            pid,
+            ["artifact:not_parked"],
+            "Correction",
+            task_id="frame__root",
+            store=store,
+        )
+    assert missing.value.code == "BAD_UNPARK"
+
 
 def test_legacy_project_remains_backward_compatible_with_explicit_provenance(store):
     project = services.start_project("Legacy", "Old host", methodology=None, store=store)
@@ -430,3 +473,4 @@ def test_mcp_schemas_expose_product_preflight_claims_and_dispatch_tokens():
     for name in ("record_frame", "record_judgment", "complete_task", "attach_asset",
                  "define_flow", "record_usability_session", "record_prototype_session"):
         assert "dispatch_token" in tools[name].inputSchema["properties"], name
+    assert "unpark_evidence" in tools
