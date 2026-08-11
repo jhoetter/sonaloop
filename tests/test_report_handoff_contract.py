@@ -43,6 +43,25 @@ def test_empty_scaffold_is_progress_not_a_handoff(store):
                    for row in health["integrity_findings"])
 
 
+def test_reaction_scaffold_freezes_graph_sources_for_structural_sections(store):
+    project = services.start_project(
+        "Structural Reaction report", "Question", methodology="Reaction Test", store=store)
+    source_id = "structural_report_source"
+    store.upsert_synthesis({
+        "id": source_id, "title": "Reaction evidence", "project_id": project["id"],
+        "scope": "study", "status": "done", "created_at": "2026-08-11T00:00:00Z",
+        "council_ids": [], "statements": [], "findings": [],
+    })
+
+    report = services.scaffold_synthesis(project["id"], store=store)
+    frozen = list(report["graph_snapshot"]["build_order"])
+
+    assert f"synthesis:{source_id}" in frozen
+    assert len(report["sections"]) > 2
+    assert all(section["source_study_ids"] for section in report["sections"])
+    assert any(section["source_study_ids"] == frozen for section in report["sections"])
+
+
 def test_reaction_report_health_uses_section_citations_not_a_generic_claim_envelope(store):
     project = services.start_project(
         "Cited Reaction report", "Question", methodology="Reaction Test", store=store)
@@ -84,6 +103,39 @@ def test_reaction_report_health_uses_section_citations_not_a_generic_claim_envel
     assert not any(row["code"] == "claim_provenance_incomplete"
                    and report["id"] in row.get("target", "")
                    for row in healthy["integrity_findings"])
+
+    strict = store.get_report(report["id"])
+    strict["sections"][0]["citations"].append(
+        {"study_id": "synthesis:not_declared_by_section",
+         "council_id": "", "quote": ""})
+    store.upsert_synthesis(strict)
+    strict_health = services.project_health(project["id"], store=store)
+    assert any(row["code"] == "invalid_evidence_ref"
+               and report["id"] in row.get("target", "")
+               for row in strict_health["integrity_findings"])
+
+    legacy = store.get_report(report["id"])
+    legacy["sections"][0]["source_study_ids"] = []
+    legacy["sections"][0]["citations"] = [
+        {"study_id": f"synthesis:{source_id}",
+         "council_id": "", "quote": "Bounded source claim"}]
+    store.upsert_synthesis(legacy)
+    legacy_health = services.project_health(project["id"], store=store)
+    assert not any(row["code"] in {"claim_provenance_incomplete", "invalid_evidence_ref"}
+                   and report["id"] in row.get("target", "")
+                   for row in legacy_health["integrity_findings"])
+
+    foreign = store.get_report(report["id"])
+    foreign["sections"][0]["citations"] = [
+        {"study_id": "synthesis:not_in_frozen_graph", "council_id": "", "quote": ""}]
+    store.upsert_synthesis(foreign)
+    foreign_health = services.project_health(project["id"], store=store)
+    assert any(row["code"] == "claim_provenance_incomplete"
+               and report["id"] in row.get("target", "")
+               for row in foreign_health["integrity_findings"])
+    assert any(row["code"] == "invalid_evidence_ref"
+               and report["id"] in row.get("target", "")
+               for row in foreign_health["integrity_findings"])
 
     uncited = store.get_report(report["id"])
     uncited["sections"][0]["citations"] = []

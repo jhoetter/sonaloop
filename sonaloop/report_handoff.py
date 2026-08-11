@@ -98,7 +98,12 @@ def report_provenance_state(report: dict[str, Any]) -> dict[str, Any]:
         valid = 0
         for citation in citations:
             study_id = str(citation.get("study_id") or "")
-            if study_id and study_id in sources and study_id in known:
+            # Current outlines declare exact per-section sources. Legacy
+            # structural/preflight sections may have an empty list; only for
+            # those rows, fall back to the immutable graph snapshot rather
+            # than making otherwise real citations impossible to verify.
+            declared = not sources or study_id in sources
+            if study_id and declared and study_id in known:
                 valid += 1
             else:
                 invalid.append({"section_id": section_id, "heading": heading,

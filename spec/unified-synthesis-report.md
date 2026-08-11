@@ -90,8 +90,11 @@ and the critic all use this same derived state, so an empty `done` legacy row ca
 
 Structural hand-off and evidence verification remain distinct. A project report does not need the
 generic council/synthesis `claim_posture` envelope. Instead, every authored section must cite at least
-one existing study from that section's frozen `source_study_ids`; uncited prose or a citation outside
-that declared source set keeps the report visible but marks project health unverified.
+one existing study from that section's frozen `source_study_ids`; a scaffolded structural section with
+no phase-local node receives the deduplicated graph-wide source set. For legacy sections whose source
+list is empty, only a citation present in the frozen graph snapshot is accepted. Once a section declares
+any sources, that declaration remains strict. Uncited prose and foreign ids keep project health
+unverified.
 
 ## 3. One renderer, one export
 

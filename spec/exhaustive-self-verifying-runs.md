@@ -326,6 +326,8 @@ phase (Discover/Define/…/Deliver — labels from the step names, no hardcoded 
 and a "Run-Journal" section (the run's notes). Idempotent (keyed by title). The driver calls it during
 `do_finish_steps`; `assess_project.finish.organized` then flips true automatically. Add
 `scaffold_synthesis(project_id, dispatch_token=...)` seeds the project-report outline from the graph.
+Methodology sections without a phase-local node receive the deduplicated frozen graph-wide source set,
+so structural preflight prose can still cite real evidence without weakening source validation.
 The outline is never completion: the engine's stable report-handoff dispatch stays open until the lead
 and every section are authored, then the final section checkpoints it. A killed host resumes the same
 report and first unfinished section rather than creating a duplicate.

@@ -352,16 +352,22 @@ def scaffold_synthesis(project_id: str, store: Store | None = None,
         by_phase: dict[str, list[str]] = {}
         for node in nodes:
             by_phase.setdefault(node.get("phase", ""), []).append(node["study_id"])
+        graph_sources = [value for value in dict.fromkeys(graph.get("build_order") or []) if value]
         sections = []
         for step in steps:
             srcs = [x for x in dict.fromkeys(by_phase.get(step["key"], [])) if x]
+            # Structural methodology phases (notably Product/Cohort preflight)
+            # can have no node of their own. Freeze the whole current graph as
+            # their declared source set so later section prose remains citable.
+            if not srcs:
+                srcs = list(graph_sources)
             label = (step.get("name") or step["key"]).split("·")[-1].strip() or step["key"]
             role = "diverge" if step.get("is_fan") else "converge"
             sections.append({"heading": label, "theme_tags": [], "source_study_ids": srcs,
                              "intent": f"Author the {label} phase ({role}) grounded in its evidence + what it produced."})
         if not sections:
             sections = [{"heading": "Findings", "intent": "Author the project's findings + conclusion.",
-                         "theme_tags": [], "source_study_ids": graph.get("build_order", [])}]
+                         "theme_tags": [], "source_study_ids": graph_sources}]
         outline = {"build_order_narrative": (
                        "Dieser Bericht führt die Evidenz entlang der Forschungsphasen von der "
                        "Ausgangsfrage bis zu den priorisierten Schlussfolgerungen zusammen."
