@@ -328,18 +328,18 @@ def project_health(project_id: str, store: Store | None = None,
             report_provenance = report_provenance_state(record)
             for gap in report_provenance["gaps"]:
                 if gap["reason"] == "invalid_source_citations":
-                    message = f"{label} contains citations outside its declared section sources"
+                    message = f"{label} contains citations outside its frozen report graph"
                 else:
                     message = (f"{label} section {gap['heading']!r} contains authored prose "
                                "without a valid citation to one of its declared source studies")
                 issue("claim_provenance_incomplete", message,
-                      target=f"/syntheses/{rid}#claim-health")
+                      target=f"/syntheses/{rid}")
             for citation in report_provenance["invalid_citations"]:
                 issue(
                     "invalid_evidence_ref",
-                    f"{label} section {citation['heading']!r} cites an undeclared or missing "
-                    f"source study {citation['study_id']!r}.",
-                    target=f"/syntheses/{rid}#claim-health",
+                    f"{label} section {citation['heading']!r} cites a source study "
+                    f"{citation['study_id']!r} missing from its frozen report graph.",
+                    target=f"/syntheses/{rid}",
                 )
         elif claim_contract_required or record.get("claim_posture"):
             for gap in artifact_posture_gaps(record, label):

@@ -76,9 +76,11 @@ def report_provenance_state(report: dict[str, Any]) -> dict[str, Any]:
     """Validate a report's section-level provenance without a generic claim envelope.
 
     Report prose has its own contract: every authored section must cite one of
-    that section's frozen source studies.  This is narrower and more truthful
-    than requiring the council/synthesis ``claim_posture`` envelope on the
-    report container, while still refusing to treat uncited prose as verified.
+    that section's frozen source studies, while additional cross-phase citations
+    may reference any study in the report's immutable graph snapshot.  This is
+    narrower and more truthful than requiring the council/synthesis
+    ``claim_posture`` envelope on the report container, while still refusing to
+    treat uncited or foreign-source prose as verified.
     """
     snapshot = dict(report.get("graph_snapshot") or {})
     known = {str(value) for value in (snapshot.get("build_order") or []) if str(value)}
@@ -95,20 +97,23 @@ def report_provenance_state(report: dict[str, Any]) -> dict[str, Any]:
         heading = str(section.get("heading") or section_id or "section")
         sources = {str(value) for value in (section.get("source_study_ids") or []) if str(value)}
         citations = [row for row in (section.get("citations") or []) if isinstance(row, dict)]
-        valid = 0
+        anchored = 0
         for citation in citations:
             study_id = str(citation.get("study_id") or "")
             # Current outlines declare exact per-section sources. Legacy
             # structural/preflight sections may have an empty list; only for
             # those rows, fall back to the immutable graph snapshot rather
             # than making otherwise real citations impossible to verify.
-            declared = not sources or study_id in sources
-            if study_id and declared and study_id in known:
-                valid += 1
-            else:
+            if not study_id or study_id not in known:
                 invalid.append({"section_id": section_id, "heading": heading,
                                 "study_id": study_id})
-        if not valid:
+                continue
+            # The section list is its mandatory phase anchor, not a ban on
+            # cross-phase synthesis. Every other citation still has to remain
+            # inside the same frozen report graph.
+            if not sources or study_id in sources:
+                anchored += 1
+        if not anchored:
             gaps.append({"section_id": section_id, "heading": heading,
                          "reason": "no_valid_source_citation"})
     if invalid:

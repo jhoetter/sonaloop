@@ -268,14 +268,17 @@ gates. Council/report UI and Markdown/JSON exports retain posture and refs.
 
 Project-scope reports use their native section provenance rather than duplicating the generic
 `claim_posture` envelope used by councils and convergence syntheses. Every authored report section
-must cite at least one study from that section's frozen `source_study_ids`, and the cited study must
+must cite at least one study from that section's frozen `source_study_ids`, and every cited study must
 exist in the report's graph snapshot. New scaffolds give structural/methodology sections with no
 phase-local node a deduplicated graph-wide frozen source set. For legacy reports whose section source
-list is empty, the immutable graph snapshot is the fallback allowlist; a non-empty source list remains
-strict. Missing citations keep the report visible but unverified, and foreign or undeclared study ids
-surface as invalid evidence refs. This verification contract is separate from structural hand-off
-completion: a lead plus fully authored section bodies makes the report deliverable, while its section
-citations decide whether the delivered prose is evidence-backed.
+list is empty, the immutable graph snapshot supplies the section anchor. A non-empty source list stays
+the mandatory phase anchor, while additional cross-phase citations are allowed only inside the same
+immutable graph snapshot. Missing anchor citations keep the report visible but unverified; studies
+outside the snapshot also surface as invalid evidence refs. This verification contract is separate
+from structural hand-off completion: a lead plus fully authored section bodies makes the report
+deliverable, while its section citations decide whether the delivered prose is evidence-backed.
+Lead-only repair of an already authored report never refreshes its graph snapshot: evidence added to
+the project later cannot retroactively legitimize an earlier report citation.
 
 ## Canonical project health and recovery
 

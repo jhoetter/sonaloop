@@ -69,6 +69,7 @@ def test_reaction_report_health_uses_section_citations_not_a_generic_claim_envel
         project["id"], content_base64=base64.b64encode(b"bounded stimulus").decode(),
         filename="stimulus.txt", kind="document", store=store)
     source_id = "source_for_report_health"
+    cross_phase_id = "cross_phase_source_for_report_health"
     store.upsert_synthesis({
         "id": source_id, "title": "Bounded source", "project_id": project["id"],
         "scope": "study", "status": "done", "created_at": "2026-08-11T00:00:00Z",
@@ -80,8 +81,14 @@ def test_reaction_report_health_uses_section_citations_not_a_generic_claim_envel
                         "posture": "inferred", "refs": [{"kind": "asset", "id": asset["id"]}]}],
         },
     })
+    store.upsert_synthesis({
+        "id": cross_phase_id, "title": "Cross-phase source", "project_id": project["id"],
+        "scope": "study", "status": "done", "created_at": "2026-08-11T00:00:01Z",
+        "council_ids": [], "statements": [], "findings": [],
+    })
     persisted = store.get_research_project(project["id"])
-    persisted["study_ids"] = [f"synthesis:{source_id}"]
+    persisted["study_ids"] = [
+        f"synthesis:{source_id}", f"synthesis:{cross_phase_id}"]
     store.upsert_research_project(persisted)
 
     report = services.record_synthesis_outline(
@@ -106,13 +113,34 @@ def test_reaction_report_health_uses_section_citations_not_a_generic_claim_envel
 
     strict = store.get_report(report["id"])
     strict["sections"][0]["citations"].append(
-        {"study_id": "synthesis:not_declared_by_section",
+        {"study_id": f"synthesis:{cross_phase_id}",
          "council_id": "", "quote": ""})
     store.upsert_synthesis(strict)
     strict_health = services.project_health(project["id"], store=store)
+    assert not any(row["code"] in {"claim_provenance_incomplete", "invalid_evidence_ref"}
+                   and report["id"] in row.get("target", "")
+                   for row in strict_health["integrity_findings"])
+
+    anchored_foreign = store.get_report(report["id"])
+    anchored_foreign["sections"][0]["citations"].append(
+        {"study_id": "synthesis:not_in_frozen_graph", "council_id": "", "quote": ""})
+    store.upsert_synthesis(anchored_foreign)
+    anchored_foreign_health = services.project_health(project["id"], store=store)
     assert any(row["code"] == "invalid_evidence_ref"
+               and row.get("target") == f"/syntheses/{report['id']}"
+               for row in anchored_foreign_health["integrity_findings"])
+
+    unanchored = store.get_report(report["id"])
+    unanchored["sections"][0]["citations"] = [
+        {"study_id": f"synthesis:{cross_phase_id}", "council_id": "", "quote": ""}]
+    store.upsert_synthesis(unanchored)
+    unanchored_health = services.project_health(project["id"], store=store)
+    assert any(row["code"] == "claim_provenance_incomplete"
                and report["id"] in row.get("target", "")
-               for row in strict_health["integrity_findings"])
+               for row in unanchored_health["integrity_findings"])
+    assert not any(row["code"] == "invalid_evidence_ref"
+                   and report["id"] in row.get("target", "")
+                   for row in unanchored_health["integrity_findings"])
 
     legacy = store.get_report(report["id"])
     legacy["sections"][0]["source_study_ids"] = []
@@ -180,6 +208,58 @@ def test_lead_and_every_section_are_required_and_completion_updates_status(store
     assert repaired["status"] == "done"
     assert repaired["handoff"]["complete"] is True
     assert all(section["markdown"].startswith("Body") for section in repaired["sections"])
+
+
+def test_lead_repair_does_not_widen_the_frozen_report_graph(store):
+    project = services.create_research_project("Immutable report graph", goal="g", store=store)
+    first_id = "report_graph_first"
+    second_id = "report_graph_later"
+    store.upsert_synthesis({
+        "id": first_id, "title": "First evidence", "project_id": project["id"],
+        "scope": "study", "status": "done", "created_at": "2026-08-11T00:00:00Z",
+        "council_ids": [], "statements": [], "findings": [],
+    })
+    persisted = store.get_research_project(project["id"])
+    persisted["study_ids"] = [f"synthesis:{first_id}"]
+    store.upsert_research_project(persisted)
+    outline = {
+        "build_order_narrative": "",
+        "sections": [{"heading": "Evidence", "intent": "Trace the evidence.",
+                      "theme_tags": [],
+                      "source_study_ids": [f"synthesis:{first_id}"]}],
+    }
+    report = services.record_synthesis_outline(project["id"], outline, store=store)
+    frozen_before = dict(report["graph_snapshot"])
+    report = services.record_synthesis_section(
+        project["id"], report["sections"][0]["id"],
+        {"markdown": "The first source anchors a cross-phase conclusion.",
+         "citations": [
+             {"study_id": f"synthesis:{first_id}", "council_id": "", "quote": ""},
+             {"study_id": f"synthesis:{second_id}", "council_id": "", "quote": ""},
+         ]},
+        report_id=report["id"], store=store)
+    before_health = services.project_health(project["id"], store=store)
+    assert any(row["code"] == "invalid_evidence_ref"
+               and row.get("target") == f"/syntheses/{report['id']}"
+               for row in before_health["integrity_findings"])
+
+    store.upsert_synthesis({
+        "id": second_id, "title": "Later evidence", "project_id": project["id"],
+        "scope": "study", "status": "done", "created_at": "2026-08-11T00:01:00Z",
+        "council_ids": [], "statements": [], "findings": [],
+    })
+    persisted = store.get_research_project(project["id"])
+    persisted["study_ids"] = [f"synthesis:{first_id}", f"synthesis:{second_id}"]
+    store.upsert_research_project(persisted)
+    repaired_outline = {**outline, "build_order_narrative": "Lead repaired after authoring."}
+    repaired = services.record_synthesis_outline(
+        project["id"], repaired_outline, report_id=report["id"], store=store)
+
+    assert repaired["graph_snapshot"] == frozen_before
+    after_health = services.project_health(project["id"], store=store)
+    assert any(row["code"] == "invalid_evidence_ref"
+               and row.get("target") == f"/syntheses/{report['id']}"
+               for row in after_health["integrity_findings"])
 
 
 def test_outline_reuses_empty_scaffold_and_operation_replays_or_conflicts(store):

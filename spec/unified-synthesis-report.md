@@ -93,8 +93,13 @@ generic council/synthesis `claim_posture` envelope. Instead, every authored sect
 one existing study from that section's frozen `source_study_ids`; a scaffolded structural section with
 no phase-local node receives the deduplicated graph-wide source set. For legacy sections whose source
 list is empty, only a citation present in the frozen graph snapshot is accepted. Once a section declares
-any sources, that declaration remains strict. Uncited prose and foreign ids keep project health
-unverified.
+sources, at least one citation must use that mandatory phase anchor; additional cross-phase citations
+are valid only when they also exist in the immutable graph snapshot. Unanchored prose and ids outside
+that snapshot keep project health unverified.
+
+The graph snapshot is frozen when the outline is authored. In-place recovery that only repairs a
+missing report lead preserves that exact snapshot even if the live project graph has since grown;
+newer evidence requires a new report outline, not a silent widening of an authored report.
 
 ## 3. One renderer, one export
 

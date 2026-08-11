@@ -126,7 +126,9 @@ def _record_synthesis_outline_locked(
             report["lead"] = data["build_order_narrative"]
             report["outline_payload_fingerprint"] = fingerprint
             report["updated_at"] = now
-            report["graph_snapshot"] = get_project_graph(project["id"], store=store)  # noqa: F821 (bound)
+            # The body was authored against the outline-time graph. A lead-only
+            # repair must never widen that immutable evidence boundary to newer
+            # project studies.
             claims = _outline_claims(report)
             if operation_id:
                 claims.append({"operation_id": operation_id,
