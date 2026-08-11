@@ -98,6 +98,36 @@ def test_proto_drive_one_process_grounded(store, tmp_path, monkeypatch):
         prototypes.stop_prototype("harness-drive", store=store)
 
 
+@pytest.mark.skipif(not browser.available(), reason="chromium not installed")
+def test_proto_drive_forwards_governed_dispatch_token(store, tmp_path, monkeypatch):
+    """The CLI-safe one-process path must also be usable inside dispatch_v1 runs."""
+    from sonaloop import plan as plan_mod
+
+    proto = _proto(store, tmp_path, monkeypatch, "harness-drive-governed")
+    project = services.start_project("Governed", "hmw?", None, persona_ids=["pX"],
+                                     operation_id="governed-drive-project", store=store)
+    project["governance_contract"] = "dispatch_v1"
+    store.upsert_research_project(project)
+    proto["project_id"] = project["id"]
+    store.upsert_prototype(proto)
+    task = {"id": "act__test", "bucket": "act", "capability": "test", "title": "Test",
+            "status": "ready", "consumes": [], "produces": [], "requires": {"min_inputs": 0}}
+    plan_mod.save_plan({"project_id": project["id"], "goal": "hmw?", "tasks": [task]}, store=store)
+    run = services.start_run(project["id"], operation_id="governed-drive-run", store=store)
+    dispatch = services.run_step(run["run_id"], store=store)
+    try:
+        out = services.proto_drive(
+            proto["id"], persona_id="pX", actions=[],
+            reaction={"summary": "saw the start screen", "observed_state_refs": ["Vergleichen"]},
+            date_value="2026-06-10", dispatch_token=dispatch["dispatch_token"], store=store,
+        )
+        assert out["recorded"]["grounded_verified"] is True
+        saved = store.get_prototype_session(out["recorded"]["id"])
+        assert saved["dispatch_provenance"]["dispatch_token"] == dispatch["dispatch_token"]
+    finally:
+        prototypes.stop_prototype("harness-drive-governed", store=store)
+
+
 def test_proto_drive_unavailable_is_graceful(store, tmp_path, monkeypatch):
     if browser.available():
         pytest.skip("playwright present; covered by the live test")

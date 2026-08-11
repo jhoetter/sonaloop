@@ -594,7 +594,8 @@ def proto_close(session_id, store: Store | None = None):
 
 
 def proto_drive(prototype_id=None, url=None, persona_id=None, actions=None,
-                reaction=None, date_value=None, store: Store | None = None):
+                reaction=None, date_value=None, dispatch_token=None,
+                store: Store | None = None):
     """A complete proband session in ONE process: open → scripted actions → read → close —
     and, when `reaction` is given, record_prototype_session against the still-warm log.
     This exists because browser sessions (and their retained logs) live in process memory:
@@ -613,7 +614,8 @@ def proto_drive(prototype_id=None, url=None, persona_id=None, actions=None,
            "final": final.get("snapshot")}
     if reaction is not None:
         rec = record_prototype_session(persona_id, prototype_id, sid,
-                                       date_value or date.today().isoformat(), reaction, store=store)
+                                       date_value or date.today().isoformat(), reaction,
+                                       dispatch_token=dispatch_token, store=store)
         out["recorded"] = {"id": rec["prototype_session"]["id"],
                            "grounded_verified": rec.get("grounded_verified")}
     else:

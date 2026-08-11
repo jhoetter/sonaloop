@@ -60,6 +60,11 @@ formats, syntheses, assets, captured artifacts, flows, usability/prototype sessi
 evidence links, judgments, and completion. CLI commands expose `--dispatch-token`; MCP
 tool schemas expose `dispatch_token`.
 
+For a browser-verified prototype reaction from the terminal, use the one-process
+`proto-drive ... --record reaction.json --dispatch-token <token>` path. It keeps the
+observed-state log alive through recording while preserving the active run's exact
+dispatch scope.
+
 ## Product Understanding preflight
 
 Reaction Test plans insert a mandatory root analyze task with capability

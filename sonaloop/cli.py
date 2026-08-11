@@ -443,6 +443,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--prototype"); p.add_argument("--url"); p.add_argument("--persona")
     p.add_argument("--record")  # reaction JSON file → record_prototype_session in-process (grounded)
     p.add_argument("--date", default="")
+    p.add_argument("--dispatch-token")
     p = sub.add_parser("proto-act"); p.add_argument("session_id"); p.add_argument("action")
     p = sub.add_parser("proto-read"); p.add_argument("session_id")
     p = sub.add_parser("proto-close"); p.add_argument("session_id")
@@ -875,7 +876,8 @@ def main(argv: list[str] | None = None) -> int:
             actions = script.get("actions") if isinstance(script, dict) else script
             reaction = json.loads(Path(args.record).read_text(encoding="utf-8")) if args.record else None
             _print(services.proto_drive(args.prototype, args.url, args.persona, actions,
-                                        reaction=reaction, date_value=args.date or None))
+                                        reaction=reaction, date_value=args.date or None,
+                                        dispatch_token=args.dispatch_token))
         elif args.command == "proto-act":
             _print(services.proto_act(args.session_id, json.loads(args.action)))
         elif args.command == "proto-read":
