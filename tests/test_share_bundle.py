@@ -242,6 +242,10 @@ def test_postgres_persona_avatar_route_is_inlined_without_project_context(
         html = S._share_inline_images(tag, store=store)
         assert 'src="data:image/png;base64,' in html
         assert f"/personas/{pid}/avatar" not in html
+        thumb = S._share_inline_images(
+            f'<img src="/personas/{pid}/avatar/thumbnail">', store=store)
+        assert 'src="data:image/png;base64,' in thumb
+        assert f"/personas/{pid}/avatar/thumbnail" not in thumb
         assert "share-missing" in S._share_inline_images(
             '<img src="/personas/../../secret/avatar">', store=store)
     finally:

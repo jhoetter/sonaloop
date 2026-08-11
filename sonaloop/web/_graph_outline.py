@@ -42,8 +42,9 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
     project page IS the outline; every primitive is a row in its phase context). Chronological by
     iteration (phase groups carry a `· Runde N` suffix when the project looped; flat when there is no
     plan). Relationships are shown the Linear way: HIERARCHY via indentation + tree connector (concept
-    → its prototype, subject → its usability sessions), and CROSS-LINKS via HOVER-HIGHLIGHT (hover a
-    row → its related rows light up, the rest dim) — never permanent edges. `sessions` = the prepared
+    → its prototype, subject → its usability sessions), and CROSS-LINKS via quiet input/output
+    counts plus HOVER-HIGHLIGHT (hover a row → its related rows light up, the rest dim) — never
+    permanent edge spaghetti. `sessions` = the prepared
     subject groups (outline_session_groups); decisions/hypotheses/surveys = the project's record lists
     (absorbed as phase rows via _graph_outline_extras) — all built by the page route which holds the
     Store, and optional so other callers keep the bare signature.
@@ -437,8 +438,21 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         # The icon carries the row kind; the row text stays about the artifact itself. Status,
         # trace state, forms and counts are available in the FilterBar/detail aside instead of
         # competing as same-looking pills in the timeline.
+        relation_parts = []
+        n_inputs = len(rel_in.get(oid, ()))
+        n_outputs = len(rel_out.get(oid, ()))
+        if n_inputs:
+            relation_parts.append(t("rel_inputs_n", n=n_inputs))
+        if n_outputs:
+            relation_parts.append(t("rel_outputs_n", n=n_outputs))
+        relation_summary = (
+            h("span", {"class_": "ol-rel-summary", "title": t("relations")},
+              " · ".join(relation_parts))
+            if relation_parts else ""
+        )
         cells = [lead,
                  h("span", {"class_": "ol-title"}, it["title"]),
+                 relation_summary,
                  crew,
                  h("span", {"class_": "ol-ts"}, ui.local_ts(timestamp))]
         ext = {"target": "_blank", "rel": "noopener"} if it.get("external") else {}

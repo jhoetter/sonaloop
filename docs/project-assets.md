@@ -33,8 +33,12 @@ Shared-Postgres/RLS deployments block raw `/data`, `/proto-files`, and
 `/sessions-files` delivery. Browser previews and downloads instead use
 `/assets/{asset-id}/content` (and `/preview` for generated document previews):
 the authenticated route resolves the opaque id only inside the active workspace,
-then reads that workspace's partition. Existing records are rewritten to that URL
-at render time, so no binary or database migration is needed. Unsafe active formats
+then reads that workspace's partition. Compact Inspector galleries use the fixed
+`/assets/{asset-id}/thumbnail` route instead of transferring the original. It repeats
+the same record/RLS check, decodes only bounded inert raster input, and caches the
+640 px WebP derivative inside that workspace's partition; opening/downloading still
+targets the original. Existing records are rewritten to these URLs at render time,
+so no binary or database migration is needed. Unsafe active formats
 (for example SVG/HTML) are download-only and every response is private/no-store.
 MCP `view_asset` remains the agent evidence-read surface. Ids are content-addressed
 per project, so re-attaching the same bytes is an idempotent upsert. `kind` (image |
@@ -80,11 +84,12 @@ readable. `record_asset_supersession` is the service seam that writes it.
 
 ## Persistence
 
-- In local SQLite mode, assets appear read-only in the web inspector (image
-  thumbnails come from the static `/data` mount); every asset file deep-links to
-  its detail page. Shared-Postgres deployments serve the same previews/downloads
-  through the authenticated, active-workspace-only asset route; the raw file tree
-  remains unreachable.
+- In local SQLite mode, assets appear read-only in the web inspector; every asset
+  file deep-links to its detail page. Both storage modes use the opaque bounded
+  thumbnail route for compact cards. Shared-Postgres deployments also serve the
+  original previews/downloads through the authenticated, active-workspace-only
+  asset route; the raw file tree remains unreachable. Thumbnail responses stay
+  `private, no-store` because their URL intentionally contains no workspace id.
 - `export-snapshot` now includes research projects and copies asset binaries to
   the active partition's `export/assets/` directory (`data/export/assets/`
   locally); `import-snapshot` restores both — the evidence survives the portable

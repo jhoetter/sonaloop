@@ -70,6 +70,122 @@ def test_project_health_names_incomplete_dispatch_and_safe_existing_resume(store
         services.finish_run(run["run_id"], "finished", store=store)
 
 
+def test_project_health_resolves_each_repeated_claim_reference_once(store, monkeypatch):
+    """A report-sized claim set must not turn the status projection into N+1 reads."""
+    from sonaloop.services import _recovery
+
+    project = services.start_project(
+        "Health reference cache", "Question", methodology=None, store=store)
+    ref = {"kind": "asset", "id": "same-evidence"}
+    store.upsert_synthesis({
+        "id": "synthesis_repeated_health_ref",
+        "title": "Repeated reference",
+        "project_id": project["id"],
+        "scope": "convergence",
+        "status": "done",
+        "created_at": "2026-08-11T00:00:00Z",
+        "council_ids": [],
+        "statements": [],
+        "findings": [],
+        "claim_posture": {
+            "schema": "sonaloop.claim_posture.v1",
+            "verified": True,
+            "prose_uncovered": False,
+            "counts": {"inferred": 3, "unsupported": 0},
+            "claims": [
+                {"id": f"claim-{index}", "text": "Same source", "posture": "inferred",
+                 "refs": [dict(ref)]}
+                for index in range(3)
+            ],
+        },
+    })
+    calls = []
+
+    def _count_ref(project_id, candidate, candidate_store):
+        calls.append((project_id, candidate, candidate_store))
+        return True
+
+    monkeypatch.setattr(_recovery, "_ref_exists", _count_ref)
+    services.project_health(project["id"], store=store)
+
+    assert len(calls) == 1
+    assert calls[0][1] == ref
+
+
+def test_project_health_keeps_distinct_reference_anchors(store, monkeypatch):
+    """Anchor validity is part of a reference address; quote/role prose is not."""
+    from sonaloop.services import _recovery
+
+    project = services.start_project(
+        "Health anchored reference cache", "Question", methodology=None, store=store)
+    refs = [
+        {"kind": "session", "id": "same-session", "anchor": "step:1", "quote": "First"},
+        {"kind": "session", "id": "same-session", "anchor": "step:1", "quote": "Retold"},
+        {"kind": "session", "id": "same-session", "anchor": "step:2", "quote": "Second"},
+    ]
+    store.upsert_synthesis({
+        "id": "synthesis_anchored_health_refs",
+        "title": "Anchored references",
+        "project_id": project["id"],
+        "scope": "convergence",
+        "status": "done",
+        "created_at": "2026-08-11T00:00:00Z",
+        "council_ids": [],
+        "statements": [],
+        "findings": [],
+        "claim_posture": {
+            "schema": "sonaloop.claim_posture.v1",
+            "verified": True,
+            "prose_uncovered": False,
+            "counts": {"inferred": 3, "unsupported": 0},
+            "claims": [
+                {"id": f"claim-{index}", "text": "Anchored source", "posture": "inferred",
+                 "refs": [ref]}
+                for index, ref in enumerate(refs)
+            ],
+        },
+    })
+    calls = []
+
+    def _count_ref(project_id, candidate, candidate_store):
+        calls.append((project_id, candidate, candidate_store))
+        return True
+
+    monkeypatch.setattr(_recovery, "_ref_exists", _count_ref)
+    services.project_health(project["id"], store=store)
+
+    assert [call[1]["anchor"] for call in calls] == ["step:1", "step:2"]
+
+
+def test_project_health_fails_closed_for_malformed_legacy_reference(store):
+    project = services.start_project(
+        "Malformed health reference", "Question", methodology=None, store=store)
+    store.upsert_synthesis({
+        "id": "synthesis_malformed_health_ref",
+        "title": "Malformed reference",
+        "project_id": project["id"],
+        "scope": "convergence",
+        "status": "done",
+        "created_at": "2026-08-11T00:00:00Z",
+        "council_ids": [],
+        "statements": [],
+        "findings": [],
+        "claim_posture": {
+            "schema": "sonaloop.claim_posture.v1",
+            "verified": True,
+            "prose_uncovered": False,
+            "counts": {"inferred": 1, "unsupported": 0},
+            "claims": [{"id": "claim-bad", "text": "Bad source", "posture": "inferred",
+                        "refs": [["not", "a", "ref"]]}],
+        },
+    })
+
+    health = services.project_health(project["id"], store=store)
+
+    assert any(issue["code"] == "invalid_evidence_ref"
+               for issue in health["integrity_findings"])
+
+
 def test_project_health_distinguishes_never_started_from_quiet_active(store):
     never = services.start_project(
         "Created only", "q", methodology="double_diamond", store=store)

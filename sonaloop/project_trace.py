@@ -131,6 +131,18 @@ def collect_project_trace_edges(graph: dict[str, Any], nodes: list[dict[str, Any
         for ref in d.get("based_on") or []:
             edge(_ref_node_id(ref, seen), did, "based_on", "based on")
 
+    # A project report is a terminal hand-off over its section-level, frozen provenance.
+    # It is attached to the graph outside the plan's convergence nodes, so derive this
+    # visible edge from the authored report sources rather than guessing from chronology.
+    for report in graph.get("reports") or []:
+        rid = _node_id("report", report.get("id", ""))
+        for ref in report.get("source_study_ids") or []:
+            edge(normalize_trace_ref(ref, seen), rid, "based_on", "source",
+                 {"source": "report.sections.source_study_ids"})
+        for ref in report.get("legacy_citation_study_ids") or []:
+            edge(normalize_trace_ref(ref, seen), rid, "based_on", "source",
+                 {"source": "report.sections.citations"})
+
     artifact_nodes: dict[str, str] = {}
     artifact_hosts: dict[str, str] = {}
     for a in graph.get("artifacts") or []:
@@ -347,7 +359,7 @@ def plan_task_flow_edges(plan: dict[str, Any] | None, known_nodes: set[str]) -> 
 
 
 START_KINDS = {"note", "open_question", "url_artifact", "asset"}
-TERMINAL_KINDS = {"decision"}
+TERMINAL_KINDS = {"decision", "report"}
 
 
 def _kind_of(node: dict[str, Any]) -> str:

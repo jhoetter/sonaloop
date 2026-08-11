@@ -189,12 +189,12 @@ DOCS = [
      "what": ("Eine echte Datei im Projekt: Screenshot, Dokument, Export oder erzeugtes Deliverable — mit "
               "Herkunft und Richtung. In der mandantenfähigen Cloud laufen Vorschau und Download "
               "über eine authentifizierte Route des aktiven Workspace; ungeschützte Datei-Rohpfade "
-              "bleiben gesperrt. Remote-Screens kommen nur als begrenzter Direktupload hinein: ohne URL-"
-              "Import, mit Bildprüfung, Scan, SHA-256 und Run-/Workspace-Bindung.",
+              "bleiben gesperrt. Kompakte Karten laden ein Workspace-WebP; Öffnen/Download behalten das Original. "
+              "Remote-Screens kommen nur als begrenzter Direktupload hinein: ohne URL-Import, mit Bildprüfung, Scan, SHA-256 und Run-/Workspace-Bindung.",
               "A real file in the project: screenshot, document, export or generated deliverable — with "
               "provenance and direction. In multi-tenant Cloud its preview and download use an "
-              "authenticated active-workspace route; unprotected raw file paths remain blocked. Remote "
-              "screens enter only through a bounded direct upload: no URL import, with image validation, "
+              "authenticated active-workspace route; raw paths remain blocked. Compact cards load a bounded workspace WebP; "
+              "open/download keep the original. Remote screens use bounded direct upload: no URL import, with image validation, "
               "scan, SHA-256 and run/workspace binding."),
      "why": ("Assets sind das Material für Evidence, Walkthrough-Screens und Deliverables. Sie sind Dateien, "
              "nicht Council-Referenzen.",
@@ -307,12 +307,12 @@ SCHEMAS = {
                    "`findings` — Kernprobleme, Empfehlungen (mit Aufwand·Nutzen-Score), offene Fragen",
                    "`statements` — die zitierten Persona-Stimmen",
                    "`references` — die Quell-Councils",
-                   "`sections` — erzählerische, präsentationsreife Abschnitte mit Figuren"],
+                   "`sections` — präsentationsreife Abschnitte mit Quell-Knoten; im Outline zeigt jede verknüpfte Zeile Input/Output, der finale Report endet die Quellenkette"],
                   ["`prompts` — the study's starting point / goal",
                    "`findings` — key problems, recommendations (with effort·value score), open questions",
                    "`statements` — the quoted persona voices",
                    "`references` — the source councils",
-                   "`sections` — narrative, presentation-grade sections with figures"]),
+                   "`sections` — presentation-grade sections with source nodes; the outline shows each linked row's input/output degree and the final report terminates the source chain"]),
         "made": ("Prompt", "Finding", "Statement", "Ref"),
         "made_note": None},
     "prototype": {
@@ -432,7 +432,7 @@ INSPECTOR_SECTIONS = [
       "Dateiname mit Endung, Größe · Datum, genau ein Download/Öffnen-Symbol; sie haben eigene "
       "Detailseiten mit Herkunft (Quelle, Richtung, ersetzte Versionen). Im Projekt bleiben "
       "eingehende Dateien als kompakte, responsive **Asset-Galerie** in der Outline sichtbar; "
-      "lange Screenshots werden vollständig in begrenzten Vorschauen gezeigt. Alle Assets findest du "
+      "kompakte Karten laden eine begrenzte WebP-Ableitung, Öffnen/Download das Original. Lange Screenshots werden vollständig in begrenzten Vorschauen gezeigt. Alle Assets findest du "
       "zusätzlich im Formats-Browser unter Assets. "
       "Ein Klick auf eine Zeile öffnet die "
       "**ganze Detailseite als Seitenpanel** (Notion-Stil): die Liste bleibt dahinter sichtbar, "
@@ -464,7 +464,7 @@ INSPECTOR_SECTIONS = [
       "type badge or image thumbnail, filename with extension, size · date, exactly one "
       "download/open icon; they have their own detail pages with provenance (source, direction, "
       "superseded versions). Inside a job, incoming files stay visible as an **Assets** group in "
-      "a compact responsive gallery; tall screenshots stay fully visible in bounded previews. "
+      "a compact responsive gallery; tall screenshots stay fully visible in bounded previews. Compact cards load a bounded WebP derivative while open/download continue to target the original. "
       "All assets are also available in the Formats browser under Assets. "
       "Clicking a row opens the **full detail page as a slide-over** (Notion-style): "
       "the list stays visible behind it, and the URL stays the list URL plus `?d=<detail "

@@ -330,7 +330,7 @@ def test_file_cards_use_the_preview_as_thumb_stage(store, project):
     rec = services.attach_asset(project["id"], content_base64=base64.b64encode(_deck_bytes()).decode(),
                                 filename="deck.pptx", direction="out", store=store)
     stage = file_stage(rec)
-    assert rec["preview_url"] in stage and "sl-file__thumb" in stage
+    assert f'/assets/{rec["id"]}/thumbnail' in stage and "sl-file__thumb" in stage
     # no preview (a pdf, a plain doc): the extension badge stays
     txt = services.attach_asset(project["id"], content_base64=base64.b64encode(b"x").decode(),
                                 filename="brief.pdf", store=store)

@@ -125,7 +125,7 @@ def register_assets(app) -> None:
                           + [("sec-provenance", t("provenance_h"))],
             star=("asset", a["id"], title[:60], f'/assets/{a["id"]}'))
 
-    def _asset_binary(asset_id: str, *, preview: bool) -> Response:
+    def _asset_binary(asset_id: str, *, preview: bool, thumbnail: bool = False) -> Response:
         """Serve one opaque asset id from the ACTIVE workspace.
 
         Cloud principals may belong to several workspaces, but each request is
@@ -147,10 +147,24 @@ def register_assets(app) -> None:
         store = Store()
         try:
             project, asset = find_asset(store, asset_id)
-            if project is None or asset is None:
+            # Opaque browser routes are id-addressed.  `find_asset` also accepts a
+            # filename for the human detail page, but thumbnails never widen that
+            # compatibility seam into a binary capability.
+            if (project is None or asset is None
+                    or (thumbnail and str(asset.get("id") or "") != asset_id)):
                 return Response(status_code=404, headers={"Cache-Control": "no-store"})
             try:
-                if preview:
+                if thumbnail and asset.get("kind") in ("image", "screenshot"):
+                    data, record = services.get_asset_content(
+                        project["id"], asset["id"], store=store)
+                    filename = str(record.get("filename") or record["id"])
+                elif thumbnail and asset.get("preview_url"):
+                    data, record = services.get_asset_preview_content(
+                        project["id"], asset["id"], store=store)
+                    filename = f'{asset.get("filename") or asset["id"]}.preview.png'
+                elif thumbnail:
+                    return Response(status_code=404, headers={"Cache-Control": "no-store"})
+                elif preview:
                     data, record = services.get_asset_preview_content(
                         project["id"], asset["id"], store=store)
                     media_type = "image/png"
@@ -160,6 +174,11 @@ def register_assets(app) -> None:
                         project["id"], asset["id"], store=store)
                     media_type = str(record.get("media_type") or "application/octet-stream")
                     filename = str(record.get("filename") or record["id"])
+                if thumbnail:
+                    from .._thumbnails import ASSET_THUMBNAIL_PX, thumbnail_webp
+                    data = thumbnail_webp(
+                        data, variant="asset", max_side=ASSET_THUMBNAIL_PX)
+                    media_type = "image/webp"
             except (FileNotFoundError, KeyError, ValueError):
                 # Do not reveal whether a record, preview or backing file was the
                 # missing piece across a tenant boundary.
@@ -171,6 +190,11 @@ def register_assets(app) -> None:
 
         # Only inert raster formats render inline.  User-controlled SVG/HTML and
         # arbitrary files download instead of becoming same-origin active content.
+        if thumbnail:
+            from .._thumbnails import thumbnail_headers
+            return Response(content=data, media_type="image/webp",
+                            headers=thumbnail_headers(filename))
+
         inline_types = {"image/png", "image/jpeg", "image/gif", "image/webp", "image/bmp"}
         disposition = "inline" if preview or media_type.lower() in inline_types else "attachment"
         headers = {
@@ -189,3 +213,7 @@ def register_assets(app) -> None:
     @app.get("/assets/{asset_id}/preview", response_class=Response, include_in_schema=False)
     def asset_preview(asset_id: str) -> Response:
         return _asset_binary(asset_id, preview=True)
+
+    @app.get("/assets/{asset_id}/thumbnail", response_class=Response, include_in_schema=False)
+    def asset_thumbnail(asset_id: str) -> Response:
+        return _asset_binary(asset_id, preview=False, thumbnail=True)

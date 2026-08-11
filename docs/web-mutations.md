@@ -59,6 +59,9 @@ their historical `/data/...` path; shared Postgres renders the opaque
 `/personas/<persona-id>/avatar` route instead. That route resolves the persona through
 the active RLS workspace, contains the recorded PNG inside that workspace's avatar
 directory and returns `private, no-store`; the raw `/data` mount remains unavailable.
+Small avatar atoms use `/personas/<persona-id>/avatar/thumbnail`, a fixed 96 px WebP
+derived only after the same lookup. Its content-addressed cache lives in the active
+workspace partition, while the full portrait remains the persona-detail source.
 
 Everything in the ✅ columns goes through the **existing service layer**
 (`sonaloop.services`) — the web routes never touch the `Store` for writes, so

@@ -24,7 +24,7 @@ def test_avatar_handles_missing_none_and_dict(tmp_path, monkeypatch):
     (tmp_path / "avatars").mkdir(parents=True)
     (tmp_path / "avatars" / "x.png").write_bytes(b"\x89PNG")
     html = _avatar(rec)
-    assert "<img" in html and "x.png" in html
+    assert "<img" in html and 'src="/personas/p3/avatar/thumbnail"' in html
 
 
 def test_postgres_avatar_uses_opaque_tenant_route(tmp_path, monkeypatch):
@@ -43,7 +43,7 @@ def test_postgres_avatar_uses_opaque_tenant_route(tmp_path, monkeypatch):
         }
         html = _avatar(rec)
         assert "<img" in html
-        assert 'src="/personas/persona_shared/avatar"' in html
+        assert 'src="/personas/persona_shared/avatar/thumbnail"' in html
         assert "/data/" not in html
 
         # A stored traversal spelling never produces a broken or file-capability img.

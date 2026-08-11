@@ -50,6 +50,41 @@ def test_trace_start_material_with_output_is_source():
     assert trace_node_health(nodes, edges, _plan("pending"))["note:n1"] == "source"
 
 
+def test_project_report_sources_form_one_terminal_handoff_edge():
+    nodes = [
+        {"study_id": "synthesis:gate", "kind": "synthesis"},
+        {"study_id": "report:final", "kind": "report"},
+    ]
+    plan = {"tasks": [{
+        "id": "verify__gate", "bucket": "verify", "status": "done", "consumes": [],
+        # A governed hand-off can bind both outputs to the same terminal task. The
+        # report's authored section source, not output ordering, defines the edge.
+        "produces": [
+            {"kind": "synthesis", "id": "gate"},
+            {"kind": "report", "id": "final"},
+        ],
+    }]}
+    graph = {"plan": plan, "reports": [{
+        "id": "final",
+        "source_study_ids": ["synthesis:gate", "synthesis:gate"],
+        "legacy_citation_study_ids": [],
+    }]}
+
+    edges = collect_project_trace_edges(graph, nodes)
+    handoff = [edge for edge in edges
+               if edge["from_study"] == "synthesis:gate"
+               and edge["to_study"] == "report:final"]
+
+    assert len(handoff) == 1
+    assert handoff[0]["type"] == "based_on"
+    assert handoff[0]["provenance"] == "authored"
+    assert handoff[0]["source"] == "report.sections.source_study_ids"
+    assert trace_node_health(nodes, edges, plan) == {
+        "synthesis:gate": "consumed",
+        "report:final": "terminal",
+    }
+
+
 def test_plan_trace_resolves_frame_hops_into_prototype_inputs():
     nodes = [
         {"study_id": "synthesis:def", "kind": "synthesis"},

@@ -97,6 +97,158 @@ def test_topbar_widget_hidden_at_zero_runs(store):
     assert ">1 job needs attention</span>" in html.split('id="runsw-count"')[1][:80]
 
 
+def test_topbar_ssr_uses_light_attention_projection_without_full_health(store, monkeypatch):
+    """Every ordinary page gets the topbar.  Its SSR pass must classify only the
+    visible lanes, without claim/report verification for every workspace job.
+    A live Reaction Test blocked on setup remains truthfully amber/waiting.
+    """
+    active = _planned(store, "LIGHT ACTIVE")
+    S.start_run(active, operation_id="light:active", store=store)
+    stalled = _planned(store, "LIGHT STALLED")
+    waiting = S.start_project(
+        "LIGHT WAITING", "React to a real target", methodology="Reaction Test",
+        operation_id="light:waiting", store=store,
+    )["id"]
+    S.start_run(waiting, operation_id="light:waiting-run", store=store)
+    finished = S.start_project("LIGHT FINISHED", "Done", store=store)["id"]
+    S.record_frame(finished, "frame__root", ["done?"], memory_refs=["memory:done"], store=store)
+
+    def no_deep_health(*_args, **_kwargs):
+        raise AssertionError("topbar SSR must not call full project_health")
+
+    monkeypatch.setattr(S, "project_health", no_deep_health)
+    from sonaloop.web._runs_widget import runs_widget_markup
+
+    html = runs_widget_markup(store)
+    assert "LIGHT ACTIVE" in html and 'data-run-lane="active"' in html
+    assert "LIGHT STALLED" in html and 'data-run-lane="stalled"' in html
+    assert "LIGHT WAITING" in html and 'data-run-lane="waiting"' in html
+    assert "LIGHT FINISHED" not in html
+    assert "has-active" in html and "has-waiting" in html and "has-stalled" in html
+
+
+def test_light_topbar_lanes_match_canonical_health_projection(store):
+    active = _planned(store, "CANONICAL ACTIVE")
+    S.start_run(active, operation_id="canonical:active", store=store)
+    stalled = _planned(store, "CANONICAL STALLED")
+    quiet = _planned(store, "CANONICAL QUIET")
+    quiet_run = S.start_run(quiet, operation_id="canonical:quiet", store=store)
+    quiet_run["updated_at"] = "2020-01-01T00:00:00+00:00"
+    store.upsert_run(quiet_run)
+    waiting = S.start_project(
+        "CANONICAL WAITING", "React to a real target", methodology="Reaction Test",
+        operation_id="canonical:waiting", store=store,
+    )["id"]
+    S.start_run(waiting, operation_id="canonical:waiting-run", store=store)
+
+    from sonaloop.web._runs_widget import collect_run_attention_states, collect_run_states
+
+    light = collect_run_attention_states(store)
+    full = collect_run_states(store)
+    for lane in ("active", "waiting", "stalled"):
+        assert {row["project_id"] for row in light[lane]} == {
+            row["project_id"] for row in full[lane]
+        }
+
+
+def test_light_topbar_projection_has_bounded_sql_reads(store):
+    project_ids = [_planned(store, f"BOUNDED {index}") for index in range(6)]
+    statements: list[str] = []
+    store.conn.set_trace_callback(statements.append)
+    try:
+        from sonaloop.web._runs_widget import collect_run_attention_states
+
+        states = collect_run_attention_states(store)
+    finally:
+        store.conn.set_trace_callback(None)
+
+    selects = [sql for sql in statements if sql.lstrip().upper().startswith("SELECT")]
+    # One project-list read, then at most one plan + one run read per project.
+    # Deep evidence/report/ref reads belong only to /runs and /api/runs.
+    assert len(selects) <= 1 + (2 * len(project_ids))
+    assert {row["project_id"] for row in states["stalled"]} == set(project_ids)
+
+
+def test_project_health_cache_is_request_local_and_copy_safe(store, monkeypatch):
+    from sonaloop.web._runs_widget import (
+        begin_run_states_cache,
+        cached_project_health,
+        end_run_states_cache,
+    )
+
+    calls = 0
+
+    def health(project_id, store=None, stale_hours=6):
+        nonlocal calls
+        calls += 1
+        return {"project_id": project_id, "state": "running", "nested": {"value": calls}}
+
+    monkeypatch.setattr(S, "project_health", health)
+    token = begin_run_states_cache()
+    try:
+        first = cached_project_health("p1", store=store)
+        first["nested"]["value"] = 999
+        second = cached_project_health("p1", store=store)
+        assert calls == 1
+        assert second["nested"]["value"] == 1
+
+        nested_token = begin_run_states_cache()
+        try:
+            nested = cached_project_health("p1", store=store)
+            assert calls == 2
+            assert nested["nested"]["value"] == 2
+        finally:
+            end_run_states_cache(nested_token)
+
+        # Ending a nested render restores the outer request's cached snapshot.
+        restored = cached_project_health("p1", store=store)
+        assert calls == 2
+        assert restored["nested"]["value"] == 1
+    finally:
+        end_run_states_cache(token)
+
+    token = begin_run_states_cache()
+    try:
+        third = cached_project_health("p1", store=store)
+        assert calls == 3
+        assert third["nested"]["value"] == 3
+    finally:
+        end_run_states_cache(token)
+
+
+def test_project_detail_computes_full_health_once_per_request(store, monkeypatch):
+    pid = _planned(store, "ONE HEALTH PROJECTION")
+    original = S.project_health
+    calls = 0
+
+    def counted(project_id, store=None, stale_hours=6):
+        nonlocal calls
+        calls += 1
+        return original(project_id, store=store, stale_hours=stale_hours)
+
+    monkeypatch.setattr(S, "project_health", counted)
+    response = _client().get(f"/jobs/{pid}?lang=en")
+    assert response.status_code == 200
+    assert calls == 1
+
+
+def test_api_runs_keeps_full_health_projection_once_per_project(store, monkeypatch):
+    first = _planned(store, "FULL HEALTH ONE")
+    second = _planned(store, "FULL HEALTH TWO")
+    S.start_run(first, operation_id="full-health:active", store=store)
+    original = S.project_health
+    calls: list[str] = []
+
+    def counted(project_id, store=None, stale_hours=6):
+        calls.append(project_id)
+        return original(project_id, store=store, stale_hours=stale_hours)
+
+    monkeypatch.setattr(S, "project_health", counted)
+    response = _client().get("/api/runs")
+    assert response.status_code == 200
+    assert sorted(calls) == sorted([first, second])
+
+
 def test_project_head_run_chip_with_progressive_diagnostics(store):
     """Runs left the nav. The global runs widget owns the topbar; a project with a
     plan carries its run-state chip in the project head, with state, last activity,

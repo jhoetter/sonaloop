@@ -78,6 +78,9 @@ svg.ic{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke
 .ol-ico svg{width:15px;height:15px}
 .ol-thumb{width:18px;height:18px;object-fit:cover;border-radius:4px;display:block}
 .olrow .ol-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Discoverability without a permanent graph: every related non-file row states its degree;
+   the actual paths remain a hover/focus interaction in _components.py. */
+.olrow .ol-rel-summary{color:var(--faint);font-size:var(--t-xs);font-weight:450;flex-shrink:0;white-space:nowrap}
 .olrow .ol-crew{display:inline-flex;align-items:center;flex-shrink:0}
 /* crew avatars render through the ONE avatar_group anatomy (web/ui.py, ux-contract §10 W11):
    the vendored .sl-avatar-group overlap + the .sl-avatar-group__more overflow chip — no

@@ -88,7 +88,8 @@ def register_syntheses(app) -> None:
             # G5: sidebar active follows the crumb root (project-rooted → Projects)
             active="projects" if proj else "library",
             hero="", body=body, prop_rows=prop_rows,
-            rel_study_id=f"synthesis:{synthesis_id}",
+            rel_study_id=(f"report:{synthesis_id}" if is_project
+                          else f"synthesis:{synthesis_id}"),
             rel_proj_id=(proj["id"] if proj else None),
             rel_include_in=not bool(syn.get("council_ids")),
             rail_sections=toc,

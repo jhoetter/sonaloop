@@ -61,6 +61,27 @@ def _ref_exists(project_id: str, ref: dict[str, Any], store: Store) -> bool:
         return False
 
 
+def _ref_identity(ref: Any) -> tuple[str, str, str]:
+    """The existence identity of a claim reference.
+
+    Claim posture often repeats the same evidence reference across many derived
+    statements.  Existence is a property of the referenced record, not of the
+    surrounding quote/role prose. Anchors are part of the resolvable address,
+    however, so one health projection resolves each ``(kind, id, anchor)`` once.
+    """
+    if isinstance(ref, str):
+        token = ref.strip()
+        kind, rid = token.split(":", 1) if ":" in token else ("", token)
+        return kind, rid, ""
+    if not isinstance(ref, dict):
+        # Legacy/corrupt JSON must remain a fail-closed issue, not take down the
+        # entire health projection before `_ref_exists` can reject it.
+        return "__invalid__", type(ref).__name__, repr(ref)
+    row = ref
+    return (str(row.get("kind") or "").strip(), str(row.get("id") or "").strip(),
+            str(row.get("anchor") or "").strip())
+
+
 def _artifact_rows(project_id: str, store: Store) -> list[tuple[str, dict[str, Any]]]:
     project = store.get_research_project(project_id) or {}
     rows: list[tuple[str, dict[str, Any]]] = []
@@ -278,6 +299,12 @@ def project_health(project_id: str, store: Store | None = None,
     plan_complete = bool(plan and plan_mod.is_complete(plan))
 
     issues: list[dict[str, Any]] = []
+    # A rich synthesis can carry hundreds of claim-level citations while only
+    # referring to a small evidence set.  Resolving every duplicate separately
+    # turns the read-only status chip into an N+1 query storm (and the global
+    # run widget repeats that per project).  Keep this cache deliberately local
+    # to one projection so writes in later calls can never be masked.
+    ref_exists_cache: dict[tuple[str, str, str], bool] = {}
 
     def issue(code: str, message: str, *, target: str = "", severity: str = "blocking") -> None:
         row = {"code": code, "message": message, "severity": severity}
@@ -348,7 +375,10 @@ def project_health(project_id: str, store: Store | None = None,
         envelope = record.get("claim_posture") or {}
         for claim in ([] if is_project_report else envelope.get("claims") or []):
             for ref in claim.get("refs") or []:
-                if not _ref_exists(project_id, ref, store):
+                ref_key = _ref_identity(ref)
+                if ref_key not in ref_exists_cache:
+                    ref_exists_cache[ref_key] = _ref_exists(project_id, ref, store)
+                if not ref_exists_cache[ref_key]:
                     cid = str(claim.get("id") or "")
                     issue("invalid_evidence_ref", f"{label} claim {cid or 'unknown'} has an invalid reference.",
                           target=(f"/{'councils' if kind == 'council' else 'syntheses'}/{rid}"
@@ -519,8 +549,9 @@ def project_health(project_id: str, store: Store | None = None,
         posture_counts.update({key: int(value or 0)
                                for key, value in (envelope.get("counts") or {}).items()})
         for claim in envelope.get("claims") or []:
-            source_counts.update(str(ref.get("kind") or "unknown")
-                                 for ref in claim.get("refs") or [])
+            source_counts.update(
+                str(ref.get("kind") or "unknown") if isinstance(ref, dict) else "unknown"
+                for ref in claim.get("refs") or [])
 
     completed_dispatch = next((row for row in reversed(list((run or {}).get("dispatches") or []))
                                if row.get("status") == "completed" and row.get("receipt")), None)

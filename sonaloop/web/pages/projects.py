@@ -332,9 +332,9 @@ def register_projects(app) -> None:
         main_view = h("div", {"class_": card_cls, "data-keynav": True}, raw(outline))
         # The project run-state chip (`▶ Run · state`) belongs to the project head, not
         # the topbar: the topbar already has the global runs widget.
-        from .._runs_widget import project_run_chip
+        from .._runs_widget import cached_project_health, project_run_chip
         try:
-            health = services.project_health(proj["id"], store=store)
+            health = cached_project_health(proj["id"], store=store)
         except Exception:
             health = {}
         run_chip = project_run_chip(proj["id"], store, run_state=health)

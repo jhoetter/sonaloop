@@ -346,6 +346,23 @@ def asset_content_url(asset: dict, *, preview: bool = False) -> str:
     return str(asset.get("preview_url") if preview else asset.get("url") or "")
 
 
+def asset_thumbnail_url(asset: dict) -> str:
+    """Opaque, bounded visual derivative for compact Inspector galleries/rows.
+
+    The original `asset_content_url` remains every open/download target.  A missing
+    id falls back to the existing URL for legacy local records; current attached
+    assets always use the authenticated id route in both storage modes.
+    """
+    from urllib.parse import quote
+
+    asset_id = str(asset.get("id") or "")
+    if asset_id:
+        return f'/assets/{quote(asset_id, safe="")}/thumbnail'
+    if asset.get("kind") in ("image", "screenshot"):
+        return asset_content_url(asset)
+    return asset_content_url(asset, preview=True) if asset.get("preview_url") else ""
+
+
 def asset_preview_html(asset: dict) -> str:
     """The detail page's content lead (UX U8): image assets render a full-width preview from the
     static /data mount; documents with a first-page render (W6 `preview_url`) show their title
@@ -417,8 +434,8 @@ def file_stage(asset: dict, *, thumb: bool = True) -> str:
     """The card's identity stage: the image thumbnail when the asset IS an image (and the
     caller wants it), the first-page render for documents that carry one (W6 `preview_url` —
     the PPTX card shows its title slide), else the extension badge on the quiet stage."""
-    src = (asset_content_url(asset) if asset.get("kind") in ("image", "screenshot")
-           else asset_content_url(asset, preview=True) if asset.get("preview_url") else "")
+    src = (asset_thumbnail_url(asset)
+           if asset.get("kind") in ("image", "screenshot") or asset.get("preview_url") else "")
     if thumb and src:
         return h("span", {"class_": "sl-file__stage"},
                  h("img", {"class_": "sl-file__thumb", "src": src, "alt": "",
@@ -510,11 +527,12 @@ def asset_rows(assets: list, store=None) -> str:
         is_out = asset_direction(a) == "out"
         detail = f'/assets/{a.get("id", "")}'
         url = asset_content_url(a) or "#"
+        thumbnail_url = asset_thumbnail_url(a) if is_img else ""
         link = {"href": url, "target": "_blank", "rel": "noopener"}
         if is_out:  # a deliverable file: hand it to the user, don't render it in a tab
             link = {"href": url, "download": a.get("filename", "")}
         thumb = (h("a", dict(link),
-                   h("img", {"src": url, "alt": a.get("title", ""), "loading": "lazy",
+                   h("img", {"src": thumbnail_url, "alt": a.get("title", ""), "loading": "lazy",
                              "style": "max-height:64px;max-width:120px;border-radius:6px;display:block"}))
                  if is_img else raw(_icon("download" if is_out else "file")))
         rows.append(h("div", {"class_": "strow"},

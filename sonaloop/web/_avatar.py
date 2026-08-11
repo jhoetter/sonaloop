@@ -48,8 +48,23 @@ def _avatar_src(p: dict) -> str | None:
     return f"/{path}"
 
 
+def _avatar_thumbnail_src(p: dict) -> str | None:
+    """The small opaque-id derivative used by avatar atoms/groups.
+
+    `_avatar_src` still performs the backing-file existence/path check and remains
+    the full-resolution source for the persona detail and report figures.  The
+    thumbnail route repeats the Store/RLS lookup before serving any pixels.
+    """
+    source = _avatar_src(p)
+    if not source:
+        return None
+    persona_id = str(p.get("id") or "")
+    return (f"/personas/{quote(persona_id, safe='')}/avatar/thumbnail"
+            if persona_id else source)
+
+
 def _avatar(p: dict, size: int = 36) -> str:
-    src = _avatar_src(p)
+    src = _avatar_thumbnail_src(p)
     if src:
         return h("img", {"class_": "sl-avatar", "style": f"width:{size}px;height:{size}px",
                          "src": src, "alt": ""})

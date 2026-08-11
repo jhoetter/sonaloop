@@ -205,6 +205,10 @@ def test_project_outline_rows_expose_real_hover_relations(store):
     assert f'data-rel-out="{decision["id"]}"' in html
     assert f'data-oid="{decision["id"]}"' in html
     assert f'data-rel-in="synthesis:{synthesis["id"]}"' in html
+    assert "1 input · 1 output" in html
+
+    german = _client().get(f'/jobs/{project["id"]}?lang=de').text
+    assert "1 Input · 1 Output" in german
 
 
 def test_project_outline_surfaces_plan_judgment_trace_edges(store):

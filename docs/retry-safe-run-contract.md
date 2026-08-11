@@ -151,6 +151,13 @@ the host or provider stops, another `run_step` returns the same dispatch and fir
 It never creates a replacement report, and the completeness critic cannot start while the hand-off is
 partial. A capped run does not manufacture an empty report.
 
+The project graph preserves the authored section provenance at hand-off. Each deduplicated
+`sections[].source_study_ids` becomes a visible `based_on` edge from that source node to the terminal
+`report:<id>` node. For historical source-less sections only, snapshot-valid citation study ids are a
+bounded compatibility fallback; chronology and the rest of the frozen snapshot are never guessed as
+inputs. Consequently an upstream synthesis is `consumed`, the report is the terminal node, and both
+the project outline and report detail can explain the relationship.
+
 ## Completion ownership
 
 `finished` is a verified research state, not a user-controlled status label. `finish_run(...,

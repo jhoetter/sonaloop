@@ -11,7 +11,9 @@ def resolve_export_image(
         src: str, *, store: Any = None, project_id: str = "") -> tuple[bytes, str] | None:
     """Resolve one known opaque browser URL without widening its authorization scope."""
     asset_route = re.fullmatch(r"/assets/([^/?#]+)/content", src)
-    avatar_route = re.fullmatch(r"/personas/([^/?#]+)/avatar", src)
+    # Compact Inspector atoms use the thumbnail route; exports inline the original
+    # authorized portrait so the self-contained artifact stays resolution-independent.
+    avatar_route = re.fullmatch(r"/personas/([^/?#]+)/avatar(?:/thumbnail)?", src)
     if asset_route is not None:
         if store is None or not project_id:
             return None

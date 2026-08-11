@@ -404,13 +404,13 @@ def register_personas(app) -> None:
         msg = skipped[0].get("reason") if skipped else out.get("note") or t("catalog_pull_noop")
         return see_other("/personas/catalog?" + urlencode({"q": slug, "status": msg}))
 
-    @app.get("/personas/{persona_id}/avatar", response_class=Response, include_in_schema=False)
-    def persona_avatar(persona_id: str) -> Response:
+    def _persona_avatar_binary(persona_id: str, *, thumbnail: bool) -> Response:
         """Serve one portrait through the request's exact active workspace.
 
         Persona ids are stable across catalog pulls, while each workspace may own a
-        different local revision.  Therefore the response is deliberately never cached
-        and the record plus backing file are both resolved again inside the active scope.
+        different local revision.  Therefore both full and thumbnail responses are
+        deliberately never browser-cached and the record plus backing file are resolved
+        again inside the active scope before a derivative cache can be consulted.
         """
         from ... import config
 
@@ -427,6 +427,10 @@ def register_personas(app) -> None:
             try:
                 from ...avatar import get_persona_avatar_content
                 data, persona = get_persona_avatar_content(persona_id, store=store)
+                if thumbnail:
+                    from .._thumbnails import AVATAR_THUMBNAIL_PX, thumbnail_webp
+                    data = thumbnail_webp(
+                        data, variant="avatar", max_side=AVATAR_THUMBNAIL_PX)
             except (FileNotFoundError, KeyError, ValueError):
                 # Collapse absent record, absent file and rejected path into one answer;
                 # tenant boundaries must not become an existence oracle.
@@ -437,14 +441,29 @@ def register_personas(app) -> None:
                 config.reset_request_tenant_scope(tenant_token)
 
         filename = f'{persona.get("slug") or persona["id"]}.png'
-        headers = {
-            "Cache-Control": "private, no-store",
-            "Content-Disposition": f"inline; filename*=UTF-8''{quote(filename, safe='')}",
-            "Content-Security-Policy": "default-src 'none'; sandbox",
-            "Cross-Origin-Resource-Policy": "same-origin",
-            "X-Content-Type-Options": "nosniff",
-        }
-        return Response(content=data, media_type="image/png", headers=headers)
+        if thumbnail:
+            from .._thumbnails import thumbnail_headers
+            headers = thumbnail_headers(filename)
+            media_type = "image/webp"
+        else:
+            headers = {
+                "Cache-Control": "private, no-store",
+                "Content-Disposition": f"inline; filename*=UTF-8''{quote(filename, safe='')}",
+                "Content-Security-Policy": "default-src 'none'; sandbox",
+                "Cross-Origin-Resource-Policy": "same-origin",
+                "X-Content-Type-Options": "nosniff",
+            }
+            media_type = "image/png"
+        return Response(content=data, media_type=media_type, headers=headers)
+
+    @app.get("/personas/{persona_id}/avatar", response_class=Response, include_in_schema=False)
+    def persona_avatar(persona_id: str) -> Response:
+        return _persona_avatar_binary(persona_id, thumbnail=False)
+
+    @app.get("/personas/{persona_id}/avatar/thumbnail", response_class=Response,
+             include_in_schema=False)
+    def persona_avatar_thumbnail(persona_id: str) -> Response:
+        return _persona_avatar_binary(persona_id, thumbnail=True)
 
     @app.get("/personas/{persona_id}", response_class=HTMLResponse)
     def persona_detail(persona_id: str, date_value: str | None = Query(default=None, alias="date"), view: str = Query(default="month")) -> str:

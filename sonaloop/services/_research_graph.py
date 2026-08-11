@@ -94,10 +94,48 @@ def _attach_reports(g: dict, project_id: str, store: Store) -> dict:
         for n in g.get("nodes") or []
         if str(n.get("study_id", "")).startswith("synthesis:")
     }
-    g["reports"] = [{"id": r["id"], "title": r.get("title", ""), "created_at": r.get("created_at", ""),
-                     "n_sections": len(r.get("sections") or [])}
-                    for r in store.list_reports(project_id)
-                    if r["id"] not in existing_synthesis_ids]
+    reports = []
+    for report in store.list_reports(project_id):
+        if report["id"] in existing_synthesis_ids:
+            continue
+        snapshot = report.get("graph_snapshot") or {}
+        known = {str(value) for value in snapshot.get("build_order") or [] if str(value)}
+        known.update(str(node.get("study_id") or "") for node in snapshot.get("nodes") or []
+                     if str(node.get("study_id") or ""))
+        sources: list[str] = []
+        legacy_citations: list[str] = []
+        for section in report.get("sections") or []:
+            if not isinstance(section, dict):
+                continue
+            declared_sources = [str(value) for value in section.get("source_study_ids") or []
+                                if str(value)]
+            for source_id in declared_sources:
+                # The report snapshot is the immutable evidence boundary.  A
+                # corrupt or later-added declaration must never manufacture a
+                # live-graph edge into that frozen hand-off.
+                if source_id in known and source_id not in sources:
+                    sources.append(source_id)
+            # Historical structural/preflight sections can predate declared source lists.
+            # Their snapshot-valid citations are still authored provenance, but only act as
+            # a fallback for that source-less section; the frozen snapshot alone is never an input.
+            if not declared_sources:
+                for citation in section.get("citations") or []:
+                    if not isinstance(citation, dict):
+                        continue
+                    source_id = str(citation.get("study_id") or "")
+                    if (source_id in known and source_id not in sources
+                            and source_id not in legacy_citations):
+                        legacy_citations.append(source_id)
+        reports.append({
+            "id": report["id"], "title": report.get("title", ""),
+            "created_at": report.get("created_at", ""),
+            "status": report.get("status", ""),
+            "n_sections": len(report.get("sections") or []),
+            "source_study_ids": sources,
+            "legacy_citation_study_ids": [value for value in legacy_citations
+                                           if value not in sources],
+        })
+    g["reports"] = reports
     project = store.get_research_project(project_id) or {}
     g["job_outcomes"] = [{
         "id": str(o.get("id", "")),

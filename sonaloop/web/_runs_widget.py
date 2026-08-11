@@ -15,24 +15,158 @@ and /api/runs all share (deliberately NOT importing any page module, so _compone
 can import this without a cycle)."""
 from __future__ import annotations
 
+import contextvars
+import copy
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from .._icons import icon as _picon     # direct import avoids a cycle (_components imports this module)
 from ..storage import Store
 from ._i18n import t
 from ._html import h, raw, fragment
-import contextvars
 
 _RUN_STATES_CACHE: contextvars.ContextVar[dict[str, list[dict[str, Any]]] | None] = \
     contextvars.ContextVar("sonaloop_run_states_cache", default=None)
+_PROJECT_HEALTH_CACHE: contextvars.ContextVar[
+    dict[tuple[int, str, int], dict[str, Any]] | None
+] = contextvars.ContextVar("sonaloop_project_health_cache", default=None)
 
 
-def begin_run_states_cache() -> contextvars.Token:
-    return _RUN_STATES_CACHE.set(None)
+def begin_run_states_cache() -> tuple[contextvars.Token, contextvars.Token]:
+    """Open the request-local run and project-health read caches.
+
+    Both caches deliberately live only for one web request.  A later request
+    therefore always observes writes made since the preceding render.
+    """
+    return _RUN_STATES_CACHE.set(None), _PROJECT_HEALTH_CACHE.set({})
 
 
-def end_run_states_cache(token: contextvars.Token) -> None:
-    _RUN_STATES_CACHE.reset(token)
+def end_run_states_cache(tokens: tuple[contextvars.Token, contextvars.Token]) -> None:
+    run_states_token, project_health_token = tokens
+    _PROJECT_HEALTH_CACHE.reset(project_health_token)
+    _RUN_STATES_CACHE.reset(run_states_token)
+
+
+def cached_project_health(project_id: str, store: Store | None = None,
+                          stale_hours: int = 6) -> dict[str, Any]:
+    """Read canonical project health once per project and web request.
+
+    ``project_health`` is intentionally a deep integrity projection.  Several
+    pieces of one project page need the same result, but recomputing it repeats
+    all evidence/ref validation.  Copies keep presentation callers from
+    mutating the value shared by the rest of the request.
+    """
+    from .. import services
+
+    store = store or Store()
+    cache = _PROJECT_HEALTH_CACHE.get()
+    key = (id(store), str(project_id), int(stale_hours))
+    if cache is not None and key in cache:
+        return copy.deepcopy(cache[key])
+    health = services.project_health(project_id, store=store, stale_hours=stale_hours)
+    if cache is not None:
+        cache[key] = health
+    return copy.deepcopy(health)
+
+
+def _latest(rows: list[dict[str, Any]]) -> dict[str, Any] | None:
+    return max(rows, key=lambda row: (
+        str(row.get("updated_at") or ""),
+        str(row.get("created_at") or ""),
+        int(row.get("idx") or 0),
+    ), default=None)
+
+
+def _is_quiet(timestamp: str, stale_hours: int) -> bool:
+    try:
+        value = datetime.fromisoformat(str(timestamp).replace("Z", "+00:00"))
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        return datetime.now(timezone.utc) - value > timedelta(hours=stale_hours)
+    except (TypeError, ValueError):
+        return False
+
+
+def collect_run_attention_states(store: Store | None = None,
+                                 stale_hours: int = 6) -> dict[str, list[dict[str, Any]]]:
+    """Cheap, truthful SSR projection for the three visible topbar lanes.
+
+    The widget needs only active, setup-waiting and stalled jobs.  It must not
+    perform the claim/ref/report verification required by the full run journal
+    merely to decide whether to render a status chip.  Active Reaction Test
+    preflights remain canonical: an open run blocked on setup is ``waiting``,
+    never a reassuring green ``active``.
+
+    ``/runs`` and ``/api/runs`` continue to use :func:`collect_run_states`, so
+    finished and unverified output still receive the full integrity projection
+    whenever those detailed surfaces are requested.
+    """
+    from .. import plan as plan_mod
+    from ..research_integrity import is_reaction_project, project_policy
+    from ..services._recovery import _preflight_health
+
+    store = store or Store()
+    out: dict[str, list[dict[str, Any]]] = {
+        "active": [], "waiting": [], "stalled": [], "finished": [], "unverified": [],
+    }
+    for project in store.list_research_projects():
+        lifecycle = str(project.get("status") or "active").strip().casefold()
+        if lifecycle in {"archived", "superseded"}:
+            continue
+        try:
+            plan = plan_mod.get_plan(project["id"], store=store)
+            if not plan:
+                continue
+            runs = store.list_runs(project["id"])
+            active_runs = [row for row in runs if row.get("status") == "active"]
+            run = _latest(active_runs) or _latest(runs)
+
+            # Finished/unverified jobs have no visible topbar lane.  Omit them
+            # before any deep artifact verification.  An active run remains
+            # authoritative even if an older run already finished.
+            if not active_runs and (run and run.get("status") == "finished"
+                                    or plan_mod.is_complete(plan)):
+                continue
+
+            preflight: dict[str, Any] = {}
+            if active_runs:
+                policy = project_policy(project, plan)
+                preflight = (
+                    _preflight_health(project, plan, store)
+                    if (is_reaction_project(project, plan)
+                        or policy.get("cohort_preflight_required"))
+                    else {"state": "ready"}
+                )
+                if preflight.get("state") == "waiting":
+                    state = "waiting"
+                    driver_state = "waiting_on_preflight"
+                elif _is_quiet(str((run or {}).get("updated_at") or ""), stale_hours):
+                    state = driver_state = "stalled"
+                else:
+                    state = "running"
+                    driver_state = "running"
+            else:
+                state = "stalled"
+                driver_state = "not_started" if not runs else "stopped"
+
+            bucket = "active" if state == "running" else state
+            out[bucket].append({
+                "project_id": project["id"],
+                "title": project["title"],
+                "url": f'/jobs/{project["id"]}',
+                "state": state,
+                "last_activity": max(
+                    [str(project.get("updated_at") or "")]
+                    + [str(row.get("updated_at") or "") for row in runs]
+                ),
+                "driver_state": driver_state,
+                "preflight": preflight,
+            })
+        except Exception:
+            # Chrome must never prevent the requested page from rendering.
+            # Detailed surfaces still expose projection failures explicitly.
+            continue
+    return out
 
 
 def _action_call(action: dict[str, Any]) -> str:
@@ -48,7 +182,6 @@ def collect_run_states(store: Store | None = None) -> dict[str, list[dict[str, A
     cached = _RUN_STATES_CACHE.get()
     if cached is not None:
         return cached
-    from .. import services
     store = store or Store()
     out: dict[str, list[dict[str, Any]]] = {
         "active": [], "waiting": [], "stalled": [], "finished": [], "unverified": [],
@@ -61,7 +194,7 @@ def collect_run_states(store: Store | None = None) -> dict[str, list[dict[str, A
         if str(p.get("status") or "active").strip().casefold() == "archived":
             continue
         try:
-            health = services.project_health(p["id"], store=store)
+            health = cached_project_health(p["id"], store=store)
         except Exception:
             health = None
         if not health:
@@ -186,11 +319,10 @@ def project_run_chip(project_id: str, store: Store,
     in the state's color, opening a small popover with the state, the last activity,
     a human-readable recovery hint, closed support diagnostics, and the /runs journal link.
     '' when the project has no plan — there is no driver to show."""
-    from .. import services
     rs = run_state
     if rs is None:
         try:
-            rs = services.project_health(project_id, store=store)
+            rs = cached_project_health(project_id, store=store)
         except Exception:  # noqa: BLE001 — the chip is chrome; never break the page
             rs = None
     if not rs or rs.get("state") not in ("running", "waiting", "stalled", "finished", "unverified"):
@@ -319,7 +451,12 @@ def runs_widget_markup(store: Store) -> str:
     the static fallback IS the initial state). JS only mutates it on live events.
     At zero the whole chip is hidden (§9 V7) — the markup still ships so a live event
     can unhide it without a reload."""
-    states = collect_run_states(store)
+    # The /runs page has already paid for the canonical full projection in this
+    # same request; reuse it there.  Ordinary pages never trigger that work just
+    # for chrome and take the lightweight path.
+    states = _RUN_STATES_CACHE.get()
+    if states is None:
+        states = collect_run_attention_states(store)
     n_active, n_waiting, n_stalled = (
         len(states["active"]), len(states["waiting"]), len(states["stalled"]),
     )
