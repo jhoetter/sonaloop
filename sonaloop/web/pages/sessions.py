@@ -74,10 +74,10 @@ register_css(r"""
 .sl-shotlink{display:block;cursor:zoom-in}
 .sl-shotlink:hover .sess-shot{border-color:var(--accent)}
 .sl-shotstrip{display:flex;gap:7px;margin:4px 0 10px;flex-wrap:wrap}
-.sl-shotstrip .sl-shotlink{cursor:zoom-in}
+.sl-shotstrip .sl-session-shotlink{display:block;cursor:pointer}
 .sl-shotstrip img{display:block;height:54px;width:auto;max-width:120px;object-fit:cover;object-position:top;
   border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel-2)}
-.sl-shotstrip .sl-shotlink:hover img{border-color:var(--accent)}
+.sl-shotstrip .sl-session-shotlink:hover img{border-color:var(--accent)}
 /* W8 stacking/containment: the dialog is a CONTAINED panel (frame, padding, shadow) — a
    chrome-less 94vw screenshot OF the prototype was indistinguishable from the live iframe
    escaping over the dialog. position:fixed + z-index guard the paint order even on any
@@ -85,17 +85,18 @@ register_css(r"""
    real iframe can't slide beneath the overlay. */
 .sl-lightbox{position:fixed;inset:0;margin:auto;width:fit-content;height:fit-content;
   z-index:200;border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--panel);
-  padding:10px;box-shadow:0 24px 70px rgba(0,0,0,.5);max-width:92vw;max-height:92vh;overflow:visible}
+  padding:10px;box-shadow:0 24px 70px rgba(0,0,0,.5);
+  max-width:calc(100vw - 24px);max-height:calc(100vh - 24px);overflow:auto}
 .sl-lightbox::backdrop{background:rgba(0,0,0,.74)}
-.sl-lightbox img{display:block;max-width:min(1100px,88vw);max-height:80vh;border:1px solid var(--line);
-  border-radius:var(--radius-sm);background:var(--panel);cursor:zoom-out}
+.sl-lightbox img{display:block;max-width:min(1100px,calc(100vw - 46px));max-height:calc(100vh - 92px);border:1px solid var(--line);
+  border-radius:var(--radius-sm);background:var(--panel)}
 body:has(.sl-lightbox[open]){overflow:hidden}
 /* visible close × + step caption (round-3 H6) — Esc / click-out unchanged */
 .sl-lb-fig{margin:0;position:relative}
-.sl-lb-close{position:absolute;top:-22px;right:-22px;width:30px;height:30px;border-radius:50%;
-  border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:17px;line-height:1;
+.sl-lb-close{position:absolute;z-index:2;top:8px;right:8px;width:40px;height:40px;border-radius:50%;
+  border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 94%,transparent);color:var(--ink);font-size:21px;line-height:1;
   cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;
-  box-shadow:0 2px 8px rgba(0,0,0,.25)}
+  box-shadow:0 2px 10px rgba(0,0,0,.3)}
 .sl-lb-close:hover{background:var(--panel-2)}
 .sl-lb-cap{margin-top:8px;text-align:center;color:var(--muted);font-size:var(--t-sm)}
 """)
@@ -103,7 +104,7 @@ body:has(.sl-lightbox[open]){overflow:hidden}
 
 # The minimal image lightbox (ux-contract §9 V4): every [data-lightbox] anchor opens its href
 # (the full-resolution step shot) in a native <dialog> built lazily ON FIRST USE — Esc and any
-# click close it, and a visible close × plus a small step/action caption make both discoverable
+# backdrop click close it, and a visible close × plus a small step/action caption make both discoverable
 # (round-3 H6: data-caption on the anchor feeds the caption). Without JS the anchor simply opens
 # the file. Idempotent (the window flag), so the script may ride along with every surface that
 # renders shots (detail page, slide-over fragments re-execute their scripts, the prototype strip).
@@ -113,6 +114,17 @@ body:has(.sl-lightbox[open]){overflow:hidden}
 # z-indexed .sl-lightbox CSS keep it above everything anyway.
 LIGHTBOX_JS = """<script>(function(){
 if(window.__slLightbox) return; window.__slLightbox=1;
+var activeTrigger=null;
+function finishLightbox(dlg){
+  var trigger=activeTrigger; activeTrigger=null;
+  if(dlg&&dlg.isConnected) dlg.remove();
+  if(trigger&&trigger.isConnected&&trigger.focus) trigger.focus();
+}
+function closeLightbox(dlg){
+  if(!dlg || !dlg.hasAttribute('open')) return;
+  if(dlg.close) dlg.close();
+  else{ dlg.removeAttribute('open'); finishLightbox(dlg); }
+}
 document.addEventListener('click',function(e){
   var a=e.target.closest&&e.target.closest('[data-lightbox]'); if(!a) return;
   e.preventDefault();
@@ -125,17 +137,28 @@ document.addEventListener('click',function(e){
     x.setAttribute('aria-label','Close'); x.textContent='\\u00d7';
     fig.appendChild(x);
     var cap=document.createElement('figcaption'); cap.className='sl-lb-cap';
+    cap.id='sl-lb-cap'; dlg.setAttribute('aria-describedby',cap.id);
     fig.appendChild(cap);
     dlg.appendChild(fig);
-    dlg.addEventListener('click',function(){ if(dlg.close) dlg.close(); else dlg.removeAttribute('open'); });
+    x.addEventListener('click',function(ev){ ev.preventDefault(); ev.stopPropagation(); closeLightbox(dlg); });
+    dlg.addEventListener('click',function(ev){ if(ev.target===dlg) closeLightbox(dlg); });
+    dlg.addEventListener('cancel',function(ev){ ev.preventDefault(); closeLightbox(dlg); });
+    dlg.addEventListener('close',function(){ finishLightbox(dlg); });
   }
   if(!dlg.isConnected||dlg.parentNode!==document.body) document.body.appendChild(dlg);
-  var img=dlg.querySelector('img'), thumb=a.querySelector('img'), cap=dlg.querySelector('.sl-lb-cap');
+  activeTrigger=a;
+  var img=dlg.querySelector('img'), thumb=a.querySelector('img'), cap=dlg.querySelector('.sl-lb-cap'),
+      close=dlg.querySelector('.sl-lb-close');
   img.src=a.getAttribute('href'); img.alt=(thumb&&thumb.alt)||'';
   cap.textContent=a.getAttribute('data-caption')||(thumb&&thumb.alt)||'';
   cap.style.display=cap.textContent?'':'none';
+  close.setAttribute('aria-label',a.getAttribute('data-close-label')||'Close');
   if(dlg.showModal){ if(!dlg.open) dlg.showModal(); }
   else dlg.setAttribute('open','');
+  setTimeout(function(){ if(close&&close.focus) close.focus(); },0);
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape') closeLightbox(document.getElementById('sl-lightbox'));
 });
 })();</script>"""
 
@@ -329,8 +352,9 @@ def _proto_step_shim(sess: dict) -> dict:
 
 def session_shot_strip(sess: dict) -> str:
     """The small first/last step-shot strip a session row carries on the prototype page
-    (ux-contract §9 V4): up to two resolvable screenshots as thumbnails, each opening the
-    lightbox (no-JS: the file itself). Handles BOTH session kinds — a prototype reaction
+    (ux-contract §9 V4): up to two resolvable screenshots as thumbnails. They open the
+    session itself — never a competing lightbox — so the dominant image and the adjacent row
+    have one predictable destination. Handles BOTH session kinds — a prototype reaction
     resolves through the shim (browser-session dir convention), a usability walk through its
     own stored step screenshots. '' when no step file resolves."""
     if isinstance(sess.get("reaction"), dict):
@@ -348,8 +372,11 @@ def session_shot_strip(sess: dict) -> str:
     if not shots:
         return ""
     picks = shots[:1] if len(shots) == 1 else [shots[0], shots[-1]]
-    thumbs = [h("a", {"class_": "sl-shotlink", "href": url, "data-lightbox": True,
-                      "data-caption": t("step_n", n=i), "title": t("step_n", n=i)},
+    href = f'/sessions/{sess["id"]}'
+    label = t("open_session")
+    thumbs = [h("a", {"class_": "sl-session-shotlink", "href": href,
+                      "data-drawer": href, "data-drawer-title": label,
+                      "title": f'{label} · {t("step_n", n=i)}'},
                h("img", {"src": url, "alt": title or t("step_n", n=i), "loading": "lazy"}))
               for i, url, title in picks]
     return h("div", {"class_": "sl-shotstrip"}, fragment(*thumbs))
@@ -538,7 +565,7 @@ def _step_html(sess: dict, step: dict) -> str:
     # A reading-flow step adds a presentation-only salience mask; the stored screenshot stays
     # untouched and the label explicitly remains a hypothesis rather than an eye-tracking claim.
     shot = (h("a", {"class_": "sl-shotlink", "href": shot_url, "data-lightbox": True,
-                    "data-caption": lb_caption},
+                    "data-caption": lb_caption, "data-close-label": t("close_image")},
               h("img", {"class_": "sess-shot", "src": shot_url,
                         "alt": state.get("title") or t("step_n", n=i), "loading": "lazy"}))
             if shot_url else None)

@@ -115,6 +115,7 @@ SPA_JS = """
     if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey) return;
     var a=e.target.closest && e.target.closest('a'); if(!a) return;
     if(a.hasAttribute('data-drawer')) return;                                // handled by the drawer
+    if(a.hasAttribute('data-lightbox')) return;                              // handled by the image dialog
     var href=a.getAttribute('href');
     if(!href || href.charAt(0)!=='/' || href.indexOf('//')===0) return;     // internal absolute paths only
     if(a.target==='_blank' || a.hasAttribute('download') || a.getAttribute('rel')==='external') return;

@@ -7,10 +7,15 @@ cross-link sections.
 """
 from __future__ import annotations
 
+import socket
+import threading
+import time
+
+import pytest
 from starlette.testclient import TestClient
 
 from conftest import create_persona
-from sonaloop import artifacts, config, prototypes, services, web
+from sonaloop import artifacts, browser, config, prototypes, services, web
 
 
 _PROTO = {"kind": "prototype", "id": "proto-signup", "label": "Signup prototype"}
@@ -432,6 +437,7 @@ def test_prototype_session_timeline_shows_screenshots_when_files_exist(store, tm
     # anchor's data-caption (Esc/click-out unchanged)
     assert "sl-lb-close" in html and "sl-lb-cap" in html
     assert 'data-caption="Step 0' in html
+    assert 'data-close-label="Close image"' in html
     # step 1 has no file -> the recorded screen text
     assert "proto-screen-1" in html
 
@@ -582,5 +588,107 @@ def test_prototype_page_session_rows_carry_shot_strips(store, tmp_path, monkeypa
     assert 'src="/sessions-files/psession_test/step-1.png"' in html
     # the usability walk's strip resolves its own session dir
     assert f'src="/sessions-files/{u_id}/step-0.png"' in html
-    # the strips open the lightbox; its JS ships once on the page
-    assert "data-lightbox" in html and "__slLightbox" in html
+    # The dominant thumbnail has the SAME destination as its row: the session. It must not
+    # strand the reader in a competing lightbox before they have entered the replay.
+    assert f'class="sl-session-shotlink" href="/sessions/{sess["id"]}"' in html
+    assert f'data-drawer="/sessions/{sess["id"]}"' in html
+    assert 'class="sl-shotlink"' not in html and "__slLightbox=1" not in html
+
+
+@pytest.mark.skipif(not browser.available(), reason="chromium not installed")
+def test_session_entry_and_image_exit_are_usable_in_real_browser(store, tmp_path, monkeypatch):
+    """The user journey, not just emitted markup: a shot on the prototype opens its session;
+    the in-session zoom always has a visible viewport-contained exit; button, Esc and backdrop
+    close only the image and leave the session usable. Validate desktop and narrow mobile."""
+    from PIL import Image
+    import uvicorn
+
+    monkeypatch.setattr(config, "DATA_DIR", tmp_path)
+    d = config.sessions_dir() / "psession_test"
+    d.mkdir(parents=True)
+    Image.new("RGB", (600, 1200), "white").save(d / "step-0.png")
+    focus_step = _step(0, focus={
+        "x": 8, "y": 10, "width": 84, "height": 24, "label": "Hero",
+    })
+    _proj, proto, _pid, sess = _proto_session(store, steps=[focus_step])
+
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        port = sock.getsockname()[1]
+    server = uvicorn.Server(uvicorn.Config(
+        web.create_app(), host="127.0.0.1", port=port, log_level="error",
+    ))
+    thread = threading.Thread(target=server.run, daemon=True)
+    thread.start()
+    deadline = time.time() + 15
+    while not server.started:
+        assert time.time() < deadline, "app did not boot"
+        time.sleep(0.05)
+
+    from playwright.sync_api import sync_playwright
+    try:
+        with sync_playwright() as playwright:
+            chromium = playwright.chromium.launch()
+            for width, height in ((1440, 900), (390, 844)):
+                page = chromium.new_context(viewport={"width": width, "height": height}).new_page()
+                page.goto(
+                    f"http://127.0.0.1:{port}/prototypes/{proto['slug']}?lang=de",
+                    wait_until="load",
+                )
+
+                # The screenshot thumbnail is an entry into the session, not a zoom trap.
+                entry = page.locator(
+                    f'.sl-session-shotlink[href="/sessions/{sess["id"]}"]'
+                ).first
+                assert entry.is_visible()
+                assert entry.get_attribute("data-lightbox") is None
+                entry.click()
+                drawer = page.locator("#drawer.is-open")
+                drawer.wait_for(state="visible")
+                drawer.locator("#sec-replay").wait_for(state="visible")
+                page.wait_for_timeout(300)  # let the shared 240 ms drawer transition settle
+                panel_box = drawer.locator(".sl-drawer__panel").bounding_box()
+                assert panel_box and panel_box["x"] >= 0
+                assert panel_box["x"] + panel_box["width"] <= width + 1
+
+                # Zoom is available only inside the session. Its close control stays entirely
+                # inside the viewport at both widths and receives focus when opened.
+                zoom = drawer.locator(".sl-session-lens .sl-shotlink").first
+                zoom.click()
+                dialog = page.locator("dialog.sl-lightbox[open]")
+                dialog.wait_for(state="visible")
+                close = dialog.locator(".sl-lb-close")
+                assert close.is_visible() and close.get_attribute("aria-label") == "Bild schließen"
+                box = close.bounding_box()
+                assert box and box["x"] >= 0 and box["y"] >= 0
+                assert box["x"] + box["width"] <= width
+                assert box["y"] + box["height"] <= height
+                assert close.evaluate("el => document.activeElement === el")
+
+                close.click()
+                assert dialog.count() == 0 or not dialog.is_visible()
+                assert drawer.is_visible()
+
+                # Esc closes the image, not the surrounding session drawer.
+                zoom.click()
+                dialog.wait_for(state="visible")
+                page.keyboard.press("Escape")
+                assert dialog.count() == 0 or not dialog.is_visible()
+                assert drawer.is_visible()
+
+                # A click on the actual backdrop is the third reliable exit.
+                zoom.click()
+                dialog.wait_for(state="visible")
+                page.mouse.click(2, 2)
+                assert dialog.count() == 0 or not dialog.is_visible()
+                assert drawer.is_visible()
+
+                # The drawer's existing expand action still reaches the canonical full view.
+                drawer.locator("[data-drawer-expand]").click()
+                page.wait_for_url(f"**/sessions/{sess['id']}")
+                assert page.locator("#sec-replay").is_visible()
+                page.context.close()
+            chromium.close()
+    finally:
+        server.should_exit = True
+        thread.join(timeout=10)

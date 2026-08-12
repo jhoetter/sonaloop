@@ -676,7 +676,7 @@ def register_library(app) -> None:
         # as ONE session row (the §3.2 vocabulary) deep-linking into its /sessions/{id} detail
         # page — verdict, timeline, screenshots and predicted behaviors live THERE, the
         # prototype page stays the structural index.
-        from .sessions import LIGHTBOX_JS, proto_session_vm, session_shot_strip
+        from .sessions import proto_session_vm, session_shot_strip
         sessions = store.list_prototype_sessions(prototype_id=p["id"])
         if sessions:
             # each session row carries its first/last step-shot strip (ux-contract §9 V4) —
@@ -724,7 +724,7 @@ def register_library(app) -> None:
             h("div", {"class_": "sec", "id": "sec-sessions", "style": "margin-top:22px"},
               h("h2", {}, f'{t("proto_sessions_h")} ({len(sessions)})'),
               h("div", {"style": "margin-top:8px"}, sessions_html)),
-            raw(LIGHTBOX_JS))
+        )
         concept_in = []
         if proj:                                              # the concept that realises this prototype
             try:

@@ -263,6 +263,7 @@ STRINGS: dict[str, dict[str, str]] = {
         # sessions in the project outline (child rows under their subject) + session detail/funnel labels
         "session_kind_live": "Live-Session", "session_kind_prototype": "Prototyp-Session",
         "session_kind_artifact": "Walkthrough-Session", "live_surface": "Live-Oberfläche", "replays_h": "Replays", "proto_sessions_h": "Prototyp-Sessions",
+        "open_session": "Session öffnen", "close_image": "Bild schließen",
         "sessions_n": "{n} Sessions", "sessions_n_one": "{n} Session", "no_dropoffs": "keine Abbrüche",
         "drop_at_step": "{n}× Drop @ Schritt {s}", "dropoffs_n": "{n} Abbrüche",
         # compact count/status labels shared by library rows, detail pages and exports
@@ -768,6 +769,7 @@ STRINGS: dict[str, dict[str, str]] = {
         # sessions in the project outline (child rows under their subject) + session detail/funnel labels
         "session_kind_live": "Live session", "session_kind_prototype": "Prototype session",
         "session_kind_artifact": "Walkthrough session", "live_surface": "Live surface", "replays_h": "Replays", "proto_sessions_h": "Prototype sessions",
+        "open_session": "Open session", "close_image": "Close image",
         "sessions_n": "{n} sessions", "sessions_n_one": "{n} session", "no_dropoffs": "no drop-offs",
         "drop_at_step": "{n}× drop @ step {s}", "dropoffs_n": "{n} drop-offs",
         # compact count/status labels shared by library rows, detail pages and exports
