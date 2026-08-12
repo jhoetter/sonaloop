@@ -16,6 +16,7 @@ from .._synthesis import _stacked, _legend
 from .._html import register_css
 from .._ext import session_file_url
 from .._presence import asset_content_url
+from .._session_lightbox import LIGHTBOX_JS
 from ... import artifacts as _A
 from ... import config as _config
 
@@ -101,68 +102,6 @@ body:has(.sl-lightbox[open]){overflow:hidden}
 .sl-lb-close:hover{background:var(--panel-2)}
 .sl-lb-cap{margin-top:8px;text-align:center;color:var(--muted);font-size:var(--t-sm)}
 """)
-
-
-# The minimal image lightbox (ux-contract §9 V4): every [data-lightbox] anchor opens its href
-# (the full-resolution step shot) in a native <dialog> built lazily ON FIRST USE — Esc and any
-# backdrop click close it, and a visible close × plus a small step/action caption make both discoverable
-# (round-3 H6: data-caption on the anchor feeds the caption). Without JS the anchor simply opens
-# the file. Idempotent (the window flag), so the script may ride along with every surface that
-# renders shots (detail page, slide-over fragments re-execute their scripts, the prototype strip).
-# W8 stacking contract: the dialog must be a DIRECT child of <body> when shown (re-appended if a
-# fragment swap detached it) and opens through showModal() — the TOP LAYER, above the page, the
-# slide-over and any iframe; where showModal is unavailable the [open] attribute + the fixed
-# z-indexed .sl-lightbox CSS keep it above everything anyway.
-LIGHTBOX_JS = """<script>(function(){
-if(window.__slLightbox) return; window.__slLightbox=1;
-var activeTrigger=null;
-function finishLightbox(dlg){
-  var trigger=activeTrigger; activeTrigger=null;
-  if(dlg&&dlg.isConnected) dlg.remove();
-  if(trigger&&trigger.isConnected&&trigger.focus) trigger.focus();
-}
-function closeLightbox(dlg){
-  if(!dlg || !dlg.hasAttribute('open')) return;
-  if(dlg.close) dlg.close();
-  else{ dlg.removeAttribute('open'); finishLightbox(dlg); }
-}
-document.addEventListener('click',function(e){
-  var a=e.target.closest&&e.target.closest('[data-lightbox]'); if(!a) return;
-  e.preventDefault();
-  var dlg=document.getElementById('sl-lightbox');
-  if(!dlg){
-    dlg=document.createElement('dialog'); dlg.id='sl-lightbox'; dlg.className='sl-lightbox';
-    var fig=document.createElement('figure'); fig.className='sl-lb-fig';
-    fig.appendChild(document.createElement('img'));
-    var x=document.createElement('button'); x.type='button'; x.className='sl-lb-close';
-    x.setAttribute('aria-label','Close'); x.textContent='\\u00d7';
-    fig.appendChild(x);
-    var cap=document.createElement('figcaption'); cap.className='sl-lb-cap';
-    cap.id='sl-lb-cap'; dlg.setAttribute('aria-describedby',cap.id);
-    fig.appendChild(cap);
-    dlg.appendChild(fig);
-    x.addEventListener('click',function(ev){ ev.preventDefault(); ev.stopPropagation(); closeLightbox(dlg); });
-    dlg.addEventListener('click',function(ev){ if(ev.target===dlg) closeLightbox(dlg); });
-    dlg.addEventListener('cancel',function(ev){ ev.preventDefault(); closeLightbox(dlg); });
-    dlg.addEventListener('close',function(){ finishLightbox(dlg); });
-  }
-  if(!dlg.isConnected||dlg.parentNode!==document.body) document.body.appendChild(dlg);
-  activeTrigger=a;
-  var img=dlg.querySelector('img'), thumb=a.querySelector('img'), cap=dlg.querySelector('.sl-lb-cap'),
-      close=dlg.querySelector('.sl-lb-close');
-  img.src=a.getAttribute('href'); img.alt=(thumb&&thumb.alt)||'';
-  cap.textContent=a.getAttribute('data-caption')||(thumb&&thumb.alt)||'';
-  cap.style.display=cap.textContent?'':'none';
-  close.setAttribute('aria-label',a.getAttribute('data-close-label')||'Close');
-  if(dlg.showModal){ if(!dlg.open) dlg.showModal(); }
-  else dlg.setAttribute('open','');
-  setTimeout(function(){ if(close&&close.focus) close.focus(); },0);
-});
-document.addEventListener('keydown',function(e){
-  if(e.key==='Escape') closeLightbox(document.getElementById('sl-lightbox'));
-});
-})();</script>"""
-
 
 # Action type → icon (the recorder's code enum; see services._usability_sessions._ACTION_TYPES).
 # The chip label resolves through i18n (t("action_" + type)) only for known enum members — an
