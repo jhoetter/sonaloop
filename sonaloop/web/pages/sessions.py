@@ -15,6 +15,7 @@ from .._render import render_ref, render_statements
 from .._synthesis import _stacked, _legend
 from .._html import register_css
 from .._ext import session_file_url
+from .._presence import asset_content_url
 from ... import artifacts as _A
 from ... import config as _config
 
@@ -545,7 +546,28 @@ def _sessions_section(store: Store, sessions: list[dict], sid: str = "sec-sessio
              h("div", {"class_": "rows"}, raw("".join(str(r) for r in rows))))
 
 
-def _step_html(sess: dict, step: dict) -> str:
+def _artifact_screen_url(sess: dict, state: dict, store: Store | None) -> str | None:
+    """Reuse a project screenshot for artifact-flow sessions.
+
+    Screenshot walkthroughs deliberately do not duplicate admitted project assets into the
+    browser-session file store.  Their canonical ``state.screen`` is the asset id, so resolve that
+    exact project-owned image here.  Browser/prototype screenshots keep using the retained-session
+    path above; free-text/legacy screen descriptions keep falling back to the framed text excerpt.
+    """
+    if store is None or sess.get("fidelity") != "artifact" or not sess.get("project_id"):
+        return None
+    screen_id = str(state.get("screen") or "").strip()
+    if not screen_id:
+        return None
+    project = store.get_research_project(str(sess["project_id"])) or {}
+    asset = next((a for a in project.get("assets") or []
+                  if str(a.get("id") or "") == screen_id), None)
+    if not asset or asset.get("kind") not in ("image", "screenshot"):
+        return None
+    return asset_content_url(asset) or None
+
+
+def _step_html(sess: dict, step: dict, store: Store | None = None) -> str:
     """One timeline row (`id="step-N"`): the SCREEN panel (screenshot when the file exists, else the
     recorded screen text as a framed excerpt + url/title caption) beside the ACTION side (typed
     action chip + target/detail, the think-aloud monologue, friction + per-step verdict)."""
@@ -554,7 +576,8 @@ def _step_html(sess: dict, step: dict) -> str:
     fr = step.get("friction") or {}
     meta = _friction_meta(fr.get("level", ""))
     has_friction = bool(meta and meta["value"] > 0)
-    shot_url = _screenshot_url(sess["id"], state["screenshot"]) if state.get("screenshot") else None
+    shot_url = (_screenshot_url(sess["id"], state["screenshot"])
+                if state.get("screenshot") else _artifact_screen_url(sess, state, store))
     action = step.get("action") or {}
     # the lightbox caption: step number + action (round-3 H6) — the typed chip label when one exists
     typ = action.get("type") or ""
@@ -729,7 +752,8 @@ def register_sessions(app) -> None:
                        h("span", {"class_": "h1cnt"}, str(len(steps)))),
                      (h("p", {"class_": "sl-session-flow-note"}, raw(_icon("eye")),
                         t("reading_flow_boundary")) if reading_flow else None),
-                     h("div", {"class_": "sess-steps"}, fragment(*(_step_html(sess, s) for s in steps))))
+                     h("div", {"class_": "sess-steps"},
+                       fragment(*(_step_html(sess, s, store) for s in steps))))
         statements_html = ""
         if sess.get("statements"):
             statements_html = h("div", {"class_": "sec", "id": "sec-statements"},

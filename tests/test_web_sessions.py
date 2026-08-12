@@ -155,6 +155,37 @@ def test_reading_flow_renders_large_focused_screens_without_extra_controls(
     assert html.index('id="sec-replay"') < html.index("walked it")
 
 
+def test_artifact_reading_flow_reuses_project_asset_pixels(store, tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "DATA_DIR", tmp_path)
+    proj = services.create_research_project("Screenshot reading flow", store=store)
+    shot = tmp_path / "stimulus.png"
+    shot.write_bytes(b"\x89PNG admitted stimulus")
+    asset = services.attach_asset(
+        proj["id"], path=str(shot), kind="screenshot", title="Mobile banking overview",
+        store=store,
+    )
+    step = _step(0, focus={
+        "x": 8, "y": 12, "width": 62, "height": 18,
+        "label": "Primary activation entry",
+    })
+    step["state"] = {
+        "screen": asset["id"], "title": "Mobile banking overview",
+        "focus": step["state"]["focus"],
+    }
+    sess = services.record_usability_session(
+        "pX", {"kind": "flow", "id": "flow-mobile", "label": "Mobile flow"},
+        "artifact", "2026-08-12", [step],
+        {"completed": True, "dropoff_step": None, "summary": "read it",
+         "predicted_behaviors": []},
+        project_id=proj["id"], key="artifact-reading-flow", store=store,
+    )["usability_session"]
+
+    html = _client().get(f'/sessions/{sess["id"]}?lang=en').text
+    assert f'<img class="sess-shot" src="{asset["url"]}"' in html
+    assert 'class="sl-session-lens"' in html and "Primary activation entry" in html
+    assert '<div class="sess-screen-txt">' not in html
+
+
 def test_hosted_session_file_provider_replaces_local_runtime_path(store):
     web.register_session_file_url_provider(
         lambda session_dir, path: f"/signed-session/{session_dir}/{path}")
