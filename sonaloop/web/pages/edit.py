@@ -105,6 +105,20 @@ def project_actions(proj: dict, *, values: dict | None = None, errors: dict | No
                 "expected": proj["title"], "error": confirm_error})
 
 
+def project_list_actions(proj: dict) -> str:
+    """Quiet row actions: rename only the title; remove/delete keeps the run-history contract."""
+    return detail_overflow(
+        edit={"action": f'/jobs/{proj["id"]}/edit',
+              "title": f'{proj["title"]} — {t("rename")}',
+              "fields": [
+                  raw(field("title", t("f_title"), proj["title"], required=True)),
+                  h("input", {"type": "hidden", "name": "return_to", "value": "/jobs"}),
+              ],
+              "label": t("rename")},
+        delete={"action": f'/jobs/{proj["id"]}/delete', "label": t("delete_project"),
+                "expected": proj["title"], "hint": t("delete_project_hint")})
+
+
 def persona_actions(p: dict, *, values: dict | None = None, errors: dict | None = None,
                     edit_open: bool = False, confirm_error: str = "") -> str:
     return detail_overflow(
@@ -251,7 +265,11 @@ def register_edit(app) -> None:  # noqa: C901  (route table — one block per en
             proj = services.get_research_project(project_id, store=store)
         except KeyError:
             return not_found()
-        values = {k: _s(form, k) for k in ("title", "goal", "icon")}
+        values = {
+            "title": _s(form, "title"),
+            "goal": _s(form, "goal") if "goal" in form else str(proj.get("goal") or ""),
+            "icon": _s(form, "icon") if "icon" in form else _project_values(proj)["icon"],
+        }
         if "description" in form:  # Preserve existing descriptions unless an API caller sends one.
             values["description"] = _s(form, "description")
         if not values["title"]:
@@ -262,7 +280,7 @@ def register_edit(app) -> None:  # noqa: C901  (route table — one block per en
                 actions=project_actions(proj, values=values, errors={"title": t("field_required")},
                                         edit_open=True)), status_code=400)
         services.update_research_project(project_id, values, store=store)
-        return see_other(f"/jobs/{project_id}")
+        return see_other("/jobs" if _s(form, "return_to") == "/jobs" else f"/jobs/{project_id}")
 
     @app.post("/jobs/{project_id}/delete")
     async def project_delete(project_id: str, request: Request):
@@ -286,12 +304,20 @@ def register_edit(app) -> None:  # noqa: C901  (route table — one block per en
         except ValueError as exc:
             if "PROJECT_DELETE_RUN_HISTORY_BLOCKED" not in str(exc):
                 raise
-            return HTMLResponse(_dialog_error_page(
-                store, title=proj["title"], active="projects",
-                crumbs=[(t("projects"), "/jobs"), (proj["title"], f"/jobs/{project_id}"),
-                        (t("delete_project"), None)],
-                actions=project_actions(proj, confirm_error=t("delete_run_history_blocked"))),
-                status_code=409)
+            try:
+                services.archive_project(
+                    project_id, operation_id=f"web-delete:{project_id}",
+                    reason="Removed from the Jobs working set through the web delete action",
+                    store=store)
+            except ValueError as archive_exc:
+                if "ACTIVE_RUN_ARCHIVE_BLOCKED" not in str(archive_exc):
+                    raise
+                return HTMLResponse(_dialog_error_page(
+                    store, title=proj["title"], active="projects",
+                    crumbs=[(t("projects"), "/jobs"), (proj["title"], f"/jobs/{project_id}"),
+                            (t("delete_project"), None)],
+                    actions=project_actions(proj, confirm_error=t("delete_active_run_blocked"))),
+                    status_code=409)
         return see_other("/jobs")
 
     # ---------------------------------------------------------------- personas

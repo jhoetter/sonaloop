@@ -123,8 +123,8 @@ def test_product_understanding_is_mandatory_versioned_and_auto_checkpointed(stor
     assert "1 of 2 product areas evidenced · 1 still open" in rendered
     assert "Evidenced product areas (1)" in rendered
     assert "Areas still to verify (1)" in rendered
-    assert "Technical reference" in rendered
-    assert 'class="sl-integrity-metrics"' in rendered
+    assert "Technical reference" not in rendered
+    assert "flow manifest" not in rendered and "Manifest digest" not in rendered
     assert "sl-pu-card" not in rendered and "sl-cohort-grid" not in rendered
 
 

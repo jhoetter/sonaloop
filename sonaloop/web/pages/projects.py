@@ -18,7 +18,7 @@ from .._cohort_integrity_view import render_cohort_integrity
 # hypotheses, open questions and assets included (_graph_outline_extras builds their items).
 
 register_css(r"""
-.sl-pu-claim{color:var(--ink);line-height:1.5}.sl-pu-claim .lbl{margin-right:5px}.sl-pu-claim .sl-claim-sources{margin-top:3px}.sl-pu-technical code{font-size:inherit;overflow-wrap:anywhere}
+.sl-pu-claim{color:var(--ink);line-height:1.5}.sl-pu-claim .lbl{margin-right:5px}.sl-pu-claim .sl-claim-sources{margin-top:3px}
 .sl-project-creator{color:var(--muted);font-size:var(--t-xs);margin:4px 0 0}
 .sl-project-meta{color:var(--muted);font-size:var(--t-xs);margin:4px 0 0}
 .sl-project-setup{flex:none;width:100%;max-width:900px;margin:0 auto;padding:0 24px 10px;border:0;background:transparent}
@@ -83,7 +83,6 @@ def _product_understanding_html(project: dict, store=None,
                 str(row.get("status") or "unknown"))
     conflicts = sum(1 for values in by_key.values()
                     if {"observed_present", "observed_absent"} <= values)
-    manifest = current.get("stimulus_manifest") or {}
     observed_value = current.get("observed_at") or ""
     observed_at = ui.local_ts(observed_value)
     time_marker = "__SONALOOP_LOCAL_TIME__"
@@ -120,26 +119,6 @@ def _product_understanding_html(project: dict, store=None,
         t("pu_compact_summary_complete_one") if len(capabilities) == 1 else
         t("pu_compact_summary_complete", total=len(capabilities))
     )
-    technical_rows = [
-        h("div", {}, h("dt", {}, t("pu_target")), h("dd", {}, target_name)),
-        h("div", {}, h("dt", {}, t("pu_revision")),
-          h("dd", {"class_": "sl-integrity-technical"}, current.get("revision") or "—")),
-        h("div", {}, h("dt", {}, t("pu_observed_at")), h("dd", {}, observed_at)),
-        h("div", {}, h("dt", {}, t("pu_record_version")),
-          h("dd", {}, f"v{current.get('version', 1)}")),
-    ]
-    if manifest.get("manifest_id"):
-        manifest_value = (
-            f"{manifest['manifest_id']} v{manifest.get('manifest_version') or '—'} · "
-            f"{manifest.get('target_revision') or '—'}"
-        )
-        technical_rows.extend([
-            h("div", {}, h("dt", {}, t("pu_manifest")),
-              h("dd", {"class_": "sl-integrity-technical"}, manifest_value)),
-            h("div", {}, h("dt", {}, t("pu_manifest_digest")),
-              h("dd", {"class_": "sl-integrity-technical"},
-                h("code", {}, manifest.get("manifest_digest") or "—"))),
-        ])
     aria = (f'{t("product_understanding_h")}. {target_name}. {t("pu_revision")} '
             f'{current.get("revision") or "—"}. {t("pu_unknown_n", n=unknowns)}.')
     wrapper_class = "sl-integrity sl-integrity--product"
@@ -172,9 +151,6 @@ def _product_understanding_html(project: dict, store=None,
                fragment(*(capability_row(row, show_status=False)
                           for row in unknown_capabilities))))
            if unknown_capabilities else None),
-          h("details", {"class_": "sl-integrity-nested sl-pu-technical"},
-            h("summary", {}, t("pu_technical_details")),
-            h("dl", {"class_": "sl-integrity-metrics"}, fragment(*technical_rows))),
         ),
     )
 

@@ -23,8 +23,8 @@ from ..config import sessions_dir, utc_now_iso
 from ..models import UsabilitySession
 from ..storage import Store
 from ..suggestions import suggest_friction_levels
-from ._authoring import PRIMITIVES_CONTRACT
-from ._common import _require_persona, stable_id
+from ._authoring import PERSONA_VOICE_CONTRACT, PRIMITIVES_CONTRACT
+from ._common import _require_persona, canonical_payload_fingerprint, stable_id
 
 
 _SUBJECT_KINDS = ("flow", "prototype", "live_url", "variant")
@@ -147,7 +147,7 @@ def brief_usability_session(persona_id, subject, fidelity, project_id=None, stor
             "first-class outcomes — a persona whose context does not support enthusiasm should stall "
             "or drop off. The session is the deliverable, not a summary of it: record every step you "
             "took, not the highlights."
-        ) + capability_context_line(profile) + PRIMITIVES_CONTRACT,  # noqa: F821 (bound)
+        ) + capability_context_line(profile) + PERSONA_VOICE_CONTRACT + PRIMITIVES_CONTRACT,  # noqa: F821 (bound)
     }
     gate = capability_fidelity_warnings(                              # noqa: F821 (bound)
         profile, fidelity, " ".join(str(subject.get(k) or "") for k in ("label", "url", "id")))
@@ -365,6 +365,23 @@ def record_usability_session(persona_id, subject, fidelity, date_value, steps, o
     `capabilities_snapshot` so traces stay interpretable after the persona evolves. Pass a stable
     `key` for a deterministic id (idempotent upsert → resumable runs)."""
     store = store or Store()
+    subject = _validate_subject(subject)
+    _require_fidelity(fidelity)
+    if not isinstance(steps, list) or not steps:
+        raise ValueError("steps must be a non-empty list — the session is the deliverable, record every step")
+    norm_steps = [_validate_step(s, i) for i, s in enumerate(steps)]
+    norm_outcome = _validate_outcome(outcome, len(norm_steps))
+    payload_fingerprint = canonical_payload_fingerprint({
+        "persona_id": persona_id,
+        "project_id": project_id or "",
+        "subject": subject,
+        "fidelity": fidelity,
+        "date": date_value,
+        "steps": norm_steps,
+        "outcome": norm_outcome,
+        "statements": statements or [],
+        "browser_session_id": session_id or "",
+    })
     # Historical usability-session rows were allowed to carry an arbitrary project label even
     # when no research-project record existed. Keep that read/filter compatibility, but never
     # present such a row as governed: only a real project can enter the dispatch validator and an
@@ -375,7 +392,7 @@ def record_usability_session(persona_id, subject, fidelity, date_value, steps, o
     if dispatch_token or known_project:
         dispatch_ctx = prepare_dispatch_write(  # noqa: F821 (bound)
             str(project_id or ""), dispatch_token, key, "session", store,
-            allowed_buckets={"act", "verify"})
+            allowed_buckets={"act", "verify"}, payload_fingerprint=payload_fingerprint)
     else:
         dispatch_ctx = {
             "state": "outside_run",
@@ -386,17 +403,23 @@ def record_usability_session(persona_id, subject, fidelity, date_value, steps, o
             **({"project_reference": "unbound"} if project_id else {}),
         }
     effective_key = str(dispatch_ctx.get("primitive_key") or key or "") or None
-    subject = _validate_subject(subject)
-    _require_fidelity(fidelity)
-    if not isinstance(steps, list) or not steps:
-        raise ValueError("steps must be a non-empty list — the session is the deliverable, record every step")
-    norm_steps = [_validate_step(s, i) for i, s in enumerate(steps)]
-    norm_outcome = _validate_outcome(outcome, len(norm_steps))
     now = utc_now_iso()
     sess_id = (stable_id("usession", effective_key) if effective_key
                else stable_id("usession", persona_id, _subject_key(subject), now))
     norm_statements = _validate_statements(statements, sess_id, len(norm_steps), store)
     _require_screenshots(norm_steps, sess_id)
+    existing = store.get_usability_session(sess_id)
+    existing_fingerprint = str(((existing or {}).get("dispatch_provenance") or {}).get(
+        "payload_fingerprint") or "")
+    if (dispatch_ctx.get("dispatch_token") and existing
+            and existing_fingerprint == payload_fingerprint):
+        dispatch_result = bind_dispatch_output(  # noqa: F821 (bound)
+            dispatch_ctx, {"kind": "session", "id": sess_id},
+            "recorded replayable usability session", store)
+        return {
+            "usability_session": {**existing, "idempotent_replay": True},
+            "dispatch": dispatch_result,
+        }
     grounded = None
     warnings: list[str] = []
     if fidelity in ("prototype", "live") and session_id:
@@ -416,7 +439,7 @@ def record_usability_session(persona_id, subject, fidelity, date_value, steps, o
     sess = UsabilitySession(
         id=sess_id, project_id=project_id or "", persona_id=persona_id, date=date_value,
         subject=subject, fidelity=fidelity, steps=norm_steps, outcome=norm_outcome,
-        created_at=now, statements=norm_statements).to_dict()
+        created_at=(existing or {}).get("created_at") or now, statements=norm_statements).to_dict()
     if subject.get("kind") == "prototype":
         proto = store.get_prototype(str(subject.get("id") or "")) or {}
         # Snapshot at record time; an absent stamp on older rows means unknown, never "current".
@@ -437,7 +460,9 @@ def record_usability_session(persona_id, subject, fidelity, date_value, steps, o
                if dispatch_ctx.get("project_reference") else {}),
             **({"dispatch_token": dispatch_ctx["dispatch_token"],
                 "run_id": dispatch_ctx["run_id"], "task_id": dispatch_ctx["task_id"],
-                "operation_id": dispatch_ctx["operation_id"]}
+                "operation_id": dispatch_ctx["operation_id"],
+                "payload_fingerprint": payload_fingerprint,
+                "payload_revision": int(dispatch_ctx.get("payload_revision") or 1)}
                if dispatch_ctx.get("dispatch_token") else {}),
         }
     store.insert_usability_session(sess)

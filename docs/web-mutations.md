@@ -14,7 +14,7 @@ remain MCP-only.
 
 | Entity | Create | Edit | Delete | Notes |
 | --- | --- | --- | --- | --- |
-| Project | ❌ UI (MCP/CLI: `start_project` / `create_research_project`; `POST /jobs/new` stays as API surface) | ✅ title/goal/icon | ✅ typed-confirmation (type the project title) | browser edits the primary container metadata only; description remains API/MCP metadata; the graph/plan stays agent-driven; regular icons are selectable in the browser, custom SVG icons are generated/set through MCP/CLI |
+| Project | ❌ UI (MCP/CLI: `start_project` / `create_research_project`; `POST /jobs/new` stays as API surface) | ✅ title/goal/icon; title-only rename in the Jobs list | ✅ typed-confirmation (type the project title) | the row's `…` menu sits beside Favorite; never-started containers hard-delete, while jobs with terminal run history leave the working set through evidence-preserving archive; active runs remain protected |
 | Persona | ❌ MCP-only for authored profiles (`brief_persona` → `record_persona`); ✅ catalog import from `/personas/catalog` via `catalog_pull` | ✅ metadata: name, role title, segment, industry | ✅ typed-confirmation (type the display name) | catalog import is a selective structural pull from sonaloop-data, not browser authoring |
 | Note | ❌ UI (MCP: `create_note`; `POST /jobs/{id}/notes/new` stays as API surface) | ✅ title/text | ✅ | notes are observations the agent records; editing their text in the browser stays fine |
 | Section | ❌ UI (MCP: `create_section`; `POST /jobs/{id}/sections/new` stays as API surface) | ✅ title/kind/note | ✅ (member nodes untouched) | a section is a view; membership editing stays MCP (`add_to_section` …) |
@@ -37,12 +37,14 @@ tour affordances and markup are absent, and the browser's
 customer workspace. `SONALOOP_PRODUCT_TOUR_ENABLED` is the explicit operator
 override. MCP/CLI example services remain separate host-controlled paths.
 
-Project deletion removes the project container and its project-scoped outputs,
-including councils/reports, calibration outcomes and transient Activity/SSE rows.
-Personas and their memory remain available to the workspace. Content-addressed
-asset/preview files and generated prototype/session/icon/export files are not garbage-
-collected by this database cascade; operators may prune unreferenced runtime files
-separately after a verified backup.
+Project deletion is exposed in both the detail header and each Jobs-list row. A
+never-started container is hard-deleted with its project-scoped outputs. Once a governed
+run journal exists, the same confirmed action removes the job from the current working set
+by calling `archive_project`; evidence and exact deep links remain available. An active run
+fails closed until it is explicitly finished or stopped. Personas and their memory remain
+available to the workspace. Content-addressed asset/preview files and generated
+prototype/session/icon/export files are not garbage-collected by a hard-delete cascade;
+operators may prune unreferenced runtime files separately after a verified backup.
 
 The one browser-side persona addition affordance is **catalog import**:
 `/personas/catalog` searches the curated sonaloop-data catalog and posts a selected
@@ -96,8 +98,11 @@ the authored profile already exists in sonaloop-data and is pulled verbatim.
 
 Every mutating route follows one shape:
 
-1. The UI affordance is the detail header's **"…" overflow → Edit**, which
-   opens a native **edit `<dialog>` over the detail page** (UX V10,
+1. The UI affordance is the detail header's **"…" overflow → Edit**. Project rows also
+   expose a quiet **Favorite · “…”** pair: **Rename** opens a title-only dialog and
+   **Delete job** uses the same typed confirmation as the detail page. The list has no
+   permanent selection mode or decorative row separators. Detail editing opens a native
+   **edit `<dialog>` over the detail page** (UX V10,
    ux-contract §9) carrying the kind's form fields (`edit_dialog` +
    the `pages/edit.py` field builders). `GET /thing/{id}/edit` keeps
    answering for deep links with the SAME fields as a plain HTML form
@@ -126,6 +131,11 @@ Delete opens a confirm `<dialog>`; projects and personas keep the
 typed-confirmation field there (the server re-checks `confirm == name` — the
 JS is convenience, not protection); the other entities confirm in the same
 modal without typing.
+
+The Jobs overview deliberately repeats only the two object-level actions needed while
+triaging a working set: Rename and Delete. Dialog ids remain project-specific, the whole
+content row stays one normal deep link for keyboard navigation, and the Favorite and overflow
+buttons sit outside that link so they never navigate accidentally.
 
 ### CSRF: double-submit cookie
 

@@ -20,7 +20,9 @@ def register_usability(mcp):
         friction vocabulary + the subject's context (prototype how-to-drive when
         subject.kind='prototype') before a usability session. `subject` =
         {kind: flow|prototype|live_url, id?, url?, label}; `fidelity` = artifact|prototype|live.
-        Author the per-step dual timeline, then record_usability_session."""
+        `monologue` is the persona's natural in-the-moment language; observer facts and researcher
+        interpretation stay in their separate fields. Author the per-step dual timeline, then
+        record_usability_session."""
         t = time.perf_counter()
         return _env("brief_usability_session",
                     services.brief_usability_session(persona_id, subject, fidelity, project_id), t)
@@ -35,7 +37,8 @@ def register_usability(mcp):
         """Persist a host-authored usability session — the durable, REPLAYABLE trace (the session is
         the deliverable). `steps` is the ordered dual timeline: {index (contiguous from 0),
         action:{type: look|click|type|select|scroll|key|navigate|back|wait|give_up, target, detail},
-        monologue, state:{url?, title?, screen, screenshot? (under data/sessions/<id>/),
+        monologue (verbatim persona voice, never analyst/method language),
+        state:{url?, title?, screen, screenshot? (under data/sessions/<id>/),
         focus?{x,y,width,height,label} (percent rectangle; a stated salience hypothesis, never eye-tracking)},
         friction:{level, note} (the closed vocabulary — see suggest_friction_levels),
         verdict:{would_continue, reason}}. `outcome` = {completed, dropoff_step (an existing step;

@@ -59,7 +59,11 @@ Use three layers:
   and opens in full resolution on click. Reading sessions use an almost viewport-wide
   drawer and put the flow before generic properties/relations; narrow screens stack each
   crop above its comment. This is explicitly a salience hypothesis, never eye-tracking
-  or measured attention. Shared Cloud serves the
+  or measured attention. The authoring boundary is equally explicit: `monologue` is the
+  persona's natural, in-the-moment language; `action` and `state` contain observed facts;
+  `friction.note`, outcomes and findings carry researcher interpretation. Method vocabulary
+  must not be placed in the persona's mouth unless the loaded SOUL or evidence shows that
+  they naturally use it. Shared Cloud serves the
   retained step images through short-lived capabilities bound to the active
   workspace and session directory.
   `define_flow` stores a reusable screen-walkthrough test script under

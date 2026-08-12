@@ -142,6 +142,26 @@ def test_project_edit_happy_validation_and_404(store):
     assert _post(client, "/jobs/nope/edit", title="x").status_code == 404
 
 
+def test_jobs_list_has_quiet_rename_delete_menu_and_title_only_rename(store):
+    proj = services.create_research_project(
+        "Row actions", goal="Keep this goal", icon="positioning", store=store)
+    client = _client()
+    html = client.get("/jobs?lang=en").text
+    assert "rows--jobs" in html and "job-row-shell" in html
+    assert '.job-row-shell>.row{border-bottom:0' in html
+    assert f'action="/jobs/{proj["id"]}/edit"' in html
+    assert f'action="/jobs/{proj["id"]}/delete"' in html
+    assert "Rename" in html and "Delete job" in html
+
+    response = _post(
+        client, f'/jobs/{proj["id"]}/edit', title="Renamed in list", return_to="/jobs")
+    assert response.status_code == 303 and response.headers["location"] == "/jobs"
+    updated = services.get_research_project(proj["id"], store=store)
+    assert updated["title"] == "Renamed in list"
+    assert updated["goal"] == "Keep this goal"
+    assert updated["icon"] == {"kind": "regular", "name": "positioning"}
+
+
 def test_project_delete_requires_typed_confirmation(store):
     proj = services.create_research_project("Keep me safe", store=store)
     client = _client()
@@ -159,7 +179,7 @@ def test_project_delete_404():
     assert _post(_client(), "/jobs/nope/delete", confirm="x").status_code == 404
 
 
-def test_project_delete_preserves_governed_run_history(store):
+def test_project_delete_removes_governed_history_from_working_set_by_archiving(store):
     proj = services.create_research_project("Archive this history", store=store)
     run = services.start_run(proj["id"], store=store)
     services.finish_run(run["run_id"], "stopped", store=store)
@@ -168,10 +188,23 @@ def test_project_delete_preserves_governed_run_history(store):
         _client(), f'/jobs/{proj["id"]}/delete', confirm="Archive this history",
     )
 
-    assert response.status_code == 409
-    assert "cannot be hard-deleted" in response.text
-    assert services.get_research_project(proj["id"], store=store)
+    assert response.status_code == 303 and response.headers["location"] == "/jobs"
+    archived = services.get_research_project(proj["id"], store=store)
+    assert archived["status"] == "archived"
+    assert archived["archive"]["operation_id"] == f'web-delete:{proj["id"]}'
+    assert "Archive this history" not in _client().get("/jobs?lang=en").text
     assert services.run_journal(run["run_id"], store=store)["status"] == "stopped"
+
+
+def test_project_delete_refuses_active_run(store):
+    proj = services.create_research_project("Still running", store=store)
+    services.start_run(proj["id"], store=store)
+
+    response = _post(_client(), f'/jobs/{proj["id"]}/delete', confirm="Still running")
+
+    assert response.status_code == 409
+    assert "still running" in response.text
+    assert services.get_research_project(proj["id"], store=store)["status"] == "active"
 
 
 # ------------------------------------------------------------------------ personas

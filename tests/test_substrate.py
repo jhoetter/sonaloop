@@ -81,6 +81,8 @@ def test_chat_roundtrip_with_history(store, seeded):
     brief = services.chat_with_persona(pid, "Would you pay 49€/month?", store=store)
     assert brief["schema"] == "persona_chat" and brief["turns"] == 0
     assert "agent_context" in brief and "record_chat_turn" in brief["instructions"]
+    assert "PERSONA VOICE BOUNDARY" in brief["agent_context"]
+    assert "PERSONA VOICE BOUNDARY" in brief["instructions"]
     chat_id = brief["chat_id"]
     out = services.record_chat_turn(pid, chat_id, "Would you pay 49€/month?",
                                     "Only if it replaces a tool I already pay for.", store=store)

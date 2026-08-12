@@ -33,6 +33,7 @@ from typing import Any
 from ..config import utc_now_iso, ensure_content_language, language_instruction
 from ..storage import Store
 from ..suggestions import suggest_blocker_themes
+from ._authoring import PERSONA_VOICE_CONTRACT
 from .. import artifacts as _artifacts
 from ..research_integrity import stamp_derived_finding
 
@@ -198,7 +199,7 @@ def brief_red_team(project_id: str, prompt: str, persona_ids: list[str] | None =
             + "Then call record_red_team(project_id, prompt, objections=[...], endorsements=[...], statements="
             "[...], stance, exec_summary, summary). The server groups objections by theme (case/whitespace-"
             f"insensitive) into the structured case-against (count + worst severity); you author the prose. "
-            f"{language_instruction(language)}"),
+            f"{language_instruction(language)}" + PERSONA_VOICE_CONTRACT),
     }
 
 

@@ -19,10 +19,10 @@ from ._docs import register_docs
 
 
 def _row(href: str, ric, title, right=None, *, color: str | None = None, sub=None,
-         byline=None, byline_hint: str | None = None) -> str:
+         byline=None, byline_hint: str | None = None, actions: str = "") -> str:
     """A list row: leading icon/avatar (`ric`), title (+ optional muted `sub`), right-aligned meta."""
     lead = ric if color is None else h("span", {"class_": "rico", "style": f"color:{color}"}, raw(_icon(ric)))
-    return h("a", {"class_": "row", "href": href}, lead,
+    link = h("a", {"class_": "row", "href": href}, lead,
              h("span", {"class_": "title" + (" has-byline" if byline else "")},
                h("span", {"class_": "row-title-text"}, title) if byline else title,
                h("span", {"class_": "muted small"}, f" · {sub}") if sub else None,
@@ -32,6 +32,10 @@ def _row(href: str, ric, title, right=None, *, color: str | None = None, sub=Non
                        "aria-label": f"{byline}. {byline_hint}"} if byline_hint else {}),
                }, byline) if byline else None),
              h("span", {"class_": "right"}, right))
+    if not actions:
+        return link
+    return h("div", {"class_": "job-row-shell"}, raw(link),
+             h("span", {"class_": "job-row-actions"}, raw(actions)))
 
 
 def _first_steps_html() -> str:
@@ -175,8 +179,7 @@ def _projects_page(page: int = 1, q: str = "") -> str:
         cohort = ui.avatar_group((store.get_persona(x) for x in pids[:4]), total=len(pids))
         meta = fragment(cohort if cohort else None,
                         _label(f'{t("methodology_h")} · {_methodology_name()}', "var(--accent)"),
-                        raw(_run_label() or ""),
-                        raw(_star("project", p["id"], p["title"], f'/jobs/{p["id"]}')))
+                        raw(_run_label() or ""))
         creator = p.get("created_by") if isinstance(p.get("created_by"), dict) else {}
         creator_label = str(creator.get("label") or "").strip()
         origin = p.get("created_via") if isinstance(p.get("created_via"), dict) else {}
@@ -187,11 +190,17 @@ def _projects_page(page: int = 1, q: str = "") -> str:
             else t("project_created_by", label=creator_label) if creator_label
             else None
         )
+        from .pages.edit import project_list_actions
+        row_actions = fragment(
+            raw(_star("project", p["id"], p["title"], f'/jobs/{p["id"]}')),
+            raw(project_list_actions(p)),
+        )
         rows.append(_row(
             f'/jobs/{p["id"]}', raw(project_icon_html(p)), p["title"], meta,
             byline=byline,
             byline_hint=(t("project_created_via_hint", client=origin_label)
                          if creator_label and origin_label else None),
+            actions=row_actions,
         ))
     if not rows and not q and not all_projects and not store.list_personas():
         # Truly fresh database (no projects AND no personas): orient instead of an empty list.
@@ -205,7 +214,8 @@ def _projects_page(page: int = 1, q: str = "") -> str:
                       empty_icon="projects", empty_msg=t("no_projects"), active="projects",
                       empty_teach=t("fs_step_project_d"),
                       pre=_list_filter_box("/jobs", q) if (q or pages > 1) else "",
-                      count=len(projects), after=_pager("/jobs", page, pages, q))
+                      count=len(projects), after=_pager("/jobs", page, pages, q),
+                      rows_class="rows--jobs")
 
 
 def _persona_row(p: dict, store: Store) -> str:
@@ -289,7 +299,14 @@ register_css(r"""
 .row-byline{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:var(--t-xs);font-weight:400}
 .row .sub{color:var(--muted);font-size:var(--t-sm);flex-shrink:0}
 .row .right{display:flex;align-items:center;gap:8px;flex-shrink:0;color:var(--faint);font-size:var(--t-sm)}
-@media(max-width:760px){.row{align-items:flex-start;flex-wrap:wrap}.row .right{flex:1 0 calc(100% - 36px);margin-left:28px;justify-content:flex-start;flex-wrap:wrap}}
+.rows--jobs{border-top:0}
+.job-row-shell{position:relative;border-radius:var(--radius-sm)}
+.job-row-shell:hover{background:var(--hover)}
+.job-row-shell>.row{border-bottom:0;padding-right:82px}
+.job-row-shell>.row:hover{background:transparent}
+.job-row-actions{position:absolute;z-index:2;right:8px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:2px}
+.job-row-actions:has(.sl-overflow[open]){z-index:20}
+@media(max-width:760px){.row{align-items:flex-start;flex-wrap:wrap}.row .right{flex:1 0 calc(100% - 36px);margin-left:28px;justify-content:flex-start;flex-wrap:wrap}.job-row-actions{top:8px;transform:none}}
 .votebar{display:inline-flex;height:6px;width:88px;border-radius:3px;overflow:hidden;border:1px solid var(--line)}
 .votebar i{display:block;height:100%}
 /* ---- first-steps checklist (empty-DB home; ticket one-sentence-mcp-install) ---- */

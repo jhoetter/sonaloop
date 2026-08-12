@@ -71,7 +71,7 @@ PRINCIPLES = [
       "Routen oder Zustände bleiben vor dem Research sichtbar. "
       "Eine URL bezeichnet nur das Ziel und ist nie selbst Evidenz. Fehlt Vorbereitung, zeigt "
       "Sonaloop genau den aktuellen Schritt statt einen scheinbar laufenden Run. "
-      "Abgeschlossene Produkt- und Kohortenprüfungen erscheinen kompakt; einzelne Merkmale, Quellen und technische Prüfdaten bleiben bei Bedarf aufklappbar. "
+      "Abgeschlossene Produkt- und Kohortenprüfungen erscheinen kompakt; einzelne Merkmale und Quellen bleiben bei Bedarf aufklappbar, während technische IDs und Prüfsummen im Audit-Trail statt in der normalen Produktansicht liegen. "
       "Jede Aussage bleibt als beobachtet, memory-geerdet, abgeleitet, simuliert "
       "oder unbelegt sichtbar. Ein Screenshot zeigt Produktzustand — nie beobachtetes Nutzerverhalten.",
       "Reaction Tests begin with versioned **Product Understanding** from real screens, flows, or "
@@ -81,7 +81,7 @@ PRINCIPLES = [
       "or states remain visible before research starts. "
       "A URL identifies only the target and is never evidence itself. When setup is missing, Sonaloop "
       "shows exactly the current step instead of an apparently running job. Completed product and "
-      "cohort checks stay compact; individual product areas, sources and technical check data remain available on demand. Every claim stays "
+      "cohort checks stay compact; individual product areas and sources remain available on demand, while technical IDs and digests stay in the audit trail rather than the normal product view. Every claim stays "
       "visibly observed, memory-grounded, inferred, simulated, or "
       "unsupported. A screenshot shows product state — never observed user behavior.")),
     ("personas",
@@ -162,9 +162,9 @@ DOCS = [
              "Grounded reactions to something *real*, not a description — you see what works before you build.")},
     {"art": "session", "icon": "activity", "name": "sessions", "group": "evidence",
      "what": ("Eine replaybare Nutzungsspur: was die Persona gesehen, getan, gedacht und entschieden hat — "
-              "als Screen-Walkthrough, klickbarer Prototyp oder Live-Oberfläche. Bei Leseaufgaben zeigt der lineare Flow einen begrenzten, fokuszentrierten Ausschnitt direkt neben dem Persona-Kommentar; auf schmalen Screens stehen beide untereinander.",
+              "als Screen-Walkthrough, klickbarer Prototyp oder Live-Oberfläche. Bei Leseaufgaben zeigt der lineare Flow einen begrenzten, fokuszentrierten Ausschnitt direkt neben dem spontanen Persona-Kommentar; Beobachtung und Research-Analyse bleiben davon getrennt. Auf schmalen Screens stehen Bild und Kommentar untereinander.",
               "A replayable usage trace: what the persona saw, did, thought and decided — as a screen "
-              "walkthrough, clickable prototype or live surface. For reading tasks, its linear flow shows a bounded, focus-centred crop directly beside the persona comment; narrow screens stack the two."),
+              "walkthrough, clickable prototype or live surface. For reading tasks, its linear flow shows a bounded, focus-centred crop directly beside the persona's spontaneous comment; observation and researcher analysis stay separate. Narrow screens stack image and comment."),
      "why": ("Sie macht den Pfad in einer fast bildschirmbreiten Session verständlich, bevor Eigenschaften und Beziehungen folgen, ohne eine synthetische Fokusmaske als Eye-Tracking oder gemessene Aufmerksamkeit auszugeben. Der Ausschnitt öffnet das unveränderte Originalbild; Schließen-Button, Escape oder Hintergrundklick führen zurück in denselben Schritt.",
              "It makes the path legible in an almost viewport-wide session before properties and relations, without presenting a synthetic focus mask as eye-tracking or measured attention. The crop opens the unchanged original; the close button, Escape or backdrop click returns to the same step.")},
     {"art": "survey", "icon": "plan", "name": "surveys_h", "group": "evidence",
@@ -672,7 +672,7 @@ INSPECTOR_SECTIONS = [
       "dem bestehenden Katalog wählen; ein Klick auf das Header-Icon öffnet denselben Dialog "
       "direkt am Icon-Picker. Custom-SVGs erzeugt/setzt dein Agent per MCP/CLI. "
       "**Löschen** öffnet einen "
-      "Bestätigungs-Dialog (bei Projekten und Personas tippst du den Namen). Generierter Text — "
+      "Bestätigungs-Dialog (bei Projekten und Personas tippst du den Namen). In der Jobliste steht dasselbe ruhige „…“-Menü direkt rechts vom Stern: **Umbenennen** ändert nur den Titel; **Job löschen** entfernt nie gestartete Container endgültig und archiviert Jobs mit abgeschlossener Run-Historie evidenzerhaltend. Aktive Runs bleiben geschützt. Generierter Text — "
       "Councils, Reports, Prototypen — bleibt unantastbar; Erinnerungen, SOULs und Evidenz komplett.",
       "The inspector is a reading surface with one clear boundary: **inspect and edit, never "
       "create.** New projects, notes or sections come exclusively from your agent (MCP/CLI) — the "
@@ -682,7 +682,7 @@ INSPECTOR_SECTIONS = [
       "Project icons can be chosen there from the existing catalogue; clicking the header icon "
       "opens the same dialog directly at the icon picker. Custom SVGs are generated/set by your "
       "agent through MCP/CLI. **Delete** opens a confirm dialog (projects and personas ask you to type the name). "
-      "Generated text — councils, reports, prototypes — stays untouchable; memories, SOULs and "
+      "The Jobs list repeats the same quiet “…” menu immediately after the star: **Rename** changes only the title; **Delete job** permanently removes never-started containers and evidence-preservingly archives jobs with terminal run history. Active runs stay protected. Generated text — councils, reports, prototypes — stays untouchable; memories, SOULs and "
       "evidence entirely so.")),
     ("filtering", "filter",
      ("Filtern wie in Linear", "Filtering, Linear-style"),

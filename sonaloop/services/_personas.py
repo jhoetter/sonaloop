@@ -41,6 +41,7 @@ from ..taxonomy import GENERIC_TOOLS, normalized_tool_ids, normalized_tools
 from .. import artifacts as _A
 from .. import memory as memory_mod
 from .. import evaluation as evaluation_mod
+from ._authoring import PERSONA_VOICE_CONTRACT
 from ..llm_simulation import (
     build_cohort_critic_prompt,
     build_consolidation_prompt,
@@ -564,6 +565,7 @@ authoritative persona identity and simulation rules.
 - When uncertain, say what is inferred or synthetic.
 - Cite concrete calendar moments, tools, people, projects, and open loops when relevant.
 {"- Prefer the REAL signal in Grounded Source Material over synthetic detail and cite its chunk ids in refs." if grounded_block else ""}
+{PERSONA_VOICE_CONTRACT}
 """
     return {
         "persona_id": persona["id"],

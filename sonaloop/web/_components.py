@@ -860,7 +860,7 @@ def _list_page(store: Store, *, title: str, lead: str, rows: list,
                empty_icon: str, empty_msg: str, active: str,
                pre: str = "", count: int | None = None,
                actions: str = "", empty_action: tuple | None = None,
-               empty_teach: str = "", after: str = "") -> str:
+               empty_teach: str = "", after: str = "", rows_class: str = "") -> str:
     """One index-page shell — title + count + lead + rows (or an empty state). Every list page
     (projects, personas, councils, syntheses, prototypes, concepts) renders identically through this.
     `pre` is optional HTML between the lead and the rows (e.g. the hypotheses hit-rate strip);
@@ -885,7 +885,8 @@ def _list_page(store: Store, *, title: str, lead: str, rows: list,
     body = h("div", {"class_": "page"}, h("h1", {"class_": "h1"}, title, cnt),
              h("p", {"class_": "lead"}, lead), raw(pre) if pre else None,
              # data-keynav: the keymap's j/k row-focus hook (web/_keymap.py) targets this container
-             h("div", {"class_": "rows", "data-keynav": True}, rows_html),
+             h("div", {"class_": "rows" + (f" {rows_class}" if rows_class else ""),
+                       "data-keynav": True}, rows_html),
              raw(after) if after else None)
     return _layout(title, body, store, crumbs=[(title, None)], active=active, actions=actions)
 

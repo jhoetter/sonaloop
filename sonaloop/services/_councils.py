@@ -19,7 +19,7 @@ from ..config import (
     utc_now_iso, content_language, ensure_content_language, language_instruction,
     critic_threshold, critic_sample_k,
 )
-from ._authoring import MARKDOWN_CONTRACT, PRIMITIVES_CONTRACT
+from ._authoring import MARKDOWN_CONTRACT, PERSONA_VOICE_CONTRACT, PRIMITIVES_CONTRACT
 from .. import artifacts as _artifacts
 from .. import primitive_taxonomy_registry as _taxonomy_registry
 from ..models import (
@@ -199,7 +199,7 @@ def brief_council(project_id: str, prompt: str, persona_ids: list[str] | None = 
             "Add `findings` for any council-level analysis + a rich Markdown exec_summary. Persist via "
             "record_council(project_id, prompt, persona_ids, statements=[...], questions=[...] | "
             f"proposal=…, votes=…, summary, exec_summary, findings=[...]). {language_instruction(language)}"
-            + MARKDOWN_CONTRACT + PRIMITIVES_CONTRACT
+            + PERSONA_VOICE_CONTRACT + MARKDOWN_CONTRACT + PRIMITIVES_CONTRACT
         ),
     }
 
@@ -234,6 +234,7 @@ def brief_ask(persona_id: str, question: str, context: str | None = None, store:
         "instructions": (
             "Answer AS this persona, grounded in the agent_context — do not force support; "
             "say what is uncertain if the record is thin. " + language_instruction(language)
+            + PERSONA_VOICE_CONTRACT
         ),
     }
 

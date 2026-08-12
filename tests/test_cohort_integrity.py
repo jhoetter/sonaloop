@@ -553,3 +553,23 @@ def test_mcp_and_cli_contract_expose_structured_cohort_gate():
     props = tools["record_cohort_preflight"].inputSchema["properties"]
     assert {"representation", "semantic_feature", "override_rationale", "persona_ids",
             "selection_rationale", "dispatch_token"} <= props.keys()
+
+
+def test_cohort_profile_age_is_humanized_without_fractional_hour_leakage():
+    from sonaloop.web._cohort_integrity_view import _cohort_age_text, _cohort_origin_text
+    from sonaloop.web._i18n import _UI_LANG
+
+    token = _UI_LANG.set("de")
+    try:
+        assert _cohort_age_text(3.72) == "4 Std. vor Projektstart"
+        assert _cohort_age_text(72.4) == "3 Tage vor Projektstart"
+        assert _cohort_age_text(1506.97) == "rund 2 Monate vor Projektstart"
+        assert _cohort_origin_text("catalog") == "aus dem Katalog"
+    finally:
+        _UI_LANG.reset(token)
+    token = _UI_LANG.set("en")
+    try:
+        assert _cohort_age_text(1506.97) == "about 2 months before project start"
+        assert _cohort_origin_text("grounded") == "grounded in real sources"
+    finally:
+        _UI_LANG.reset(token)

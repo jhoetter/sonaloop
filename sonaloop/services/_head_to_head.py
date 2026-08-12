@@ -30,6 +30,7 @@ from .. import artifacts as _artifacts
 from ..research_integrity import stamp_derived_finding
 
 from ._common import *  # noqa: F401,F403  (stable_id, _require_research_project, list_personas, …)
+from ._authoring import PERSONA_VOICE_CONTRACT
 
 
 def _label_for(i: int) -> str:
@@ -190,7 +191,8 @@ def brief_head_to_head(project_id: str, prompt: str, options: list[Any],
             "choice, intensity?, reason}], statements=[...], exec_summary, summary, variant_meta?). "
             "For an ab_test Job also pass variant_meta.hypothesis_id — the ONE bet stamped before "
             "exposure (record_hypothesis). The server tallies preference + margin + abstentions + "
-            f"segment-splits; you author the prose verdict. {language_instruction(language)}"),
+            f"segment-splits; you author the prose verdict. {language_instruction(language)}"
+            + PERSONA_VOICE_CONTRACT),
     }
 
 

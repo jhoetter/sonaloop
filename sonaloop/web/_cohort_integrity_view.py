@@ -27,6 +27,35 @@ def _maximum_score(rows: list[dict]) -> float:
     return max((float(row.get("score") or 0) for row in rows), default=0.0)
 
 
+def _cohort_age_text(value) -> str:
+    """Human duration before project start; exact fractional hours remain in the record/API."""
+    if value is None:
+        return t("cohort_age_unknown")
+    try:
+        hours = max(0.0, float(value))
+    except (TypeError, ValueError):
+        return t("cohort_age_unknown")
+    if hours < 24:
+        return t("cohort_age_hours", n=max(1, round(hours)))
+    if hours < 14 * 24:
+        return t("cohort_age_days", n=max(1, round(hours / 24)))
+    if hours < 60 * 24:
+        return t("cohort_age_weeks", n=max(1, round(hours / (7 * 24))))
+    return t("cohort_age_months", n=max(1, round(hours / (30 * 24))))
+
+
+def _cohort_origin_text(value: str) -> str:
+    key = str(value or "unknown")
+    labels = {
+        "catalog": t("cohort_origin_catalog"),
+        "grounded": t("cohort_origin_grounded"),
+        "authored": t("cohort_origin_authored"),
+        "missing": t("cohort_origin_missing"),
+        "unknown": t("cohort_origin_unknown"),
+    }
+    return labels.get(key, key)
+
+
 def render_cohort_integrity(project: dict, store=None, *, show_missing: bool = True,
                             embedded: bool = False) -> str:
     """Render persisted depth, provenance, leakage and remediation state."""
@@ -76,13 +105,12 @@ def render_cohort_integrity(project: dict, store=None, *, show_missing: bool = T
     for row in (current.get("depth") or {}).get("personas") or []:
         depth = row.get("depth") or {}
         provenance = row.get("source_provenance") or {}
-        age = row.get("profile_age_hours_at_project_start")
-        age_text = t("cohort_age_unknown") if age is None else t("cohort_age_hours", n=age)
+        age_text = _cohort_age_text(row.get("profile_age_hours_at_project_start"))
         persona_rows.append(h(
             "li", {},
             t("cohort_persona_summary", name=row.get("display_name") or row.get("persona_id") or "—",
               items=depth.get("independent_context_items", 0),
-              origin=provenance.get("origin") or "unknown", age=age_text),
+              origin=_cohort_origin_text(provenance.get("origin") or "unknown"), age=age_text),
             (" · " + t("cohort_persona_thin") if row.get("thin") else ""),
         ))
     work_rows = [h(

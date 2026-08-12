@@ -425,7 +425,7 @@ def test_bilingual_evidence_health_precedes_report_and_has_exact_sources(store):
             assert 'class="claim-notice claim-notice--verified"' in html
             assert ref["id"] in html and "Product Understanding" in html
             assert absences in html and unknown in html
-            assert compact in html and technical in html
+            assert compact in html and technical not in html
             # Trust/evidence blocks precede authored result prose.
             assert html.index('id="claim-health"') < html.index('id="product-understanding"')
         assert report_html.index('id="product-understanding"') < report_html.index("captured state and simulated")
@@ -449,7 +449,8 @@ def test_project_keeps_persisted_setup_evidence_in_one_closed_quiet_disclosure(s
     assert "2 of 3 product areas evidenced · 1 still open" in page
     assert "Evidenced product areas (2)" in page
     assert "Areas still to verify (1)" in page
-    assert "Technical reference" in page
+    assert "Technical reference" not in page
+    assert "flow manifest" not in page and "Manifest digest" not in page
     # Project evidence uses a flat, nested disclosure, not a full-width status
     # card or a permanently expanded technical inventory.
     setup = page[marker:page.index('class="outlinecard', marker)]

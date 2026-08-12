@@ -29,6 +29,7 @@ from .. import artifacts as _artifacts
 from ..research_integrity import stamp_derived_finding
 
 from ._common import *  # noqa: F401,F403  (stable_id, _require_research_project, list_personas, …)
+from ._authoring import PERSONA_VOICE_CONTRACT
 
 
 # The CLOSED anchor-band vocabulary (van Westendorp's four questions, as reaction bands).
@@ -150,7 +151,7 @@ def brief_price_ladder(project_id: str, prompt: str, price_points: list[Any],
             "Then call record_price_ladder(project_id, prompt, price_points, responses=[...], "
             "exec_summary, summary). The server validates the closed band vocabulary and derives the "
             "acceptable-price range + cliff per segment; you author the pricing story. "
-            f"{language_instruction(language)}"),
+            f"{language_instruction(language)}" + PERSONA_VOICE_CONTRACT),
     }
 
 

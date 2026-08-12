@@ -89,6 +89,39 @@ def test_deterministic_key_is_idempotent_upsert(store):
     assert len(services.list_usability_sessions(store=store)) == 1
 
 
+def test_completed_dispatch_rejects_changed_session_before_mutation(store):
+    project = services.start_project(
+        "Session immutability", "Keep a committed replay honest",
+        operation_id="test:session-immutability", store=store)
+    services.add_task(
+        project["id"], "act", "session", "Walk the flow", consumes=["frame__root"], store=store)
+    run = services.start_run(
+        project["id"], operation_id="test:session-immutability-run", store=store)
+    frame_dispatch = services.run_step(run["run_id"], store=store)
+    services.record_frame(
+        project["id"], frame_dispatch["step_id"], ["Where does the flow break?"],
+        memory_refs=["memory:pX:recent"], dispatch_token=frame_dispatch["dispatch_token"], store=store)
+    session_dispatch = services.run_step(run["run_id"], store=store)
+    first = _record(
+        store, _FLOW, "artifact", project_id=project["id"],
+        key=session_dispatch["key"], dispatch_token=session_dispatch["dispatch_token"])
+    session_id = first["usability_session"]["id"]
+    assert first["dispatch"]["checkpointed"] is True
+
+    replay = _record(
+        store, _FLOW, "artifact", project_id=project["id"],
+        key=session_dispatch["key"], dispatch_token=session_dispatch["dispatch_token"])
+    assert replay["usability_session"]["idempotent_replay"] is True
+
+    with pytest.raises(services.PlanError) as conflict:
+        _record(
+            store, _FLOW, "artifact", outcome=_outcome(summary="changed after checkpoint"),
+            project_id=project["id"], key=session_dispatch["key"],
+            dispatch_token=session_dispatch["dispatch_token"])
+    assert conflict.value.code == "DISPATCH_OUTPUT_CONFLICT"
+    assert services.get_usability_session(session_id, store=store)["outcome"]["summary"] == "walked the flow"
+
+
 def test_optional_focus_hypothesis_roundtrips_as_percent_rectangle(store):
     step = _step(0, focus={"x": 11, "y": 18.5, "width": 78, "height": 20,
                            "label": "Hero · value proposition"})
@@ -342,6 +375,10 @@ def test_brief_gathers_persona_context_and_friction_vocabulary(store):
     assert [i["term"] for i in brief["friction_levels"]["items"]] == \
         [r["term"] for r in artifacts.friction_terms()]
     assert "Anti-steering" in brief["instructions"]
+    for text in (brief["agent_context"], brief["instructions"]):
+        assert "PERSONA VOICE BOUNDARY" in text
+        assert "findability problem" in text and "Researcher fields" in text
+    assert "immediate goal, worry and next action" in brief["instructions"]
     # no declared capabilities -> the DERIVED profile rides along (never persisted back)
     assert brief["capabilities"]["provenance"] == "derived"
     assert store.get_persona(pid)["capabilities"] is None

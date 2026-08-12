@@ -27,6 +27,9 @@ def test_full_round_trip(store):
     # gather then host-authored write-back
     gathered = services.brief_council(pid, "Would a diff/freigabe view help?", [a, b], store=store)
     assert "instructions" in gathered and gathered["project_id"] == pid
+    assert "PERSONA VOICE BOUNDARY" in gathered["instructions"]
+    assert all("PERSONA VOICE BOUNDARY" in p["agent_context"]
+               for p in gathered["participants"])
     statements = [
         {"persona_id": a, "text": "Could help, but only with provenance.", "stance": {"value": 1}},
         {"persona_id": b, "text": "I want a range, not a model.", "stance": {"value": 1}},

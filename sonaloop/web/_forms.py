@@ -217,7 +217,8 @@ def edit_dialog(*, action: str, title: str, fields: list, lead: str = "",
 
 
 def confirm_delete_dialog(action: str, label: str, *, expected: str | None = None,
-                          error: str = "", dialog_id: str = "del-dialog") -> str:
+                          error: str = "", hint: str = "",
+                          dialog_id: str = "del-dialog") -> str:
     """The confirm <dialog> behind every delete: with `expected` set (projects/personas)
     the user must TYPE the entity name and the SERVER re-checks `confirm == name` (the JS
     is convenience, never the protection — on mismatch the page re-renders with the inline
@@ -231,7 +232,7 @@ def confirm_delete_dialog(action: str, label: str, *, expected: str | None = Non
               raw(csrf_field()),
               h("h3", {}, label),
               confirm_row,
-              h("p", {"class_": "sl-field__hint"}, t("delete_hint")),
+              h("p", {"class_": "sl-field__hint"}, hint or t("delete_hint")),
               h("div", {"class_": "wform-actions"},
                 h("button", {"class_": "sl-btn btn-danger", "type": "submit"}, label),
                 h("button", {"class_": "sl-btn", "type": "button",
@@ -263,14 +264,17 @@ def detail_overflow(*, edit: dict | None = None, delete: dict | None = None) -> 
     items, dialogs = [], []
     if edit:
         eid = _dialog_id("edit", edit["action"])
-        items.append(menu_item(t("edit"), "pencil", eid))
-        dialogs.append(raw(edit_dialog(**edit, dialog_id=eid)))
+        edit_config = dict(edit)
+        edit_label = str(edit_config.pop("label", "") or t("edit"))
+        edit_icon = str(edit_config.pop("icon", "") or "pencil")
+        items.append(menu_item(edit_label, edit_icon, eid))
+        dialogs.append(raw(edit_dialog(**edit_config, dialog_id=eid)))
     if delete:
         did = _dialog_id("del", delete["action"])
         items.append(menu_item(delete["label"], "trash", did, danger=True))
         dialogs.append(raw(confirm_delete_dialog(
             delete["action"], delete["label"], expected=delete.get("expected"),
-            error=delete.get("error", ""), dialog_id=did)))
+            error=delete.get("error", ""), hint=delete.get("hint", ""), dialog_id=did)))
     if not items:
         return ""
     return overflow_menu(items, fragment(*dialogs))

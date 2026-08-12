@@ -24,6 +24,7 @@ from ..config import ensure_content_language, language_instruction, utc_now_iso
 from ..storage import Store
 
 from ._common import *  # noqa: F401,F403  (stable_id, _require_research_project, …)
+from ._authoring import PERSONA_VOICE_CONTRACT
 
 
 SUBSTRATE_VERSION = 1
@@ -241,7 +242,7 @@ def chat_with_persona(persona_id: str, message: str, chat_id: str | None = None,
             "turns in `history` — do not force support; say what is uncertain if the record is "
             "thin. Then persist the exchange: record_chat_turn(persona_id, chat_id, "
             "user_message=<the message>, persona_reply=<your authored answer>). "
-            + language_instruction(language)
+            + language_instruction(language) + PERSONA_VOICE_CONTRACT
         ),
     }
 

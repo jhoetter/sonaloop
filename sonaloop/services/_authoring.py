@@ -5,6 +5,25 @@ instead of ALL-CAPS-for-emphasis and literal section headers. The web UI renders
 real Markdown renderer (web/_components._md), so authoring Markdown 'just works' with no UI change."""
 from __future__ import annotations
 
+PERSONA_VOICE_CONTRACT = (
+    "\n\nPERSONA VOICE BOUNDARY — keep the participant and the researcher separate:\n"
+    "• Persona-voice fields (`monologue`, persona `statement.text`, reaction `quote`/`reason`) "
+    "contain what THIS person would naturally think or say in that moment. Write concrete first-person "
+    "language at the persona's demonstrated vocabulary, confidence and sentence rhythm; ordinary, "
+    "partial or uncertain speech is better than an unnaturally polished diagnosis.\n"
+    "• The persona is not a UX researcher. Never leak moderator language, method labels or an analyst's "
+    "conclusion into their mouth unless SOUL/memory/source material demonstrates that this person uses "
+    "the exact term naturally. Phrases such as 'findability problem', 'top tasks', 'progressive "
+    "disclosure', 'information architecture' or 'cognitive load' normally belong in analysis, not a "
+    "participant quote. Do not merely translate such jargon into first person.\n"
+    "• Observer fields (`action`, `state`, focus label) state only what was visibly done or noticed. "
+    "Researcher fields (`friction.note`, outcome summary, findings) may interpret the evidence, but must "
+    "not be presented as verbatim persona speech.\n"
+    "• Before persisting, perform an attribution check on every persona-voice field: could this wording "
+    "plausibly come from the loaded persona without knowing the research method? If not, rewrite it from "
+    "their immediate goal, worry and next action. Keep the analytical interpretation outside the quote."
+)
+
 PRIMITIVES_CONTRACT = (
     "\n\nUNIFIED PRIMITIVES (spec/unified-artifact-schema.md) — the ONLY accepted content shape:\n"
     "• `statements`: one per persona utterance — {persona_id, text (Markdown), "
