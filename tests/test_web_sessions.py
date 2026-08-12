@@ -402,6 +402,15 @@ def test_lightbox_stacking_contract(store, tmp_path, monkeypatch):
     from sonaloop.web.pages.sessions import LIGHTBOX_JS
     monkeypatch.setattr(config, "DATA_DIR", tmp_path)
     proj, proto, pid, sess = _proto_session(store)
+    # The preview is honest: only a registered prototype with real backing files
+    # renders an iframe.  Point this fixture at a minimal app so this stacking test
+    # continues to exercise the embedded-document case rather than the unavailable
+    # fallback.
+    app_dir = tmp_path / "prototype-app"
+    app_dir.mkdir()
+    (app_dir / "index.html").write_text("<button>Continue</button>", encoding="utf-8")
+    proto["path"] = str(app_dir)
+    store.upsert_prototype(proto)
     html = _client().get(f'/prototypes/{proto["slug"]}?lang=en').text
     # (a) top-layer first, honest fallback second
     assert "dlg.showModal()" in LIGHTBOX_JS
@@ -417,6 +426,37 @@ def test_lightbox_stacking_contract(store, tmp_path, monkeypatch):
     # (d) the iframe card clips and isolates its embedded document
     assert "isolation:isolate" in html and "contain:paint" in html
     assert '<div class="protoframe"><iframe' in html
+    assert 'sandbox="allow-scripts"' in html
+    assert ' credentialless' in html
+
+
+def test_missing_prototype_entry_never_renders_dead_preview(store):
+    _proj, proto, _pid, _sess = _proto_session(store)
+    html = _client().get(f'/prototypes/{proto["slug"]}?lang=en').text
+    assert "The prototype files are unavailable." in html
+    assert '<div class="protoframe"><iframe' not in html
+    assert "Open in new tab" not in html
+
+
+def test_hosted_prototype_provider_can_fail_closed_without_local_fallback(
+        store, tmp_path, monkeypatch):
+    from sonaloop.web import register_prototype_url_provider
+
+    _proj, proto, _pid, _sess = _proto_session(store)
+    app_dir = tmp_path / "hosted-only-prototype"
+    app_dir.mkdir()
+    (app_dir / "index.html").write_text("<p>hosted only</p>", encoding="utf-8")
+    proto["path"] = str(app_dir)
+    store.upsert_prototype(proto)
+    register_prototype_url_provider(lambda _prototype, _path: "")
+    try:
+        html = _client().get(f'/prototypes/{proto["slug"]}?lang=en').text
+        assert "The prototype files are unavailable." in html
+        assert 'href="/proto-files/' not in html
+        assert 'src="/proto-files/' not in html
+        assert "<iframe" not in html
+    finally:
+        register_prototype_url_provider(None)
 
 
 def test_prototype_session_timeline_shape_renders_steps_and_screenshots(store, tmp_path, monkeypatch):

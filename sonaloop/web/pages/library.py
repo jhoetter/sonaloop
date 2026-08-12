@@ -11,6 +11,7 @@ canonical routes, ?tab= addresses a tab on /formats itself. Detail routes unchan
 from __future__ import annotations
 
 from collections import Counter
+from urllib.parse import quote
 
 from fastapi import Request
 from fastapi.responses import RedirectResponse
@@ -457,6 +458,15 @@ def register_library(app) -> None:
         query = request.url.query
         return RedirectResponse(target + (f"?{query}" if query else ""), status_code=308)
 
+    def _prototype_file_url(p: dict, asset_path: str = "") -> str:
+        """Canonical browser URL: local mount or a hosting extension's capability."""
+        from .._ext import prototype_file_url
+        path = quote(str(asset_path or p.get("entry") or "index.html"), safe="/")
+        hosted = prototype_file_url(p, str(asset_path or p.get("entry") or "index.html"))
+        if hosted is not None:
+            return hosted
+        return f'/proto-files/{quote(str(p.get("slug") or p["id"]), safe="")}/{path}'
+
     @app.get("/formats", response_class=HTMLResponse)
     def library(tab: str = Query(default="questions"), project: str = Query(default=""),
                 status: str = Query(default=""), direction: str = Query(default=""),
@@ -625,7 +635,7 @@ def register_library(app) -> None:
         crumbs.append((p["name"], None))
         _ap = _artifact_present(p)
         fid = h("span", {"class_": "pill"}, form_label("prototype", p) or _ap["label"])
-        src = f'/proto-files/{slug}/{p.get("entry", "index.html")}'
+        src = _prototype_file_url(p)
         # Recorded prototype reactions are first-class sessions now (UX U7, §8.2): each renders
         # as ONE session row (the §3.2 vocabulary) deep-linking into its /sessions/{id} detail
         # page — verdict, timeline, screenshots and predicted behaviors live THERE, the
@@ -653,11 +663,18 @@ def register_library(app) -> None:
         # reaction sessions below are "Prototype sessions" (never "Prototypes · Sessions").
         replay_html = _sessions_section(store, usess, sid="sec-replays", shots=True,
                                         heading=t("replays_h"))
-        body = fragment(
+        entry_available = services.prototype_entry_available(p["id"], store=store)
+        preview = (fragment(
             h("p", {"style": "margin:8px 0 16px"},
-              h("a", {"class_": "sl-btn", "href": src, "target": "_blank"},
+              h("a", {"class_": "sl-btn", "href": src, "target": "_blank", "rel": "noopener"},
                 raw(_icon("projects")), " ", t("open_in_new_tab"), " ", raw(_icon("external")))),
-            h("div", {"class_": "protoframe"}, h("iframe", {"src": src, "title": p["name"], "loading": "lazy"})),
+            h("div", {"class_": "protoframe"}, h("iframe", {
+                "src": src, "title": p["name"], "loading": "lazy",
+                "sandbox": "allow-scripts", "credentialless": True})))
+            if entry_available and src else
+            raw(_empty_state(t("prototypes_h"), t("prototype_unavailable"), icon="prototype")))
+        body = fragment(
+            preview,
             raw(replay_html),
             h("div", {"class_": "sec", "id": "sec-sessions", "style": "margin-top:22px"},
               h("h2", {}, f'{t("proto_sessions_h")} ({len(sessions)})'),

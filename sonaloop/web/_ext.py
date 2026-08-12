@@ -21,6 +21,9 @@ packages plug in WITHOUT the core ever importing them, via four seams:
                branding. Product apps still call set_brand() once at boot; tenants
                resolve their workspace logo/name inside request middleware.
 
+  6. Prototype delivery — register_prototype_url_provider(fn) lets a hosting extension
+               replace the local static mount with a signed, tenant-scoped browser URL.
+
 Labels are `str | Callable[[], str]`: pass a literal, or a lambda that resolves the
 label per request when it must (i18n) — e.g. one that returns t(<your-key>). Slot/route callables are trusted
 code (they ship inside a private package), so their returned HTML is emitted as-is.
@@ -181,6 +184,36 @@ def render_detail_extra(kind: str, store: Any, entity: Any) -> str:
     if not fns:
         return ""
     return "".join(fn(store, entity) for fn in fns)
+
+
+# ---------------------------------------------------------------------------
+# Static prototype browser delivery
+# ---------------------------------------------------------------------------
+# Local SQLite can safely use its process-local /proto-files mount. Shared hosting
+# needs a different capability (RLS + opaque file authorization), but core must not
+# import a particular commercial extension. Keep one process-global provider: web
+# extensions are loaded once at boot and re-registering replaces the previous value.
+
+_PROTOTYPE_URL_PROVIDER: Callable[[dict[str, Any], str], str] | None = None
+
+
+def register_prototype_url_provider(
+        provider: Callable[[dict[str, Any], str], str] | None) -> None:
+    """Install the hosting-specific browser URL builder for static prototype files."""
+    global _PROTOTYPE_URL_PROVIDER
+    _PROTOTYPE_URL_PROVIDER = provider
+
+
+def prototype_file_url(prototype: dict[str, Any], asset_path: str = "") -> str | None:
+    """Return an extension URL, or None only when local fallback is intended.
+
+    An installed provider may deliberately return an empty string to fail closed
+    (for example when its signing secret is missing).  Preserve that distinction:
+    hosted deployments must never fall back to the unscoped local mount.
+    """
+    if _PROTOTYPE_URL_PROVIDER is None:
+        return None
+    return str(_PROTOTYPE_URL_PROVIDER(dict(prototype), str(asset_path or "")) or "")
 
 
 # ---------------------------------------------------------------------------

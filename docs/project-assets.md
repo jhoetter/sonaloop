@@ -45,6 +45,18 @@ per project, so re-attaching the same bytes is an idempotent upsert. `kind` (ima
 screenshot | document | file) is inferred from the extension. Attaching emits the
 `asset.attached` lifecycle event (docs/lifecycle-hooks.md).
 
+Registered static prototypes follow the same principle without widening the raw
+filesystem mount. In shared Cloud the authenticated detail page mints a short-lived
+`/prototype-files/{signed-capability}/{prototype-id}/{path}` URL. The capability binds
+one prototype tree to its workspace and expiry; it is not a browser session and cannot
+authorize app/API routes. Every request repeats the live row lookup under that exact RLS
+workspace and proves the stored directory/requested file remain inside its prototype
+partition. The iframe is both opaque-origin and credentialless: prototype JavaScript can
+run and load relative CSS/JS/images/data without receiving Sonaloop session cookies or
+same-origin DOM/API access. Missing, foreign, expired, forged, dynamic-runner and escaping
+paths all collapse to 404. Entry HTML is revalidated; unchanged nested resources use a
+bounded private cache. Local SQLite keeps the convenient `/proto-files/{slug}/…` mount.
+
 ## The multimodal contract
 
 Images are evidence, not just storage: **`view_asset(project_id, asset_id)`

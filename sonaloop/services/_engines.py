@@ -553,6 +553,18 @@ def refresh_prototype_design_system(prototype_id, store: Store | None = None):
     return _proto.refresh_prototype_design_system(prototype_id, store=store)
 
 
+def resolve_prototype_file(prototype_id, asset_path="", refresh_entry=False,
+                           store: Store | None = None):
+    from .. import prototype_files
+    return prototype_files.resolve_prototype_file(
+        prototype_id, asset_path, refresh_entry=refresh_entry, store=store)
+
+
+def prototype_entry_available(prototype_id, store: Store | None = None):
+    from .. import prototype_files
+    return prototype_files.prototype_entry_available(prototype_id, store=store)
+
+
 
 def run_prototype(prototype_id, store: Store | None = None):
     return _proto.run_prototype(prototype_id, store=store)

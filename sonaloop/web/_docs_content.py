@@ -424,7 +424,9 @@ INSPECTOR_SECTIONS = [
       "Simulationen. Die Namensregel: **Referenzen** sind Quellenlinks oder "
       "Snapshots im Raum; ein externer Prototyp bleibt eine Referenz, wenn Sonaloop nur darauf "
       "zeigt. **Prototypen** sind testbare Projektobjekte, die Sonaloop ausführen, rendern "
-      "und mit Sessions verbinden kann. **A/B-Varianten** sind Stimuli; das eigentliche "
+      "und mit Sessions verbinden kann. In der geteilten Cloud lädt ihre Vorschau über eine "
+      "kurzlebige, Workspace-gebundene Dateifreigabe in einer isolierten Sandbox ohne "
+      "Anmeldedaten; fremde Daten bleiben unsichtbar. **A/B-Varianten** sind Stimuli; das eigentliche "
       "Testergebnis lebt in Council oder Session. **Assets** sind echte Dateien; **Sessions** "
       "sind Nutzungsspuren. **Assets** — empfangene "
       "Input-Dateien (Evidenz, via MCP angehängt) und von der Software erzeugte Dokumente "
@@ -458,7 +460,9 @@ INSPECTOR_SECTIONS = [
       "simulations. Naming rule: **References** are source links or "
       "snapshots placed in the room; an external prototype stays a reference when Sonaloop only "
       "points at it. **Prototypes** are testable project objects Sonaloop can run, render or pair "
-      "with sessions. **A/B variants** are stimuli; the actual test result lives in a council or "
+      "with sessions. In shared Cloud a short-lived workspace-bound file capability loads them "
+      "inside an isolated, credentialless sandbox; foreign data stays invisible. "
+      "**A/B variants** are stimuli; the actual test result lives in a council or "
       "session. **Assets** are real files; **Sessions** are usage traces. **Assets** — input files received (evidence, attached via MCP) and "
       "documents the software generated (deliverables) — show up everywhere as **file cards**: "
       "type badge or image thumbnail, filename with extension, size · date, exactly one "
@@ -794,7 +798,3 @@ SUPER_GROUPS = [
      "Browsbare Guides und fertige Recipes.", "Browsable guides and ready recipes.",
      ["__extras__"]),
 ]
-
-
-
-# ============================ Co-located CSS ============================ #

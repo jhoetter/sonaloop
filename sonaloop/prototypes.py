@@ -7,10 +7,12 @@ persona-agent can drive it via Playwright), plus a registry and a local-only run
 from __future__ import annotations
 
 import json
+import os
 import re
 import socket
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -616,12 +618,7 @@ def _prototype_concept(app_dir: Path) -> dict[str, Any]:
 
 
 def refresh_prototype_design_system(prototype_id: str, store: Store | None = None) -> dict[str, Any]:
-    """Re-materialize a static prototype's entry HTML with the current runtime design system.
-
-    Prototypes are stored as real local apps. The generated HTML still needs to reflect a
-    workspace preset changed after scaffold time, so both the inspector preview and the
-    Playwright runner call this before serving the entry file.
-    """
+    """Atomically re-materialize static HTML with the current runtime design system."""
     store = store or Store()
     p = get_prototype(prototype_id, store=store)
     if p.get("run") != "static":
@@ -639,7 +636,18 @@ def refresh_prototype_design_system(prototype_id: str, store: Store | None = Non
     html = entry.read_text(encoding="utf-8")
     updated = _inject_design_system(html, _prototype_concept(app_dir), _prototype_design_context())
     if updated != html:
-        entry.write_text(updated, encoding="utf-8")
+        # Concurrent preview/Playwright readers must never observe a partial document.
+        fd, tmp_name = tempfile.mkstemp(prefix=f".{entry.name}.", suffix=".tmp", dir=app_dir)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as tmp:
+                tmp.write(updated)
+                tmp.flush()
+                os.fsync(tmp.fileno())
+            os.chmod(tmp_name, entry.stat().st_mode)
+            os.replace(tmp_name, entry)
+        finally:
+            try: os.unlink(tmp_name)
+            except FileNotFoundError: pass
     return {"prototype": p, "refreshed": updated != html, "path": str(entry)}
 
 

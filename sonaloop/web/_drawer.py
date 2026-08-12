@@ -118,7 +118,8 @@ SPA_JS = """
     var href=a.getAttribute('href');
     if(!href || href.charAt(0)!=='/' || href.indexOf('//')===0) return;     // internal absolute paths only
     if(a.target==='_blank' || a.hasAttribute('download') || a.getAttribute('rel')==='external') return;
-    if(href.indexOf('/data/')===0 || href.indexOf('/proto-files/')===0) return;  // static assets -> real nav
+    if(href.indexOf('/data/')===0 || href.indexOf('/proto-files/')===0 ||
+       href.indexOf('/prototype-files/')===0) return;  // static assets -> real nav
     e.preventDefault();
     if(href===location.pathname+location.search){ return; }
     navigate(href, true);
