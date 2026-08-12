@@ -17,6 +17,7 @@ from .._html import register_css
 from .._ext import session_file_url
 from .._presence import asset_content_url
 from .._session_lightbox import LIGHTBOX_JS
+from .._session_focus import focus_crop as _focus_crop, focus_lens_attrs
 from ... import artifacts as _A
 from ... import config as _config
 
@@ -519,40 +520,6 @@ def _artifact_screen(sess: dict, state: dict, store: Store | None) -> dict | Non
     return asset
 
 
-def _focus_crop(focus: dict, asset: dict | None) -> dict | None:
-    """Map a focus rectangle from the full long-shot into a bounded 16:10 viewport.
-
-    The stored percentages remain relative to the unchanged source image.  Presentation crops
-    enough vertical context around that rectangle to keep one reading moment on screen; clicking
-    still opens the complete original.  Missing/legacy dimensions fail soft to the full image.
-    """
-    image = (asset or {}).get("image") or {}
-    try:
-        width, height = int(image["width"]), int(image["height"])
-    except (KeyError, TypeError, ValueError):
-        # Local/older attachments predate admitted-image metadata.  Their content-addressed
-        # binary is still available in the active partition, so read only its header here.
-        try:
-            from PIL import Image
-            name = Path(str((asset or {})["asset_path"])).name
-            with Image.open(_config.partition_dir() / "assets" / name) as source:
-                width, height = source.size
-        except (KeyError, OSError, TypeError, ValueError):
-            return None
-    if width <= 0 or height <= 0:
-        return None
-    stage_ratio = 16 / 10
-    natural_view = (width / height) / stage_ratio
-    focus_height = focus["height"] / 100
-    visible = min(1.0, max(natural_view, focus_height + .10))
-    focus_center = (focus["y"] + focus["height"] / 2) / 100
-    top = min(max(focus_center - visible / 2, 0), 1 - visible)
-    mapped = dict(focus)
-    mapped["y"] = max(0.0, (focus["y"] / 100 - top) / visible * 100)
-    mapped["height"] = min(100 - mapped["y"], focus_height / visible * 100)
-    return {"top": top * 100, "focus": mapped, "width": width}
-
-
 def _step_html(sess: dict, step: dict, store: Store | None = None) -> str:
     """One timeline row (`id="step-N"`): the SCREEN panel (screenshot when the file exists, else the
     recorded screen text as a framed excerpt + url/title caption) beside the ACTION side (typed
@@ -583,12 +550,8 @@ def _step_html(sess: dict, step: dict, store: Store | None = None) -> str:
                         "alt": state.get("title") or t("step_n", n=i), "loading": "lazy"}))
             if shot_url else None)
     crop = _focus_crop(focus, asset) if focus else None
-    screen = (h("div", {
-                  "class_": "sl-session-lens sl-session-crop" if crop else "sl-session-lens",
-                  "style": (f'--crop-y:-{crop["top"]:g}%;--shot-max:{crop["width"]}px'
-                            if crop else None),
-                  "data-focus-source": "full-screenshot" if crop else None,
-                }, shot, raw(_focus_overlay(crop["focus"] if crop else focus)))
+    screen = (h("div", focus_lens_attrs(crop), shot,
+                raw(_focus_overlay(crop["focus"] if crop else focus)))
               if shot and focus else shot or h("div", {"class_": "sess-screen-txt"}, state.get("screen", "")))
     caption = " · ".join(x for x in (state.get("url"), state.get("title")) if x)
     target = (action.get("target") or "").strip()
