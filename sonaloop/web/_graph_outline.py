@@ -237,13 +237,23 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         rk = it.get("rkind") or ""                  # synthesis nodes + project reports are ONE
         return "report" if rk in ("synthesis", "report") else rk   # concept to the reader (§3.5)
 
+    def _participation(it: dict) -> tuple[list[dict], int]:
+        """Direct persona participation carried by either graph-node data or a session row.
+
+        Session children are merged after the graph was built, so their persona lives on the
+        prepared session record instead of ``by_oid``.  One extractor keeps rendering and the
+        persona facet on the same honest data boundary (ux-contract §10 W11).
+        """
+        extra = by_oid.get(it["oid"]) or it.get("node") or {}
+        personas = list(extra.get("personas") or [])
+        session_persona = (it.get("session") or {}).get("persona") or {}
+        known = {str(p.get("id") or "") for p in personas}
+        if session_persona.get("id") and str(session_persona["id"]) not in known:
+            personas.append(session_persona)
+        return personas, max(int(extra.get("voices") or 0), len(personas))
+
     def _fpersonas(it: dict) -> list[str]:
-        crew = (by_oid.get(it["oid"]) or {}).get("personas") or []
-        ids = [str(p["id"]) for p in crew if p.get("id")]
-        sp = (it.get("session") or {}).get("persona") or {}
-        if sp.get("id"):
-            ids.append(str(sp["id"]))
-        return ids
+        return [str(p["id"]) for p in _participation(it)[0] if p.get("id")]
 
     def _fstatus(it: dict) -> str:
         rec = it.get("session") or it.get("node") or {}
@@ -304,9 +314,7 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
                 flabel.setdefault(("kind", fk), it.get("kind") or fk)
             if it.get("pk") in pmeta:
                 phases[it["pk"]] += 1
-            crew = (by_oid.get(it["oid"]) or {}).get("personas") or []
-            sp = (it.get("session") or {}).get("persona") or {}
-            for p in list(crew) + ([sp] if sp.get("id") else []):
+            for p in _participation(it)[0]:
                 if p.get("id"):
                     crew_n[str(p["id"])] += 1
                     flabel.setdefault(("persona", str(p["id"])), p.get("display_name", ""))
@@ -411,11 +419,10 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         # prototype's session drivers, a survey's persona respondents; the crew rides
         # the graph node / the row's record) and councils additionally show how it
         # leaned (stance dots, scale colors) — detail worth a close look, kept quiet.
-        extra = by_oid.get(it["oid"]) or it.get("node") or {}
         crew = ""
-        pers = extra.get("personas") or []
+        pers, n_personas = _participation(it)
         if pers:
-            group = ui.avatar_group(pers, total=int(extra.get("voices") or 0))
+            group = ui.avatar_group(pers, total=n_personas)
             crew = h("span", {"class_": "ol-crew"}, group)
         # --ti feeds the tree-spine x-offset so a depth-2 child (session under a paired prototype)
         # draws its connector one indent step deeper than a depth-1 child.

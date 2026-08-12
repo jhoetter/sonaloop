@@ -137,6 +137,14 @@ def test_project_outline_prototype_row_renders_the_drivers(seeded):
     assert GROUP in row, "the outline prototype row must show its session drivers (W11)"
 
 
+def test_project_outline_session_rows_render_the_subject_persona(seeded):
+    html = TestClient(web.create_app()).get(f'/jobs/{seeded["project"]["id"]}?lang=en').text
+    for session in (seeded["psess"], seeded["usess"]):
+        row = html.split(f'data-oid="{session["id"]}"', 1)[1].split("</a>", 1)[0]
+        assert GROUP in row, (
+            "each outline session row must show the persona who performed that session (W11)")
+
+
 # --------------------------------------------------------------- detail pages
 
 def _header_region(html: str) -> str:
