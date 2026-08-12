@@ -34,6 +34,11 @@ flow_funnel(project, flow)                        # the segment view
   records one timeline step per screen, sets `outcome.dropoff_step` where this
   persona would genuinely bail (the reason lives in that step's verdict), and
   authors `predicted_behaviors` on the canonical likelihood scale.
+- **Inspecting**: the screenshot thumbnail on a project/prototype surface enters
+  the session instead of opening a competing image overlay. Inside the replay,
+  each artifact step resolves its original project asset, applies at most one
+  focus mask and offers full-resolution zoom. The visible close button, Escape
+  and a backdrop click all close only the image and return focus to the replay.
 - **The funnel**: `flow_funnel` aggregates every session of the flow —
   per step entered / continued / dropped, the drop reasons, the dropping
   personas, the step captions, and a `biggest_dropoff` headline:

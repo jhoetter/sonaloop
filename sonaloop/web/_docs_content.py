@@ -165,8 +165,8 @@ DOCS = [
               "als Screen-Walkthrough, klickbarer Prototyp oder Live-Oberfläche. Bei Leseaufgaben zeigt der lineare Flow jeden großen Original-Screen mit markierter Salienz-Hypothese und Persona-Kommentar.",
               "A replayable usage trace: what the persona saw, did, thought and decided — as a screen "
               "walkthrough, clickable prototype or live surface. For reading tasks, its linear flow shows each large original screen with a marked salience hypothesis and persona comment."),
-     "why": ("Sie macht den Pfad verständlich, ohne eine synthetische Fokusmaske als Eye-Tracking oder gemessene Aufmerksamkeit auszugeben.",
-             "It makes the path legible without presenting a synthetic focus mask as eye-tracking or measured attention.")},
+     "why": ("Sie macht den Pfad verständlich, ohne eine synthetische Fokusmaske als Eye-Tracking oder gemessene Aufmerksamkeit auszugeben. Die Vorschau führt in die Session; erst dort lässt sich das Originalbild vergrößern und per Schließen-Button, Escape oder Hintergrundklick wieder verlassen.",
+             "It makes the path legible without presenting a synthetic focus mask as eye-tracking or measured attention. The preview enters the session; only there can the original image be zoomed and closed by button, Escape or backdrop click.")},
     {"art": "survey", "icon": "plan", "name": "surveys_h", "group": "evidence",
      "what": ("Ein versandfertiges Instrument mit Fragen und Antwortoptionen; echte Antworten können "
               "importiert und gegen Persona-Prognosen gelesen werden.",
