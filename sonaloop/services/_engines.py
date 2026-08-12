@@ -266,6 +266,18 @@ def start_project(title: str, goal: str, methodology: str | None = None,
     if not replaying:
         emit_lifecycle_event("project.created", {"project_id": project["id"], "title": title,  # noqa: F821 (bound)
                                                  "goal": goal, "methodology": canonical_methodology}, store)
+        from ..telemetry import capture_product_event
+        capture_product_event(
+            "job_created",
+            project_id=project["id"],
+            subject_kind="job",
+            subject_id=project["id"],
+            properties={
+                "methodology": canonical_methodology or "freeform",
+                "persona_count": len(persona_ids or []),
+            },
+            idempotency_key=operation_id or project["id"],
+        )
     # Cohort-depth pre-flight: warn BEFORE Discover, not after Define has gate-passed — a real run
     # produced an entire ungrounded Discover+Define over 0-memory personas before the thin-cohort
     # gap surfaced. Non-blocking (a thin cohort can be intentional); the warning rides the response.
@@ -530,6 +542,24 @@ from .. import prototypes as _proto  # noqa: E402
 from .. import browser as _browser   # noqa: E402
 
 
+def _capture_prototype_registered(rec: dict[str, Any]) -> None:
+    from ..telemetry import capture_product_event
+    fidelity = str(rec.get("fidelity") or "").strip().casefold()
+    run_mode = str(rec.get("run") or "").strip().casefold()
+    capture_product_event(
+        "prototype_registered",
+        project_id=rec.get("project_id") or "",
+        subject_kind="prototype",
+        subject_id=rec["id"],
+        properties={
+            "fidelity": fidelity if fidelity in {"lofi", "midfi", "hifi", "production"} else "other",
+            "run_mode": run_mode if run_mode in {"static", "remote"} else "other",
+            "remote": run_mode == "remote",
+        },
+        idempotency_key=f"{rec['id']}:{rec.get('version') or ''}",
+    )
+
+
 
 def scaffold_artifact(slug, name, concept, type="prototype", tags=None, template=None,
                       project_id=None, store: Store | None = None):
@@ -540,15 +570,21 @@ def scaffold_artifact(slug, name, concept, type="prototype", tags=None, template
 
 def scaffold_prototype(slug, name, concept, kind="web", template=None,
                        project_id=None, fidelity=None, store: Store | None = None):
-    return _proto.scaffold_prototype(slug, name, concept, kind, template, project_id, fidelity=fidelity, store=store)
+    rec = _proto.scaffold_prototype(
+        slug, name, concept, kind, template, project_id, fidelity=fidelity, store=store)
+    _capture_prototype_registered(rec)
+    return rec
 
 
 
 def register_prototype(slug, name, path, entry="index.html", run="static", run_cmd=None,
                        version="v0.1", project_id=None, notes="", fidelity="", created_at=None,
                        store: Store | None = None):
-    return _proto.register_prototype(slug, name, path, entry, run, run_cmd, version, project_id, notes,
-                                     fidelity=fidelity, created_at=created_at, store=store)
+    rec = _proto.register_prototype(
+        slug, name, path, entry, run, run_cmd, version, project_id, notes,
+        fidelity=fidelity, created_at=created_at, store=store)
+    _capture_prototype_registered(rec)
+    return rec
 
 
 def register_remote_prototype(slug, name, url, version="v0.1", project_id=None, notes="",
@@ -579,6 +615,7 @@ def register_remote_prototype(slug, name, url, version="v0.1", project_id=None, 
         allowed_buckets={"act", "verify"}, payload_fingerprint=fingerprint)
     prototype = _remote_proto.register(
         slug, name, url, version, project_id, notes, fidelity, store=store)
+    _capture_prototype_registered(prototype)
     if note_id:
         from ._sections import set_note_data
         paired_note = set_note_data(
@@ -631,7 +668,20 @@ def stop_prototype(prototype_id, store: Store | None = None):
 
 
 def delete_prototype_artifact(prototype_id, store: Store | None = None):
-    return _proto.delete_prototype(prototype_id, store=store)
+    store = store or Store()
+    existing = store.get_prototype(prototype_id)
+    out = _proto.delete_prototype(prototype_id, store=store)
+    if existing and out.get("deleted"):
+        from ..telemetry import capture_product_event
+        capture_product_event(
+            "prototype_deleted",
+            project_id=existing.get("project_id") or "",
+            subject_kind="prototype",
+            subject_id=existing["id"],
+            properties={"remote": existing.get("run") == "remote"},
+            idempotency_key=existing["id"],
+        )
+    return out
 
 
 
@@ -918,6 +968,20 @@ def record_prototype_session(persona_id, prototype_id, session_id, date_value, r
                     "and record from the SAME session_id; the log is now retained across proto_close, so a "
                     "real drive will verify. An unverified session does NOT satisfy a session_of_tags gate.")
         out["warnings"] = [msg]
+    from ..telemetry import capture_product_event
+    capture_product_event(
+        "session_recorded",
+        project_id=project_id,
+        subject_kind="session",
+        subject_id=sess["id"],
+        properties={
+            "fidelity": "prototype",
+            "step_count": len(sess.get("steps") or []),
+            "grounded": grounded,
+            "visual_trace": sess.get("visual_trace") or "unknown",
+        },
+        idempotency_key=sess["id"],
+    )
     return out
 
 
@@ -1546,10 +1610,21 @@ def start_run(project_id: str, budget: int | None = None, run_id: str | None = N
     """
     store = store or Store()
     with project_lifecycle_locks(store, [project_id]):
-        return _start_run_locked(
+        result = _start_run_locked(
             project_id, budget=budget, run_id=run_id, store=store,
             operation_id=operation_id,
         )
+    if not result.get("idempotent_replay"):
+        from ..telemetry import capture_product_event
+        capture_product_event(
+            "run_started",
+            project_id=project_id,
+            subject_kind="run",
+            subject_id=str(result["run_id"]),
+            properties={"budget": result.get("budget"), "resumed": False},
+            idempotency_key=str(result["run_id"]),
+        )
+    return result
 
 
 def run_journal(run_id: str, store: Store | None = None) -> dict[str, Any]:
@@ -1812,6 +1887,19 @@ def finish_run(run_id: str, status: str = "finished", store: Store | None = None
     store.release_active_run_claim(r["project_id"], run_id)
     emit_lifecycle_event("run.finished", {"run_id": run_id, "project_id": r["project_id"],  # noqa: F821 (bound)
                                           "status": status, "steps": len(r["steps"])}, store)
+    from ..telemetry import capture_product_event
+    capture_product_event(
+        "run_finished",
+        project_id=str(r["project_id"]),
+        subject_kind="run",
+        subject_id=run_id,
+        properties={
+            "run_status": status,
+            "step_count": len(r.get("steps") or []),
+            "critic_rounds": len(r.get("critic_rounds") or []),
+        },
+        idempotency_key=f"{run_id}:{status}",
+    )
     return {"run_id": run_id, "status": status, "steps": len(r["steps"]),
             "deduplicated": False}
 

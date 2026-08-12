@@ -239,6 +239,25 @@ def attach_asset(project_id: str, path: str | None = None, content_base64: str |
     dispatch = bind_dispatch_output(  # noqa: F821 (bound)
         dispatch_ctx, {"kind": "asset", "id": aid}, "attached supporting stimulus asset", store,
         complete=False)
+    from ..telemetry import capture_product_event
+    size = len(data)
+    size_bucket = "under_100kb" if size < 100_000 else (
+        "under_1mb" if size < 1_000_000 else (
+            "under_10mb" if size < 10_000_000 else "10mb_plus"
+        )
+    )
+    capture_product_event(
+        "asset_attached",
+        project_id=project["id"],
+        subject_kind="asset",
+        subject_id=aid,
+        properties={
+            "asset_kind": record["kind"],
+            "direction": record["direction"],
+            "size_bucket": size_bucket,
+        },
+        idempotency_key=aid,
+    )
     return {**record, "dispatch": dispatch}
 
 
@@ -416,12 +435,22 @@ def remove_asset(project_id: str, asset_id: str, store: Store | None = None) -> 
     store = store or Store()
     project = _require_research_project(store, project_id)  # noqa: F821 (bound)
     assets = _project_assets(project)
+    removed = next((a for a in assets
+                    if a["id"] == asset_id or a.get("filename") == asset_id), None)
     keep = [a for a in assets if a["id"] != asset_id and a.get("filename") != asset_id]
     deleted = len(assets) - len(keep)
     if deleted:
         project["assets"] = keep
         project["updated_at"] = utc_now_iso()
         store.upsert_research_project(project)
+        from ..telemetry import capture_product_event
+        capture_product_event(
+            "asset_removed",
+            project_id=project["id"],
+            subject_kind="asset",
+            subject_id=str((removed or {}).get("id") or asset_id),
+            properties={"asset_kind": (removed or {}).get("kind") or "unknown"},
+        )
     return {"deleted": deleted}
 
 

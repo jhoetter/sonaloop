@@ -284,6 +284,18 @@ def record_synthesis(title: str, start_input: str, council_ids: list[str] | None
     emit_lifecycle_event("synthesis.recorded", {"synthesis_id": sid, "title": title,  # noqa: F821 (bound)
                                                 "status": rec["status"], "council_ids": council_ids,
                                                 "project_id": rec.get("project_id") or ""}, store)
+    from ..telemetry import capture_product_event
+    capture_product_event(
+        "synthesis_recorded",
+        project_id=str(rec.get("project_id") or ""),
+        subject_kind="synthesis",
+        subject_id=sid,
+        properties={
+            "council_count": len(council_ids),
+            "scope": rec.get("scope") or "unknown",
+            "status": rec.get("status") or "unknown",
+        },
+    )
     # Soft honesty signal (GAP-3): the synthesis IS the answer — flag (don't block) when it persists with
     # no prose AND no findings AND no voices, so the host notices a hollow answer node.
     out = dict(rec)

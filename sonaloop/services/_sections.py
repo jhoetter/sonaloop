@@ -78,6 +78,13 @@ def create_section(project_id: str, title: str, kind: str = "theme", member_ids:
     secs.append(sec)
     project["updated_at"] = now
     store.upsert_research_project(project)
+    from ..telemetry import capture_product_event
+    capture_product_event(
+        "section_created", project_id=project["id"], subject_kind="section",
+        subject_id=sec["id"],
+        properties={"section_kind": sec["kind"], "member_count": len(members)},
+        idempotency_key=sec["id"],
+    )
     return sec
 
 
@@ -96,6 +103,17 @@ def update_section(section_id: str, patch: dict[str, Any], store=None) -> dict[s
     sec["updated_at"] = utc_now_iso()  # noqa: F821
     project["updated_at"] = sec["updated_at"]
     store.upsert_research_project(project)
+    from ..telemetry import capture_product_event
+    capture_product_event(
+        "section_updated", project_id=project["id"], subject_kind="section",
+        subject_id=sec["id"],
+        properties={
+            "changed_fields": [key for key in (
+                "title", "kind", "parent_id", "note", "order", "presentation", "member_ids"
+            ) if key in patch],
+            "member_count": len(sec.get("member_ids") or []),
+        },
+    )
     return sec
 
 
@@ -155,6 +173,12 @@ def delete_section(section_id: str, store=None) -> dict[str, Any]:
     project["sections"] = [s for s in _sections(project) if s["id"] != section_id]
     project["updated_at"] = utc_now_iso()  # noqa: F821
     store.upsert_research_project(project)
+    from ..telemetry import capture_product_event
+    capture_product_event(
+        "section_deleted", project_id=project["id"], subject_kind="section",
+        subject_id=section_id, properties={"section_kind": sec.get("kind") or "unknown"},
+        idempotency_key=section_id,
+    )
     return {"deleted": section_id, "nodes_kept": len(sec.get("member_ids", []))}
 
 
@@ -221,6 +245,12 @@ def create_note(project_id: str, text: str, title: str = "", kind: str = "note",
     _notes(project).append(note)
     project["updated_at"] = now
     store.upsert_research_project(project)
+    from ..telemetry import capture_product_event
+    capture_product_event(
+        "note_created", project_id=project["id"], subject_kind="note",
+        subject_id=note["id"], properties={"note_kind": note.get("kind") or "note"},
+        idempotency_key=note["id"],
+    )
     return note
 
 
@@ -240,6 +270,12 @@ def update_note(note_id: str, patch: dict[str, Any], store=None) -> dict[str, An
                     n["title"] = (str(patch["title"]).strip() or n["text"][:60])[:120]
                 project["updated_at"] = utc_now_iso()  # noqa: F821
                 store.upsert_research_project(project)
+                from ..telemetry import capture_product_event
+                capture_product_event(
+                    "note_updated", project_id=project["id"], subject_kind="note",
+                    subject_id=note_id,
+                    properties={"changed_fields": [key for key in ("title", "text") if key in patch]},
+                )
                 return n
     raise KeyError(f"Unknown note: {note_id}")
 
@@ -276,9 +312,18 @@ def get_note(note_id: str, store=None) -> dict[str, Any]:
 def delete_note(project_id: str, note_id: str, store=None) -> dict[str, Any]:
     store = store or Store()  # noqa: F821
     project = _require_research_project(store, project_id)  # noqa: F821
+    existing = next((n for n in _notes(project) if n["id"] == note_id), None)
     project["notes"] = [n for n in _notes(project) if n["id"] != note_id]
     project["updated_at"] = utc_now_iso()  # noqa: F821
     store.upsert_research_project(project)
+    if existing:
+        from ..telemetry import capture_product_event
+        capture_product_event(
+            "note_deleted", project_id=project["id"], subject_kind="note",
+            subject_id=note_id,
+            properties={"note_kind": existing.get("kind") or "note"},
+            idempotency_key=note_id,
+        )
     return {"deleted": note_id}
 
 

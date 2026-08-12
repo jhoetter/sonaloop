@@ -556,6 +556,20 @@ def record_council(project_id: str, prompt: str, persona_ids: list[str],
                                               "statements": len(statements_out), "votes": len(votes)}, store)
     dispatch_result = bind_dispatch_output(  # noqa: F821 (bound)
         dispatch_ctx, {"kind": "council", "id": cid}, "recorded council evidence", store)
+    from ..telemetry import capture_product_event
+    council_form = "discovery" if qs else ("decision" if proposal else "discussion")
+    capture_product_event(
+        "council_recorded",
+        project_id=project["id"],
+        subject_kind="council",
+        subject_id=cid,
+        properties={
+            "persona_count": len(persona_ids),
+            "statement_count": len(statements_out),
+            "council_form": council_form,
+        },
+        idempotency_key=cid,
+    )
     # Soft pre-flight on the RESPONSE only (never stored, never blocking — a thin cohort can be
     # intentional): a "memory-grounded" council over participants with zero simulated memory is
     # ungrounded by construction; say so at record time, not first in assess_project's gap tail.

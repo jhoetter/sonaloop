@@ -15,10 +15,13 @@ CLOUD_PRIVACY_DE = (
     "Wenn Cloud beim ersten Anlegen zusätzlich einen bekannten MCP-Client beobachtet hat, ergänzt die "
     "Zeile ein festes `via Mistral`, `via ChatGPT`, `via Claude` oder ähnliches Label. Diese "
     "Connector-Beobachtung belegt weder das verborgene Modell noch den Inference-Anbieter; unbekannte "
-    "oder widersprüchliche Clients bleiben ohne Label. Für die Betriebsanalyse kann Cloud einen "
-    "erfolgreichen authentifizierten Report-Render als pseudonymisiertes, inhaltsfreies Ereignis "
-    "erfassen. Namen, E-Mails, Titel, URLs und Report-Text werden nicht exportiert; ein Render ist "
-    "außerdem kein Beleg dafür, dass der Report tatsächlich gelesen wurde."
+    "oder widersprüchliche Clients bleiben ohne Label. Für die Betriebsanalyse kann Cloud "
+    "erfolgreiche authentifizierte Ansichten und abgeschlossene Produktaktionen als "
+    "pseudonymisierte, inhaltsfreie Ereignisse erfassen — etwa einen geöffneten Job, eine Session "
+    "oder einen fertigen Run. Die Produktfunktionen senden dabei nicht direkt an einen Anbieter: "
+    "ein austauschbarer Telemetrie-Dienst prüft feste Metadaten, legt sie im retry-fähigen Outbox "
+    "ab und exportiert derzeit nach PostHog. Namen, E-Mails, Titel, URLs, Suchbegriffe und Research-Text "
+    "werden nicht exportiert; eine ausgelieferte Ansicht belegt außerdem nicht, dass sie gelesen wurde."
 )
 
 CLOUD_PRIVACY_EN = (
@@ -32,8 +35,10 @@ CLOUD_PRIVACY_EN = (
     "or later editors. When Cloud also observed a recognized MCP client on the first creation "
     "request, the byline adds a fixed `via Mistral`, `via ChatGPT`, `via Claude`, or similar label. "
     "That connector observation is not proof of the hidden model or inference provider; unknown or "
-    "conflicting clients stay unlabeled. For operational analytics, Cloud may record a successful "
-    "authenticated report render as a pseudonymous, content-free event. Names, email addresses, "
-    "titles, URLs and report text are not exported, and a render is not proof that the report was "
-    "actually read."
+    "conflicting clients stay unlabeled. For operational analytics, Cloud may record successful "
+    "authenticated views and completed product actions as pseudonymous, content-free events — for "
+    "example an opened job, a session, or a finished run. Product functions do not send directly to "
+    "a vendor: a replaceable telemetry service validates closed metadata, persists it in the "
+    "retryable outbox, and currently exports to PostHog. Names, email addresses, titles, URLs, search "
+    "terms and research text are not exported, and a delivered view is not proof it was actually read."
 )

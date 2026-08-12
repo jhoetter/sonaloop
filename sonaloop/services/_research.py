@@ -185,6 +185,16 @@ def update_research_project(project_id: str, patch: dict[str, Any],
     store.upsert_research_project(project)
     emit_lifecycle_event("project.updated",  # noqa: F821 (bound)
                          {"project_id": project["id"], "title": project["title"]}, store)
+    from ..telemetry import capture_product_event
+    changed = [key for key in ("title", "goal", "description", "status", "icon")
+               if key in patch and patch[key] is not None]
+    capture_product_event(
+        "job_updated",
+        project_id=project["id"],
+        subject_kind="job",
+        subject_id=project["id"],
+        properties={"changed_fields": changed, "status": project.get("status") or "unknown"},
+    )
     return project
 
 
@@ -779,8 +789,12 @@ def delete_research_project(project_id: str, store: Store | None = None) -> dict
                 "PROJECT_DELETE_RUN_HISTORY_BLOCKED: this project has governed run history; "
                 "preserve it with archive_project(project_id, operation_id, reason) instead"
             )
-        return {"deleted": store.delete_research_project(p["id"]), "project_id": p["id"]}
-
-
+        deleted = store.delete_research_project(p["id"])
+        if deleted:
+            from ..telemetry import capture_product_event
+            capture_product_event("job_deleted", subject_kind="job", subject_id=p["id"],
+                                  properties={"had_run_history": False},
+                                  idempotency_key=p["id"])
+        return {"deleted": deleted, "project_id": p["id"]}
 
 # M-cleanup: remove_study_from_project / unlink_studies RETIRED (study-edge graph).

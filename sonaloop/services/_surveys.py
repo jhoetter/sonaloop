@@ -228,6 +228,19 @@ def record_survey(project_id: str, title: str, questions: list, intro: str = "",
                  intro=str(intro or ""), status=status, questions=norm_q, derived_from=norm_refs,
                  created_at=(existing or {}).get("created_at", now), updated_at=now).to_dict()
     store.upsert_survey(rec)
+    from ..telemetry import capture_product_event
+    capture_product_event(
+        "survey_recorded",
+        project_id=project["id"],
+        subject_kind="survey",
+        subject_id=rec["id"],
+        properties={
+            "question_count": len(norm_q),
+            "survey_status": status,
+            "created": existing is None,
+        },
+        idempotency_key=f"{rec['id']}:{rec['updated_at']}",
+    )
     return {"survey": rec}
 
 
@@ -520,8 +533,20 @@ def import_survey_responses(survey_id: str, responses: list | None = None,
     recs = [_validate_response(raw, i, survey, source) for i, raw in enumerate(rows)]
     for rec in recs:                                   # validate the WHOLE batch before any write
         store.insert_survey_response(rec)
-    return {"survey_id": survey["id"], "imported": len(recs),
-            "total_responses": store.count_survey_responses(survey["id"])}
+    total = store.count_survey_responses(survey["id"])
+    from ..telemetry import capture_product_event
+    capture_product_event(
+        "survey_responses_imported",
+        project_id=survey["project_id"],
+        subject_kind="survey",
+        subject_id=survey["id"],
+        properties={
+            "batch_kind": "mixed" if csv_text and responses else ("csv" if csv_text else "json"),
+            "imported_count": len(recs),
+            "total_response_count": total,
+        },
+    )
+    return {"survey_id": survey["id"], "imported": len(recs), "total_responses": total}
 
 
 # --------------------------------------------------------------------------- results (predicted vs actual)

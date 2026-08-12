@@ -40,6 +40,9 @@ class StoreBase:
         # missing or older stamp still takes the idempotent upsert path, so cold
         # startup and version upgrades retain their existing correctness.
         if row is not None and str(row["value"]) == expected:
+            # PostgreSQL starts a transaction for the SELECT. Store construction must
+            # leave the connection idle so callers can immediately choose SERIALIZABLE.
+            self.conn.rollback()
             return
         self.conn.execute(
             "INSERT INTO meta (key, value) VALUES ('schema_version', ?) "

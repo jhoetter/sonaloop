@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import os
 import time
@@ -198,4 +199,21 @@ def register_api(app) -> None:
             closest = [] if rows or not (q or "").strip() else closest_rows(q, store=store)
         finally:
             store.close()                # cloud is Postgres: an unclosed Store leaks a connection per call
+        normalized = (q or "").strip()
+        if normalized:
+            from ..telemetry import capture_product_event
+            length = len(normalized)
+            bucket = "1_3" if length <= 3 else ("4_15" if length <= 15 else "16_plus")
+            capture_product_event(
+                "search_used",
+                properties={
+                    "surface": "command_palette",
+                    "input_length_bucket": bucket,
+                    "result_count": len(rows),
+                },
+                idempotency_key=(
+                    f"palette:{int(time.time()) // 60}:"
+                    f"{hashlib.sha256(normalized.encode('utf-8')).hexdigest()[:16]}"
+                ),
+            )
         return JSONResponse({"rows": rows, "closest": closest})

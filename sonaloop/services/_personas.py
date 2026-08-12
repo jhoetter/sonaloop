@@ -349,6 +349,17 @@ def record_persona(
             store.upsert_persona(persona, reason="generated avatar")
     emit_lifecycle_event("persona.created", {"persona_id": persona["id"], "slug": persona["slug"],  # noqa: F821 (bound)
                                              "display_name": persona.get("display_name", "")}, store)
+    from ..telemetry import capture_product_event
+    capture_product_event(
+        "persona_created",
+        subject_kind="persona",
+        subject_id=persona["id"],
+        properties={
+            "has_evidence": bool(evidence),
+            "avatar_requested": bool(generate_avatar),
+        },
+        idempotency_key=persona["id"],
+    )
     return persona
 
 
@@ -457,6 +468,13 @@ def update_persona(persona_id: str, patch: dict[str, Any], reason: str, store: S
     persona["soul"] = write_soul(persona, store)
     store.upsert_persona(persona, reason=reason)
     emit_lifecycle_event("persona.updated", {"persona_id": persona["id"], "reason": reason}, store)  # noqa: F821 (bound)
+    from ..telemetry import capture_product_event
+    capture_product_event(
+        "persona_updated",
+        subject_kind="persona",
+        subject_id=persona["id"],
+        properties={"changed_fields": sorted(str(key) for key in patch)[:20]},
+    )
     return persona
 
 
@@ -714,6 +732,20 @@ def delete_persona(persona_id: str, store: Store | None = None) -> dict[str, Any
             d.rmdir()
         except OSError:
             pass
+    from ..telemetry import capture_product_event
+    capture_product_event(
+        "persona_deleted",
+        subject_kind="persona",
+        subject_id=persona["id"],
+        properties={
+            "records_removed": sum(
+                value for value in deleted.values()
+                if isinstance(value, int) and not isinstance(value, bool)
+            ),
+            "files_removed": len(removed),
+        },
+        idempotency_key=persona["id"],
+    )
     return {"persona_id": persona["id"], "deleted": deleted, "removed_files": removed}
 
 

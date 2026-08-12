@@ -522,6 +522,20 @@ def record_usability_session(persona_id, subject, fidelity, date_value, steps, o
                if dispatch_ctx.get("dispatch_token") else {}),
         }
     store.insert_usability_session(sess)
+    from ..telemetry import capture_product_event
+    capture_product_event(
+        "session_recorded",
+        project_id=str(project_id or "") if known_project else "",
+        subject_kind="session",
+        subject_id=sess_id,
+        properties={
+            "fidelity": fidelity,
+            "step_count": len(norm_steps),
+            "grounded": grounded,
+            "visual_trace": sess.get("visual_trace") or "unknown",
+        },
+        idempotency_key=sess_id,
+    )
     out: dict[str, Any] = {"usability_session": sess}
     if project_id:
         out["dispatch"] = bind_dispatch_output(  # noqa: F821 (bound)
