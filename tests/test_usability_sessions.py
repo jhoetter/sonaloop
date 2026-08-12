@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from sonaloop import artifacts, browser, services
+from sonaloop import artifacts, browser, prototypes, services
 
 
 _FLOW = {"kind": "flow", "id": "flow-signup", "label": "Signup flow"}
@@ -52,6 +52,76 @@ def test_session_form_classifies_subjects_and_compatibility_reactions():
         "assignment": {"persona": "A"},
         "order_shown": ["A", "B"],
     }) == "variant_test"
+
+
+def test_known_project_rejects_note_masquerading_as_prototype(store):
+    project = services.start_project(
+        "Subject integrity", "Test the thing we built",
+        operation_id="subject-integrity-project", store=store)
+    note = services.create_note(
+        project["id"], "A hosted mockup link", title="Mockup note",
+        data={"artifact_kind": "prototype", "prototype_id": None}, store=store)
+
+    with pytest.raises(ValueError, match="requires a registered prototype"):
+        _record(
+            store,
+            {"kind": "prototype", "id": note["id"], "label": "Not actually registered"},
+            "artifact", project_id=project["id"])
+
+
+def test_remote_prototype_repairs_concept_and_supports_governed_session(store):
+    project = services.start_project(
+        "Hosted prototype", "Test a remotely hosted mockup", None,
+        persona_ids=["pX"], operation_id="hosted-prototype-project", store=store)
+    note = services.create_note(
+        project["id"], "The chosen hosted mockup", title="Hosted mockup",
+        data={"lens": "search first", "artifact_kind": "prototype", "prototype_id": None},
+        store=store)
+    run = services.start_run(
+        project["id"], operation_id="hosted-prototype-run", store=store)
+    frame = services.run_step(run["run_id"], store=store)
+    services.record_frame(
+        project["id"], frame["step_id"], ["Can people find the answer?"],
+        memory_refs=["memory:pX:faq"], dispatch_token=frame["dispatch_token"], store=store)
+    act = services.add_task(
+        project["id"], "act", "session", "Walk the hosted prototype",
+        consumes=["frame__root"], store=store)
+    dispatch = services.run_step(run["run_id"], store=store)
+    assert dispatch["step_id"] == act["id"]
+
+    with pytest.raises(prototypes.PrototypeError) as unsafe:
+        services.register_remote_prototype(
+            note["id"], "Hosted FAQ mockup", "javascript:alert(1)", "v1",
+            project["id"], note_id=note["id"], dispatch_token=dispatch["dispatch_token"], store=store)
+    assert unsafe.value.code == "BAD_REMOTE_URL"
+    unclaimed = next(
+        row for row in services.run_journal(run["run_id"], store=store)["dispatches"]
+        if row["dispatch_token"] == dispatch["dispatch_token"])
+    assert unclaimed["payload_fingerprints"] == {}
+
+    registered = services.register_remote_prototype(
+        note["id"], "Hosted FAQ mockup", "https://example.test/faq", "v1",
+        project["id"], fidelity="hifi", note_id=note["id"],
+        dispatch_token=dispatch["dispatch_token"], store=store)
+    prototype = registered["prototype"]
+    assert registered["dispatch"]["checkpointed"] is False
+    assert registered["dispatch"]["produced_ref"] == f'artifact:{prototype["id"]}'
+    assert services.get_prototype_artifact(note["id"], store=store)["id"] == prototype["id"]
+    assert services.run_prototype(prototype["id"], store=store) == {
+        "prototype_id": prototype["id"], "url": "https://example.test/faq",
+        "pid": None, "running": False, "remote": True,
+    }
+    paired = services.get_note(note["id"], store=store)["note"]
+    assert paired["data"]["prototype_id"] == prototype["id"]
+
+    recorded = _record(
+        store,
+        {"kind": "prototype", "id": note["id"], "label": "Hosted FAQ mockup",
+         "url": "https://example.test/faq"},
+        "artifact", project_id=project["id"], key=dispatch["key"],
+        dispatch_token=dispatch["dispatch_token"])
+    assert recorded["dispatch"]["checkpointed"] is True
+    assert recorded["usability_session"]["prototype_version"] == "v1"
 
 
 # --------------------------------------------------------------- round-trip across the three rungs

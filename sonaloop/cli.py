@@ -432,6 +432,10 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("slug"); p.add_argument("name"); p.add_argument("path"); p.add_argument("--entry", default="index.html")
     p.add_argument("--run", default="static"); p.add_argument("--run-cmd", dest="run_cmd"); p.add_argument("--version", default="v0.1")
     p.add_argument("--project"); p.add_argument("--notes", default="")
+    p = sub.add_parser("prototype-register-remote")
+    p.add_argument("slug"); p.add_argument("name"); p.add_argument("url"); p.add_argument("--project", required=True)
+    p.add_argument("--version", default="v0.1"); p.add_argument("--notes", default="")
+    p.add_argument("--fidelity", default="hifi"); p.add_argument("--note"); p.add_argument("--dispatch-token")
     p = sub.add_parser("prototype-list"); p.add_argument("--project")
     p = sub.add_parser("prototype-get"); p.add_argument("prototype_id")
     p = sub.add_parser("prototype-run"); p.add_argument("prototype_id")
@@ -859,6 +863,10 @@ def main(argv: list[str] | None = None) -> int:
                                                    fidelity=args.fidelity))
         elif args.command == "prototype-register":
             _print(services.register_prototype(args.slug, args.name, args.path, args.entry, args.run, args.run_cmd, args.version, args.project, args.notes))
+        elif args.command == "prototype-register-remote":
+            _print(services.register_remote_prototype(
+                args.slug, args.name, args.url, args.version, args.project, args.notes,
+                args.fidelity, args.note, dispatch_token=args.dispatch_token))
         elif args.command == "prototype-list":
             _print(services.list_prototypes_artifacts(args.project))
         elif args.command == "prototype-get":

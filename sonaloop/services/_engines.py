@@ -104,6 +104,7 @@ from ..plan import (  # noqa: E402
     render_plan_md,
 )
 from .. import prototypes as _proto  # noqa: E402
+from .. import remote_prototypes as _remote_proto  # noqa: E402
 from .. import browser as _browser   # noqa: E402
 
 
@@ -409,6 +410,17 @@ def complete_task(project_id, task_id, store: Store | None = None,
     store = store or Store()
     ctx = prepare_dispatch_write(project_id, dispatch_token, None, "task_completion", store,
                                  required_task_id=task_id)
+    if ctx.get("dispatch_token"):
+        plan = _plan.get_plan(project_id, store=store) or {}
+        governed_task = next(
+            (row for row in plan.get("tasks") or [] if str(row.get("id") or "") == str(task_id)), {})
+        produced = [ref for ref in governed_task.get("produces") or [] if ref.get("kind") != "frame"]
+        if governed_task.get("bucket") in {"act", "verify"} and not produced:
+            raise PlanError(
+                "TRACE_LINK_MISSING",
+                f"governed task '{task_id}' cannot complete without linked evidence; record the "
+                "declared output or link its evidence ref before retrying",
+            )
     out = _plan.complete_task(project_id, task_id, store=store)
     if ctx.get("dispatch_token"):
         out = {**out, "dispatch": finalize_dispatch(ctx, "completed plan task", store)}
@@ -537,6 +549,48 @@ def register_prototype(slug, name, path, entry="index.html", run="static", run_c
                        store: Store | None = None):
     return _proto.register_prototype(slug, name, path, entry, run, run_cmd, version, project_id, notes,
                                      fidelity=fidelity, created_at=created_at, store=store)
+
+
+def register_remote_prototype(slug, name, url, version="v0.1", project_id=None, notes="",
+                              fidelity="hifi", note_id=None, store: Store | None = None,
+                              dispatch_token: str | None = None):
+    """Register metadata for a hosted prototype and optionally pair its originating note.
+
+    The URL is stored, never fetched. In a governed run the artifact is linked as supporting
+    evidence to the current dispatch; the session remains the primary output of a test task.
+    """
+    store = store or Store()
+    if not project_id:
+        raise ValueError("register_remote_prototype requires project_id")
+    _remote_proto.validate_registration(slug, url, project_id=project_id, store=store)
+    paired_note = None
+    if note_id:
+        from ._sections import get_note
+        found = get_note(note_id, store=store)
+        if str((found.get("project") or {}).get("id") or "") != str(project_id):
+            raise PlanError("DISPATCH_SCOPE_MISMATCH", "concept note belongs to another project")
+    fingerprint = canonical_payload_fingerprint({
+        "slug": slug, "name": name, "url": url, "version": version,
+        "project_id": project_id, "notes": notes, "fidelity": fidelity,
+        "note_id": note_id or "",
+    })
+    ctx = prepare_dispatch_write(
+        project_id, dispatch_token, None, "artifact", store,
+        allowed_buckets={"act", "verify"}, payload_fingerprint=fingerprint)
+    prototype = _remote_proto.register(
+        slug, name, url, version, project_id, notes, fidelity, store=store)
+    if note_id:
+        from ._sections import set_note_data
+        paired_note = set_note_data(
+            note_id, {"artifact_kind": "prototype", "prototype_id": prototype["id"]}, store=store)
+    out = {"prototype": prototype}
+    if paired_note:
+        out["note"] = paired_note
+    if ctx.get("dispatch_token"):
+        out["dispatch"] = bind_dispatch_output(
+            ctx, {"kind": "artifact", "id": prototype["id"]},
+            "registered hosted prototype", store, complete=False)
+    return out
 
 
 
@@ -1122,6 +1176,10 @@ def prepare_dispatch_write(
         # Compatibility for dispatches issued before build outputs were split
         # into the artifact itself (primary) and observed sessions (supporting).
         support.update(_BUILD_SUPPORTING_OUTPUT_KINDS)
+    else:
+        # A session/verify dispatch may repair or attach the artifact it exercised without
+        # stealing that dispatch's one primary-output slot.
+        support.add("artifact")
     closing = set(output_contract.get("closing_kinds") or ["judgment", "task_completion"])
     is_primary = output_kind not in support | closing
     allowed = set(output_contract.get("allowed_primary_kinds") or [])

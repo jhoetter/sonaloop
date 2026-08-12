@@ -47,6 +47,19 @@ def register_prototypes(mcp):
                     services.register_prototype(slug, name, path, entry, run, run_cmd, version, project_id, notes, fidelity), t)
 
     @mcp.tool()
+    def register_remote_prototype(slug: str, name: str, url: str, project_id: str,
+                                  version: str = "v0.1", notes: str = "",
+                                  fidelity: str = "hifi", note_id: str | None = None,
+                                  dispatch_token: str | None = None) -> dict[str, Any]:
+        """Register a hosted HTTP(S) app as a first-class prototype without fetching or executing it.
+        Optionally pair the concept `note_id`. In a governed run pass the current dispatch token;
+        the artifact is linked as supporting evidence while the tested session stays primary."""
+        t = time.perf_counter()
+        return _env("register_remote_prototype", services.register_remote_prototype(
+            slug, name, url, version, project_id, notes, fidelity, note_id,
+            dispatch_token=dispatch_token), t)
+
+    @mcp.tool()
     def list_prototypes(project_id: str | None = None) -> dict[str, Any]:
         """List registered prototype artifacts (optionally for one project)."""
         t = time.perf_counter()

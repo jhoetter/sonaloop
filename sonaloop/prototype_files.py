@@ -44,6 +44,14 @@ def prototype_entry_available(prototype_id: str, store: Store | None = None) -> 
     """Whether the registered static entry exists without mutating or serving it."""
     from .prototypes import PrototypeError
 
+    store = store or Store()
+    try:
+        prototype = store.get_prototype(prototype_id) or {}
+        if prototype.get("run") == "remote":
+            return bool(prototype.get("url"))
+    except (KeyError, OSError, ValueError):
+        return False
+
     try:
         resolve_prototype_file(prototype_id, store=store)
     except (PrototypeError, KeyError, OSError, ValueError):

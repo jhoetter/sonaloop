@@ -8,6 +8,11 @@ in-session. It is the SAME harness as prototype sessions — `proto_act` / `prot
 `proto_close` drive and end a walkthrough transparently, and
 `record_usability_session(fidelity='live', session_id=…)` persists the verified trace.
 
+`register_remote_prototype` is a separate metadata-only admission path for a
+hosted app. It validates and stores an HTTP(S) URL but performs no DNS lookup,
+network fetch or host execution. Remote MCP can therefore expose this registration
+primitive while keeping `proto_open`, local-path registration and runners denied.
+
 ## The policy object
 
 `walk_policy_defaults()` returns the safe defaults including the resolved denylist;

@@ -37,7 +37,8 @@ Use three layers:
   new primitives.
 - **Surveys** (`record_survey`, outline kind `survey`): structured question
   instruments for real responses.
-- **Prototypes** (`register_prototype` / `scaffold_prototype`, outline kind
+- **Prototypes** (`register_prototype` / `scaffold_prototype` /
+  `register_remote_prototype`, outline kind
   `prototype`): interactive surfaces personas can actually use. Scaffolded
   prototypes are not limited to forms or clickflows: the artifact registry can
   render flows, dashboards, cards, comparisons, models, journeys and freeform
@@ -50,6 +51,11 @@ Use three layers:
   the embedded preview in context by default; **Maximize** expands that same
   sandboxed preview to the full product viewport, with Escape or the host-owned
   close control returning to the detail page.
+  A hosted app can be admitted metadata-only with `register_remote_prototype`:
+  Sonaloop stores its HTTP(S) URL and version but never fetches or executes it.
+  Pairing `note_id` records which concept became that prototype. A governed
+  prototype session must resolve its subject id/slug to one of these registered
+  records; a note carrying `artifact_kind=prototype` is not a prototype by itself.
 - **Sessions** (`record_usability_session`, outline kind `session`): replayable
   usage traces against a screen walkthrough, `prototype` or `live_url`.
   A step may carry `state.focus={x,y,width,height,label}` in screenshot-percent
@@ -117,6 +123,8 @@ Most persisted primitive subtypes are bounded by service validators:
   the filename when omitted or unknown;
 - usability sessions accept subject kinds `flow | prototype | live_url`; `flow`
   means an internal screen-walkthrough script, not a product primitive;
+  governed `prototype` sessions additionally require a same-project registered
+  prototype id/slug, so a concept note or arbitrary URL cannot satisfy a test gate;
 - surveys, hypotheses and decisions reject unknown lifecycle/question/status
   values.
 

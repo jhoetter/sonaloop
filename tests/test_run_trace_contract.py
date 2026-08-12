@@ -114,6 +114,30 @@ def test_complete_task_without_trace_link_returns_nudge(store):
     assert out["trace_nudge"]["next_tool"] == "link_evidence"
 
 
+def test_governed_complete_task_without_trace_link_fails_before_mutation(store):
+    project = services.start_project(
+        "Governed trace guard", "How might we prevent empty dispatches?", None,
+        persona_ids=["p1"], operation_id="governed-trace-guard", store=store)
+    run = services.start_run(
+        project["id"], operation_id="governed-trace-guard-run", store=store)
+    frame = services.run_step(run["run_id"], store=store)
+    services.record_frame(
+        project["id"], frame["step_id"], ["What output proves the work?"],
+        memory_refs=["memory:p1:trace"], dispatch_token=frame["dispatch_token"], store=store)
+    act = services.add_task(
+        project["id"], "act", "session", "Record the observed session",
+        consumes=["frame__root"], store=store)
+    dispatch = services.run_step(run["run_id"], store=store)
+    assert dispatch["step_id"] == act["id"]
+
+    with pytest.raises(plan_mod.PlanError) as missing:
+        services.complete_task(
+            project["id"], act["id"], dispatch_token=dispatch["dispatch_token"], store=store)
+    assert missing.value.code == "TRACE_LINK_MISSING"
+    assert services.get_plan(project["id"], store=store)["tasks"][-1]["status"] != "done"
+    assert len(services.run_journal(run["run_id"], store=store)["steps"]) == 1
+
+
 def test_build_dispatch_reserves_primary_slot_for_artifact_not_session(store):
     project, run, dispatch = _build_dispatch(store, "future-contract")
     pid, token = project["id"], dispatch["dispatch_token"]

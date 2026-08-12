@@ -334,6 +334,7 @@ class Prototype:
     fidelity: str = "midfi"     # compatibility discriminator (now just one of `tags`)
     type: str = "prototype"     # free artifact-type tag (spec/methodology-presentation-from-data.md)
     tags: list[str] = field(default_factory=list)  # free discriminator/extra tags (e.g. fidelity)
+    url: str = ""                # remotely hosted prototype; empty for workspace-owned files
 
     def to_dict(self) -> Json:
         return asdict(self)

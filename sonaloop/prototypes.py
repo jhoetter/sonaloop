@@ -20,8 +20,6 @@ from . import config
 from .config import prototype_templates_dir, prototypes_dir, utc_now_iso
 from .models import Prototype
 from .storage import Store
-
-
 class PrototypeError(Exception):
     def __init__(self, code: str, message: str) -> None:
         super().__init__(message)
@@ -707,7 +705,7 @@ def list_prototypes(project_id: str | None = None, store: Store | None = None) -
     out = store.list_prototypes(project_id)
     for p in out:
         p["running"] = p["id"] in _PROCS
-        p["url"] = _PROCS.get(p["id"], {}).get("url")
+        p["url"] = _PROCS.get(p["id"], {}).get("url") or p.get("url") or ""
     return out
 
 
@@ -717,7 +715,7 @@ def get_prototype(prototype_id: str, store: Store | None = None) -> dict[str, An
     if not p:
         raise PrototypeError("UNKNOWN_PROTOTYPE", f"No prototype '{prototype_id}'")
     p["running"] = p["id"] in _PROCS
-    p["url"] = _PROCS.get(p["id"], {}).get("url")
+    p["url"] = _PROCS.get(p["id"], {}).get("url") or p.get("url") or ""
     return p
 
 
@@ -742,6 +740,11 @@ def _free_port() -> int:
 def run_prototype(prototype_id: str, store: Store | None = None) -> dict[str, Any]:
     store = store or Store()
     p = get_prototype(prototype_id, store=store)
+    if p.get("run") == "remote":
+        if not p.get("url"):
+            raise PrototypeError("MISSING_REMOTE_URL", "remote prototype has no URL")
+        return {"prototype_id": p["id"], "url": p["url"], "pid": None,
+                "running": False, "remote": True}
     # Redundant execution boundary for legacy/tampered rows that predate the
     # registration check. Workspace-authored strings must never reach a shell on
     # the shared Cloud host; local SQLite keeps the operator runner unchanged.

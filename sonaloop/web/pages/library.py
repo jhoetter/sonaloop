@@ -496,6 +496,8 @@ def register_library(app) -> None:
 
     def _prototype_file_url(p: dict, asset_path: str = "") -> str:
         """Canonical browser URL: local mount or a hosting extension's capability."""
+        if p.get("run") == "remote" and p.get("url"):
+            return str(p["url"])
         from .._ext import prototype_file_url
         path = quote(str(asset_path or p.get("entry") or "index.html"), safe="/")
         hosted = prototype_file_url(p, str(asset_path or p.get("entry") or "index.html"))

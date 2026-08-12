@@ -33,7 +33,8 @@ _ACTION_TYPES = ("look", "click", "type", "select", "scroll", "key", "navigate",
                  "wait", "give_up")
 
 
-def _validate_subject(subject: Any) -> dict[str, Any]:
+def _validate_subject(subject: Any, *, store: Store | None = None,
+                      project_id: str | None = None) -> dict[str, Any]:
     if not isinstance(subject, dict):
         raise ValueError("subject must be a dict {kind: " + "|".join(_SUBJECT_KINDS) + ", id?, url?, label}")
     kind = subject.get("kind")
@@ -52,6 +53,16 @@ def _validate_subject(subject: Any) -> dict[str, Any]:
         # walkthrough subject (origin_of rejects javascript:/data:/file: with a clear error).
         _wp.origin_of(subject["url"])
         out["url"] = str(subject["url"])
+    project = store.get_research_project(project_id) if store is not None and project_id else None
+    if (kind == "prototype" and project
+            and str(project.get("governance_contract") or "") == "dispatch_v1"):
+        prototype = store.get_prototype(str(out.get("id") or ""))
+        if not prototype:
+            raise ValueError(
+                "subject.kind='prototype' requires a registered prototype id or slug; "
+                "register a hosted app with register_remote_prototype, or use kind='live_url'")
+        if str(prototype.get("project_id") or "") != str(project_id):
+            raise ValueError("prototype subject belongs to another project")
     return out
 
 
@@ -122,7 +133,7 @@ def brief_usability_session(persona_id, subject, fidelity, project_id=None, stor
     prototype/flow artifact). The host authors the step timeline; record_usability_session
     validates + persists."""
     store = store or Store()
-    subject = _validate_subject(subject)
+    subject = _validate_subject(subject, store=store, project_id=project_id)
     _require_fidelity(fidelity)
     persona = _require_persona(store, persona_id)
     profile = capability_profile(persona)  # noqa: F821 (bound) — declared, else derived heuristic
@@ -365,7 +376,7 @@ def record_usability_session(persona_id, subject, fidelity, date_value, steps, o
     `capabilities_snapshot` so traces stay interpretable after the persona evolves. Pass a stable
     `key` for a deterministic id (idempotent upsert → resumable runs)."""
     store = store or Store()
-    subject = _validate_subject(subject)
+    subject = _validate_subject(subject, store=store, project_id=project_id)
     _require_fidelity(fidelity)
     if not isinstance(steps, list) or not steps:
         raise ValueError("steps must be a non-empty list — the session is the deliverable, record every step")

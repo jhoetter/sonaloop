@@ -275,6 +275,7 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     # ---- prototypes (_tools_prototypes) ----
     "scaffold_prototype": W("Scaffold prototype"),
     "register_prototype": W("Register prototype"),
+    "register_remote_prototype": W("Register hosted prototype", idempotent=True),
     "list_prototypes": R("List prototypes"),
     "get_prototype": R("Get prototype"),
     "run_prototype": W("Run prototype"),
