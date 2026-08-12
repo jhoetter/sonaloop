@@ -35,7 +35,8 @@ def register_usability(mcp):
         """Persist a host-authored usability session — the durable, REPLAYABLE trace (the session is
         the deliverable). `steps` is the ordered dual timeline: {index (contiguous from 0),
         action:{type: look|click|type|select|scroll|key|navigate|back|wait|give_up, target, detail},
-        monologue, state:{url?, title?, screen, screenshot? (under data/sessions/<id>/)},
+        monologue, state:{url?, title?, screen, screenshot? (under data/sessions/<id>/),
+        focus?{x,y,width,height,label} (percent rectangle; a stated salience hypothesis, never eye-tracking)},
         friction:{level, note} (the closed vocabulary — see suggest_friction_levels),
         verdict:{would_continue, reason}}. `outcome` = {completed, dropoff_step (an existing step;
         required when completed=false), summary, predicted_behaviors}. `statements` are the unified

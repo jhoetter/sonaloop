@@ -30,6 +30,7 @@ from ._ext import (  # noqa: F401  (public extension surface for sonaloop-cloud 
     register_nav_section, register_nav_item, register_palette_item, register_slot,
     register_detail_extra, render_detail_extra,
     register_prototype_url_provider, prototype_file_url,
+    register_session_file_url_provider, session_file_url,
     set_theme_overrides, reset_theme_overrides, set_brand, load_extensions,
     set_runtime_brand, reset_runtime_brand,
     set_identity, reset_identity, current_identity,

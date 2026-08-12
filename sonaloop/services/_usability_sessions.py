@@ -139,7 +139,7 @@ def brief_usability_session(persona_id, subject, fidelity, project_id=None, stor
         "instructions": (
             "Drive the subject like THIS persona and record the DUAL TIMELINE — one entry per step: "
             "{index (0,1,2,…), action:{type,target,detail}, monologue (concurrent think-aloud), "
-            "state:{url?, title?, screen, screenshot?}, friction:{level, note}, "
+            "state:{url?, title?, screen, screenshot?, focus?{x,y,width,height,label}}, friction:{level, note}, "
             "verdict:{would_continue, reason}} — then the outcome {completed, dropoff_step, summary, "
             "predicted_behaviors:[{action, step, likelihood (suggest_likelihood_levels or 0..1), "
             "trigger, refs: the evidence ({kind:'evidence'|'session'|'memory', id, quote?})}]}. Anti-steering: only praise "
@@ -199,8 +199,26 @@ def _validate_step(raw: Any, i: int) -> dict[str, Any]:
     verdict = raw.get("verdict") or {}
     if not isinstance(verdict.get("would_continue"), bool):
         raise ValueError(f"steps[{i}].verdict.would_continue must be a bool")
+    focus = state.get("focus")
+    out_focus = None
+    if focus is not None:
+        if not isinstance(focus, dict):
+            raise ValueError(f"steps[{i}].state.focus must be a dict")
+        coords = {}
+        for key in ("x", "y", "width", "height"):
+            value = focus.get(key)
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise ValueError(f"steps[{i}].state.focus.{key} must be a number from 0 to 100")
+            coords[key] = float(value)
+        if (not 0 <= coords["x"] <= 100 or not 0 <= coords["y"] <= 100
+                or not 0 < coords["width"] <= 100 or not 0 < coords["height"] <= 100
+                or coords["x"] + coords["width"] > 100
+                or coords["y"] + coords["height"] > 100):
+            raise ValueError(f"steps[{i}].state.focus must fit within the screenshot (percent coordinates)")
+        out_focus = {**coords, "label": str(focus.get("label") or "")}
     out_state = {k: v for k, v in (("url", state.get("url")), ("title", state.get("title")),
-                                   ("screen", screen), ("screenshot", state.get("screenshot")))
+                                   ("screen", screen), ("screenshot", state.get("screenshot")),
+                                   ("focus", out_focus))
                  if v}
     return {"index": i,
             "action": {"type": typ, "target": str(action.get("target") or ""),

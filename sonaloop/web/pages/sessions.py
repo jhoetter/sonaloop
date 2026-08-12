@@ -14,6 +14,7 @@ from .. import ui
 from .._render import render_ref, render_statements
 from .._synthesis import _stacked, _legend
 from .._html import register_css
+from .._ext import session_file_url
 from ... import artifacts as _A
 from ... import config as _config
 
@@ -50,6 +51,24 @@ register_css(r"""
 .sess-frow .sfl{color:var(--muted)}
 .sess-frow .sfn{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
 .sess-freason{grid-column:2/-1;color:var(--muted);font-size:var(--t-xs);padding:0 0 4px}
+.sl-session-flow-note{display:flex;align-items:flex-start;gap:8px;color:var(--muted);font-size:var(--t-sm);margin:-4px 0 14px;max-width:var(--measure-prose)}
+.sl-session-flow-note svg{width:15px;height:15px;flex:none;margin-top:1px}
+.sess-step.sl-session-focus-step{display:block;border-left:1px solid var(--line);overflow:hidden}
+.sess-step.sl-session-focus-step .sess-screen{padding:0;border:0;background:var(--panel-2);gap:0}
+.sess-step.sl-session-focus-step .sess-cap{padding:7px 12px;border-top:1px solid var(--line)}
+.sess-step.sl-session-focus-step .sess-act{padding:12px 15px 14px;gap:7px}
+.sess-step.sl-session-focus-step .sess-mono{font-style:normal;font-size:var(--t-md);border-left-color:var(--accent);padding-left:13px}
+.sl-session-lens{position:relative;overflow:hidden;background:var(--panel-2)}
+.sl-session-lens .sl-shotlink{position:relative;z-index:0}
+.sl-session-lens .sess-shot{width:100%;max-width:none;border:0;border-radius:0}
+.sl-session-focus{position:absolute;inset:0;z-index:1;pointer-events:none;--fx:0%;--fy:0%;--fw:100%;--fh:100%}
+.sl-session-focus-mask{position:absolute;background:color-mix(in srgb,var(--ink) 23%,transparent);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+.sl-session-focus-top{inset:0 0 auto;height:var(--fy)}
+.sl-session-focus-bottom{inset:calc(var(--fy) + var(--fh)) 0 0}
+.sl-session-focus-left{left:0;top:var(--fy);width:var(--fx);height:var(--fh)}
+.sl-session-focus-right{left:calc(var(--fx) + var(--fw));right:0;top:var(--fy);height:var(--fh)}
+.sl-session-focus-ring{position:absolute;left:var(--fx);top:var(--fy);width:var(--fw);height:var(--fh);border:2px solid var(--accent);border-radius:var(--radius-sm);box-shadow:0 0 0 1px color-mix(in srgb,var(--panel) 72%,transparent),0 8px 24px rgba(0,0,0,.14)}
+.sl-session-focus-label{position:absolute;left:var(--fx);top:calc(var(--fy) + var(--fh) + 6px);max-width:min(280px,calc(100% - var(--fx) - 8px));padding:4px 7px;border-radius:var(--radius-sm);background:color-mix(in srgb,var(--panel) 92%,transparent);border:1px solid var(--line);color:var(--ink);font-size:var(--t-xs);font-weight:600;box-shadow:var(--shadow-sm)}
 @media(max-width:760px){.sess-step{grid-template-columns:1fr}.sess-screen{border-right:0;border-bottom:1px solid var(--line)}}
 /* ---- step-shot lightbox + the first/last shot strip on session rows (ux-contract §9 V4) ---- */
 .sl-shotlink{display:block;cursor:zoom-in}
@@ -188,6 +207,9 @@ def _screenshot_url(sess_id: str, shot: str) -> str | None:
     before probing the filesystem. Local/single-tenant mode keeps the historical
     resolution order and static URLs.
     """
+    hosted = session_file_url(sess_id, shot)
+    if hosted is not None:
+        return hosted or None
     if _config.postgres_row_tenancy_enabled():
         return None
     sessions_root = _config.sessions_dir().resolve()
@@ -511,34 +533,69 @@ def _step_html(sess: dict, step: dict) -> str:
     typ = action.get("type") or ""
     act_label = (t("action_" + typ) if typ in _ACTION_ICONS else typ)
     lb_caption = " · ".join(x for x in (t("step_n", n=i), act_label) if x)
-    # the shot opens the full-resolution file in the lightbox (no-JS: the file itself, V4)
-    screen = (h("a", {"class_": "sl-shotlink", "href": shot_url, "data-lightbox": True,
-                      "data-caption": lb_caption},
-                h("img", {"class_": "sess-shot", "src": shot_url,
-                          "alt": state.get("title") or t("step_n", n=i), "loading": "lazy"}))
-              if shot_url
-              else h("div", {"class_": "sess-screen-txt"}, state.get("screen", "")))
+    focus = _focus_rect(state.get("focus"))
+    # the shot opens the full-resolution file in the lightbox (no-JS: the file itself, V4).
+    # A reading-flow step adds a presentation-only salience mask; the stored screenshot stays
+    # untouched and the label explicitly remains a hypothesis rather than an eye-tracking claim.
+    shot = (h("a", {"class_": "sl-shotlink", "href": shot_url, "data-lightbox": True,
+                    "data-caption": lb_caption},
+              h("img", {"class_": "sess-shot", "src": shot_url,
+                        "alt": state.get("title") or t("step_n", n=i), "loading": "lazy"}))
+            if shot_url else None)
+    screen = (h("div", {"class_": "sl-session-lens"}, shot, raw(_focus_overlay(focus)))
+              if shot and focus else shot or h("div", {"class_": "sess-screen-txt"}, state.get("screen", "")))
     caption = " · ".join(x for x in (state.get("url"), state.get("title")) if x)
     target = (action.get("target") or "").strip()
     detail = (action.get("detail") or "").strip()
     monologue = (step.get("monologue") or "").strip()
+    verdict = step.get("verdict") or {}
+    show_verdict = not focus or verdict.get("would_continue") is False
     foot = h("div", {"class_": "sess-foot"},
              raw(_label(t(meta["label_key"]), meta["color"], title=fr.get("note") or None)) if has_friction else None,
              (h("span", {}, fr["note"]) if has_friction and fr.get("note") else None),
-             _verdict_chip(step.get("verdict") or {}))
+             _verdict_chip(verdict) if show_verdict else None) if (has_friction or show_verdict) else ""
     style = f'--sfc:{meta["color"]}' if has_friction else None
-    return h("div", {"class_": "sess-step", "id": f"step-{i}", "style": style},
+    return h("div", {"class_": "sess-step sl-session-focus-step" if focus else "sess-step",
+                     "id": f"step-{i}", "style": style},
              h("div", {"class_": "sess-screen"}, screen,
                h("div", {"class_": "sess-cap", "title": caption}, caption) if caption else None),
              h("div", {"class_": "sess-act"},
                h("div", {"class_": "sess-act-h"},
-                 h("span", {"class_": "sess-n"}, str(i)),
+                 h("span", {"class_": "sess-n"}, str(i + 1) if focus else str(i)),
                  # a timeline-shaped step has free-text action only — no typed chip to paint
-                 raw(_action_chip(action)) if action.get("type") else None,
-                 h("span", {"class_": "sess-target"}, target) if target else None),
+                 raw(_action_chip(action)) if action.get("type") and not focus else None,
+                 h("span", {"class_": "sess-target"}, target) if target and not focus else None),
                h("p", {"class_": "sess-detail"}, detail) if detail else None,
                h("blockquote", {"class_": "sess-mono"}, monologue) if monologue else None,
                foot))
+
+
+def _focus_rect(raw_focus) -> dict | None:
+    """Fail-soft read validation for older/imported records; writers validate strictly."""
+    if not isinstance(raw_focus, dict):
+        return None
+    try:
+        out = {k: float(raw_focus[k]) for k in ("x", "y", "width", "height")}
+    except (KeyError, TypeError, ValueError):
+        return None
+    if (not 0 <= out["x"] <= 100 or not 0 <= out["y"] <= 100
+            or not 0 < out["width"] <= 100 or not 0 < out["height"] <= 100
+            or out["x"] + out["width"] > 100 or out["y"] + out["height"] > 100):
+        return None
+    out["label"] = str(raw_focus.get("label") or "")
+    return out
+
+
+def _focus_overlay(focus: dict) -> str:
+    style = (f'--fx:{focus["x"]:g}%;--fy:{focus["y"]:g}%;'
+             f'--fw:{focus["width"]:g}%;--fh:{focus["height"]:g}%')
+    return h("div", {"class_": "sl-session-focus", "style": style, "aria_hidden": "true"},
+             h("span", {"class_": "sl-session-focus-mask sl-session-focus-top"}),
+             h("span", {"class_": "sl-session-focus-mask sl-session-focus-bottom"}),
+             h("span", {"class_": "sl-session-focus-mask sl-session-focus-left"}),
+             h("span", {"class_": "sl-session-focus-mask sl-session-focus-right"}),
+             h("span", {"class_": "sl-session-focus-ring"}),
+             h("span", {"class_": "sl-session-focus-label"}, focus["label"]) if focus.get("label") else None)
 
 
 def _friction_rail(sess: dict) -> str:
@@ -639,17 +696,25 @@ def register_sessions(app) -> None:
                 h("span", {"class_": "muted"},
                   f' · {kind_label} · ', session_day))
         steps = sess.get("steps") or []
+        reading_flow = any(_focus_rect((s.get("state") or {}).get("focus")) for s in steps)
         timeline = h("div", {"class_": "sec", "id": "sec-replay"},
-                     h("h2", {}, t("replay_h"), h("span", {"class_": "h1cnt"}, str(len(steps)))),
+                     h("h2", {}, t("reading_flow_h") if reading_flow else t("replay_h"),
+                       h("span", {"class_": "h1cnt"}, str(len(steps)))),
+                     (h("p", {"class_": "sl-session-flow-note"}, raw(_icon("eye")),
+                        t("reading_flow_boundary")) if reading_flow else None),
                      h("div", {"class_": "sess-steps"}, fragment(*(_step_html(sess, s) for s in steps))))
         statements_html = ""
         if sess.get("statements"):
             statements_html = h("div", {"class_": "sec", "id": "sec-statements"},
                                 h("h2", {}, t("voices")),
                                 raw(render_statements(sess["statements"], store)))
-        rail = _friction_rail(sess)
-        body = fragment(raw(_outcome_banner(sess)), raw(rail), timeline, raw(statements_html),
-                        raw(LIGHTBOX_JS))
+        rail = "" if reading_flow else _friction_rail(sess)
+        # Reading hypotheses read as the session itself: screen → focus → persona comment.
+        # Keep the outcome after that flow so the verdict cannot obscure the evidence path.
+        body = (fragment(timeline, raw(_outcome_banner(sess)), raw(statements_html), raw(LIGHTBOX_JS))
+                if reading_flow else
+                fragment(raw(_outcome_banner(sess)), raw(rail), timeline, raw(statements_html),
+                         raw(LIGHTBOX_JS)))
         proj = store.get_research_project(sess["project_id"]) if sess.get("project_id") else None
         # Project-rooted crumb (§8.2 — the council pattern); kind root only for orphans.
         crumbs = ([(t("projects"), "/jobs"), (proj["title"], f'/jobs/{proj["id"]}')]
@@ -677,7 +742,7 @@ def register_sessions(app) -> None:
             ("dot", t("created"), ui.local_date(sess.get("created_at") or "")),
         ]
         rail_sections = (([("sec-friction", t("friction_rail_h"))] if rail else [])
-                         + [("sec-replay", t("replay_h"))]
+                         + [("sec-replay", t("reading_flow_h") if reading_flow else t("replay_h"))]
                          + ([("sec-statements", t("voices"))] if statements_html else []))
         pills = ([_label(t("grounded_yes"), "var(--green)")] if grounded else []) \
             + [_outcome_chip(sess)]

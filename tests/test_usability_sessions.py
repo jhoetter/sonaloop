@@ -89,6 +89,16 @@ def test_deterministic_key_is_idempotent_upsert(store):
     assert len(services.list_usability_sessions(store=store)) == 1
 
 
+def test_optional_focus_hypothesis_roundtrips_as_percent_rectangle(store):
+    step = _step(0, focus={"x": 11, "y": 18.5, "width": 78, "height": 20,
+                           "label": "Hero · value proposition"})
+    sess = _record(store, _FLOW, "artifact", steps=[step])["usability_session"]
+    assert sess["steps"][0]["state"]["focus"] == {
+        "x": 11.0, "y": 18.5, "width": 78.0, "height": 20.0,
+        "label": "Hero · value proposition",
+    }
+
+
 def test_list_filters_by_persona_project_and_subject(store):
     legacy = _record(store, _FLOW, "artifact", project_id="proj-a")
     _record(store, _PROTO, "prototype", project_id="proj-b")
@@ -217,6 +227,12 @@ def test_step_action_state_and_verdict_shapes_are_enforced(store):
         _record(store, {"kind": "screenshot", "id": "x", "label": "x"}, "artifact")
     with pytest.raises(ValueError, match="fidelity"):
         _record(store, _FLOW, "hifi")
+
+    for focus in ({"x": -1, "y": 0, "width": 10, "height": 10},
+                  {"x": 90, "y": 0, "width": 20, "height": 10},
+                  {"x": 0, "y": 0, "width": "wide", "height": 10}):
+        with pytest.raises(ValueError, match="state.focus"):
+            _record(store, _FLOW, "artifact", steps=[_step(0, focus=focus)])
 
 
 def test_missing_screenshot_file_is_rejected_and_present_one_accepted(store, tmp_path, monkeypatch):

@@ -52,6 +52,13 @@ Use three layers:
   close control returning to the detail page.
 - **Sessions** (`record_usability_session`, outline kind `session`): replayable
   usage traces against a screen walkthrough, `prototype` or `live_url`.
+  A step may carry `state.focus={x,y,width,height,label}` in screenshot-percent
+  coordinates. The Inspector then presents the session as a linear reading flow:
+  the unchanged large screenshot, a softened surround, the stated focus region
+  and the persona's concurrent monologue. This is explicitly a salience
+  hypothesis, never eye-tracking or measured attention. Shared Cloud serves the
+  retained step images through short-lived capabilities bound to the active
+  workspace and session directory.
   `define_flow` stores a reusable screen-walkthrough test script under
   `project["flows"]`, but that script is not a Library primitive; it exists so
   multiple sessions can reuse the same ordered screenshot sequence.

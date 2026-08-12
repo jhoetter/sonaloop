@@ -124,6 +124,49 @@ def test_replay_shows_screenshot_img_only_when_the_file_exists(store, tmp_path, 
     assert "sess-screen-txt" in html and "screen-1" in html
 
 
+def test_reading_flow_renders_large_focused_screens_without_extra_controls(
+        store, tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "DATA_DIR", tmp_path)
+    sess_id = services.stable_id("usession", "reading-flow")
+    d = config.sessions_dir() / sess_id
+    d.mkdir(parents=True)
+    (d / "step-0.png").write_bytes(b"\x89PNG focused")
+    step = _step(0, screenshot="step-0.png", focus={
+        "x": 11, "y": 18.5, "width": 78, "height": 20,
+        "label": "Hero · value proposition",
+    }, monologue="The big promise tells me what this wants to be.")
+    sess = _record(store, steps=[step], key="reading-flow")
+    html = _client().get(f'/sessions/{sess["id"]}?lang=en').text
+    assert "Reading flow" in html and "not eye-tracking" in html
+    assert 'class="sess-step sl-session-focus-step"' in html
+    assert 'class="sl-session-lens"' in html and 'class="sl-session-focus"' in html
+    assert "--fx:11%;--fy:18.5%;--fw:78%;--fh:20%" in html
+    assert "Hero · value proposition" in html
+    assert "The big promise tells me" in html
+    # The reading path is linear; generic prototype transport and persona/task pickers do not leak in.
+    assert "data-proto-expand" not in html and "Animation" not in html
+    # A positive continue verdict is intentionally quiet; the session outcome follows the flow.
+    assert "would continue" not in html
+    assert html.index('id="sec-replay"') < html.index("walked it")
+
+
+def test_hosted_session_file_provider_replaces_local_runtime_path(store):
+    web.register_session_file_url_provider(
+        lambda session_dir, path: f"/signed-session/{session_dir}/{path}")
+    try:
+        shot = _step(0, screenshot="step-0.png")
+        # The writer checks the actual file, so persist without a shot and stamp this fixture's
+        # already-validated record to isolate the hosted render seam.
+        sess = _record(store, steps=[_step(0)], key="hosted-shot")
+        sess["steps"] = [shot]
+        store.insert_usability_session(sess)
+        html = _client().get(f'/sessions/{sess["id"]}?lang=en').text
+        assert f'/signed-session/{sess["id"]}/step-0.png' in html
+        assert "/sessions-files/" not in html
+    finally:
+        web.register_session_file_url_provider(None)
+
+
 def test_screenshot_route_serves_real_files_and_rejects_traversal(store, tmp_path, monkeypatch):
     monkeypatch.setattr(config, "DATA_DIR", tmp_path)
     d = config.sessions_dir() / "u1"

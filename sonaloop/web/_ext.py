@@ -21,8 +21,9 @@ packages plug in WITHOUT the core ever importing them, via four seams:
                branding. Product apps still call set_brand() once at boot; tenants
                resolve their workspace logo/name inside request middleware.
 
-  6. Prototype delivery — register_prototype_url_provider(fn) lets a hosting extension
-               replace the local static mount with a signed, tenant-scoped browser URL.
+  6. Runtime-file delivery — register_prototype_url_provider(fn) and
+               register_session_file_url_provider(fn) let a hosting extension replace local
+               static mounts with signed, tenant-scoped browser URLs.
 
 Labels are `str | Callable[[], str]`: pass a literal, or a lambda that resolves the
 label per request when it must (i18n) — e.g. one that returns t(<your-key>). Slot/route callables are trusted
@@ -214,6 +215,26 @@ def prototype_file_url(prototype: dict[str, Any], asset_path: str = "") -> str |
     if _PROTOTYPE_URL_PROVIDER is None:
         return None
     return str(_PROTOTYPE_URL_PROVIDER(dict(prototype), str(asset_path or "")) or "")
+
+
+# Session screenshots use the same hosted-vs-local distinction as prototype files.  The
+# first argument is the workspace-relative session directory (a usability-session id, or
+# the retained browser-session id used by compatibility prototype sessions).
+_SESSION_FILE_URL_PROVIDER: Callable[[str, str], str] | None = None
+
+
+def register_session_file_url_provider(
+        provider: Callable[[str, str], str] | None) -> None:
+    """Install the hosting-specific URL builder for one recorded session file."""
+    global _SESSION_FILE_URL_PROVIDER
+    _SESSION_FILE_URL_PROVIDER = provider
+
+
+def session_file_url(session_dir: str, asset_path: str) -> str | None:
+    """Return a hosted screenshot URL, or None only when local fallback is intended."""
+    if _SESSION_FILE_URL_PROVIDER is None:
+        return None
+    return str(_SESSION_FILE_URL_PROVIDER(str(session_dir or ""), str(asset_path or "")) or "")
 
 
 # ---------------------------------------------------------------------------

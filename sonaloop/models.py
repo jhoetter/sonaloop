@@ -369,7 +369,8 @@ class UsabilitySession:
     new recordings.
 
     steps: the ordered dual timeline — each step is
-      {index, action:{type,target,detail}, monologue, state:{url?,title?,screen,screenshot?},
+      {index, action:{type,target,detail}, monologue,
+       state:{url?,title?,screen,screenshot?,focus?{x,y,width,height,label}},
        friction:{level,note}, verdict:{would_continue,reason}}
     (friction levels are data-driven via suggestions/friction_levels.json; screenshots live under
     data/sessions/<id>/step-<index>.png). `outcome` is {completed, dropoff_step, summary,
