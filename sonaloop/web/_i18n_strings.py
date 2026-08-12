@@ -128,6 +128,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "lineage_superseded_by": "Ersetzt durch", "archive_non_destructive": "Archiviert; Evidenz bleibt erhalten.",
         "grounding_h": "Grounding",
         "open_in_new_tab": "In neuem Tab öffnen",
+        "maximize_preview": "Maximieren",
+        "close_preview": "Vorschau schließen",
         "prototype_unavailable": "Die Prototyp-Dateien sind nicht verfügbar.",
         # surveys (the outbound instrument)
         "surveys_h": "Umfragen",
@@ -633,6 +635,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "lineage_superseded_by": "Superseded by", "archive_non_destructive": "Archived; evidence is preserved.",
         "grounding_h": "Grounding",
         "open_in_new_tab": "Open in new tab",
+        "maximize_preview": "Maximize",
+        "close_preview": "Close preview",
         "prototype_unavailable": "The prototype files are unavailable.",
         # surveys (the outbound instrument)
         "surveys_h": "Surveys",

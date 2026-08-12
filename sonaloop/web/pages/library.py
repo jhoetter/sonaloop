@@ -93,6 +93,42 @@ TAB_KIND = {
 }
 
 
+PROTOTYPE_EXPAND_JS = """<script>
+(() => {
+  if (window.__slPrototypeExpand) return;
+  window.__slPrototypeExpand = true;
+  let opener = null;
+  const close = frame => {
+    if (!frame) return;
+    frame.classList.remove('is-expanded');
+    document.body.classList.remove('sl-proto-expanded');
+    const trigger = document.querySelector(`[data-proto-expand="${frame.dataset.protoFrame}"]`);
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    (opener || trigger)?.focus();
+    opener = null;
+  };
+  document.addEventListener('click', event => {
+    const expand = event.target.closest('[data-proto-expand]');
+    if (expand) {
+      const frame = document.querySelector(`[data-proto-frame="${expand.dataset.protoExpand}"]`);
+      if (!frame) return;
+      opener = expand;
+      frame.classList.add('is-expanded');
+      document.body.classList.add('sl-proto-expanded');
+      expand.setAttribute('aria-expanded', 'true');
+      frame.querySelector('[data-proto-close]')?.focus();
+      return;
+    }
+    const collapse = event.target.closest('[data-proto-close]');
+    if (collapse) close(collapse.closest('.protoframe'));
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') close(document.querySelector('.protoframe.is-expanded'));
+  });
+})();
+</script>"""
+
+
 def _tab_entries(key: str, store: Store, sessions: list | None = None) -> list[dict]:
     """The active tab's records as filterable entries {kind, rec, href, desc, project_id} —
     the kind's EXISTING list read; rows render through the one row vocabulary
@@ -664,13 +700,22 @@ def register_library(app) -> None:
         replay_html = _sessions_section(store, usess, sid="sec-replays", shots=True,
                                         heading=t("replays_h"))
         entry_available = services.prototype_entry_available(p["id"], store=store)
+        frame_key = str(p["id"])
         preview = (fragment(
-            h("p", {"style": "margin:8px 0 16px"},
+            h("div", {"class_": "sl-proto-toolbar"},
               h("a", {"class_": "sl-btn", "href": src, "target": "_blank", "rel": "noopener"},
-                raw(_icon("projects")), " ", t("open_in_new_tab"), " ", raw(_icon("external")))),
-            h("div", {"class_": "protoframe"}, h("iframe", {
-                "src": src, "title": p["name"], "loading": "lazy",
-                "sandbox": "allow-scripts", "credentialless": True})))
+                raw(_icon("projects")), " ", t("open_in_new_tab"), " ", raw(_icon("external"))),
+              h("button", {"class_": "sl-btn", "type": "button", "data_proto_expand": frame_key,
+                           "aria_expanded": "false"},
+                raw(_icon("expand")), " ", t("maximize_preview"))),
+            h("div", {"class_": "protoframe", "data_proto_frame": frame_key},
+              h("iframe", {"src": src, "title": p["name"], "loading": "lazy",
+                            "sandbox": "allow-scripts", "credentialless": True,
+                            "allow": "fullscreen", "allowfullscreen": True}),
+              h("button", {"class_": "sl-btn sl-proto-collapse", "type": "button",
+                           "data_proto_close": True, "aria_label": t("close_preview")},
+                raw(_icon("close")), " ", t("close_preview"))),
+            raw(PROTOTYPE_EXPAND_JS))
             if entry_available and src else
             raw(_empty_state(t("prototypes_h"), t("prototype_unavailable"), icon="prototype")))
         body = fragment(

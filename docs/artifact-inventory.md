@@ -46,7 +46,10 @@ Use three layers:
   prototype token layer (`--proto-*`) derived from the active design system:
   color schemes, font stacks, chart series, status colors, radius, spacing,
   density, shadows, focus rings and optional logos adapt per workspace/version
-  and per preset without template-specific branching.
+  and per preset without template-specific branching. The prototype detail keeps
+  the embedded preview in context by default; **Maximize** expands that same
+  sandboxed preview to the full product viewport, with Escape or the host-owned
+  close control returning to the detail page.
 - **Sessions** (`record_usability_session`, outline kind `session`): replayable
   usage traces against a screen walkthrough, `prototype` or `live_url`.
   `define_flow` stores a reusable screen-walkthrough test script under

@@ -425,16 +425,26 @@ def test_lightbox_stacking_contract(store, tmp_path, monkeypatch):
         assert rule in html, f"lightbox CSS lost its stacking contract: {rule}"
     # (d) the iframe card clips and isolates its embedded document
     assert "isolation:isolate" in html and "contain:paint" in html
-    assert '<div class="protoframe"><iframe' in html
+    assert '<div class="protoframe" data-proto-frame=' in html
+    assert '<iframe src=' in html and 'sandbox="allow-scripts"' in html
     assert 'sandbox="allow-scripts"' in html
     assert ' credentialless' in html
+    # The prototype can take over the product viewport without opening a second browser tab.
+    # The host keeps the close affordance and Esc handling outside the untrusted iframe.
+    assert 'data-proto-expand=' in html and 'data-proto-close' in html
+    assert 'allow="fullscreen" allowfullscreen' in html
+    assert "body.classList.add('sl-proto-expanded')" in html
+    assert "event.key === 'Escape'" in html
+    for rule in (".protoframe.is-expanded{position:fixed;inset:0;z-index:240",
+                 "body.sl-proto-expanded{overflow:hidden}"):
+        assert rule in html, f"prototype maximize CSS lost its viewport contract: {rule}"
 
 
 def test_missing_prototype_entry_never_renders_dead_preview(store):
     _proj, proto, _pid, _sess = _proto_session(store)
     html = _client().get(f'/prototypes/{proto["slug"]}?lang=en').text
     assert "The prototype files are unavailable." in html
-    assert '<div class="protoframe"><iframe' not in html
+    assert '<div class="protoframe" data-proto-frame=' not in html
     assert "Open in new tab" not in html
 
 

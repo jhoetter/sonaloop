@@ -318,13 +318,13 @@ SCHEMAS = {
     "prototype": {
         "holds": (["Name + Version + `tags` (Fidelity, z. B. lofi/midfi/hifi)",
                    "`path` / `entry` / `run` — wie der lauffähige Build gestartet wird",
-                   "Design-System-Kontext — Tokens, Fonts, Radius, Spacing, Density, Chartfarben und optionale Logos kommen dynamisch aus dem aktiven Workspace oder dem Sonaloop-Default",
+                   "Design-System-Kontext — Tokens, Fonts, Radius, Spacing, Density, Chartfarben und optionale Logos kommen dynamisch aus dem aktiven Workspace oder dem Sonaloop-Default", "Die eingebettete Vorschau bleibt zunächst im Detailkontext; **Maximieren** öffnet dieselbe Sandbox im gesamten Produkt-Viewport (Schließen oder Escape führt zurück)",
                    "Optionaler Link zum Projekt + zur Notiz, aus der er gebaut wurde",
                    "Eine **Session** ist eine Persona, die ihn benutzt — als `statements`, geerdet in "
                    "beobachteten Prototyp-States"],
                   ["Name + version + `tags` (fidelity, e.g. lofi/midfi/hifi)",
                    "`path` / `entry` / `run` — how the runnable build is launched",
-                   "Design-system context — tokens, fonts, radius, spacing, density, chart colors and optional logos dynamically come from the active workspace or the Sonaloop default",
+                   "Design-system context — tokens, fonts, radius, spacing, density, chart colors and optional logos dynamically come from the active workspace or the Sonaloop default", "The embedded preview stays in detail context by default; **Maximize** expands the same sandbox across the product viewport (Close or Escape returns)",
                    "Optional link to the project + the note it was built from",
                    "A **session** is a persona using it — as `statements`, grounded in observed prototype "
                    "states"]),

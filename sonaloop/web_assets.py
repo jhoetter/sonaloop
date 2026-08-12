@@ -166,6 +166,12 @@ svg.ic{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke
    page chrome or an overlay, whatever it renders. */
 .protoframe{border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;background:var(--panel);height:620px;box-shadow:0 4px 16px rgba(0,0,0,.08);position:relative;isolation:isolate;contain:paint}
 .protoframe iframe{width:100%;height:100%;border:0;display:block}
+.sl-proto-toolbar{display:flex;align-items:center;gap:8px;margin:8px 0 16px;flex-wrap:wrap}
+.sl-proto-collapse{display:none;position:absolute;right:14px;top:10px;z-index:2;box-shadow:0 4px 18px rgba(0,0,0,.18)}
+.protoframe.is-expanded{position:fixed;inset:0;z-index:240;width:100vw;height:100dvh;border:0;border-radius:0;background:var(--bg);padding:48px 14px 14px;box-shadow:none;contain:none}
+.protoframe.is-expanded iframe{border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--panel);box-shadow:0 8px 30px rgba(0,0,0,.12)}
+.protoframe.is-expanded .sl-proto-collapse{display:inline-flex}
+body.sl-proto-expanded{overflow:hidden}
 .strow{padding:8px 0;border-bottom:1px solid var(--line)}.strow:last-child{border-bottom:0}
 .strow a{text-decoration:none}.strow .ic{vertical-align:-3px;margin-right:5px}
 .oqd{margin-top:16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel)}
