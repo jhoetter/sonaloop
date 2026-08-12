@@ -54,9 +54,12 @@ Use three layers:
   usage traces against a screen walkthrough, `prototype` or `live_url`.
   A step may carry `state.focus={x,y,width,height,label}` in screenshot-percent
   coordinates. The Inspector then presents the session as a linear reading flow:
-  the unchanged large screenshot, a softened surround, the stated focus region
-  and the persona's concurrent monologue. This is explicitly a salience
-  hypothesis, never eye-tracking or measured attention. Shared Cloud serves the
+  a bounded, focus-centred crop beside the persona's concurrent monologue, with a
+  softened surround and the stated focus region. The source screenshot stays unchanged
+  and opens in full resolution on click. Reading sessions use an almost viewport-wide
+  drawer and put the flow before generic properties/relations; narrow screens stack each
+  crop above its comment. This is explicitly a salience hypothesis, never eye-tracking
+  or measured attention. Shared Cloud serves the
   retained step images through short-lived capabilities bound to the active
   workspace and session directory.
   `define_flow` stores a reusable screen-walkthrough test script under

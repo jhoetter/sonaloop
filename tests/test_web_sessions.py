@@ -156,10 +156,12 @@ def test_reading_flow_renders_large_focused_screens_without_extra_controls(
 
 
 def test_artifact_reading_flow_reuses_project_asset_pixels(store, tmp_path, monkeypatch):
+    from PIL import Image
+
     monkeypatch.setattr(config, "DATA_DIR", tmp_path)
     proj = services.create_research_project("Screenshot reading flow", store=store)
     shot = tmp_path / "stimulus.png"
-    shot.write_bytes(b"\x89PNG admitted stimulus")
+    Image.new("RGB", (600, 1933), "white").save(shot)
     asset = services.attach_asset(
         proj["id"], path=str(shot), kind="screenshot", title="Mobile banking overview",
         store=store,
@@ -182,8 +184,110 @@ def test_artifact_reading_flow_reuses_project_asset_pixels(store, tmp_path, monk
 
     html = _client().get(f'/sessions/{sess["id"]}?lang=en').text
     assert f'<img class="sess-shot" src="{asset["url"]}"' in html
-    assert 'class="sl-session-lens"' in html and "Primary activation entry" in html
+    assert 'class="sl-session-lens sl-session-crop"' in html
+    assert 'data-focus-source="full-screenshot"' in html
+    assert "--shot-max:600px" in html and "--crop-y:-7%" in html
+    assert "--fy:17.8571%" in html and "--fh:64.2857%" in html
+    assert "Primary activation entry" in html
+    assert 'class="sl-session-replay-mode"' in html
+    assert ".sl-drawer:has(.sl-session-replay-mode) .sl-drawer__panel" in html
     assert '<div class="sess-screen-txt">' not in html
+
+    slide = _client().get(f'/sessions/{sess["id"]}?slide=1&lang=en').text
+    assert 'class="sl-session-replay-mode"' in slide
+
+
+@pytest.mark.skipif(not browser.available(), reason="chromium not installed")
+def test_artifact_reading_flow_uses_compact_wide_drawer_in_real_browser(
+        store, tmp_path, monkeypatch):
+    """The actual inspection journey: the project opens a wide, evidence-first replay; every
+    long screenshot is bounded to one reading moment, metadata follows, and mobile stacks."""
+    from PIL import Image
+    import uvicorn
+    from playwright.sync_api import sync_playwright
+
+    monkeypatch.setattr(config, "DATA_DIR", tmp_path)
+    proj = services.create_research_project("Compact reading flow", store=store)
+    shot = tmp_path / "long-page.png"
+    Image.new("RGB", (600, 1933), "white").save(shot)
+    asset = services.attach_asset(
+        proj["id"], path=str(shot), kind="screenshot", title="Long banking page", store=store,
+    )
+    steps = []
+    for i, y in enumerate((7, 28, 51, 72)):
+        step = _step(i, focus={
+            "x": 6, "y": y, "width": 88, "height": 12, "label": f"Reading moment {i + 1}",
+        }, monologue=f"I read moment {i + 1} before deciding what comes next.")
+        step["state"] = {
+            "screen": asset["id"], "title": "Long banking page",
+            "focus": step["state"]["focus"],
+        }
+        steps.append(step)
+    sess = services.record_usability_session(
+        "pX", {"kind": "flow", "id": "flow-compact", "label": "Compact flow"},
+        "artifact", "2026-08-12", steps,
+        {"completed": True, "dropoff_step": None, "summary": "read it",
+         "predicted_behaviors": []},
+        project_id=proj["id"], key="compact-browser", store=store,
+    )["usability_session"]
+
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        port = sock.getsockname()[1]
+    server = uvicorn.Server(uvicorn.Config(
+        web.create_app(), host="127.0.0.1", port=port, log_level="error",
+    ))
+    thread = threading.Thread(target=server.run, daemon=True)
+    thread.start()
+    deadline = time.time() + 15
+    while not server.started:
+        assert time.time() < deadline, "app did not boot"
+        time.sleep(0.05)
+
+    try:
+        with sync_playwright() as playwright:
+            chromium = playwright.chromium.launch()
+            for width, height in ((1440, 900), (390, 844)):
+                page = chromium.new_context(viewport={"width": width, "height": height}).new_page()
+                page.goto(f"http://127.0.0.1:{port}/jobs/{proj['id']}?lang=en", wait_until="load")
+                entry = page.locator(f'a[href="/sessions/{sess["id"]}"][data-drawer]').first
+                assert entry.is_visible()
+                entry.click()
+                drawer = page.locator("#drawer.is-open")
+                drawer.wait_for(state="visible")
+                drawer.locator(".sl-session-crop").first.wait_for(state="visible")
+                page.wait_for_timeout(300)
+
+                panel = drawer.locator(".sl-drawer__panel").bounding_box()
+                assert panel
+                if width > 840:
+                    assert panel["width"] >= 1100
+                else:
+                    assert panel["width"] >= width - 1
+
+                replay = drawer.locator("#sec-replay").bounding_box()
+                props = drawer.locator("#sec-properties").bounding_box()
+                assert replay
+                if width > 1040:
+                    assert props and replay["y"] < props["y"]
+                else:
+                    # The existing compact breakpoint suppresses the generic metadata rail.
+                    assert props is None
+                for crop in drawer.locator(".sl-session-crop").all():
+                    box = crop.bounding_box()
+                    assert box and box["height"] <= 390
+                    assert box["x"] >= 0 and box["x"] + box["width"] <= width + 1
+                    if width > 840:
+                        assert box["width"] <= 600.5  # never blur by upscaling the source
+                    else:
+                        assert box["width"] >= width - 70
+                first_step = drawer.locator(".sl-session-focus-step").first.bounding_box()
+                assert first_step and first_step["height"] <= (480 if width > 840 else 520)
+                page.context.close()
+            chromium.close()
+    finally:
+        server.should_exit = True
+        thread.join(timeout=10)
 
 
 def test_hosted_session_file_provider_replaces_local_runtime_path(store):

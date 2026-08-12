@@ -55,14 +55,17 @@ register_css(r"""
 .sess-freason{grid-column:2/-1;color:var(--muted);font-size:var(--t-xs);padding:0 0 4px}
 .sl-session-flow-note{display:flex;align-items:flex-start;gap:8px;color:var(--muted);font-size:var(--t-sm);margin:-4px 0 14px;max-width:var(--measure-prose)}
 .sl-session-flow-note svg{width:15px;height:15px;flex:none;margin-top:1px}
-.sess-step.sl-session-focus-step{display:block;border-left:1px solid var(--line);overflow:hidden}
-.sess-step.sl-session-focus-step .sess-screen{padding:0;border:0;background:var(--panel-2);gap:0}
-.sess-step.sl-session-focus-step .sess-cap{padding:7px 12px;border-top:1px solid var(--line)}
-.sess-step.sl-session-focus-step .sess-act{padding:12px 15px 14px;gap:7px}
+.sess-step.sl-session-focus-step{grid-template-columns:minmax(0,2fr) minmax(260px,1fr);border-left:1px solid var(--line);overflow:hidden}
+.sess-step.sl-session-focus-step .sess-screen{padding:16px;border-right:1px solid var(--line);background:var(--panel-2);gap:8px;justify-content:center}
+.sess-step.sl-session-focus-step .sess-cap{padding:0;border:0;text-align:center}
+.sess-step.sl-session-focus-step .sess-act{padding:18px;gap:9px;justify-content:center}
 .sess-step.sl-session-focus-step .sess-mono{font-style:normal;font-size:var(--t-md);border-left-color:var(--accent);padding-left:13px}
-.sl-session-lens{position:relative;overflow:hidden;background:var(--panel-2)}
+.sl-session-lens{position:relative;overflow:hidden;background:var(--panel);width:fit-content;max-width:100%;margin-inline:auto;border:1px solid var(--line);border-radius:var(--radius-sm)}
 .sl-session-lens .sl-shotlink{position:relative;z-index:0}
-.sl-session-lens .sess-shot{width:100%;max-width:none;border:0;border-radius:0}
+.sl-session-lens .sess-shot{width:auto;max-width:100%;border:0;border-radius:0}
+.sl-session-crop{width:min(100%,var(--shot-max));aspect-ratio:16/10}
+.sl-session-crop .sl-shotlink{position:absolute;inset:0;overflow:hidden}
+.sl-session-crop .sess-shot{position:absolute;inset:0 auto auto 0;width:100%;max-width:none;transform:translateY(var(--crop-y))}
 .sl-session-focus{position:absolute;inset:0;z-index:1;pointer-events:none;--fx:0%;--fy:0%;--fw:100%;--fh:100%}
 .sl-session-focus-mask{position:absolute;background:color-mix(in srgb,var(--ink) 23%,transparent);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
 .sl-session-focus-top{inset:0 0 auto;height:var(--fy)}
@@ -70,8 +73,18 @@ register_css(r"""
 .sl-session-focus-left{left:0;top:var(--fy);width:var(--fx);height:var(--fh)}
 .sl-session-focus-right{left:calc(var(--fx) + var(--fw));right:0;top:var(--fy);height:var(--fh)}
 .sl-session-focus-ring{position:absolute;left:var(--fx);top:var(--fy);width:var(--fw);height:var(--fh);border:2px solid var(--accent);border-radius:var(--radius-sm);box-shadow:0 0 0 1px color-mix(in srgb,var(--panel) 72%,transparent),0 8px 24px rgba(0,0,0,.14)}
-.sl-session-focus-label{position:absolute;left:var(--fx);top:calc(var(--fy) + var(--fh) + 6px);max-width:min(280px,calc(100% - var(--fx) - 8px));padding:4px 7px;border-radius:var(--radius-sm);background:color-mix(in srgb,var(--panel) 92%,transparent);border:1px solid var(--line);color:var(--ink);font-size:var(--t-xs);font-weight:600;box-shadow:var(--shadow-sm)}
-@media(max-width:760px){.sess-step{grid-template-columns:1fr}.sess-screen{border-right:0;border-bottom:1px solid var(--line)}}
+.sl-session-focus-label{position:absolute;left:var(--fx);top:min(calc(var(--fy) + var(--fh) + 6px),calc(100% - 31px));max-width:min(280px,calc(100% - var(--fx) - 8px));padding:4px 7px;border-radius:var(--radius-sm);background:color-mix(in srgb,var(--panel) 92%,transparent);border:1px solid var(--line);color:var(--ink);font-size:var(--t-xs);font-weight:600;box-shadow:var(--shadow-sm)}
+/* A reading session is the primary artifact, not metadata inside a narrow generic drawer. */
+.sl-drawer:has(.sl-session-replay-mode) .sl-drawer__panel{width:min(1180px,96vw)}
+.sl-drawer:has(.sl-session-replay-mode) .sl-drawer__body{padding-inline:clamp(16px,2.5vw,36px)}
+.sl-drawer:has(.sl-session-replay-mode) .doc-main{display:flex;flex-direction:column}
+.sl-drawer:has(.sl-session-replay-mode) .rail--slide{order:3;margin-top:28px}
+.sl-drawer:has(.sl-session-replay-mode) .sl-session-replay-mode{order:2}
+@media(max-width:840px){
+  .sess-step,.sess-step.sl-session-focus-step{grid-template-columns:1fr}
+  .sess-screen,.sess-step.sl-session-focus-step .sess-screen{border-right:0;border-bottom:1px solid var(--line)}
+  .sl-drawer:has(.sl-session-replay-mode) .sl-drawer__panel{width:100vw}
+}
 /* ---- step-shot lightbox + the first/last shot strip on session rows (ux-contract §9 V4) ---- */
 .sl-shotlink{display:block;cursor:zoom-in}
 .sl-shotlink:hover .sess-shot{border-color:var(--accent)}
@@ -485,7 +498,7 @@ def _sessions_section(store: Store, sessions: list[dict], sid: str = "sec-sessio
              h("div", {"class_": "rows"}, raw("".join(str(r) for r in rows))))
 
 
-def _artifact_screen_url(sess: dict, state: dict, store: Store | None) -> str | None:
+def _artifact_screen(sess: dict, state: dict, store: Store | None) -> dict | None:
     """Reuse a project screenshot for artifact-flow sessions.
 
     Screenshot walkthroughs deliberately do not duplicate admitted project assets into the
@@ -503,7 +516,41 @@ def _artifact_screen_url(sess: dict, state: dict, store: Store | None) -> str | 
                   if str(a.get("id") or "") == screen_id), None)
     if not asset or asset.get("kind") not in ("image", "screenshot"):
         return None
-    return asset_content_url(asset) or None
+    return asset
+
+
+def _focus_crop(focus: dict, asset: dict | None) -> dict | None:
+    """Map a focus rectangle from the full long-shot into a bounded 16:10 viewport.
+
+    The stored percentages remain relative to the unchanged source image.  Presentation crops
+    enough vertical context around that rectangle to keep one reading moment on screen; clicking
+    still opens the complete original.  Missing/legacy dimensions fail soft to the full image.
+    """
+    image = (asset or {}).get("image") or {}
+    try:
+        width, height = int(image["width"]), int(image["height"])
+    except (KeyError, TypeError, ValueError):
+        # Local/older attachments predate admitted-image metadata.  Their content-addressed
+        # binary is still available in the active partition, so read only its header here.
+        try:
+            from PIL import Image
+            name = Path(str((asset or {})["asset_path"])).name
+            with Image.open(_config.partition_dir() / "assets" / name) as source:
+                width, height = source.size
+        except (KeyError, OSError, TypeError, ValueError):
+            return None
+    if width <= 0 or height <= 0:
+        return None
+    stage_ratio = 16 / 10
+    natural_view = (width / height) / stage_ratio
+    focus_height = focus["height"] / 100
+    visible = min(1.0, max(natural_view, focus_height + .10))
+    focus_center = (focus["y"] + focus["height"] / 2) / 100
+    top = min(max(focus_center - visible / 2, 0), 1 - visible)
+    mapped = dict(focus)
+    mapped["y"] = max(0.0, (focus["y"] / 100 - top) / visible * 100)
+    mapped["height"] = min(100 - mapped["y"], focus_height / visible * 100)
+    return {"top": top * 100, "focus": mapped, "width": width}
 
 
 def _step_html(sess: dict, step: dict, store: Store | None = None) -> str:
@@ -515,8 +562,12 @@ def _step_html(sess: dict, step: dict, store: Store | None = None) -> str:
     fr = step.get("friction") or {}
     meta = _friction_meta(fr.get("level", ""))
     has_friction = bool(meta and meta["value"] > 0)
-    shot_url = (_screenshot_url(sess["id"], state["screenshot"])
-                if state.get("screenshot") else _artifact_screen_url(sess, state, store))
+    if state.get("screenshot"):
+        asset = None
+        shot_url = _screenshot_url(sess["id"], state["screenshot"])
+    else:
+        asset = _artifact_screen(sess, state, store)
+        shot_url = (asset_content_url(asset) or None) if asset else None
     action = step.get("action") or {}
     # the lightbox caption: step number + action (round-3 H6) — the typed chip label when one exists
     typ = action.get("type") or ""
@@ -531,7 +582,13 @@ def _step_html(sess: dict, step: dict, store: Store | None = None) -> str:
               h("img", {"class_": "sess-shot", "src": shot_url,
                         "alt": state.get("title") or t("step_n", n=i), "loading": "lazy"}))
             if shot_url else None)
-    screen = (h("div", {"class_": "sl-session-lens"}, shot, raw(_focus_overlay(focus)))
+    crop = _focus_crop(focus, asset) if focus else None
+    screen = (h("div", {
+                  "class_": "sl-session-lens sl-session-crop" if crop else "sl-session-lens",
+                  "style": (f'--crop-y:-{crop["top"]:g}%;--shot-max:{crop["width"]}px'
+                            if crop else None),
+                  "data-focus-source": "full-screenshot" if crop else None,
+                }, shot, raw(_focus_overlay(crop["focus"] if crop else focus)))
               if shot and focus else shot or h("div", {"class_": "sess-screen-txt"}, state.get("screen", "")))
     caption = " · ".join(x for x in (state.get("url"), state.get("title")) if x)
     target = (action.get("target") or "").strip()
@@ -701,10 +758,13 @@ def register_sessions(app) -> None:
         rail = "" if reading_flow else _friction_rail(sess)
         # Reading hypotheses read as the session itself: screen → focus → persona comment.
         # Keep the outcome after that flow so the verdict cannot obscure the evidence path.
-        body = (fragment(timeline, raw(_outcome_banner(sess)), raw(statements_html), raw(LIGHTBOX_JS))
+        body_inner = (fragment(timeline, raw(_outcome_banner(sess)), raw(statements_html),
+                               raw(LIGHTBOX_JS))
                 if reading_flow else
                 fragment(raw(_outcome_banner(sess)), raw(rail), timeline, raw(statements_html),
                          raw(LIGHTBOX_JS)))
+        body = (h("div", {"class_": "sl-session-replay-mode"}, body_inner)
+                if reading_flow else body_inner)
         proj = store.get_research_project(sess["project_id"]) if sess.get("project_id") else None
         # Project-rooted crumb (§8.2 — the council pattern); kind root only for orphans.
         crumbs = ([(t("projects"), "/jobs"), (proj["title"], f'/jobs/{proj["id"]}')]
