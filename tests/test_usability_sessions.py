@@ -396,6 +396,55 @@ def test_prototype_states_verify_against_session_log(store, monkeypatch):
                 session_id="sid-ok")
 
 
+def test_ordered_browser_log_backfills_screenshots_into_replay(store, tmp_path, monkeypatch):
+    from sonaloop import config
+
+    monkeypatch.setattr(config, "DATA_DIR", tmp_path)
+    shot = config.sessions_dir() / "sid-visual" / "step-0.png"
+    shot.parent.mkdir(parents=True)
+    shot.write_bytes(b"png")
+    log = [{"kind": "snapshot", "url": "http://127.0.0.1:9/x", "title": "Signup",
+            "refs": ["e1"], "text": "Welcome — create your account",
+            "screenshot": "sid-visual/step-0.png"}]
+    monkeypatch.setitem(browser._RETAINED_LOGS, "sid-visual", log)
+    res = _record(
+        store, _PROTO, "prototype",
+        steps=[_step(0, screen="create your account", url="http://127.0.0.1:9/x",
+                     title="Signup")],
+        outcome=_outcome(), session_id="sid-visual",
+    )
+    session = res["usability_session"]
+    assert session["steps"][0]["state"]["screenshot"] == "sid-visual/step-0.png"
+    assert session["visual_trace"] == "screen_replay"
+    assert "warnings" not in res
+
+
+def test_browser_log_does_not_guess_screenshot_mapping_when_counts_differ(
+        store, tmp_path, monkeypatch):
+    from sonaloop import config
+
+    monkeypatch.setattr(config, "DATA_DIR", tmp_path)
+    log = [
+        {"kind": "snapshot", "url": "http://127.0.0.1:9/x", "title": "Signup",
+         "refs": ["e1"], "text": "Welcome — create your account",
+         "screenshot": "sid-ambiguous/step-0.png"},
+        {"kind": "snapshot", "url": "http://127.0.0.1:9/x", "title": "Signup",
+         "refs": ["e1"], "text": "Welcome — create your account",
+         "screenshot": "sid-ambiguous/step-1.png"},
+    ]
+    monkeypatch.setitem(browser._RETAINED_LOGS, "sid-ambiguous", log)
+    res = _record(
+        store, _PROTO, "prototype",
+        steps=[_step(0, screen="create your account", url="http://127.0.0.1:9/x",
+                     title="Signup")],
+        outcome=_outcome(), session_id="sid-ambiguous",
+    )
+    session = res["usability_session"]
+    assert "screenshot" not in session["steps"][0]["state"]
+    assert session["visual_trace"] == "text_only"
+    assert any("VISUAL_TRACE_INCOMPLETE" in warning for warning in res["warnings"])
+
+
 def test_missing_session_log_records_unverified_with_warning(store):
     res = _record(store, _LIVE, "live", session_id="sid-gone")
     assert res["grounded_verified"] is False

@@ -13,6 +13,27 @@ from ._i18n import t
 from ._primitive_taxonomy import primitive_color
 
 
+def _visual_trace(session: dict, store) -> str:
+    """Classify pixels carried by a session; ``state.screen`` text never counts as an image."""
+    steps = list(session.get("steps") or [])
+    if not steps:
+        reaction = session.get("reaction") if isinstance(session.get("reaction"), dict) else {}
+        steps = list(reaction.get("steps") or [])
+    captured = sum(bool((step.get("state") or {}).get("screenshot")) for step in steps)
+    if session.get("fidelity") == "artifact" and session.get("project_id"):
+        project = store.get_research_project(str(session["project_id"])) or {}
+        image_ids = {str(asset.get("id") or "") for asset in project.get("assets") or []
+                     if asset.get("kind") in ("image", "screenshot")}
+        captured += sum(not (step.get("state") or {}).get("screenshot")
+                        and str((step.get("state") or {}).get("screen") or "") in image_ids
+                        for step in steps)
+    if steps and captured == len(steps):
+        return "screen_replay"
+    if captured:
+        return "screen_partial"
+    return "text_only"
+
+
 def outline_session_groups(sessions: list[dict], store, prototype_sessions: list[dict] | None = None) -> dict[str, dict]:
     """Group a project's recorded usability sessions by subject key — the route-side seam. Each
     group: the subject, its sessions chronological (each enriched with a persona card for the
@@ -27,6 +48,7 @@ def outline_session_groups(sessions: list[dict], store, prototype_sessions: list
         g = groups.setdefault(key, {"subject": subj, "sessions": []})
         p = store.get_persona(s.get("persona_id", "")) or {}
         sess = dict(s)
+        sess["visual_trace"] = str(sess.get("visual_trace") or _visual_trace(sess, store))
         sess["persona"] = {"id": p.get("id") or s.get("persona_id", "x"),
                            "display_name": p.get("display_name") or s.get("persona_id", "—"),
                            "avatar": p.get("avatar")}
@@ -40,13 +62,14 @@ def outline_session_groups(sessions: list[dict], store, prototype_sessions: list
         g = groups.setdefault(key, {"subject": subj, "sessions": []})
         p = store.get_persona(s.get("persona_id", "")) or {}
         reaction = s.get("reaction") or {}
-        steps = list(reaction.get("steps") or [])
+        steps = list(reaction.get("steps") or s.get("steps") or [])
         if not steps and reaction.get("friction"):
             steps = [{"friction": {"level": "hesitation", "note": str(reaction["friction"][0])}}]
         sess = dict(s)
         sess["subject"] = subj
         sess["outcome"] = {"completed": True, "summary": reaction.get("summary", "")}
         sess["steps"] = steps
+        sess["visual_trace"] = str(sess.get("visual_trace") or _visual_trace(s, store))
         sess["persona"] = {"id": p.get("id") or s.get("persona_id", "x"),
                            "display_name": p.get("display_name") or s.get("persona_id", "—"),
                            "avatar": p.get("avatar")}

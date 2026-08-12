@@ -862,6 +862,14 @@ def record_prototype_session(persona_id, prototype_id, session_id, date_value, r
         observed_state_refs=refs, created_at=now, statements=statements,
         steps=_durable_prototype_steps(log, session_id)).to_dict()
     sess["grounded_verified"] = grounded
+    captured_steps = sum(bool((step.get("state") or {}).get("screenshot"))
+                         for step in sess.get("steps") or [])
+    if captured_steps == len(sess.get("steps") or []) and captured_steps:
+        sess["visual_trace"] = "screen_replay"
+    elif captured_steps:
+        sess["visual_trace"] = "screen_partial"
+    else:
+        sess["visual_trace"] = "text_only"
     # A prototype can be updated after this run. Stamp the version observed NOW so later critics do
     # not accidentally attribute historical reactions to whatever version happens to be current.
     sess["prototype_version"] = str(proto.get("version") or "unknown")
@@ -1408,9 +1416,12 @@ def finalize_dispatch(ctx: dict[str, Any], summary: str, store: Store) -> dict[s
         # Historical versions could checkpoint a dispatch before its plan gate had actually
         # completed. Once missing evidence repairs that gate, keep the immutable old receipt and
         # reconcile the plan instead of attempting a conflicting second checkpoint for the key.
+        # Exact transport replays take this path too, so preserve checkpoint_step's public
+        # idempotency signal even though no second journal write is attempted here.
+        receipt = {**dict(ctx.get("receipt") or {}), "deduplicated": True}
         return {
             "state": "completed", "checkpointed": True, "task_id": tid,
-            "receipt": dict(ctx.get("receipt") or {}),
+            "receipt": receipt,
             "reconciled_existing_checkpoint": True,
         }
     refs = [_dispatch_ref_token(r) for r in (fresh_task.get("produces") or [])

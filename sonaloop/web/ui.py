@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import re as _re
 from typing import Any, Iterable
+from urllib.parse import quote as _quote
 
 from ._html import Safe, h, raw, fragment, register_css
 from ._i18n import t
@@ -90,30 +91,53 @@ register_css(".sl-entity{position:relative}"
 # The avatar-group overflow chip ("+n") — rides the vendored `.sl-avatar-group` contract.
 register_css(".sl-avatar-group__more{font-size:var(--t-xs);color:var(--faint);"
              "margin-left:4px;align-self:center;white-space:nowrap}")
+register_css(".sl-avatar-group--linked{flex-wrap:wrap;row-gap:4px;padding-left:8px}"
+             ".sl-avatar-group--linked .sl-avatar-group__person{display:inline-flex;"
+             "margin-left:-8px;border-radius:50%;text-decoration:none;position:relative}"
+             ".sl-avatar-group--linked .sl-avatar-group__person:first-child{margin-left:0}"
+             ".sl-avatar-group--linked .sl-avatar{margin-left:0}"
+             ".sl-avatar-group--linked .sl-avatar-group__person:hover{z-index:1}"
+             ".sl-avatar-group--linked .sl-avatar-group__person:focus-visible{z-index:2;"
+             "outline:2px solid var(--accent);outline-offset:2px}")
 
 
-def avatar_group(personas: Iterable[Any], *, total: int | None = None, size: int = 18) -> Safe:
+def avatar_group(personas: Iterable[Any], *, total: int | None = None, size: int = 18,
+                 limit: int | None = 4, linked: bool = False) -> Safe:
     """THE persona-participation avatar group (ux-contract §10 W11) — ONE rule app-wide:
     wherever an artifact's DATA carries persona participation (council participants, session
     subjects, prototype session drivers, survey respondents, report voices, a project's
     cohort), the row AND the detail header render this group — identical anatomy everywhere:
-    the vendored `.sl-avatar-group` overlap cluster, max 4 avatars, then one quiet
+    the vendored `.sl-avatar-group` overlap cluster, normally max 4 avatars, then one quiet
     `.sl-avatar-group__more` "+n" overflow chip. `personas` = resolved persona dicts (the
     services crew stubs or full records; falsy entries drop); `total` = the full participation
     count when the caller already truncated. Rows render at 18px, detail headers at 22px —
-    same classes and overflow behavior at both sizes.
+    same classes and overflow behavior at both sizes. A project header may deliberately pass
+    `limit=None, linked=True`: its cohort is the subject of the page, so every involved persona
+    stays visible and each portrait opens that persona. Dense rows keep the four-person default.
 
     NEGATIVE rule (deliberate, pinned by tests/test_persona_attribution.py): decision /
     hypothesis / note / asset records carry NO direct persona participation — their persona
     link is indirect, via the evidence they cite — so those rows and detail headers never
     render an avatar group. Returns "" for an empty cohort (a chip-less row, never a husk)."""
     from ._components import _avatar
-    ps = [p for p in personas if p][:4]
+    all_ps = [p for p in personas if p]
+    ps = all_ps if limit is None else all_ps[:max(int(limit), 0)]
     if not ps:
         return raw("")
-    n_more = max((total if total is not None else len(ps)) - len(ps), 0)
-    return h("span", {"class_": "sl-avatar-group"},
-             fragment(*(raw(_avatar(p, size)) for p in ps)),
+    n_more = max((total if total is not None else len(all_ps)) - len(ps), 0)
+
+    def portrait(p: dict) -> Safe:
+        avatar = raw(_avatar(p, size))
+        persona_id = str(p.get("id") or "")
+        name = str(p.get("display_name") or persona_id or t("persona"))
+        if not linked or not persona_id:
+            return avatar
+        return h("a", {"class_": "sl-avatar-group__person",
+                       "href": f"/personas/{_quote(persona_id, safe='')}",
+                       "title": name, "aria-label": name}, avatar)
+
+    return h("span", {"class_": "sl-avatar-group" + (" sl-avatar-group--linked" if linked else "")},
+             fragment(*(portrait(p) for p in ps)),
              h("span", {"class_": "sl-avatar-group__more"}, f"+{n_more}") if n_more else None)
 
 
@@ -186,7 +210,7 @@ def primitive_row(kind: str, record: dict, store: Any = None, *, href: str | Non
     | report/synthesis| report icon           | `Report`                | avatars · count · date|
     | decision        | flag                  | status pill             | evidence count · date |
     | survey          | plan icon             | lifecycle pill          | avatars · n responses |
-    | session         | activity icon         | verified check          | avatar group · date   |
+    | session         | activity icon         | grounding · visual trace | avatar group · date  |
     | prototype       | prototype icon        | fidelity tag            | avatars · sessions n  |
     | asset           | the `.sl-file` FILE atom (V9): ext badge/thumb · filename+ext ·       |
     |                 | size · date meta · direction pill · ONE download/open affordance;     |
@@ -259,6 +283,20 @@ def primitive_row(kind: str, record: dict, store: Any = None, *, href: str | Non
         kind_desc = (rec.get("subject") or {}).get("label", "")
         if rec.get("grounded_verified"):
             badges.append(raw(_label(t("grounded_yes"), "var(--green)")))
+        steps = list(rec.get("steps") or [])
+        visual_trace = str(rec.get("visual_trace") or "")
+        if not visual_trace and steps:
+            captured = sum(bool((step.get("state") or {}).get("screenshot")) for step in steps)
+            visual_trace = ("screen_replay" if captured == len(steps)
+                            else "screen_partial" if captured else "text_only")
+        trace_meta = ((t("session_screen_replay"), "var(--blue)")
+                      if visual_trace == "screen_replay" else
+                      (t("session_screen_partial"), "var(--amber)")
+                      if visual_trace == "screen_partial" else
+                      (t("session_text_only"), "var(--muted)")
+                      if visual_trace == "text_only" else None)
+        if trace_meta:
+            badges.append(raw(_label(trace_meta[0], trace_meta[1])))
         # V2: the step count moved to the detail/slide-over — the avatar + grounded check +
         # date are what the row reader scans for. The subject persona renders through the ONE
         # avatar_group anatomy (W11) — a group of one, same classes as every other kind.

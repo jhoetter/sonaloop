@@ -165,6 +165,7 @@ def test_legacy_early_checkpoint_reconciles_after_evidence_repair(store):
         project["id"], act["id"], dispatch_token=dispatch["dispatch_token"], store=store)
 
     assert out["dispatch"]["reconciled_existing_checkpoint"] is True
+    assert out["dispatch"]["receipt"]["deduplicated"] is True
     assert services.get_plan(project["id"], store=store)["tasks"][-1]["status"] == "done"
     assert len(services.run_journal(run["run_id"], store=store)["steps"]) == 2
 

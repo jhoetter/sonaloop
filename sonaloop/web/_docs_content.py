@@ -165,8 +165,8 @@ DOCS = [
               "als Screen-Walkthrough, klickbarer Prototyp oder Live-Oberfläche. Bei Leseaufgaben zeigt der lineare Flow einen begrenzten, fokuszentrierten Ausschnitt direkt neben dem spontanen Persona-Kommentar; Beobachtung und Research-Analyse bleiben davon getrennt. Auf schmalen Screens stehen Bild und Kommentar untereinander.",
               "A replayable usage trace: what the persona saw, did, thought and decided — as a screen "
               "walkthrough, clickable prototype or live surface. For reading tasks, its linear flow shows a bounded, focus-centred crop directly beside the persona's spontaneous comment; observation and researcher analysis stay separate. Narrow screens stack image and comment."),
-     "why": ("Sie macht den Pfad in einer fast bildschirmbreiten Session verständlich, bevor Eigenschaften und Beziehungen folgen, ohne eine synthetische Fokusmaske als Eye-Tracking oder gemessene Aufmerksamkeit auszugeben. Der Ausschnitt öffnet das unveränderte Originalbild; Schließen-Button, Escape oder Hintergrundklick führen zurück in denselben Schritt.",
-             "It makes the path legible in an almost viewport-wide session before properties and relations, without presenting a synthetic focus mask as eye-tracking or measured attention. The crop opens the unchanged original; the close button, Escape or backdrop click returns to the same step.")},
+     "why": ("Sie macht den Pfad in einer fast bildschirmbreiten Session verständlich, bevor Eigenschaften und Beziehungen folgen, ohne eine synthetische Fokusmaske als Eye-Tracking oder gemessene Aufmerksamkeit auszugeben. Der Ausschnitt öffnet das unveränderte Originalbild; Schließen-Button, Escape oder Hintergrundklick führen zurück in denselben Schritt. Eine Session-Zeile sagt **Screen-Replay**, **Screens teilweise** oder **Kein Screen**; reine Textbeschreibungen sehen nie wie erfasste Pixel aus.",
+             "It makes the path legible in an almost viewport-wide session before properties and relations, without presenting a synthetic focus mask as eye-tracking or measured attention. The crop opens the unchanged original; the close button, Escape or backdrop click returns to the same step. A session row says **Screen replay**, **Some screens**, or **No screen**; text-only descriptions are never styled as captured pixels.")},
     {"art": "survey", "icon": "plan", "name": "surveys_h", "group": "evidence",
      "what": ("Ein versandfertiges Instrument mit Fragen und Antwortoptionen; echte Antworten können "
               "importiert und gegen Persona-Prognosen gelesen werden.",
@@ -442,7 +442,7 @@ INSPECTOR_SECTIONS = [
       "reproduziert exakt diese Ansicht (Liste + offenes Panel). Das ⤢-Symbol wechselt zur "
       "vollen Seite (die kanonische Detail-URL, die direkt geladen weiterhin die volle Seite "
       "zeigt), Esc/Zurück bringt die Liste samt URL zurück. Den **Run-Status** eines Projekts zeigt ein Chip im "
-      "Projekt-Kopf (verlinkt aufs Run-Journal). Hover-Bezüge in der Projektliste folgen dem "
+      "Projekt-Kopf (verlinkt aufs Run-Journal). Der Kopf zeigt außerdem die vollständige beteiligte Persona-Kohorte; jedes Avatar führt zum Profil. Hover-Bezüge in der Projektliste folgen dem "
       "Plan-DAG: Ein erzeugter Prototyp oder ein Modell zeigt seine Inputs aus der vorherigen "
       "Evidenz, auch wenn ein Methodik-Frame dazwischenliegt.",
       "The upper sidebar has exactly **four** items: **Jobs · Methodologies · Formats · Personas** "
@@ -475,7 +475,7 @@ INSPECTOR_SECTIONS = [
       "path>` — reloading or sharing it reproduces exactly this view (list + open panel). "
       "The ⤢ control expands to the full page (the canonical detail URL, which still renders "
       "full-page when loaded directly), and Esc/back restores the list and its URL. A project's "
-      "**run state** shows as a chip in the project header (linking to the run journal). Hover "
+      "**run state** shows as a chip in the project header (linking to the run journal). The header also shows the complete participating persona cohort; each avatar opens that profile. Hover "
       "relations in the project outline follow the plan DAG: a generated prototype or model shows "
       "its inputs from prior evidence, even when a methodology frame sits between them.")),
     ("examples", "package",

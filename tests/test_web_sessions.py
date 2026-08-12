@@ -102,8 +102,10 @@ def test_replay_renders_step_anchors_friction_rail_and_verdicts(store):
     # every step is addressable; the friction rail jumps to the friction steps only
     assert 'id="step-0"' in html and 'id="step-1"' in html and 'id="step-2"' in html
     assert "Friction points" in html and 'href="#step-1"' in html and 'href="#step-2"' in html
-    # no screenshot file -> the screen TEXT excerpt, no <img> in the timeline
-    assert "sess-screen-txt" in html and "screen-1" in html and "/sessions-files/" not in html
+    # no screenshot file -> an honest empty visual state; the text remains a description,
+    # never a faux screenshot frame
+    assert "sl-session-screen-empty" in html and "No screen saved" in html
+    assert "screen-1" in html and "/sessions-files/" not in html
     # think-aloud, action chip + target, per-step verdict, outcome banner
     assert "thinking aloud at step 1" in html and "button-2" in html
     assert "would continue" in html and "would drop" in html and "dead end" in html
@@ -125,8 +127,8 @@ def test_replay_shows_screenshot_img_only_when_the_file_exists(store, tmp_path, 
     sess = _record(store, steps=[shot, _step(1)], key="shots")
     html = _client().get(f'/sessions/{sess["id"]}?lang=en').text
     assert f'<img class="sess-shot" src="/sessions-files/{sess_id}/step-0.png"' in html
-    # step 1 has no screenshot -> text excerpt
-    assert "sess-screen-txt" in html and "screen-1" in html
+    # step 1 has no screenshot -> explicit no-screen state + the textual description
+    assert "sl-session-screen-empty" in html and "No screen saved" in html and "screen-1" in html
 
 
 def test_reading_flow_renders_large_focused_screens_without_extra_controls(
@@ -191,7 +193,7 @@ def test_artifact_reading_flow_reuses_project_asset_pixels(store, tmp_path, monk
     assert "Primary activation entry" in html
     assert 'class="sl-session-replay-mode"' in html
     assert ".sl-drawer:has(.sl-session-replay-mode) .sl-drawer__panel" in html
-    assert '<div class="sess-screen-txt">' not in html
+    assert 'class="sl-session-screen-empty"' not in html
 
     slide = _client().get(f'/sessions/{sess["id"]}?slide=1&lang=en').text
     assert 'class="sl-session-replay-mode"' in slide

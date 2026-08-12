@@ -130,6 +130,18 @@ def test_projects_list_rows_render_the_cohort_group(seeded):
     assert GROUP in html and MORE in html        # 5-persona cohort ⇒ 4 avatars + "+1"
 
 
+def test_project_header_lists_and_links_the_complete_cohort(seeded):
+    html = TestClient(web.create_app()).get(
+        f'/jobs/{seeded["project"]["id"]}?lang=en').text
+    head = html.split('class="proj-head"', 1)[1].split('class="outlinecard', 1)[0]
+    assert "5 personas" in head
+    assert 'class="sl-avatar-group sl-avatar-group--linked"' in head
+    assert MORE not in head                       # detail header shows all, unlike dense rows
+    for i, pid in enumerate(seeded["pids"]):
+        assert f'href="/personas/{pid}"' in head
+        assert f'title="Crew Member {i}"' in head
+
+
 def test_project_outline_prototype_row_renders_the_drivers(seeded):
     html = TestClient(web.create_app()).get(f'/jobs/{seeded["project"]["id"]}?lang=en').text
     # the prototype outline row (data-oid = prototype id) carries the crew cluster
@@ -143,6 +155,8 @@ def test_project_outline_session_rows_render_the_subject_persona(seeded):
         row = html.split(f'data-oid="{session["id"]}"', 1)[1].split("</a>", 1)[0]
         assert GROUP in row, (
             "each outline session row must show the persona who performed that session (W11)")
+        assert "No screen" in row, (
+            "a text-only session must say that it carries no recorded screen")
 
 
 # --------------------------------------------------------------- detail pages

@@ -446,6 +446,15 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         # trace state, forms and counts are available in the FilterBar/detail aside instead of
         # competing as same-looking pills in the timeline.
         relation_parts = []
+        if it.get("rkind") == "session":
+            visual_trace = str((it.get("session") or {}).get("visual_trace") or "")
+            visual_key = {
+                "screen_replay": "session_screen_replay",
+                "screen_partial": "session_screen_partial",
+                "text_only": "session_text_only",
+            }.get(visual_trace)
+            if visual_key:
+                relation_parts.append(t(visual_key))
         n_inputs = len(rel_in.get(oid, ()))
         n_outputs = len(rel_out.get(oid, ()))
         if n_inputs:
@@ -453,7 +462,9 @@ def _outline_html(graph: dict, sessions: dict | None = None, decisions: list | N
         if n_outputs:
             relation_parts.append(t("rel_outputs_n", n=n_outputs))
         relation_summary = (
-            h("span", {"class_": "ol-rel-summary", "title": t("relations")},
+            h("span", {"class_": "ol-rel-summary",
+                       "title": (t("session_kind") if it.get("rkind") == "session"
+                                 else t("relations"))},
               " · ".join(relation_parts))
             if relation_parts else ""
         )

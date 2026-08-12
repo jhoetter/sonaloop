@@ -39,7 +39,10 @@ register_css(r"""
 .sess-step:target{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-weak)}
 .sess-screen{background:var(--panel-2);border-right:1px solid var(--line);padding:13px 15px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .sess-shot{display:block;max-width:100%;border:1px solid var(--line);border-radius:var(--radius-sm)}
-.sess-screen-txt{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:var(--t-sm);line-height:1.5;white-space:pre-wrap;border:1px dashed var(--line);border-radius:var(--radius-sm);background:var(--panel);padding:10px 12px;max-height:230px;overflow:auto}
+.sl-session-screen-empty{min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px;padding:20px;color:var(--muted)}
+.sl-session-screen-empty svg{width:22px;height:22px;color:var(--faint)}
+.sl-session-screen-empty strong{color:var(--ink);font-size:var(--t-sm);font-weight:600}
+.sl-session-screen-description{max-width:42ch;margin:0;color:var(--muted);font-size:var(--t-sm);line-height:1.5}
 .sess-cap{color:var(--muted);font-size:var(--t-xs);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sess-act{padding:13px 15px;display:flex;flex-direction:column;gap:9px;min-width:0}
 .sess-act-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -235,11 +238,16 @@ def proto_session_vm(sess: dict, store: Store) -> dict:
     r = sess.get("reaction") if isinstance(sess.get("reaction"), dict) else {}
     proto = store.get_prototype(sess.get("prototype_id", "")) or {}
     steps = r.get("steps") or _timeline_steps(r.get("timeline")) or sess.get("steps") or []
+    trace_steps = list(sess.get("steps") or steps)
+    captured = sum(bool((step.get("state") or {}).get("screenshot")) for step in trace_steps)
+    visual_trace = str(sess.get("visual_trace") or ("screen_replay"
+        if trace_steps and captured == len(trace_steps) else "screen_partial" if captured else "text_only"))
     return {"id": sess["id"], "persona_id": sess.get("persona_id", ""),
             "subject": {"kind": "prototype", "id": proto.get("id") or sess.get("prototype_id", ""),
                         "label": proto.get("name") or sess.get("prototype_id", "")},
             "fidelity": "prototype", "steps": steps,
             "grounded_verified": sess.get("grounded_verified"),
+            "visual_trace": visual_trace,
             "created_at": sess.get("created_at", ""), "date": sess.get("date", ""),
             "project_id": proto.get("project_id"), "outcome": {"summary": r.get("summary", "")}}
 
@@ -256,9 +264,8 @@ def proto_session_rows(store: Store, project_id: str | None = None,
     return vms
 
 
-# reaction.timeline is the OTHER authored walk shape (record_prototype_session accepts the
-# reaction free-form, and agents author these keys in either language): per entry the narration
-# lives under monologue|monolog, the observed screen under observed|beobachtung|screen.
+# reaction.timeline is the other authored walk shape: narration lives under monologue|monolog,
+# the observed screen under observed|beobachtung|screen.
 _TL_MONOLOGUE_KEYS = ("monologue", "monolog")
 _TL_OBSERVED_KEYS = ("observed", "beobachtung", "screen")
 
@@ -287,10 +294,8 @@ def _timeline_steps(timeline) -> list[dict]:
 def _proto_step_shim(sess: dict) -> dict:
     """The {id, steps} shim _step_html/_friction_rail read: authored reaction steps/timeline,
     else the recorder's privacy-safe durable browser snapshots. It enriches every shape with the
-    harness's on-disk screenshot convention (data/sessions/<browser session_id>/step-<n>.png) —
-    the id is the BROWSER session dir, so _screenshot_url resolves the file when it exists and the
-    step falls back to recorded state when it doesn't. The enrichment also repairs an explicitly
-    stored empty screenshot (key present but None/'' — setdefault missed those)."""
+    harness's on-disk screenshot convention. Its id is the BROWSER session dir, so
+    _screenshot_url resolves existing pixels and missing files fall back honestly."""
     r = sess.get("reaction") if isinstance(sess.get("reaction"), dict) else {}
     steps = []
     source_steps = r.get("steps") or _timeline_steps(r.get("timeline")) or sess.get("steps") or []
@@ -521,8 +526,8 @@ def _artifact_screen(sess: dict, state: dict, store: Store | None) -> dict | Non
 
 
 def _step_html(sess: dict, step: dict, store: Store | None = None) -> str:
-    """One timeline row (`id="step-N"`): the SCREEN panel (screenshot when the file exists, else the
-    recorded screen text as a framed excerpt + url/title caption) beside the ACTION side (typed
+    """One timeline row (`id="step-N"`): the SCREEN panel (screenshot when the file exists, else an
+    explicit no-screen state with the recorded description) beside the ACTION side (typed
     action chip + target/detail, the think-aloud monologue, friction + per-step verdict)."""
     i = step.get("index", 0)
     state = step.get("state") or {}
@@ -550,9 +555,14 @@ def _step_html(sess: dict, step: dict, store: Store | None = None) -> str:
                         "alt": state.get("title") or t("step_n", n=i), "loading": "lazy"}))
             if shot_url else None)
     crop = _focus_crop(focus, asset) if focus else None
+    missing_screen = h("div", {"class_": "sl-session-screen-empty",
+                               "data-visual-trace": "text_only"}, raw(_icon("image")),
+        h("strong", {}, t("session_screen_missing_h")),
+        (h("p", {"class_": "sl-session-screen-description"}, state.get("screen", ""))
+         if state.get("screen") else None))
     screen = (h("div", focus_lens_attrs(crop), shot,
                 raw(_focus_overlay(crop["focus"] if crop else focus)))
-              if shot and focus else shot or h("div", {"class_": "sess-screen-txt"}, state.get("screen", "")))
+              if shot and focus else shot or missing_screen)
     caption = " · ".join(x for x in (state.get("url"), state.get("title")) if x)
     target = (action.get("target") or "").strip()
     detail = (action.get("detail") or "").strip()

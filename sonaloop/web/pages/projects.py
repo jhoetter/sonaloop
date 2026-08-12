@@ -21,6 +21,9 @@ register_css(r"""
 .sl-pu-claim{color:var(--ink);line-height:1.5}.sl-pu-claim .lbl{margin-right:5px}.sl-pu-claim .sl-claim-sources{margin-top:3px}
 .sl-project-creator{color:var(--muted);font-size:var(--t-xs);margin:4px 0 0}
 .sl-project-meta{color:var(--muted);font-size:var(--t-xs);margin:4px 0 0}
+.sl-project-cohort{display:flex;align-items:center;gap:10px;margin:10px 0 2px;min-height:30px}
+.sl-project-cohort__label{color:var(--muted);font-size:var(--t-xs);white-space:nowrap}
+@media(max-width:560px){.sl-project-cohort{align-items:flex-start;flex-direction:column;gap:6px}}
 .sl-project-setup{flex:none;width:100%;max-width:900px;margin:0 auto;padding:0 24px 10px;border:0;background:transparent}
 .sl-project-setup>summary,.sl-project-lineage>summary{list-style:none;cursor:pointer;color:var(--muted);font-size:var(--t-xs);font-weight:500;display:flex;align-items:center;gap:6px;width:max-content}
 .sl-project-setup>summary::-webkit-details-marker,.sl-project-lineage>summary::-webkit-details-marker{display:none}
@@ -331,6 +334,19 @@ def register_projects(app) -> None:
         origin_hint = (
             t("project_created_via_hint", client=origin_label) if origin_label else ""
         )
+        persona_ids = list(dict.fromkeys(str(pid) for pid in project_record.get("persona_ids") or []
+                                         if str(pid)))
+        cohort = [store.get_persona(pid) for pid in persona_ids]
+        cohort = [persona for persona in cohort if persona]
+        cohort_html = (
+            h("div", {"class_": "sl-project-cohort",
+                      "aria-label": t("project_personas_n", n=len(persona_ids))},
+              h("span", {"class_": "sl-project-cohort__label"},
+                t("project_personas_n", n=len(persona_ids))),
+              ui.avatar_group(cohort, total=len(persona_ids), size=28,
+                              limit=None, linked=True))
+            if persona_ids and cohort else None
+        )
         # The FilterBar closes the head so it sits INSIDE the 900px measure (V1 — it used to
         # float at the page's far left), aligned with the title/outline left edge.
         body = h("div", {"class_": "proj"},
@@ -346,6 +362,7 @@ def register_projects(app) -> None:
                            "aria-label": f"{creator_text}. {origin_hint}"}
                           if origin_hint else {}),
                    }, creator_text) if creator_label else None),
+                   cohort_html,
                    (h("p", {"class_": "sl-project-meta", "data-project-archived": True},
                       t("archive_non_destructive"))
                     if str(project_record.get("status") or "") == "archived" else None),

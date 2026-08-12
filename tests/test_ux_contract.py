@@ -76,7 +76,7 @@ ALLOWED_CLASS_TOKENS = {
     # usability sessions
     "sess-act", "sess-act-h", "sess-banner", "sess-cap", "sess-detail", "sess-foot",
     "sess-freason", "sess-frow", "sess-funnel", "sess-mono", "sess-n", "sess-rail",
-    "sess-rail-h", "sess-rail-note", "sess-screen", "sess-screen-txt", "sess-shot",
+    "sess-rail-h", "sess-rail-note", "sess-screen", "sess-shot",
     "sess-step", "sess-steps", "sess-target", "sfl", "sfn",
     # surveys + syntheses
     "svbar", "svopts", "svq", "svrow", "syn-meta", "pvbar", "pvlbl", "pvline", "pvseg",

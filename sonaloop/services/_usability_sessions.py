@@ -158,6 +158,10 @@ def brief_usability_session(persona_id, subject, fidelity, project_id=None, stor
             "first-class outcomes — a persona whose context does not support enthusiasm should stall "
             "or drop off. The session is the deliverable, not a summary of it: record every step you "
             "took, not the highlights."
+            " For prototype/live sessions, copy the exact screenshot returned by each observed "
+            "snapshot into its step; when the browser log and authored steps align exactly, the "
+            "recorder backfills these refs. A state.screen description without screenshot pixels "
+            "remains a text trace, not a screen replay."
         ) + capability_context_line(profile) + PERSONA_VOICE_CONTRACT + PRIMITIVES_CONTRACT,  # noqa: F821 (bound)
     }
     gate = capability_fidelity_warnings(                              # noqa: F821 (bound)
@@ -361,6 +365,43 @@ def _verify_states_against_log(steps: list[dict[str, Any]], log: list[dict[str, 
                          f"session log: {unmatched}")
 
 
+def _visual_trace(steps: list[dict[str, Any]]) -> str:
+    """Honest visual-evidence posture for one replay.
+
+    A textual ``state.screen`` is still useful narration, but it is not pixels.  Persisting this
+    small derived field lets every surface distinguish a real screen replay from a legacy/text-only
+    trace without guessing from fidelity or groundedness.
+    """
+    captured = sum(bool((step.get("state") or {}).get("screenshot")) for step in steps)
+    if captured == len(steps):
+        return "screen_replay"
+    if captured:
+        return "screen_partial"
+    return "text_only"
+
+
+def _screenshots_from_ordered_log(steps: list[dict[str, Any]],
+                                  log: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Carry harness screenshots into the authored trace when the mapping is unambiguous.
+
+    The browser log and the authored trace are both ordered snapshots.  We only infer the mapping
+    when their counts are identical; otherwise an extra ``proto_read`` could shift the pictures and
+    a missing image is safer than a wrong one.  Explicitly authored screenshot refs always win.
+    """
+    snapshots = [entry for entry in log if entry.get("kind") == "snapshot"]
+    if len(snapshots) != len(steps):
+        return steps
+    out = []
+    for step, snapshot in zip(steps, snapshots):
+        copied = dict(step)
+        state = dict(copied.get("state") or {})
+        if not state.get("screenshot") and snapshot.get("screenshot"):
+            state["screenshot"] = snapshot["screenshot"]
+        copied["state"] = state
+        out.append(copied)
+    return out
+
+
 def record_usability_session(persona_id, subject, fidelity, date_value, steps, outcome,
                              statements=None, project_id=None, session_id=None,
                              key: str | None = None, store: Store | None = None,
@@ -382,6 +423,10 @@ def record_usability_session(persona_id, subject, fidelity, date_value, steps, o
         raise ValueError("steps must be a non-empty list — the session is the deliverable, record every step")
     norm_steps = [_validate_step(s, i) for i, s in enumerate(steps)]
     norm_outcome = _validate_outcome(outcome, len(norm_steps))
+    browser_log = (_browser.session_log(session_id)
+                   if fidelity in ("prototype", "live") and session_id else None)
+    if browser_log:
+        norm_steps = _screenshots_from_ordered_log(norm_steps, browser_log)
     payload_fingerprint = canonical_payload_fingerprint({
         "persona_id": persona_id,
         "project_id": project_id or "",
@@ -434,9 +479,8 @@ def record_usability_session(persona_id, subject, fidelity, date_value, steps, o
     grounded = None
     warnings: list[str] = []
     if fidelity in ("prototype", "live") and session_id:
-        log = _browser.session_log(session_id)
-        if log:
-            _verify_states_against_log(norm_steps, log)
+        if browser_log:
+            _verify_states_against_log(norm_steps, browser_log)
             grounded = True
         else:
             grounded = False
@@ -451,6 +495,7 @@ def record_usability_session(persona_id, subject, fidelity, date_value, steps, o
         id=sess_id, project_id=project_id or "", persona_id=persona_id, date=date_value,
         subject=subject, fidelity=fidelity, steps=norm_steps, outcome=norm_outcome,
         created_at=(existing or {}).get("created_at") or now, statements=norm_statements).to_dict()
+    sess["visual_trace"] = _visual_trace(norm_steps)
     if subject.get("kind") == "prototype":
         proto = store.get_prototype(str(subject.get("id") or "")) or {}
         # Snapshot at record time; an absent stamp on older rows means unknown, never "current".
@@ -486,6 +531,12 @@ def record_usability_session(persona_id, subject, fidelity, date_value, steps, o
         out["grounded_verified"] = grounded
     if warnings:
         out["warnings"] = warnings
+    if grounded is True and sess["visual_trace"] != "screen_replay":
+        out.setdefault("warnings", []).append(
+            "VISUAL_TRACE_INCOMPLETE: observed states were verified, but not every replay step has "
+            "a stored screenshot. Keep the text trace, but capture pixels before calling this a "
+            "screen replay."
+        )
     return out
 
 
