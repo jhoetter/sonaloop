@@ -138,6 +138,37 @@ def test_governed_complete_task_without_trace_link_fails_before_mutation(store):
     assert len(services.run_journal(run["run_id"], store=store)["steps"]) == 1
 
 
+def test_legacy_early_checkpoint_reconciles_after_evidence_repair(store):
+    project = services.start_project(
+        "Legacy checkpoint repair", "Repair a premature empty checkpoint", None,
+        persona_ids=["p1"], operation_id="legacy-checkpoint-project", store=store)
+    run = services.start_run(
+        project["id"], operation_id="legacy-checkpoint-run", store=store)
+    frame = services.run_step(run["run_id"], store=store)
+    services.record_frame(
+        project["id"], frame["step_id"], ["What proves the repair?"],
+        memory_refs=["memory:p1:repair"], dispatch_token=frame["dispatch_token"], store=store)
+    act = services.add_task(
+        project["id"], "act", "session", "Record repaired evidence",
+        consumes=["frame__root"], store=store)
+    dispatch = services.run_step(run["run_id"], store=store)
+    services.checkpoint_step(run["run_id"], {
+        "task_id": act["id"], "bucket": "act", "key": dispatch["key"],
+        "dispatch_token": dispatch["dispatch_token"], "evidence": [],
+        "produced_refs": [], "summary": "legacy premature checkpoint",
+    }, store=store)
+    services.link_evidence(
+        project["id"], act["id"], {"kind": "session", "id": "session_repaired"},
+        dispatch_token=dispatch["dispatch_token"], store=store)
+
+    out = services.complete_task(
+        project["id"], act["id"], dispatch_token=dispatch["dispatch_token"], store=store)
+
+    assert out["dispatch"]["reconciled_existing_checkpoint"] is True
+    assert services.get_plan(project["id"], store=store)["tasks"][-1]["status"] == "done"
+    assert len(services.run_journal(run["run_id"], store=store)["steps"]) == 2
+
+
 def test_build_dispatch_reserves_primary_slot_for_artifact_not_session(store):
     project, run, dispatch = _build_dispatch(store, "future-contract")
     pid, token = project["id"], dispatch["dispatch_token"]

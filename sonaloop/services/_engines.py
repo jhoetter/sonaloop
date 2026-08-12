@@ -1404,6 +1404,15 @@ def finalize_dispatch(ctx: dict[str, Any], summary: str, store: Store) -> dict[s
                     "needs": completed["trace_nudge"]["message"]}
     fresh = _plan.get_plan(pid, store=store) or {}
     fresh_task = next((t for t in fresh.get("tasks") or [] if str(t.get("id") or "") == tid), task)
+    if ctx.get("checkpointed"):
+        # Historical versions could checkpoint a dispatch before its plan gate had actually
+        # completed. Once missing evidence repairs that gate, keep the immutable old receipt and
+        # reconcile the plan instead of attempting a conflicting second checkpoint for the key.
+        return {
+            "state": "completed", "checkpointed": True, "task_id": tid,
+            "receipt": dict(ctx.get("receipt") or {}),
+            "reconciled_existing_checkpoint": True,
+        }
     refs = [_dispatch_ref_token(r) for r in (fresh_task.get("produces") or [])
             if r.get("kind") != "frame" or ctx.get("output_kind") == "frame"]
     receipt = checkpoint_step(str(ctx["run_id"]), {
