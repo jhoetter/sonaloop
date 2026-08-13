@@ -406,38 +406,6 @@ RIGOUR_STEPS = [
 # What the inspector itself offers the human at the keyboard — the features you SEE, in plain
 # language. Shape: (anchor, icon, (title_de, title_en), (body_de, body_en)); bodies are Markdown.
 INSPECTOR_SECTIONS = [
-    ("multi-variant-vision", "layers",
-     ("Vision: Multi-Variant Software Development", "Vision: multi-variant software development"),
-     ("**sonaloop-v4** entwickelt sich zur Control Plane für Multi-Variant Software Development: "
-      "Aus einem Issue entstehen mehrere fachlich unterscheidbare, ausführbare Varianten, die in "
-      "der echten Anwendung erlebt, mit Feedback und User Tests verglichen, als Decision "
-      "nachvollziehbar ausgewählt und kontrolliert bis Pull Request und Release geführt werden. "
-      "Das stabile Domänenmodell lautet **Issue → Variant Set → Variant → unveränderliche Variant "
-      "Revision → Preview → Evidenz → Decision → Delivery**. Branches, Worktrees, Prozesse, "
-      "Container und URLs materialisieren dieses Modell lediglich. Für Issue-, Source-Control-, "
-      "Agent-, Compute-, Preview- und Deployment-Funktionen gelten sonaloop-eigene Defaults mit "
-      "austauschbaren Provider-Verträgen. Dabei bleiben Application Target, Compute Environment, "
-      "Devbox, Working Copy, Runtime und Preview getrennte Begriffe. Die Umsetzung erfolgt "
-      "inkrementell: zuerst schnelle parallele Varianten und warme Previews, dann verwaltete "
-      "Ausführung und Evidenz, anschließend Decisions, Product Intent Review und Delivery. Die "
-      "erste Ausführungsbasis akzeptiert dafür idempotente, begrenzte Batches von zwei bis "
-      "zwanzig konfigurierten Varianten, ohne alle Previews gleichzeitig zu laden. Die "
-      "kanonische, ausführliche Produktvision steht in der veröffentlichten Dokumentation unter "
-      "**Multi-Variant Development**.",
-      "**sonaloop-v4** is evolving into the control plane for multi-variant software development: "
-      "one issue produces several materially distinct, executable variants that teams experience "
-      "inside the real application, compare through feedback and user tests, select through an "
-      "auditable decision, and carry deliberately through pull request and release. Its stable "
-      "domain model is **Issue → Variant Set → Variant → immutable Variant Revision → Preview → "
-      "Evidence → Decision → Delivery**. Branches, worktrees, processes, containers and URLs only "
-      "materialise that model. Sonaloop-owned defaults and replaceable provider contracts cover "
-      "issue, source-control, agent, compute, preview and deployment functions. Application Target, "
-      "Compute Environment, Devbox, Working Copy, Runtime and Preview remain distinct concepts. "
-      "Delivery is incremental: fast parallel variants and warm previews first, managed execution "
-      "and evidence next, followed by decisions, Product Intent Review and delivery. The first "
-      "execution foundation accepts idempotent bounded batches of two to twenty configured "
-      "variants without loading every preview at once. The canonical "
-      "long-form product vision is published in the **Multi-Variant Development** documentation.")),
     ("orientation", "book",
      ("Orientierung: vier Punkte, ein Modell", "Getting around: four items, one model"),
      ("Die obere Seitenleiste hat genau **vier** Einträge: **Jobs · Methodiken · Formate · Personas** "
@@ -476,7 +444,7 @@ INSPECTOR_SECTIONS = [
       "zeigt), Esc/Zurück bringt die Liste samt URL zurück. Den **Run-Status** eines Projekts zeigt ein Chip im "
       "Projekt-Kopf (verlinkt aufs Run-Journal). Der Kopf zeigt außerdem die vollständige beteiligte Persona-Kohorte; jedes Avatar führt zum Profil. Hover-Bezüge in der Projektliste folgen dem "
       "Plan-DAG: Ein erzeugter Prototyp oder ein Modell zeigt seine Inputs aus der vorherigen "
-      "Evidenz, auch wenn ein Methodik-Frame dazwischenliegt. Im **Workbench-Projekt-Canvas** sucht **⌘K / Ctrl+K** unabhängig von aktiven Canvas-Filtern über Routen, Zustände, Viewports, Issues und Varianten; ein Treffer blendet den Screen ein und zentriert ihn. Light und Dark bleiben unveränderte Zustände desselben logischen Screens und folgen automatisch dem Workbench-Theme: Dark bevorzugt den echten Dark-Capture und fällt sonst auf Light zurück, Light verbirgt Dark-only. **Play** zeigt zuerst den verifizierten Capture und lädt Current sowie bereite Varianten danach, öffnet Live-Sessions erst bei Auswahl und verwendet bereits geöffnete tab-lokal wieder. Während die Live-App hydratisiert, bleibt der Capture vor dem inerten Iframe. Eine Preview Bridge gibt die App explizit frei; ohne Bridge erscheint nach kurzer Frist **Live-App öffnen**, statt die Bereitschaft zu raten und einen weißen App-Shell zu zeigen. Der Inspector zeigt exakt am Screen verknüpfte Changes auch vor der Play-Qualifikation und trennt aktive von bereiten Varianten. Die eigenständige immutable Variantenansicht wärmt höchstens drei direkte Nachbarn mit insgesamt zwei spekulativen Loads vor. Der Inspector schwebt als deckende Karte über der vollen Canvas-Fläche; seine Umgebung bleibt transparent und schneidet keine Screens ab.",
+      "Evidenz, auch wenn ein Methodik-Frame dazwischenliegt. Im **Workbench-Projekt-Canvas** sucht **⌘K / Ctrl+K** unabhängig von aktiven Canvas-Filtern über Routen, Zustände, Viewports, Issues und Varianten; ein Treffer blendet den Screen ein und zentriert ihn. Light und Dark bleiben unveränderte Zustände desselben logischen Screens und folgen automatisch dem Workbench-Theme: Dark bevorzugt den echten Dark-Capture und fällt sonst auf Light zurück, Light verbirgt Dark-only. **Play** bietet nur den verifizierten Current-Stand plus bereite Varianten an, öffnet Live-Sessions erst bei Auswahl und verwendet bereits geöffnete tab-lokal wieder. Die eigenständige immutable Variantenansicht wärmt höchstens drei direkte Nachbarn mit insgesamt zwei spekulativen Loads vor. Der Inspector schwebt als deckende Karte über der vollen Canvas-Fläche; seine Umgebung bleibt transparent und schneidet keine Screens ab.",
       "The upper sidebar has exactly **four** items: **Jobs · Methodologies · Formats · Personas** "
       "(Activity, settings & docs live in the bottom-left user menu). One mental model runs the whole app: *job → "
       "phases → rows; click = slide-over.* The **job is the home** — everything a study produces "
@@ -509,7 +477,7 @@ INSPECTOR_SECTIONS = [
       "full-page when loaded directly), and Esc/back restores the list and its URL. A project's "
       "**run state** shows as a chip in the project header (linking to the run journal). The header also shows the complete participating persona cohort; each avatar opens that profile. Hover "
       "relations in the project outline follow the plan DAG: a generated prototype or model shows "
-      "its inputs from prior evidence, even when a methodology frame sits between them. In the **Workbench project Canvas**, **⌘K / Ctrl+K** searches routes, states, viewports, issues and variants independently of active Canvas filters; choosing a result reveals and centres it. Light and Dark stay unchanged states of one logical screen and follow the Workbench theme automatically: Dark prefers real Dark evidence and otherwise falls back to Light, while Light hides dark-only screens. **Play** renders the verified capture first and discovers Current plus ready variants progressively, opens live sessions on selection, and reuses opened sessions within the tab. During hydration the capture covers the inert iframe. A Preview Bridge reveals the app explicitly; without one, **Open live app** appears after a short grace instead of guessing readiness and exposing a white shell. The inspector shows Changes attached exactly to the screen before Play qualification and separates active from ready variants. The standalone immutable variant view warms at most three immediate neighbours with two speculative loads in total. The inspector floats as an opaque card over the full Canvas stage; its surrounding layer stays transparent and clips no screen underneath.")),
+      "its inputs from prior evidence, even when a methodology frame sits between them. In the **Workbench project Canvas**, **⌘K / Ctrl+K** searches routes, states, viewports, issues and variants independently of active Canvas filters; choosing a result reveals and centres it. Light and Dark stay unchanged states of one logical screen and follow the Workbench theme automatically: Dark prefers real Dark evidence and otherwise falls back to Light, while Light hides dark-only screens. **Play** offers only verified Current plus ready variants, opens live sessions on selection, and reuses opened sessions within the tab. The standalone immutable variant view warms at most three immediate neighbours with two speculative loads in total. The inspector floats as an opaque card over the full Canvas stage; its surrounding layer stays transparent and clips no screen underneath.")),
     ("examples", "package",
      ("Beispielprojekte", "Example projects"),
      ("Fertige Demo-Studien liegen bei — darunter ein Onboarding-Showcase, eine B2B-Positioning-Studie "
