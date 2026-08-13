@@ -422,11 +422,7 @@ INSPECTOR_SECTIONS = [
       "Ausführung und Evidenz, anschließend Decisions, Product Intent Review und Delivery. Die "
       "erste Ausführungsbasis akzeptiert dafür idempotente, begrenzte Batches von zwei bis "
       "zwanzig konfigurierten Varianten, ohne alle Previews gleichzeitig zu laden. Die "
-      "erste Environment-Abstraktion erfasst einen vorhandenen Customer Runner getrennt vom "
-      "Application Target als kundeneigene Compute Environment: Entdeckung und Beobachtung "
-      "sind capability-gebunden und revisionssicher, Provisionierung, Placement und destruktive "
-      "Lifecycle-Rechte bleiben ausdrücklich außen vor. "
-      "Die kanonische, ausführliche Produktvision steht in der veröffentlichten Dokumentation unter "
+      "kanonische, ausführliche Produktvision steht in der veröffentlichten Dokumentation unter "
       "**Multi-Variant Development**.",
       "**sonaloop-v4** is evolving into the control plane for multi-variant software development: "
       "one issue produces several materially distinct, executable variants that teams experience "
@@ -440,11 +436,7 @@ INSPECTOR_SECTIONS = [
       "Delivery is incremental: fast parallel variants and warm previews first, managed execution "
       "and evidence next, followed by decisions, Product Intent Review and delivery. The first "
       "execution foundation accepts idempotent bounded batches of two to twenty configured "
-      "variants without loading every preview at once. "
-      "The first environment abstraction records an existing Customer Runner separately from "
-      "the Application Target as customer-owned compute: discovery and observation are bound to "
-      "versioned capabilities and revision-safe history, while provisioning, placement and "
-      "destructive lifecycle authority remain explicitly out of scope. The canonical "
+      "variants without loading every preview at once. The canonical "
       "long-form product vision is published in the **Multi-Variant Development** documentation.")),
     ("orientation", "book",
      ("Orientierung: vier Punkte, ein Modell", "Getting around: four items, one model"),
