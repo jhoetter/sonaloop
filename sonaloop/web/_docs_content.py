@@ -444,7 +444,7 @@ INSPECTOR_SECTIONS = [
       "zeigt), Esc/Zurück bringt die Liste samt URL zurück. Den **Run-Status** eines Projekts zeigt ein Chip im "
       "Projekt-Kopf (verlinkt aufs Run-Journal). Der Kopf zeigt außerdem die vollständige beteiligte Persona-Kohorte; jedes Avatar führt zum Profil. Hover-Bezüge in der Projektliste folgen dem "
       "Plan-DAG: Ein erzeugter Prototyp oder ein Modell zeigt seine Inputs aus der vorherigen "
-      "Evidenz, auch wenn ein Methodik-Frame dazwischenliegt.",
+      "Evidenz, auch wenn ein Methodik-Frame dazwischenliegt. Im **Workbench-Projekt-Canvas** sucht **⌘K / Ctrl+K** unabhängig von aktiven Canvas-Filtern über Routen, Zustände, Viewports, Issues und Varianten; ein Treffer blendet den Screen ein und zentriert ihn. Light und Dark bleiben unveränderte Zustände desselben logischen Screens und folgen automatisch dem Workbench-Theme: Dark bevorzugt den echten Dark-Capture und fällt sonst auf Light zurück, Light verbirgt Dark-only. **Play** bietet nur den verifizierten Current-Stand plus bereite Varianten an, öffnet Live-Sessions erst bei Auswahl und verwendet bereits geöffnete tab-lokal wieder. Die eigenständige immutable Variantenansicht wärmt höchstens drei direkte Nachbarn mit insgesamt zwei spekulativen Loads vor. Der Inspector schwebt als deckende Karte über der vollen Canvas-Fläche; seine Umgebung bleibt transparent und schneidet keine Screens ab.",
       "The upper sidebar has exactly **four** items: **Jobs · Methodologies · Formats · Personas** "
       "(Activity, settings & docs live in the bottom-left user menu). One mental model runs the whole app: *job → "
       "phases → rows; click = slide-over.* The **job is the home** — everything a study produces "
@@ -477,7 +477,7 @@ INSPECTOR_SECTIONS = [
       "full-page when loaded directly), and Esc/back restores the list and its URL. A project's "
       "**run state** shows as a chip in the project header (linking to the run journal). The header also shows the complete participating persona cohort; each avatar opens that profile. Hover "
       "relations in the project outline follow the plan DAG: a generated prototype or model shows "
-      "its inputs from prior evidence, even when a methodology frame sits between them.")),
+      "its inputs from prior evidence, even when a methodology frame sits between them. In the **Workbench project Canvas**, **⌘K / Ctrl+K** searches routes, states, viewports, issues and variants independently of active Canvas filters; choosing a result reveals and centres it. Light and Dark stay unchanged states of one logical screen and follow the Workbench theme automatically: Dark prefers real Dark evidence and otherwise falls back to Light, while Light hides dark-only screens. **Play** offers only verified Current plus ready variants, opens live sessions on selection, and reuses opened sessions within the tab. The standalone immutable variant view warms at most three immediate neighbours with two speculative loads in total. The inspector floats as an opaque card over the full Canvas stage; its surrounding layer stays transparent and clips no screen underneath.")),
     ("examples", "package",
      ("Beispielprojekte", "Example projects"),
      ("Fertige Demo-Studien liegen bei — darunter ein Onboarding-Showcase, eine B2B-Positioning-Studie "
