@@ -417,12 +417,7 @@ INSPECTOR_SECTIONS = [
       "Container und URLs materialisieren dieses Modell lediglich. Für Issue-, Source-Control-, "
       "Agent-, Compute-, Preview- und Deployment-Funktionen gelten sonaloop-eigene Defaults mit "
       "austauschbaren Provider-Verträgen. Dabei bleiben Application Target, Compute Environment, "
-      "Devbox, Working Copy, Runtime und Preview getrennte Begriffe. Ein projektübergreifendes "
-      "**Product Inventory** erfasst zusätzlich Farben, Typografie, Fonts, Assets, Icons und "
-      "Komponenten aus Canvas-Evidenz. Automatisch erkannte Werte bleiben Kandidaten, bis ein "
-      "Mensch sie kuratiert; Agents erhalten nur akzeptierte, revisions- und hashgebundene "
-      "Grundlagen. Product Inventory und Compute Inventory sind getrennte Domänen. "
-      "Die Umsetzung erfolgt "
+      "Devbox, Working Copy, Runtime und Preview getrennte Begriffe. Die Umsetzung erfolgt "
       "inkrementell: zuerst schnelle parallele Varianten und warme Previews, dann verwaltete "
       "Ausführung und Evidenz, anschließend Decisions, Product Intent Review und Delivery. Die "
       "erste Ausführungsbasis akzeptiert dafür idempotente, begrenzte Batches von zwei bis "
@@ -431,9 +426,8 @@ INSPECTOR_SECTIONS = [
       "Application Target als kundeneigene Compute Environment: Entdeckung und Beobachtung "
       "sind capability-gebunden und revisionssicher, Provisionierung, Placement und destruktive "
       "Lifecycle-Rechte bleiben ausdrücklich außen vor. "
-      "Die kanonische, ausführliche Produktvision und ihr exitkriterienbasierter Fahrplan stehen "
-      "in der veröffentlichten Dokumentation unter **Multi-Variant Development** und "
-      "**Vision delivery roadmap**.",
+      "Die kanonische, ausführliche Produktvision steht in der veröffentlichten Dokumentation unter "
+      "**Multi-Variant Development**.",
       "**sonaloop-v4** is evolving into the control plane for multi-variant software development: "
       "one issue produces several materially distinct, executable variants that teams experience "
       "inside the real application, compare through feedback and user tests, select through an "
@@ -443,10 +437,6 @@ INSPECTOR_SECTIONS = [
       "materialise that model. Sonaloop-owned defaults and replaceable provider contracts cover "
       "issue, source-control, agent, compute, preview and deployment functions. Application Target, "
       "Compute Environment, Devbox, Working Copy, Runtime and Preview remain distinct concepts. "
-      "A cross-project **Product Inventory** adds colours, typography, fonts, assets, icons and "
-      "components mined from Canvas evidence. Automatically observed values remain candidates "
-      "until a person curates them; agents receive only accepted foundations bound to a revision "
-      "and content hash. Product Inventory and compute inventory remain separate domains. "
       "Delivery is incremental: fast parallel variants and warm previews first, managed execution "
       "and evidence next, followed by decisions, Product Intent Review and delivery. The first "
       "execution foundation accepts idempotent bounded batches of two to twenty configured "
@@ -455,8 +445,7 @@ INSPECTOR_SECTIONS = [
       "the Application Target as customer-owned compute: discovery and observation are bound to "
       "versioned capabilities and revision-safe history, while provisioning, placement and "
       "destructive lifecycle authority remain explicitly out of scope. The canonical "
-      "long-form product vision and its exit-criteria-based delivery plan are published under "
-      "**Multi-Variant Development** and **Vision delivery roadmap**.")),
+      "long-form product vision is published in the **Multi-Variant Development** documentation.")),
     ("orientation", "book",
      ("Orientierung: vier Punkte, ein Modell", "Getting around: four items, one model"),
      ("Die obere Seitenleiste hat genau **vier** Einträge: **Jobs · Methodiken · Formate · Personas** "
