@@ -124,7 +124,7 @@ register_css(r"""
 .mem-fact.sup::before{background:var(--line-2)}
 .mem-date{flex:none;color:var(--muted);font-variant-numeric:tabular-nums;min-width:74px}
 .mem-fx{color:var(--ink)}
-.mem-fx-meta{display:block;color:var(--muted);font-size:var(--t-xs);margin-top:2px}
+.sl-mem-fx-meta{display:block;color:var(--muted);font-size:var(--t-xs);margin-top:2px}
 .mem-fact.sup .mem-fx{color:var(--faint);text-decoration:line-through;text-decoration-color:var(--line-2)}
 .mem-loops{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel)}
 .mem-loop{display:flex;align-items:center;gap:9px;padding:9px 13px;font-size:var(--t-body)}
@@ -232,7 +232,7 @@ def _memory_html(store: Store, persona_id: str, as_of: str | None, q: str | None
                           h("span", {"class_": "mem-date"}, ui.local_date(f.get("t_valid") or "")),
                           h("span", {"class_": "mem-fx"}, f.get("fact", ""),
                             (fragment(" ", sup_label) if sup else None),
-                            h("span", {"class_": "mem-fx-meta"},
+                            h("span", {"class_": "sl-mem-fx-meta"},
                               f'{_memory_source_label(f.get("source_kind") or "")} · {review}'))))
         status = h("span", {"class_": "mem-status"}, e["status"]) if e.get("status") else None
         return h("div", {"class_": "mem-ent"},
