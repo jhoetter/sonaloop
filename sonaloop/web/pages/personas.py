@@ -1,6 +1,7 @@
 """Persona pages: list, detail, memory, activity (spec/roadmap.md R2)."""
 from __future__ import annotations
 
+import re
 from urllib.parse import quote
 
 from fastapi import Request
@@ -14,8 +15,90 @@ from .._html import register_css
 from .._keymap import sibling_attrs, sibling_urls
 from ... import artifacts as _artifacts
 
+
+_PERSONA_CREATE_FIELDS = (
+    "display_name", "role_title", "industry", "org_size", "customer_type", "age_range",
+    "source_description", "tools", "goals", "constraints", "pain_points", "success_criteria",
+    "working_style", "communication_style", "risk_tolerance", "relationships", "evidence",
+)
+
+
+def _lines(value: str, limit: int = 8) -> list[str]:
+    return [line.strip(" •-\t") for line in str(value or "").splitlines()
+            if line.strip(" •-\t")][:limit]
+
+
+def _relationship_lines(value: str) -> list[dict]:
+    out = []
+    for line in _lines(value):
+        parts = [part.strip() for part in line.split("|", 2)]
+        if len(parts) == 3 and all(parts):
+            out.append({"name": parts[0], "type": parts[1], "friction": parts[2]})
+    return out
+
+
+def _persona_create_form(store: Store, values: dict | None = None,
+                         errors: dict | None = None) -> str:
+    from .._forms import field, form_page
+    values, errors = values or {}, errors or {}
+    def f(name: str, label: str, *, textarea: bool = False,
+          required: bool = True, hint: str = "", full: bool = False):
+        node = raw(field(name, label, values.get(name, ""), error=errors.get(name, ""),
+                         textarea=textarea, required=required, hint=hint))
+        return h("div", {"class_": "sl-persona-create__full" if full else ""}, node)
+    def group(title: str, *children):
+        return h("section", {"class_": "sl-persona-create__group"}, h("h2", {}, title),
+                 h("div", {"class_": "sl-persona-create__grid"}, *children))
+    fields = [
+        group(t("persona"), f("display_name", t("f_name")), f("role_title", t("f_role_title")),
+              f("industry", t("f_industry")), f("org_size", t("f_org_size")),
+              f("customer_type", t("f_segment"), required=False),
+              f("age_range", t("f_age_range"), required=False)),
+        group(t("persona_context_group"), f("source_description", t("f_context"), textarea=True,
+              hint=t("persona_memory_warning"), full=True),
+              f("tools", t("f_tools_lines"), textarea=True), f("goals", t("f_goals_lines"), textarea=True),
+              f("constraints", t("f_constraints_lines"), textarea=True), f("pain_points", t("f_pains_lines"), textarea=True),
+              f("success_criteria", t("f_success_lines"), textarea=True, full=True)),
+        group(t("persona_voice_group"), f("working_style", t("f_working_style"), textarea=True),
+              f("communication_style", t("f_communication_style"), textarea=True),
+              f("risk_tolerance", t("f_risk_tolerance"), textarea=True),
+              f("relationships", t("f_relationships_lines"), textarea=True, hint=t("f_relationships_hint")),
+              f("evidence", t("f_evidence"), textarea=True, required=False, full=True)),
+    ]
+    return form_page(
+        store, title=t("new_persona"), crumbs=[(t("personas"), "/personas"),
+                                                (t("new_persona"), None)],
+        active="personas", action="/personas/new", lead=t("persona_create_lead"),
+        fields=fields, submit_label=t("create"), cancel_href="/personas",
+        form_class="wform wform--persona-create")
+
+
+def _persona_readiness_html(readiness: dict) -> str:
+    label = t("persona_ready") if readiness["level"] == "ready" else (
+        t("persona_developing") if readiness["level"] == "developing" else t("persona_thin"))
+    counts = readiness["counts"]
+    return h(
+        "section", {"class_": "sec sl-persona-readiness", "id": "readiness"},
+        h("div", {"class_": "sl-persona-readiness__head"},
+          h("h2", {}, t("persona_readiness")),
+          raw(_label(f'{label} · {readiness["score"]}/100',
+                     "var(--green)" if readiness["level"] == "ready" else "var(--amber)"))),
+        h("p", {"class_": "muted"}, t("persona_memory_warning"))
+        if readiness["level"] != "ready" else None,
+        h("div", {"class_": "sl-persona-readiness__counts"},
+          _label(f'{counts["events"]} {t("memory_events_short")}'),
+          _label(f'{counts["facts"]} {t("memory_facts_short")}'),
+          _label(f'{counts["daily_summaries"]} {t("memory_days_short")}'),
+          _label(f'{counts["evidence"]} {t("memory_evidence_short")}')))
+
 # Memory panel — a temporal knowledge graph (entities + fact timelines, superseded facts struck).
 register_css(r"""
+.sl-persona-readiness{padding:16px 0}.sl-persona-readiness__head{display:flex;align-items:center;gap:10px}
+.sl-persona-readiness__head h2{margin:0}.sl-persona-readiness__counts{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.wform.wform--persona-create{max-width:1040px;gap:24px}.sl-persona-create__group h2{margin:0 0 14px}
+.sl-persona-create__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px}
+.sl-persona-create__full{grid-column:1/-1}.sl-persona-create__full:empty{display:none}
+@media(max-width:760px){.sl-persona-create__grid{grid-template-columns:1fr}.sl-persona-create__full{grid-column:auto}}
 .mem-bar{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 22px}
 .mem-tool{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:var(--radius);padding:6px 10px;background:var(--panel)}
 .mem-tool svg{width:15px;height:15px;color:var(--muted);flex:none}
@@ -362,8 +445,11 @@ def register_personas(app) -> None:
                         or needle in p.get("slug", "").casefold()]
         visible, page, pages = _page_window(personas, page)
         rows = [_persona_row(p, store) for p in visible]
-        actions = h("a", {"class_": "sl-btn", "href": "/personas/catalog"},
-                    raw(_icon("search")), " ", t("catalog_open"))
+        actions = fragment(
+            h("a", {"class_": "sl-btn sl-btn--primary", "href": "/personas/new"},
+              raw(_icon("plus")), " ", t("new_persona")),
+            h("a", {"class_": "sl-btn", "href": "/personas/catalog"},
+              raw(_icon("search")), " ", t("catalog_open")))
         return _list_page(store, title=t("personas"), lead=t("personas_lead"), rows=rows,
                           empty_icon="personas", empty_msg=t("no_personas"), active="personas",
                           pre=_list_filter_box("/personas", q) if (q or pages > 1) else "",
@@ -396,6 +482,8 @@ def register_personas(app) -> None:
             return gate
         if not slug:
             return see_other("/personas/catalog?" + urlencode({"status": t("catalog_missing_slug")}))
+        from ...telemetry import capture_product_event
+        capture_product_event("persona_creation_started", properties={"creation_source": "catalog"})
         store = Store()
         out = services.catalog_pull(persona_slugs=[slug], store=store)
         if out.get("landed"):
@@ -403,6 +491,70 @@ def register_personas(app) -> None:
         skipped = (out.get("skipped_premium") or out.get("skipped_locally_modified") or [])
         msg = skipped[0].get("reason") if skipped else out.get("note") or t("catalog_pull_noop")
         return see_other("/personas/catalog?" + urlencode({"q": slug, "status": msg}))
+
+    @app.get("/personas/new", response_class=HTMLResponse)
+    def persona_create_form() -> str:
+        from ...telemetry import capture_product_event
+        capture_product_event("persona_creation_started", properties={"creation_source": "custom"})
+        return _persona_create_form(Store())
+
+    @app.post("/personas/new")
+    async def persona_create(request: Request):
+        from .._forms import see_other, write_gate
+        form = await request.form()
+        if (gate := write_gate(form, "create_persona")) is not None:
+            return gate
+        values = {key: str(form.get(key) or "").strip() for key in _PERSONA_CREATE_FIELDS}
+        required = (
+            "display_name", "role_title", "industry", "org_size", "source_description",
+            "tools", "goals", "constraints", "pain_points", "success_criteria",
+            "working_style", "communication_style", "risk_tolerance", "relationships",
+        )
+        errors = {key: t("field_required") for key in required if not values[key]}
+        relationships = _relationship_lines(values["relationships"])
+        if values["relationships"] and not relationships:
+            errors["relationships"] = t("f_relationships_hint")
+        lists = {key: _lines(values[key]) for key in (
+            "tools", "goals", "constraints", "pain_points", "success_criteria")}
+        for key in lists:
+            if values[key] and not lists[key]:
+                errors[key] = t("field_required")
+        if errors:
+            return HTMLResponse(_persona_create_form(Store(), values, errors), status_code=400)
+        tool_ids = []
+        for tool in lists["tools"]:
+            ident = re.sub(r"[^a-z0-9]+", "_", tool.casefold()).strip("_")[:80] or "tool"
+            tool_ids.append(ident)
+        profile = {
+            "display_name": values["display_name"],
+            "identity_traits": {
+                "gender_presentation": "unspecified", "gender_confidence": "low",
+                "age_range": values["age_range"] or "unspecified",
+                "appearance_notes": "unspecified", "avatar_profile": "neutral editorial portrait",
+                "avatar_constraints": "no logos or readable name badge",
+            },
+            "segment": {"customer_type": values["customer_type"] or "unspecified"},
+            "demographics": {"age_range": values["age_range"] or "unspecified"},
+            "role": {"title": values["role_title"],
+                     "responsibilities": values["source_description"],
+                     "seniority": "unspecified", "decision_power": "unspecified"},
+            "company_context": {"industry": values["industry"], "size": values["org_size"],
+                                "stack": lists["tools"],
+                                "operating_model": values["source_description"]},
+            "goals": lists["goals"], "constraints": lists["constraints"],
+            "tool_ids": tool_ids, "tools": lists["tools"], "relationships": relationships,
+            "personality": {"working_style": values["working_style"],
+                            "communication_style": values["communication_style"],
+                            "risk_tolerance": values["risk_tolerance"],
+                            "character_notes": values["source_description"]},
+            "pain_points": lists["pain_points"], "success_criteria": lists["success_criteria"],
+        }
+        store = Store()
+        persona = services.record_persona(
+            values["source_description"], profile,
+            segment_hint=values["customer_type"] or None,
+            evidence=values["evidence"] or None, store=store)
+        return see_other(f'/personas/{persona["id"]}')
 
     def _persona_avatar_binary(persona_id: str, *, thumbnail: bool) -> Response:
         """Serve one portrait through the request's exact active workspace.
@@ -473,6 +625,7 @@ def register_personas(app) -> None:
         except KeyError:
             return _layout(t("not_found"), _empty_state(t("profile_not_found"), t("persona_runtime_cleared"), icon="personas"), store, active="personas")
         p = data["persona"]
+        readiness = services.persona_readiness(p["id"], store=store)
         state = services.get_current_state(p["id"], store=store)
         selected_date = date_value or (data["daily_summaries"][-1]["date"] if data["daily_summaries"] else date.today().isoformat())
         view = view if view in {"week", "month", "year"} else "month"
@@ -514,6 +667,7 @@ def register_personas(app) -> None:
                     (state["mood"] if state.get("mood") not in (None, "unknown") else None)] if x) or "—"),
                 (h("p", {"class_": "thought"}, state["current_thought"])
                  if state.get("current_thought") not in (None, "", "unknown") else "")))),
+            raw(_persona_readiness_html(readiness)),
             # the simulated LIFE (the calendar) is this persona's signature — surface it right after the
             # snapshot, before the analysis voices.
             cal_section,
@@ -538,7 +692,7 @@ def register_personas(app) -> None:
             ("dot", t("size"), p["company_context"].get("size", "")),
             ("memory", t("memory"), h("a", {"class_": "sl-breadcrumb__link", "href": f'/personas/{p["id"]}/memory'}, raw(_icon("memory")), " ", t("open"))),
         ], aside=True)
-        prail = ([("cal", t("calendar"))]
+        prail = ([("readiness", t("persona_readiness")), ("cal", t("calendar"))]
                  + ([("sec-sessions", t("sessions"))] if sessions_html else [])
                  + [("caps", t("capabilities_h")),
                     ("ziele", t("goals")), ("pains", t("pain_points")), ("tools", t("tools")),

@@ -2,20 +2,18 @@
 
 The web inspector started as a strictly read-only SSR surface. It now carries a
 **structural write path**: metadata and container operations are editable in the
-browser, while every piece of authored or generated text stays host-authored
-(the HOST-AUTHORS-ALL-TEXT invariant). The affordance policy (UX U9,
-spec/ux-contract.md §8.4) on top of it: **the UI inspects and edits — it never
-creates.** Creation of projects and project elements belongs to the MCP/CLI
-host; the browser offers no "New …" button and no create form anywhere. This
-page documents the boundary, the write-path pattern, and why some operations
-remain MCP-only.
+browser, while generated research claims stay host-authored. One deliberate
+exception is a guided custom-persona intake: a human may provide the concrete
+source facts from which the normal `record_persona` service builds and validates
+the profile. Research artifacts (projects, notes, sections, councils, reports and
+sessions) are still created by the MCP/CLI host. This page documents that boundary.
 
 ## The mutation boundary
 
 | Entity | Create | Edit | Delete | Notes |
 | --- | --- | --- | --- | --- |
 | Project | ❌ UI (MCP/CLI: `start_project` / `create_research_project`; `POST /jobs/new` stays as API surface) | ✅ title/goal/icon; title-only rename in the Jobs list | ✅ typed-confirmation (type the project title) | the row's `…` menu sits beside Favorite; never-started containers hard-delete, while jobs with terminal run history leave the working set through evidence-preserving archive; active runs remain protected |
-| Persona | ❌ MCP-only for authored profiles (`brief_persona` → `record_persona`); ✅ catalog import from `/personas/catalog` via `catalog_pull` | ✅ metadata: name, role title, segment, industry | ✅ typed-confirmation (type the display name) | catalog import is a selective structural pull from sonaloop-data, not browser authoring |
+| Persona | ✅ guided detailed intake at `/personas/new`; ✅ catalog import; ✅ MCP `brief_persona` → `record_persona` | ✅ metadata: name, role title, segment, industry | ✅ typed-confirmation with an impact preview | creation yields a validated profile and SOUL, not invented lived memory; readiness makes the remaining depth visible |
 | Note | ❌ UI (MCP: `create_note`; `POST /jobs/{id}/notes/new` stays as API surface) | ✅ title/text | ✅ | notes are observations the agent records; editing their text in the browser stays fine |
 | Section | ❌ UI (MCP: `create_section`; `POST /jobs/{id}/sections/new` stays as API surface) | ✅ title/kind/note | ✅ (member nodes untouched) | a section is a view; membership editing stays MCP (`add_to_section` …) |
 | Council | ❌ | ❌ | ✅ delete only | statements are generated prose — never editable |
@@ -46,7 +44,7 @@ available to the workspace. Content-addressed asset/preview files and generated
 prototype/session/icon/export files are not garbage-collected by a hard-delete cascade;
 operators may prune unreferenced runtime files separately after a verified backup.
 
-The one browser-side persona addition affordance is **catalog import**:
+The catalog remains the fastest browser-side persona addition affordance:
 `/personas/catalog` searches the curated sonaloop-data catalog and posts a selected
 slug to `catalog_pull`. When a local `sonaloop-data` checkout is available, the page
 uses the same facet rules and avatar files as the catalog UI; otherwise it falls back
@@ -81,18 +79,26 @@ sanitized custom SVG with `generate_project_icon`. Custom SVGs are written under
 the project header icon opens the same edit dialog directly at the visual icon
 picker; the picker only selects from the existing icon catalogue.
 
-## Why persona create is MCP-only
+## Guided custom personas and readiness
 
-`record_persona` (the only authored create path) requires the **complete host-authored
-profile JSON** produced by the `brief_persona` protocol: goals, pain points,
-personality, relationships, success criteria, … — prose authored by the agent
-against the briefing instructions, validated by `validate_profile_payload`. The
-generated SOUL is then derived from that profile. There is no meaningful
-"structural shell" subset that passes validation, and a web form that asked a
-human to hand-type the full profile would bypass the briefing protocol that
-keeps personas evidence-shaped. The web therefore offers **metadata edit +
-delete** only for authored personas; catalog personas can be imported because
-the authored profile already exists in sonaloop-data and is pulled verbatim.
+`/personas/new` asks for the specificity the validator actually needs: work/life
+context, tools, goals, constraints, recurring friction, success criteria, working
+and communication style, risk posture and concrete relationships. It uses the
+same `record_persona` service as MCP and therefore produces the same validated
+profile, SOUL, lifecycle event and telemetry. Optional observed situations are
+stored as explicit source evidence; the form does not pretend they are memories.
+
+After creation, `persona_readiness` exposes a structural 0–100 readiness view over
+profile completeness, grounding, memory volume, continuity and capability coverage.
+`brief_persona_memory_onboarding` returns the governed period/day/consolidation/
+digest/evaluation sequence an agent should execute. A profile can therefore be
+complete while still visibly **thin** for consequential research.
+
+Deletion is intentionally two-stage over MCP: `persona_deletion_impact` returns
+counts plus a state-bound confirmation token, and `delete_persona` accepts only
+that token. The UI renders the same impact before typed confirmation. Personal
+profile/SOUL/memory is removed and the persona is detached from active cohorts;
+historical councils and recorded sessions remain as research evidence.
 
 ## The write-path pattern (web/_forms.py)
 

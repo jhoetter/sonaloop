@@ -36,6 +36,21 @@ def register_personas(mcp):
         return _env("get_persona", services.get_persona(persona_id), t)
 
     @mcp.tool()
+    def persona_readiness(persona_id: str) -> dict[str, Any]:
+        """Structural readiness of one persona: profile specificity, independent grounding,
+        lived events/facts, calendar continuity and authored capabilities."""
+        t = time.perf_counter()
+        return _env("persona_readiness", services.persona_readiness(persona_id), t)
+
+    @mcp.tool()
+    def brief_persona_memory_onboarding(persona_id: str, days: int = 28) -> dict[str, Any]:
+        """Plan the gather→author→write-back sequence that turns a static persona profile
+        into a critic-checked lived-memory baseline. No memory is fabricated by this read."""
+        t = time.perf_counter()
+        return _env("brief_persona_memory_onboarding",
+                    services.brief_persona_memory_onboarding(persona_id, days), t)
+
+    @mcp.tool()
     def list_personas(filters: dict[str, Any] | None = None, compact: bool = True,
                       limit: int = 25, cursor: str | None = None) -> dict[str, Any]:
         """Lean one-line overview of personas (slug/name/age/role/segment) — drill in with

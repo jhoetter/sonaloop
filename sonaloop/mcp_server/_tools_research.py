@@ -144,7 +144,16 @@ def register_research(mcp):
         return _env("delete_council", services.delete_council(session_id), t)
 
     @mcp.tool()
-    def delete_persona(persona_id: str) -> dict[str, Any]:
-        """Delete a persona + all its persona-scoped rows and rendered SOUL/avatar files."""
+    def persona_deletion_impact(persona_id: str) -> dict[str, Any]:
+        """Preview persona deletion: memory removed, project detachments, preserved historical
+        artifacts, and an exact state-bound confirmation token. This call is read-only."""
         t = time.perf_counter()
-        return _env("delete_persona", services.delete_persona(persona_id), t)
+        return _env("persona_deletion_impact", services.persona_deletion_impact(persona_id), t)
+
+    @mcp.tool()
+    def delete_persona(persona_id: str, confirmation_token: str) -> dict[str, Any]:
+        """Permanently remove a persona only with the exact token from
+        persona_deletion_impact(persona_id). Re-preview after any persona/project change."""
+        t = time.perf_counter()
+        return _env("delete_persona", services.delete_persona_confirmed(
+            persona_id, confirmation_token), t)

@@ -24,6 +24,9 @@ packages plug in WITHOUT the core ever importing them, via four seams:
   6. Runtime-file delivery — register_prototype_url_provider(fn) and
                register_session_file_url_provider(fn) let a hosting extension replace local
                static mounts with signed, tenant-scoped browser URLs.
+  7. Deliverable export — register_synthesis_export_provider(fn) lets a hosting
+               extension add workspace branding/master-slide handling while the
+               public report page keeps one export action and one route.
 
 Labels are `str | Callable[[], str]`: pass a literal, or a lambda that resolves the
 label per request when it must (i18n) — e.g. one that returns t(<your-key>). Slot/route callables are trusted
@@ -235,6 +238,35 @@ def session_file_url(session_dir: str, asset_path: str) -> str | None:
     if _SESSION_FILE_URL_PROVIDER is None:
         return None
     return str(_SESSION_FILE_URL_PROVIDER(str(session_dir or ""), str(asset_path or "")) or "")
+
+
+# ---------------------------------------------------------------------------
+# Report deliverables
+# ---------------------------------------------------------------------------
+
+_SYNTHESIS_EXPORT_PROVIDER: Callable[..., dict[str, Any]] | None = None
+
+
+def register_synthesis_export_provider(provider: Callable[..., dict[str, Any]] | None) -> None:
+    """Install the hosting-specific report exporter.
+
+    The provider receives ``(synthesis_id, fmt, store=..., audience=...)`` and
+    returns the normal ``export_synthesis_deliverable`` result. Cloud uses this
+    seam for its published workspace design system; local/open-core falls back
+    to the core service without importing a commercial package.
+    """
+    global _SYNTHESIS_EXPORT_PROVIDER
+    _SYNTHESIS_EXPORT_PROVIDER = provider
+
+
+def export_synthesis_deliverable(synthesis_id: str, fmt: str, *, store: Any,
+                                 audience: str = "detailed") -> dict[str, Any]:
+    if _SYNTHESIS_EXPORT_PROVIDER is not None:
+        return _SYNTHESIS_EXPORT_PROVIDER(
+            synthesis_id, fmt, store=store, audience=audience)
+    from .. import services
+    return services.export_synthesis_deliverable(
+        synthesis_id, fmt, store=store, audience=audience)
 
 
 # ---------------------------------------------------------------------------

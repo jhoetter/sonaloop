@@ -541,7 +541,8 @@ def export_template_deck(out: str = "master-template.pptx") -> dict:
 
 
 def export_synthesis_deliverable(synthesis_id: str, fmt: str, out: str | None = None,
-                                 store: Store | None = None) -> dict:
+                                 store: Store | None = None,
+                                 audience: str = "detailed") -> dict:
     """Render a synthesis as a presentation-grade deliverable file (`pptx`|`pdf`), write it via
     write_export_bytes (a relative/omitted `out` lands under DATA_DIR/exports/ — CWD-independent),
     and — when the synthesis belongs to a project (its own `project_id`, or the plan/graph parent)
@@ -552,8 +553,16 @@ def export_synthesis_deliverable(synthesis_id: str, fmt: str, out: str | None = 
     if fmt not in ("pptx", "pdf"):
         raise ValueError(f"Unsupported deliverable format {fmt!r} (pptx|pdf).")
     syn = get_synthesis(synthesis_id, store)
-    data = (export_synthesis_pptx(synthesis_id, store=store) if fmt == "pptx"
-            else export_synthesis_pdf(synthesis_id, store=store))           # noqa: F821 (bound)
+    if audience not in {"detailed", "stakeholder", "presentation"}:
+        raise ValueError("audience must be detailed|stakeholder|presentation")
+    if fmt == "pptx":
+        data = export_synthesis_pptx(synthesis_id, store=store)
+    elif audience == "stakeholder":
+        data = export_synthesis_pdf(  # noqa: F821 (bound)
+            synthesis_id, store=store, audience="stakeholder")
+    else:
+        # Preserve the original call shape for registered/legacy PDF providers.
+        data = export_synthesis_pdf(synthesis_id, store=store)  # noqa: F821 (bound)
     path = write_export_bytes(data, out or f"{synthesis_id}.{fmt}")         # noqa: F821 (bound)
     # The hand-off contract: a server filesystem path means nothing to a remote (MCP)
     # user — `url` is the auth-gated download link ('' only for an out path outside
@@ -584,10 +593,26 @@ def export_synthesis_deliverable(synthesis_id: str, fmt: str, out: str | None = 
         result["project_id"], result["asset_id"] = proj["id"], rec["id"]
         result["url"] = web_url(rec["url"])                                 # noqa: F821 (bound)
         result["project_url"] = web_url(f'/jobs/{proj["id"]}')  # noqa: F821 (bound)
+    from ..telemetry import capture_product_event
+    from ..theming import active_runtime_design_system_context
+    runtime = active_runtime_design_system_context()
+    capture_product_event(
+        "report_exported",
+        project_id=str((proj or {}).get("id") or ""),
+        subject_kind="report",
+        subject_id=syn["id"],
+        properties={
+            "export_format": fmt,
+            "audience": audience,
+            "branding_source": "workspace" if (runtime or {}).get("workspace_id") else "default",
+            "master_source": "uploaded" if (runtime or {}).get("deck_master_bytes") else "default",
+        },
+    )
     return result
 
 
-def export_synthesis_pptx(synthesis_id: str, store: Store | None = None) -> bytes:
+def export_synthesis_pptx(synthesis_id: str, store: Store | None = None,
+                          master_template: bytes | None = None) -> bytes:
     """Render ANY report (synthesis) as a native PowerPoint deck: a title slide + one slide per section
     (project scope) or per analytic layer (convergence scope), with native charts. Raises if the
     python-pptx package is unavailable (it degrades gracefully at the call sites)."""
@@ -660,4 +685,5 @@ def export_synthesis_pptx(synthesis_id: str, store: Store | None = None) -> byte
                             "Built with the Sonaloop research engine — every statement in this deck "
                             "traces back to an inspectable session."),
                    "meta": f"{kind_label} · {title} · {syn.get('created_at', '')[:10]}"})
-    return _pptx.render(slides, title=title or kind_label)
+    return _pptx.render(slides, title=title or kind_label,
+                        master_template=master_template)

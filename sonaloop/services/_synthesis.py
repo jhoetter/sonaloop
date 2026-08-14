@@ -713,7 +713,8 @@ def export_synthesis_html(synthesis_id: str, out_dir: str | None = None,
 
 
 def export_synthesis_pdf(synthesis_id: str, store: Store | None = None,
-                         theme_overrides: dict[str, Any] | None = None) -> bytes:
+                         theme_overrides: dict[str, Any] | None = None,
+                         audience: str = "detailed") -> bytes:
     """Render ANY report (synthesis) to a self-contained PDF — the report HTML + the app's CSS through
     headless Chromium (print media), no running web server needed. Raises if the browser is absent.
     `theme_overrides` (a customer theme per theming.validate_customer_theme) re-skins the PDF."""
@@ -733,7 +734,7 @@ def export_synthesis_pdf(synthesis_id: str, store: Store | None = None,
     from html import escape as _h_esc
     # There is no live app origin while Chromium prints this temporary file.  Resolve local
     # /data refs and shared-Postgres opaque routes before printing so the PDF is self-contained.
-    body = _share_inline_images(str(render_report(syn, store)), store=store,
+    body = _share_inline_images(str(render_report(syn, store, audience=audience)), store=store,
                                 project_id=str(syn.get("project_id") or ""))
     doc = (f'<!doctype html><html lang="{content_language()}"><head><meta charset="utf-8">'
            f'{_PDF_FONTS}<style>{CSS}{collect_css()}</style>{theme_css}</head>'

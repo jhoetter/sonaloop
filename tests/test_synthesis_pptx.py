@@ -5,12 +5,37 @@ clamped renderer-side, markdown artifacts and bare artifact ids never reach a sl
 import io
 
 from pptx import Presentation
+from pptx.util import Inches
 
 from sonaloop import services
 from sonaloop.services._synthesis import _SYNTHESIS_EXPORT_LABELS
 from sonaloop.services._synthesis_pptx import (
     _analytic_slides, _clamp_prose, _label_segments, _split_card,
 )
+
+
+def test_renderer_uses_uploaded_master_layouts_but_discards_sample_slides():
+    import io
+    from sonaloop import _pptx
+
+    template = Presentation()
+    template.slide_width = Inches(13.333)
+    template.slide_height = Inches(7.5)
+    template.slides.add_slide(template.slide_layouts[6])
+    template.core_properties.subject = "Customer master"
+    source = io.BytesIO()
+    template.save(source)
+
+    data = _pptx.render([
+        {"kind": "cover", "title": "Generated", "subtitle": "From report"},
+        {"kind": "closing", "title": "Done"},
+    ], title="Generated", master_template=source.getvalue())
+    rendered = Presentation(io.BytesIO(data))
+
+    assert len(rendered.slides) == 2
+    assert rendered.core_properties.subject == "Customer master"
+    assert rendered.slide_width == Inches(13.333)
+    assert rendered.slide_height == Inches(7.5)
 
 # A showcase-shaped convergence synthesis: caps-label exec prose, stanced voices with verbatim
 # council quotes, scored recommendations and label-led findings — the report shape the owner's

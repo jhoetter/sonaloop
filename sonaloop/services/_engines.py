@@ -542,20 +542,34 @@ from .. import prototypes as _proto  # noqa: E402
 from .. import browser as _browser   # noqa: E402
 
 
-def _capture_prototype_registered(rec: dict[str, Any]) -> None:
+def _capture_prototype_registered(rec: dict[str, Any], *,
+                                  brand_visible: bool | None = None) -> None:
     from ..telemetry import capture_product_event
+    from ..theming import active_runtime_design_system_context
     fidelity = str(rec.get("fidelity") or "").strip().casefold()
     run_mode = str(rec.get("run") or "").strip().casefold()
+    runtime = active_runtime_design_system_context() or {}
+    properties: dict[str, Any] = {
+        "fidelity": fidelity if fidelity in {"lofi", "midfi", "hifi", "production"} else "other",
+        "run_mode": run_mode if run_mode in {"static", "remote"} else "other",
+        "remote": run_mode == "remote",
+    }
+    # Only scaffolded prototypes have a render decision Sonaloop can observe.
+    # Registered local/remote artifacts may carry any branding, so omit instead
+    # of turning workspace context into a false visual claim.
+    if brand_visible is not None:
+        properties.update({
+            "branding_source": (
+                "workspace" if runtime.get("workspace_id") and brand_visible else
+                "default" if brand_visible else "neutral"),
+            "brand_visible": brand_visible,
+        })
     capture_product_event(
         "prototype_registered",
         project_id=rec.get("project_id") or "",
         subject_kind="prototype",
         subject_id=rec["id"],
-        properties={
-            "fidelity": fidelity if fidelity in {"lofi", "midfi", "hifi", "production"} else "other",
-            "run_mode": run_mode if run_mode in {"static", "remote"} else "other",
-            "remote": run_mode == "remote",
-        },
+        properties=properties,
         idempotency_key=f"{rec['id']}:{rec.get('version') or ''}",
     )
 
@@ -570,9 +584,13 @@ def scaffold_artifact(slug, name, concept, type="prototype", tags=None, template
 
 def scaffold_prototype(slug, name, concept, kind="web", template=None,
                        project_id=None, fidelity=None, store: Store | None = None):
+    from ..theming import active_runtime_design_system_context
     rec = _proto.scaffold_prototype(
         slug, name, concept, kind, template, project_id, fidelity=fidelity, store=store)
-    _capture_prototype_registered(rec)
+    runtime = active_runtime_design_system_context() or {}
+    show_brand = bool(concept.get(
+        "show_brand", concept.get("brand_header", runtime.get("workspace_id"))))
+    _capture_prototype_registered(rec, brand_visible=show_brand)
     return rec
 
 

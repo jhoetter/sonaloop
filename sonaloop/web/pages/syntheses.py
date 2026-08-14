@@ -1,14 +1,25 @@
-"""Report pages: list + detail (spec/roadmap.md R2). A report IS a synthesis — one concept, short or
-exhaustive. Internally scope=convergence renders the structured view (findings → 2×2) and
-scope=project the narrative sections + figures; one detail route serves both. The web is READ-ONLY:
-PDF / PPTX export is an MCP tool (export_synthesis) + the CLI, not a UI action."""
+"""Report pages: list + detail + stakeholder deliverable download.
+
+A report IS a synthesis — one concept, short or exhaustive. Internally
+scope=convergence renders the structured view (findings → 2×2) and scope=project
+the narrative sections + figures; one detail route serves both. Report export is
+an ordinary inspection action: the same stored report is typeset as a concise PDF
+or editable PowerPoint and attached back to its project as an outgoing asset.
+"""
 from __future__ import annotations
+
+from fastapi import Request
+from fastapi.responses import RedirectResponse
 
 from ._ctx import *  # noqa: F401,F403  (shared render toolkit)
 from .._keymap import sibling_attrs, sibling_urls
 from .._render import _refs_line, render_claim_posture_notice
 from .._report import render_report
 from .._cohort_integrity_view import render_cohort_integrity
+from .._html import register_css
+
+
+register_css(".sl-export-form{display:inline-flex;margin:0}")
 
 
 def _informed_decisions_html(synthesis_id: str, store) -> str:
@@ -82,7 +93,20 @@ def register_syntheses(app) -> None:
             ("link", t("rel_based_on"), raw(_label(t("chip_sources_n", n=n_sources)))),
             ("clock", t("created"), ui.local_date(syn.get("created_at") or "")),
         ]
-        from .._forms import overflow_delete
+        from .._forms import csrf_field, overflow_delete
+        def export_form(fmt: str, label: str, quiet: bool = False) -> str:
+            return h(
+                "form", {"class_": "sl-export-form", "method": "post",
+                         "action": f"/syntheses/{synthesis_id}/export/{fmt}"},
+                raw(csrf_field()),
+                h("button", {"class_": "sl-btn" + (" sl-btn--quiet" if quiet else ""),
+                             "type": "submit", "title": label},
+                  raw(_icon("download")), " ", label))
+        export_actions = fragment(
+            export_form("pdf", t("export_pdf")),
+            export_form("pptx", t("export_pptx"), quiet=True),
+            raw(overflow_delete(f'/syntheses/{synthesis_id}/delete', t("delete_synthesis"))),
+        )
         return detail_page(
             store, title=short_title, crumbs=crumbs,
             # G5: sidebar active follows the crumb root (project-rooted → Projects)
@@ -94,6 +118,42 @@ def register_syntheses(app) -> None:
             rel_include_in=not bool(syn.get("council_ids")),
             rail_sections=toc,
             star=("synthesis", synthesis_id, short_title, f"/syntheses/{synthesis_id}"),
-            # delete-only (report prose is authored/generated): the subtle header
-            # overflow (U9 §8.4), never a danger zone
-            actions=overflow_delete(f'/syntheses/{synthesis_id}/delete', t("delete_synthesis")))
+            actions=export_actions)
+
+    @app.post("/syntheses/{synthesis_id}/export/{fmt}", include_in_schema=False)
+    async def synthesis_export(synthesis_id: str, fmt: str, request: Request):
+        """Create a presentation-ready hand-off and immediately download it.
+
+        The page deliberately defaults PDF to the stakeholder audience: every
+        section remains represented, while citations and long prose stay in the
+        inspectable report. PPTX already uses the concise slide budget.
+        """
+        fmt = str(fmt or "").lower()
+        if fmt not in {"pdf", "pptx"}:
+            return HTMLResponse(t("not_found"), status_code=404)
+        store = Store()
+        syn = store.get_synthesis(synthesis_id)
+        if not syn:
+            return HTMLResponse(t("synthesis_not_found"), status_code=404)
+        form = await request.form()
+        from .._forms import write_gate
+        if (gate := write_gate(
+                form, "export_synthesis",
+                {"synthesis_id": synthesis_id, "project_id": syn.get("project_id") or "",
+                 "format": fmt})) is not None:
+            return gate
+        try:
+            from .._ext import export_synthesis_deliverable
+            result = export_synthesis_deliverable(
+                synthesis_id, fmt, store=store,
+                audience="stakeholder" if fmt == "pdf" else "presentation")
+        except (KeyError, RuntimeError, ValueError):
+            return HTMLResponse(
+                _layout(t("export_failed"), _empty_state(
+                    t("export_failed"), t("runtime_maybe_cleared"), icon="download"),
+                    store, active="library"), status_code=500)
+        target = (f'/assets/{result["asset_id"]}/content'
+                  if result.get("asset_id") else str(result.get("url") or ""))
+        if not target:
+            return HTMLResponse(t("export_failed"), status_code=500)
+        return RedirectResponse(target, status_code=303)

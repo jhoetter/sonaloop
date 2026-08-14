@@ -121,13 +121,28 @@ def project_list_actions(proj: dict) -> str:
 
 def persona_actions(p: dict, *, values: dict | None = None, errors: dict | None = None,
                     edit_open: bool = False, confirm_error: str = "") -> str:
+    try:
+        impact = services.persona_deletion_impact(p["id"], store=Store())
+        historical = sum(int(value) for value in impact["historical_artifacts_preserved"].values())
+        delete_hint = t("delete_persona_impact", projects=impact["will_detach_from_projects"],
+                        artifacts=historical)
+        if impact["blocked_by_active_runs"]:
+            delete_hint = t("delete_persona_active_run", runs=impact["blocked_by_active_runs"])
+    except Exception:  # noqa: BLE001 - action chrome must not hide edit/delete on a stale page
+        delete_hint = t("delete_hint")
     return detail_overflow(
         edit={"action": f'/personas/{p["id"]}/edit', "title": f'{p["display_name"]} — {t("edit")}',
               "fields": persona_fields(values if values is not None else _persona_values(p),
                                        errors or {}),
               "lead": t("persona_form_lead"), "open_now": edit_open},
         delete={"action": f'/personas/{p["id"]}/delete', "label": t("delete_persona"),
-                "expected": p["display_name"], "error": confirm_error})
+                "expected": p["display_name"], "error": confirm_error,
+                "hint": delete_hint})
+
+
+def persona_list_actions(p: dict) -> str:
+    """Row-level rename/delete discoverability for the persona library."""
+    return persona_actions(p)
 
 
 def note_actions(note: dict, *, values: dict | None = None, errors: dict | None = None,
@@ -374,7 +389,19 @@ def register_edit(app) -> None:  # noqa: C901  (route table — one block per en
                         (t("delete_persona"), None)],
                 actions=persona_actions(p, confirm_error=t("confirm_mismatch"))),
                 status_code=400)
-        services.delete_persona(persona_id, store=store)
+        try:
+            services.delete_persona(persona_id, store=store)
+        except ValueError:
+            blocked = services.persona_deletion_impact(persona_id, store=store)
+            return HTMLResponse(_dialog_error_page(
+                store, title=p["display_name"], active="personas",
+                crumbs=[(t("personas"), "/personas"),
+                        (p["display_name"], f"/personas/{persona_id}"),
+                        (t("delete_persona"), None)],
+                actions=persona_actions(
+                    p, confirm_error=t("delete_persona_active_run", runs=max(
+                        1, int(blocked.get("blocked_by_active_runs") or 0))))),
+                status_code=409)
         return see_other("/personas")
 
     # ------------------------------------------------------------------- notes

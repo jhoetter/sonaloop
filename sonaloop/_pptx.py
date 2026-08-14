@@ -75,19 +75,50 @@ from . import _pptx_charts as _pc
 from ._pptx_charts import _num
 
 
-def render(slides: list[dict], *, title: str = "Report") -> bytes:
+def _empty_template_presentation(data: bytes):
+    """Open an uploaded .pptx as a master/layout source and remove sample slides.
+
+    python-pptx keeps the slide masters, themes and layouts when slide instances
+    are removed. This gives workspace owners a practical master-file workflow
+    without executing macros or copying customer content into the generated deck.
+    """
+    from pptx import Presentation
+    prs = Presentation(io.BytesIO(data))
+    sld_ids = prs.slides._sldIdLst  # python-pptx has no public slide-delete API
+    for slide_id in list(sld_ids):
+        relationship_id = slide_id.rId
+        prs.part.drop_rel(relationship_id)
+        sld_ids.remove(slide_id)
+    return prs
+
+
+def _blank_layout(prs):
+    layouts = list(prs.slide_layouts)
+    if not layouts:
+        raise ValueError("PowerPoint master contains no slide layouts")
+    for layout in layouts:
+        if str(getattr(layout, "name", "")).strip().casefold() in {
+                "blank", "leer", "leere folie", "vide", "en blanco"}:
+            return layout
+    return min(layouts, key=lambda layout: len(layout.placeholders))
+
+
+def render(slides: list[dict], *, title: str = "Report",
+           master_template: bytes | None = None) -> bytes:
     from pptx import Presentation
     from pptx.util import Inches, Pt
     from pptx.dml.color import RGBColor
     from pptx.enum.text import PP_ALIGN
     from types import SimpleNamespace
 
-    prs = Presentation()
-    prs.slide_width = Inches(13.333)
-    prs.slide_height = Inches(7.5)
+    prs = (_empty_template_presentation(master_template)
+           if master_template else Presentation())
+    if not master_template:
+        prs.slide_width = Inches(13.333)
+        prs.slide_height = Inches(7.5)
     prs.core_properties.title = title
     prs.core_properties.author = "Sonaloop"
-    blank = prs.slide_layouts[6]
+    blank = _blank_layout(prs)
     W, H = prs.slide_width, prs.slide_height
     rgb = lambda hexv: RGBColor.from_string(hexv)
 

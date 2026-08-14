@@ -79,6 +79,14 @@ and records the chain on the survivor (`supersedes: [{id, filename,
 created_at}]`), so the provenance of "several versions over time" stays
 readable. `record_asset_supersession` is the service seam that writes it.
 
+The report header exposes two audience-aware hand-offs: **Share PDF** produces a
+short stakeholder edition that keeps the conclusion and section structure while
+leaving detailed evidence in Sonaloop; **Download PowerPoint** produces editable
+slides. Cloud resolves the synthesis owner's published workspace design system for
+both. When `deck.master_asset_ref` points at an approved 16:9 `.pptx`, its theme, canvas,
+masters and layouts are retained while uploaded sample slides are discarded. Without
+one, the polished Sonaloop deck is the deterministic default.
+
 ## In the inspector (UX U8)
 
 - **Detail page** `/assets/{id}` (global id resolution): image preview / file

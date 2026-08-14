@@ -155,13 +155,13 @@ def field(name: str, label: str, value: str = "", *, error: str = "", required: 
 
 def form_page(store, *, title: str, crumbs: list, active: str, action: str,
               fields: list, submit_label: str, cancel_href: str, lead: str = "",
-              actions: str = "") -> str:
+              actions: str = "", form_class: str = "wform") -> str:
     """The shared form-page shell: heading, the POST form (CSRF field included),
     submit/cancel. `actions` is topbar HTML — the overflow delete on edit pages."""
     body = h("div", {"class_": "page"},
              h("h1", {"class_": "h1"}, title),
              h("p", {"class_": "lead"}, lead) if lead else None,
-             h("form", {"class_": "wform", "method": "post", "action": action},
+             h("form", {"class_": form_class, "method": "post", "action": action},
                raw(csrf_field()), fragment(*fields),
                h("div", {"class_": "wform-actions"},
                  h("button", {"class_": "sl-btn sl-btn--primary", "type": "submit"}, submit_label),

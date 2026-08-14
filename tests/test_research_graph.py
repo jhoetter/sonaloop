@@ -259,6 +259,34 @@ def test_delete_persona(store):
     assert all(p["id"] != pid for p in services.list_personas(store=store))
 
 
+def test_mcp_style_persona_deletion_is_state_bound_and_detaches_projects(store):
+    from conftest import create_persona
+    pid = create_persona(store, "Careful")
+    project = services.create_research_project("Uses persona", persona_ids=[pid], store=store)
+    preview = services.persona_deletion_impact(pid, store=store)
+    assert preview["will_detach_from_projects"] == 1
+    with pytest.raises(ValueError, match="confirmation_token"):
+        services.delete_persona_confirmed(pid, "wrong", store=store)
+    out = services.delete_persona_confirmed(
+        pid, preview["confirmation_token"], store=store)
+    assert out["projects_detached"] == 1
+    assert pid not in store.get_research_project(project["id"])["persona_ids"]
+
+
+def test_persona_deletion_is_blocked_during_an_active_run(store):
+    from conftest import create_persona
+    pid = create_persona(store, "Still in use")
+    project = services.start_project(
+        "Active persona study", "Question", persona_ids=[pid], store=store)
+    services.start_run(project["id"], operation_id="active-delete-guard", store=store)
+    preview = services.persona_deletion_impact(pid, store=store)
+    assert preview["blocked_by_active_runs"] == 1
+    with pytest.raises(ValueError, match="research run is active"):
+        services.delete_persona_confirmed(
+            pid, preview["confirmation_token"], store=store)
+    assert store.get_persona(pid)
+
+
 def test_note_form_classifies_ideas_insights_and_concepts(store):
     pid = services.create_research_project("Notes", goal="g", store=store)["id"]
     obs = services.create_note(pid, "raw signal", "Obs", store=store)

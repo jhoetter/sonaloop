@@ -192,12 +192,40 @@ def _body(md_text: str, figs: list) -> str:
     return fragment(*out)
 
 
-def render_report(report: dict, store, *, with_toc: bool = False):
+def _stakeholder_markdown(value: str, *, max_chars: int = 1400, max_blocks: int = 4) -> str:
+    """Dose authored report prose without inventing a second summary.
+
+    The share PDF keeps the first complete structural blocks of every section
+    (including a complete callout directive) and points back to Sonaloop for the
+    detailed evidence. The on-screen report and detailed export remain untouched.
+    """
+    blocks = [block.strip() for block in re.split(r"\n\s*\n", value or "") if block.strip()]
+    kept: list[str] = []
+    used = 0
+    for block in blocks:
+        if len(kept) >= max_blocks:
+            break
+        # Never split a callout directive; broken ::: markers are worse than one
+        # slightly longer stakeholder section.
+        if kept and used + len(block) > max_chars:
+            break
+        if not kept and len(block) > max_chars and not block.startswith(":::"):
+            block = block[:max_chars].rsplit(" ", 1)[0].rstrip(" ,;:") + " …"
+        kept.append(block)
+        used += len(block)
+    return "\n\n".join(kept)
+
+
+def render_report(report: dict, store, *, with_toc: bool = False,
+                  audience: str = "detailed"):
     """Report-grade render of ANY synthesis (spec/unified-synthesis-report.md §3 — one renderer):
     project scope → narrative sections + figures; convergence scope → the structured analysis
     (verdict card → charts → findings → 2×2, voices) in the SAME report shell (cover + report
     typography). `with_toc=True` additionally returns the [(anchor_id, label)] section list so
     the detail page can hang the scrollspy rail (`_page_rail`) beside the document (§3.6c)."""
+    if audience not in {"detailed", "stakeholder"}:
+        raise ValueError("report audience must be 'detailed' or 'stakeholder'")
+    stakeholder = audience == "stakeholder"
     de = content_language() == "de"
     _t = report.get("title", "")           # the default title ends in " — Report"; custom titles show as-is
     project_title = _t[:-len(" — Report")] if _t.endswith(" — Report") else _t
@@ -273,12 +301,16 @@ def render_report(report: dict, store, *, with_toc: bool = False):
     for i, sec in enumerate(sections, 1):
         figs = [rf for rf in (_resolve_figure(f, store, project_id=report.get("project_id") or "")
                               for f in (sec.get("figures") or [])) if rf]
-        body_html = (_body(sec["markdown"], figs) if sec.get("markdown")
+        if stakeholder:
+            figs = figs[:1]
+        section_md = (_stakeholder_markdown(sec.get("markdown", ""))
+                      if stakeholder else sec.get("markdown", ""))
+        body_html = (_body(section_md, figs) if section_md
                      # plain <em>, not markdown syntax — this string is never md-rendered
                      else h("p", {"class_": "muted"},
                             h("em", {}, f"({'noch nicht verfasst' if de else 'not yet authored'})")))
         cites = ""
-        if sec.get("citations"):
+        if sec.get("citations") and not stakeholder:
             rows = []
             for n, c in enumerate(sec["citations"], 1):
                 council = h("span", {"class_": "rp-cite-src"}, f" · {rtitle(c['council_id'])}") if c.get("council_id") else ""
@@ -289,12 +321,18 @@ def render_report(report: dict, store, *, with_toc: bool = False):
                       h("ol", {}, *rows))
         src = ""
         if sec.get("source_study_ids"):
-            src = h("div", {"class_": "rp-src"}, ("Quellen: " if de else "Sources: ")
-                    + ", ".join(rtitle(x) for x in sec["source_study_ids"]))
+            src_text = ((f'{len(sec["source_study_ids"])} Quellen · Details in Sonaloop')
+                        if de else
+                        (f'{len(sec["source_study_ids"])} sources · Details in Sonaloop'))
+            if not stakeholder:
+                src_text = (("Quellen: " if de else "Sources: ")
+                            + ", ".join(rtitle(x) for x in sec["source_study_ids"]))
+            src = h("div", {"class_": "rp-src"}, src_text)
         secs.append(h("section", {"class_": "rp-sec", "id": f"rp-s{i}"},
                       h("h2", {}, h("span", {"class_": "rp-num"}, f"{i:02d}"), sec["heading"]),
                       body_html, cites, src))
-    article = h("article", {"class_": "report"}, cover, limitations, toc, *secs)
+    article = h("article", {"class_": "report" + (" report--stakeholder" if stakeholder else "")},
+                cover, limitations, "" if stakeholder else toc, *secs)
     if with_toc:
         return article, [(f"rp-s{i}", sec["heading"]) for i, sec in enumerate(sections, 1)]
     return article

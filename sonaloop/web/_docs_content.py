@@ -112,10 +112,10 @@ PRINCIPLES = [
       "never relaxed.")),
     ("syntheses",
      ("Präsentationsreif", "Presentation-grade"),
-     ("Jeder Report ist von Haus aus vorzeigbar und als **PDF** oder **PPTX** exportierbar — kein "
-      "Nacharbeiten, um Ergebnisse zu teilen.",
-      "Every report is presentation-ready by default and exports to **PDF** or **PPTX** — no cleanup "
-      "needed to share the result.")),
+     ("Jeder Report lässt sich direkt als kurze **Stakeholder-PDF** oder als editierbares **PowerPoint** teilen. Das veröffentlichte Workspace-Branding und ein optionaler Firmen-Master werden übernommen; "
+      "ohne Master nutzt Sonaloop eine ruhige, gute Vorlage.",
+      "Every report can be shared directly as a concise **stakeholder PDF** or editable **PowerPoint**. Published workspace branding and an optional company master carry through; without one, Sonaloop "
+      "uses a polished default.")),
 ]
 
 # ============================ Concepts ============================ #
@@ -127,9 +127,8 @@ DOCS = [
               "alles, was er erlebt hat. Kein statisches Profil — er erinnert sich und entwickelt sich.",
               "A synthetic customer with a **SOUL** (who they are) and a growing memory of everything "
               "they've been through. Not a static profile — it remembers and evolves."),
-     "why": ("Antworten kommen aus gelebter Erfahrung und verschieben sich mit der Zeit, statt jedes Mal "
-             "denselben Satz zu wiederholen.",
-             "Answers come from lived experience and shift over time, instead of repeating the same line.")},
+     "why": ("Antworten kommen aus gelebter Erfahrung und verschieben sich mit der Zeit, statt jedes Mal denselben Satz zu wiederholen. Die sichtbare Persona-Reife verlangt Profil, unabhängige Evidenz, konsolidierte Fakten und Kontinuität — viele lose Ereignisse allein reichen nicht.",
+             "Answers come from lived experience and shift over time, instead of repeating the same line. Visible persona readiness requires profile depth, independent evidence, consolidated facts and continuity — a pile of loose events is not enough.")},
     {"art": "project", "icon": "projects", "name": "projects", "group": "container",
      "what": ("Der Behälter für *eine* Studie — eine Frage, von offener Erkundung bis zur klaren Antwort. "
               "Alles, was zu dieser Frage gehört, lebt hier.",
@@ -663,25 +662,23 @@ INSPECTOR_SECTIONS = [
       "that default.")),
     ("editing", "pencil",
      ("Was du bearbeiten kannst", "What you can edit"),
-     ("Der Inspector ist eine Lese-Oberfläche mit einer klaren Grenze: **ansehen und bearbeiten, "
-      "nie anlegen.** Neue Projekte, Notizen oder Sections entstehen ausschließlich über deinen "
-      "Agenten (MCP/CLI) — die UI bietet dafür bewusst keinen Button. Bearbeiten und Löschen "
+     ("Der Inspector ist eine Lese-Oberfläche mit einer klaren Grenze: Forschungsartefakte entstehen über deinen Agenten; eine **eigene Persona** kannst du als bewusst ausführliche Ausnahme selbst "
+      "anlegen. Der Flow fragt Alltag, Ziele, Grenzen, Werkzeuge, Sprache, Beziehungen und Evidenz ab und zeigt danach ehrlich, wie viel Memory noch fehlt. Bearbeiten und Löschen "
       "wohnen im **„…“-Menü**, das jeder Seitenkopf trägt (auch im Panel): **Bearbeiten** öffnet "
       "einen Dialog direkt über der Seite — Projekt-Titel, Goal und Icon; Notiz- und Section-Metadaten sowie "
       "Persona-Metadaten (Name, Rolle, Segment, Branche). Projekt-Icons kannst du dort aus "
       "dem bestehenden Katalog wählen; ein Klick auf das Header-Icon öffnet denselben Dialog "
       "direkt am Icon-Picker. Custom-SVGs erzeugt/setzt dein Agent per MCP/CLI. "
-      "**Löschen** öffnet einen "
-      "Bestätigungs-Dialog (bei Projekten und Personas tippst du den Namen). In der Jobliste steht dasselbe ruhige „…“-Menü direkt rechts vom Stern: **Umbenennen** ändert nur den Titel; **Job löschen** entfernt nie gestartete Container endgültig und archiviert Jobs mit abgeschlossener Run-Historie evidenzerhaltend. Aktive Runs bleiben geschützt. Generierter Text — "
+      "**Löschen** öffnet einen Bestätigungs-Dialog. Bei Personas zeigt er zuerst, wie viele Projekte gelöst und welche persönliche Memory entfernt wird; historische Sessions bleiben erhalten, aktive Research-Runs blockieren die Löschung. "
+      "In der Jobliste steht dasselbe ruhige „…“-Menü direkt rechts vom Stern: **Umbenennen** ändert nur den Titel; **Job löschen** entfernt nie gestartete Container endgültig und archiviert Jobs mit abgeschlossener Run-Historie evidenzerhaltend. Aktive Runs bleiben geschützt. Generierter Text — "
       "Councils, Reports, Prototypen — bleibt unantastbar; Erinnerungen, SOULs und Evidenz komplett.",
-      "The inspector is a reading surface with one clear boundary: **inspect and edit, never "
-      "create.** New projects, notes or sections come exclusively from your agent (MCP/CLI) — the "
-      "UI deliberately offers no button for them. Edit and delete live in the **“…” menu** every "
+      "The inspector is a reading surface with one clear boundary: research artifacts come from your agent; as one deliberately detailed exception, you can create a **custom persona** yourself. "
+      "The flow asks for everyday context, goals, constraints, tools, language, relationships and evidence, then shows honestly how much memory is still missing. Edit and delete live in the **“…” menu** every "
       "page header carries (in the side panel too): **Edit** opens a dialog right over the page — "
       "project title, goal and icon; note and section metadata plus persona metadata (name, role, segment, industry). "
       "Project icons can be chosen there from the existing catalogue; clicking the header icon "
       "opens the same dialog directly at the icon picker. Custom SVGs are generated/set by your "
-      "agent through MCP/CLI. **Delete** opens a confirm dialog (projects and personas ask you to type the name). "
+      "agent through MCP/CLI. **Delete** opens a confirm dialog. For personas it first explains which projects are detached and which personal memory is removed; historical sessions remain and active research runs block deletion. "
       "The Jobs list repeats the same quiet “…” menu immediately after the star: **Rename** changes only the title; **Delete job** permanently removes never-started containers and evidence-preservingly archives jobs with terminal run history. Active runs stay protected. Generated text — councils, reports, prototypes — stays untouchable; memories, SOULs and "
       "evidence entirely so.")),
     ("filtering", "filter",

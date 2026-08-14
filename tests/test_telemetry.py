@@ -162,6 +162,39 @@ def test_persona_survey_and_prototype_boundaries_emit_structural_events(
     assert all("Private" not in str(event["properties"]) for event in events)
 
 
+def test_prototype_telemetry_reports_only_observed_branding(store, tmp_path, monkeypatch):
+    from sonaloop import prototypes
+    from sonaloop.theming import (
+        DEFAULT_DESIGN_SYSTEM, reset_runtime_design_system_context,
+        runtime_design_system_context, set_runtime_design_system_context,
+    )
+
+    events = []
+    telemetry.register_product_telemetry_sink("test", events.append)
+    scope = config.set_request_tenant_scope(["ws_test"], "ws_test")
+    actor = config.set_request_actor({
+        "kind": "user", "id": "sub_private", "label": "Private User", "role": "editor",
+    })
+    monkeypatch.setattr(prototypes, "prototypes_dir", lambda: tmp_path)
+    theme = set_runtime_design_system_context(runtime_design_system_context(
+        DEFAULT_DESIGN_SYSTEM, workspace_id="ws_test", version_id="dsv_test",
+        surface="prototype"))
+    concept = {"title": "Neutral", "show_brand": False, "screens": [{
+        "id": "home", "title": "Home", "elements": [
+            {"id": "copy", "kind": "text", "label": "Copy"}],
+    }]}
+    try:
+        services.scaffold_prototype("neutral-telemetry", "Neutral", concept, store=store)
+    finally:
+        reset_runtime_design_system_context(theme)
+        config.reset_request_actor(actor)
+        config.reset_request_tenant_scope(scope)
+
+    event = next(item for item in events if item["name"] == "prototype_registered")
+    assert event["properties"]["brand_visible"] is False
+    assert event["properties"]["branding_source"] == "neutral"
+
+
 @pytest.mark.parametrize("properties", [
     {"query": "private search"},
     {"report_title": "private title"},

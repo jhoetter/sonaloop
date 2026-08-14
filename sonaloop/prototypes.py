@@ -503,7 +503,7 @@ def _prototype_design_system_head(ctx: dict[str, Any]) -> str:
 
 
 def _prototype_brand_markup(ctx: dict[str, Any], concept: dict[str, Any]) -> str:
-    if not bool(concept.get("show_brand") or concept.get("brand_header")):
+    if not bool(concept.get("show_brand", concept.get("brand_header", ctx.get("workspace_id")))):
         return ""
     brand = _brand_spec(ctx)
     src, text = brand.get("src", ""), brand.get("text", "")

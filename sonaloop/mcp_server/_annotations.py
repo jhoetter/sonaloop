@@ -226,6 +226,8 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     "brief_persona": R("Brief persona authoring"),
     "record_persona": W("Record persona"),
     "get_persona": R("Get persona"),
+    "persona_readiness": R("Assess persona readiness"),
+    "brief_persona_memory_onboarding": R("Brief persona memory onboarding"),
     "list_personas": R("List personas"),
     "get_persona_soul": R("Get persona SOUL"),
     "prepare_persona_agent_context": R("Prepare persona agent context"),
@@ -306,7 +308,8 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     "delete_research_project": D("Delete research project"),
     "delete_synthesis": D("Delete synthesis"),
     "delete_council": D("Delete council session"),
-    "delete_persona": D("Delete persona"),
+    "persona_deletion_impact": R("Preview persona deletion"),
+    "delete_persona": D("Delete persona with confirmation token"),
 
     # ---- sections & notes (_tools_sections) ----
     "create_section": W("Create section"),

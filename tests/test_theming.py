@@ -115,6 +115,7 @@ def test_validate_merges_partial_payload_over_defaults():
     assert ds["layout"]["radius"]["radius"] == "10px"
     assert ds["layout"]["spacing"]["s_1"] == "4px"
     assert ds["deck"]["boundary"] == "tokenized_master_deck"
+    assert ds["deck"]["master_asset_ref"] == ""
     assert validate_customer_theme(_design_system()) == ds
 
 

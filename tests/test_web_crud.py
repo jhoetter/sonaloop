@@ -47,6 +47,31 @@ def test_csrf_cookie_is_issued_and_forms_embed_it(store):
     assert f'name="csrf_token" value="{token}"' in html
 
 
+def test_report_exports_are_csrf_protected_post_actions(store, monkeypatch):
+    syn = services.record_synthesis("Shareable finding", "q", [], {}, store=store)
+    client = _client()
+    html = client.get(f'/syntheses/{syn["id"]}?lang=en').text
+    pdf_url = f'/syntheses/{syn["id"]}/export/pdf'
+    pptx_url = f'/syntheses/{syn["id"]}/export/pptx'
+    assert f'method="post" action="{pdf_url}"' in html
+    assert f'method="post" action="{pptx_url}"' in html
+    assert client.get(pdf_url).status_code == 405
+
+    calls = []
+    from sonaloop.web import _ext
+    monkeypatch.setattr(
+        _ext, "export_synthesis_deliverable",
+        lambda synthesis_id, fmt, **kwargs: (
+            calls.append((synthesis_id, fmt, kwargs["audience"]))
+            or {"asset_id": "asset_exported"}))
+    missing_csrf = client.post(pdf_url, data={}, follow_redirects=False)
+    assert missing_csrf.status_code == 403
+    exported = _post(client, pdf_url)
+    assert exported.status_code == 303
+    assert exported.headers["location"] == "/assets/asset_exported/content"
+    assert calls == [(syn["id"], "pdf", "stakeholder")]
+
+
 def test_fresh_ssr_drawer_reuses_outer_csrf_and_shell_context(store):
     """A first-ever shared ``?d=`` request must not mint a second token inside
     its in-process slide render. The embedded dialog forms must work immediately."""
@@ -236,14 +261,44 @@ def test_persona_delete_typed_confirmation_and_404(store):
     assert _post(client, "/personas/nope/delete", confirm="x").status_code == 404
 
 
-def test_persona_create_stays_mcp_only():
-    # No browser create path (docs/web-mutations.md): record_persona needs the full
-    # host-authored profile from brief_persona — the web offers metadata edit + delete only.
+def test_persona_delete_ui_blocks_an_active_research_run(store):
+    pid = create_persona(store, "Active Ada")
+    project = services.start_project(
+        "Active deletion guard", "Question", persona_ids=[pid], store=store)
+    services.start_run(project["id"], operation_id="active-ui-delete", store=store)
+    response = _post(_client(), f"/personas/{pid}/delete", confirm="Active Ada")
+    assert response.status_code == 409
+    assert "active" in response.text.casefold()
+    assert store.get_persona(pid)
+
+
+def test_persona_create_requires_a_specific_profile_and_starts_thin(store):
     client = _client()
-    # no create route: /personas/new falls through to the detail route's not-found state
     html = client.get("/personas/new?lang=en").text
-    assert 'action="/personas/new"' not in html and "Not found" in html
-    assert "/personas/new" not in client.get("/personas?lang=en").text
+    assert 'action="/personas/new"' in html and "Work and life context" in html
+    assert "/personas/new" in client.get("/personas?lang=en").text
+    invalid = _post(client, "/personas/new", display_name="Thin")
+    assert invalid.status_code == 400
+    response = _post(
+        client, "/personas/new", display_name="Mara Vogel", role_title="Branch adviser",
+        industry="Banking", org_size="24", customer_type="Retail", age_range="40–49",
+        source_description="Advises walk-in customers and prepares follow-ups between appointments.",
+        tools="E-mail\nCore banking\nTelephone", goals="Resolve requests first time",
+        constraints="Back-to-back appointments", pain_points="Missing hand-off context",
+        success_criteria="Customer leaves with a clear next step",
+        working_style="Keeps a paper checklist and finishes one case before the next.",
+        communication_style="Short, concrete sentences; asks one question at a time.",
+        risk_tolerance="Checks unusual transactions with a colleague before confirming.",
+        relationships="Lea | colleague | hand-offs arrive without the customer's last question",
+        evidence="Observed in one branch-shadowing session.",
+    )
+    assert response.status_code == 303
+    created = store.list_personas()[0]
+    readiness = services.persona_readiness(created["id"], store=store)
+    assert readiness["memory_level"] == "thin"
+    assert readiness["level"] == "thin"
+    assert "durable_facts" in readiness["gaps"]
+    assert readiness["next_action"] == "author_capabilities"
 
 
 def test_persona_catalog_link_page_and_pull(monkeypatch):

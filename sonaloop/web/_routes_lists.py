@@ -230,7 +230,9 @@ def _persona_row(p: dict, store: Store) -> str:
         _label(t("n_open", n=loops), "var(--amber)") if loops else None)
     right = fragment(h("span", {"class_": "muted small"}, p["company_context"]["industry"]), meta,
                      raw(_star("persona", pid, p["display_name"], f"/personas/{pid}")))
-    return _row(f'/personas/{pid}', _avatar(p, 22), p["display_name"], right, sub=p["role"]["title"])
+    from .pages.edit import persona_list_actions
+    return _row(f'/personas/{pid}', _avatar(p, 22), p["display_name"], right,
+                sub=p["role"]["title"], actions=persona_list_actions(p))
 
 
 def register_lists(app) -> None:

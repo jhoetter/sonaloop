@@ -38,6 +38,12 @@ usability/prototype sessions, asset attach/remove, note and section changes, and
 Retry-safe creates and sessions use their durable resource/operation key; an idempotent replay does
 not invent another success.
 
+Product-facing adoption edges are semantic events too: custom/catalog persona creation starts,
+persona views carry only readiness/memory-depth buckets and evidence presence, report exports carry
+format/audience plus default-vs-workspace branding/master sources, design-system publishing and safe
+asset uploads carry structural kinds, and prototype registration records whether workspace branding
+was inherited. No profile prose, report text, filenames or visual content enters telemetry.
+
 ## Canonical questions
 
 Keep product questions independent of the current analytics vendor. The initial event contract can
@@ -51,6 +57,9 @@ answer, for example:
 | Does search help people recover an item? | `search_used` by `surface`, query-length bucket and zero/non-zero result count, followed by a detail view. |
 | Are runs producing grounded usage evidence? | `session_recorded` grouped by `grounded`, `visual_trace` and fidelity. |
 | Which cohort sizes reach completion? | `persona_count` on `job_created`/`job_viewed`, joined to `run_finished` by pseudonymous project. |
+| Are thin personas being used or deliberately deepened? | `persona_viewed` readiness and memory-level buckets followed by session/run events; authored memory content is never sent. |
+| Do people use share-ready output? | `report_exported` by `export_format`, `audience`, `branding_source` and `master_source`. |
+| Does workspace branding reach generated work? | `workspace_design_published`/`workspace_design_asset_uploaded` followed by `prototype_registered` or `report_exported` with structural branding-source fields. |
 
 These recipes are sequence/correlation definitions, not extra event names. They remain valid if the
 outbox target changes from PostHog to another product-analytics system.

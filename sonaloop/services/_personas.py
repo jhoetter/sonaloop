@@ -6,12 +6,11 @@ Cross-module function references are bound at import time by services/__init__.p
 from __future__ import annotations
 
 import csv
-import hashlib
 import json
 import random
 import re
 import uuid
-from datetime import date, datetime, time, timedelta
+from datetime import datetime, time
 from pathlib import Path
 from typing import Any
 
@@ -720,6 +719,20 @@ def delete_persona(persona_id: str, store: Store | None = None) -> dict[str, Any
     persona = store.get_persona(persona_id)
     if not persona:
         raise KeyError(f"Unknown persona: {persona_id}")
+    impact = persona_deletion_impact(persona["id"], store=store)
+    if impact["blocked_by_active_runs"]:
+        raise ValueError("Persona deletion is blocked while a linked research run is active.")
+    detached = 0
+    # A deleted persona must not remain selectable in a live project cohort.
+    # Historical councils/sessions deliberately remain immutable and inspectable.
+    for project in store.list_research_projects():
+        before = list(project.get("persona_ids") or [])
+        if persona["id"] not in before:
+            continue
+        project["persona_ids"] = [pid for pid in before if pid != persona["id"]]
+        project["updated_at"] = utc_now_iso()
+        store.upsert_research_project(project)
+        detached += 1
     deleted = store.delete_persona_cascade(persona["id"])
     removed: list[str] = []
     d = persona_dir(persona)
@@ -743,10 +756,15 @@ def delete_persona(persona_id: str, store: Store | None = None) -> dict[str, Any
                 if isinstance(value, int) and not isinstance(value, bool)
             ),
             "files_removed": len(removed),
+            "projects_detached": detached,
+            "historical_artifact_count": sum(
+                int(value) for value in impact["historical_artifacts_preserved"].values()),
         },
         idempotency_key=persona["id"],
     )
-    return {"persona_id": persona["id"], "deleted": deleted, "removed_files": removed}
+    return {"persona_id": persona["id"], "deleted": deleted, "removed_files": removed,
+            "projects_detached": detached,
+            "historical_artifacts_preserved": impact["historical_artifacts_preserved"]}
 
 
 # ===================================================================== #

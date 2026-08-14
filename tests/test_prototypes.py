@@ -88,7 +88,7 @@ def test_scaffold_uses_active_workspace_design_system_context(store, tmp_path, m
         _design_system(), workspace_id="ws_acme", version_id="dsv_1", surface="prototype")
     token = set_runtime_design_system_context(ctx)
     try:
-        concept = {**_CONCEPT, "show_brand": True}
+        concept = dict(_CONCEPT)
         prototypes.scaffold_prototype("ueberg-themed", "Übergabe-Check", concept, store=store)
     finally:
         reset_runtime_design_system_context(token)
@@ -113,6 +113,20 @@ def test_scaffold_uses_active_workspace_design_system_context(store, tmp_path, m
     assert "--ff:\"Acme Sans\",Sona,system-ui,sans-serif" in html
     assert 'class="sl-prototype-brand"' in html
     assert 'src="data:image/png;base64,iVBORw0KGgo="' in html
+
+
+def test_workspace_prototype_can_explicitly_stay_neutral(store, tmp_path, monkeypatch):
+    monkeypatch.setattr(prototypes, "prototypes_dir", lambda: tmp_path)
+    ctx = runtime_design_system_context(
+        _design_system(), workspace_id="ws_acme", version_id="dsv_1", surface="prototype")
+    token = set_runtime_design_system_context(ctx)
+    try:
+        prototypes.scaffold_prototype(
+            "neutral-stimulus", "Neutral", {**_CONCEPT, "show_brand": False}, store=store)
+    finally:
+        reset_runtime_design_system_context(token)
+    html = (tmp_path / "neutral-stimulus" / "index.html").read_text(encoding="utf-8")
+    assert 'class="sl-prototype-brand"' not in html
 
 
 def test_refresh_prototype_design_system_updates_existing_entry(store, tmp_path, monkeypatch):

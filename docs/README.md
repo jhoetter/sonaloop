@@ -42,7 +42,7 @@ canonical published home:
 - [keyboard-conventions.md](keyboard-conventions.md) — the cross-surface keyboard contract
 - [i18n.md](i18n.md) — bilingual chrome + the `register_strings` extension seam
 - [pagination.md](pagination.md) — cursor pagination (MCP) + `?page`/`?q` web lists
-- [grounding.md](grounding.md), [calibration.md](calibration.md), [embeddings.md](embeddings.md) — evidence, prediction quality, recall
+- [persona-readiness.md](persona-readiness.md), [grounding.md](grounding.md), [calibration.md](calibration.md), [embeddings.md](embeddings.md) — persona depth, evidence, prediction quality, recall
 - [substrate.md](substrate.md), [artifact-inventory.md](artifact-inventory.md), [project-assets.md](project-assets.md), [opt-in-aggregation-design.md](opt-in-aggregation-design.md)
 - [taxonomy-audit-current-primitives-forms.md](taxonomy-audit-current-primitives-forms.md) — current primitive/form inventory, aliases, migration owners and compatibility requirements
 - [taxonomy-registry-schema.md](taxonomy-registry-schema.md) — machine-readable primitive/form registry contract and validation rules
