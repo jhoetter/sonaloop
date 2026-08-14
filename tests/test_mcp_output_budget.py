@@ -414,6 +414,13 @@ def build_fixture(store: Store) -> dict[str, Any]:
     services.set_project_methodology(project_id, "double_diamond", store=store)
     ids["run_id"] = services.start_run(project_id, store=store)["run_id"]
 
+    context_snapshot = services.prepare_persona_for_task(
+        pid, "renewal negotiation reporting trust", project_id=project_id, store=store)
+    ids["persona_context_snapshot_id"] = context_snapshot["id"]
+    persona_build = services.begin_persona_build(
+        pid, "output-budget-persona-build", store=store)
+    ids["persona_build_id"] = persona_build["build_id"]
+
     # A compact but real deterministic cohort record lets both read surfaces participate
     # in this exhaustive budget audit without adding a second governed Reaction Test run.
     from sonaloop.cohort_integrity import evaluate_cohort
@@ -520,6 +527,14 @@ def _tool_args(ids: dict[str, Any]) -> dict[str, dict]:
         "get_persona": {"persona_id": pid},
         "persona_readiness": {"persona_id": pid},
         "brief_persona_memory_onboarding": {"persona_id": pid, "days": 28},
+        "persona_task_readiness": {"persona_id": pid,
+                                     "task": "renewal negotiation reporting trust"},
+        "preview_persona_update": {"persona_id": pid,
+                                    "patch": {"goals": ["Keep renewal reporting trustworthy"]}},
+        "get_persona_context_snapshot": {"snapshot_id": ids["persona_context_snapshot_id"]},
+        "list_persona_context_snapshots": {"persona_id": pid},
+        "get_persona_build": {"build_id": ids["persona_build_id"]},
+        "list_persona_builds": {"persona_id": pid},
         "persona_deletion_impact": {"persona_id": pid},
         "get_persona_soul": {"persona_id": pid},
         "get_state_at": {"persona_id": pid, "as_of": day},

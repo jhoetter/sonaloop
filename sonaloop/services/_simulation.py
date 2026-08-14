@@ -354,8 +354,10 @@ def get_current_state(persona_id: str, at_time: str | None = None, store: Store 
     persona = store.get_persona(persona_id)
     if not persona:
         raise KeyError(f"Unknown persona: {persona_id}")
-    events = store.list_experience_events(persona["id"])
-    summaries = store.list_daily_summaries(persona["id"])
+    end = at_time if at_time else None
+    events = store.list_experience_events(persona["id"], end=end)
+    summary_end = at_time[:10] if at_time else None
+    summaries = store.list_daily_summaries(persona["id"], end=summary_end)
     latest = events[-1] if events else None
     latest_summary = summaries[-1] if summaries else {}
     return {

@@ -51,6 +51,67 @@ def register_personas(mcp):
                     services.brief_persona_memory_onboarding(persona_id, days), t)
 
     @mcp.tool()
+    def persona_task_readiness(persona_id: str, task: str, project_id: str | None = None,
+                               as_of: str | None = None,
+                               required_capability: str | None = None) -> dict[str, Any]:
+        """Read-only readiness for one exact assignment: global quality plus relevant
+        lived memory, independent grounding, cohort membership and capability rung."""
+        t = time.perf_counter()
+        return _env("persona_task_readiness", services.persona_task_readiness(
+            persona_id, task, project_id, as_of, required_capability), t)
+
+    @mcp.tool()
+    def prepare_persona_for_task(persona_id: str, task: str, project_id: str | None = None,
+                                 as_of: str | None = None,
+                                 required_capability: str | None = None,
+                                 recent_events: int = 8) -> dict[str, Any]:
+        """Freeze the exact SOUL, memory cutoff, loaded refs, capabilities and limitations
+        used for one assignment. Re-open later with get_persona_context_snapshot."""
+        t = time.perf_counter()
+        return _env("prepare_persona_for_task", services.prepare_persona_for_task(
+            persona_id, task, project_id, as_of, required_capability, recent_events), t)
+
+    @mcp.tool()
+    def get_persona_context_snapshot(snapshot_id: str) -> dict[str, Any]:
+        """Re-open one immutable persona/task context exactly as it was prepared."""
+        t = time.perf_counter()
+        return _env("get_persona_context_snapshot",
+                    services.get_persona_context_snapshot(snapshot_id), t)
+
+    @mcp.tool()
+    def list_persona_context_snapshots(persona_id: str) -> dict[str, Any]:
+        """Lean history of frozen task contexts for one persona."""
+        t = time.perf_counter()
+        return _env("list_persona_context_snapshots",
+                    services.list_persona_context_snapshots(persona_id), t)
+
+    @mcp.tool()
+    def begin_persona_build(persona_id: str, operation_id: str, days: int = 28) -> dict[str, Any]:
+        """Start or idempotently resume the governed profile→grounding→memory→critic
+        lifecycle. Execute the returned dispatch, then call persona_build_step."""
+        t = time.perf_counter()
+        return _env("begin_persona_build",
+                    services.begin_persona_build(persona_id, operation_id, days), t)
+
+    @mcp.tool()
+    def persona_build_step(build_id: str) -> dict[str, Any]:
+        """Re-assess durable outputs and advance a persona build to its next exact tool."""
+        t = time.perf_counter()
+        return _env("persona_build_step", services.persona_build_step(build_id), t)
+
+    @mcp.tool()
+    def get_persona_build(build_id: str) -> dict[str, Any]:
+        """Inspect one resumable persona build and its current dispatch/readiness."""
+        t = time.perf_counter()
+        return _env("get_persona_build", services.get_persona_build(build_id), t)
+
+    @mcp.tool()
+    def list_persona_builds(persona_id: str) -> dict[str, Any]:
+        """List the governed build history of one persona."""
+        t = time.perf_counter()
+        return _env("list_persona_builds", services.list_persona_builds(persona_id), t)
+
+    @mcp.tool()
     def list_personas(filters: dict[str, Any] | None = None, compact: bool = True,
                       limit: int = 25, cursor: str | None = None) -> dict[str, Any]:
         """Lean one-line overview of personas (slug/name/age/role/segment) — drill in with
@@ -75,10 +136,13 @@ def register_personas(mcp):
         return _env("get_persona_soul", services.get_persona_soul(persona_id), t)
 
     @mcp.tool()
-    def prepare_persona_agent_context(persona_id: str, task: str | None = None, recent_events: int = 8) -> dict[str, Any]:
+    def prepare_persona_agent_context(persona_id: str, task: str | None = None,
+                                      recent_events: int = 8,
+                                      as_of: str | None = None) -> dict[str, Any]:
         """Build the launch context for a persona subagent (SOUL + state + recent events)."""
         t = time.perf_counter()
-        return _env("prepare_persona_agent_context", services.prepare_persona_agent_context(persona_id, task, recent_events), t)
+        return _env("prepare_persona_agent_context",
+                    services.prepare_persona_agent_context(persona_id, task, recent_events, as_of), t)
 
     @mcp.tool()
     def preview_persona_update(persona_id: str, patch: dict[str, Any],

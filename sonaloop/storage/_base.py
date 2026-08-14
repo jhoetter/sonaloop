@@ -90,7 +90,8 @@ class StoreBase:
         scoped = ["calendar_events", "experience_events", "daily_summaries", "reflections",
                   "pain_points", "entities", "entity_facts", "event_entities", "threads",
                   "plans", "memory_digests", "embeddings", "persona_revisions", "evidence",
-                  "eval_reports", "memory_anomalies"]
+                  "eval_reports", "memory_anomalies", "persona_chats"]
+        scoped.extend(["persona_builds", "persona_context_snapshots", "persona_memory_proposals"])
         for table in scoped:
             cur = self.conn.execute(f"DELETE FROM {table} WHERE persona_id=?", (persona_id,))
             deleted[table] = cur.rowcount
@@ -118,6 +119,8 @@ class StoreBase:
             "persona_revisions",
             "memory_anomalies",
             "eval_reports",
+            "persona_builds",
+            "persona_context_snapshots",
             "active_run_claims",
             "runs",
             "research_projects",
@@ -155,6 +158,9 @@ class StoreBase:
             "corpus_chunks",
             "corpora",
             "persona_chats",
+            "persona_builds",
+            "persona_context_snapshots",
+            "persona_memory_proposals",
             "entities",
             "entity_facts",
             "event_entities",

@@ -103,6 +103,12 @@ _NEXT: dict[str, dict[str, Any]] = {
     "record_usability_session": {"name": "get_session_funnel", "reason": "aggregate this subject's sessions into the step funnel"},
     "suggest_tech_comfort": {"name": "update_persona", "reason": "patch capabilities.tech_comfort with a canonical level (the hint is the behavioral contract)"},
     "preview_persona_update": {"name": "update_persona", "reason": "apply this validated patch against the returned expected_updated_at version"},
+    "persona_readiness": {"name": "begin_persona_build", "reason": "resolve readiness gaps through one resumable governed lifecycle"},
+    "brief_persona_memory_onboarding": {"name": "begin_persona_build", "reason": "start the resumable lifecycle with a stable operation_id"},
+    "begin_persona_build": {"name": "persona_build_step", "reason": "after recording the returned dispatch output, re-assess and advance"},
+    "persona_build_step": {"name": "persona_build_step", "reason": "execute this dispatch, then continue the same build"},
+    "persona_task_readiness": {"name": "prepare_persona_for_task", "reason": "freeze the exact context when the task gate is acceptable"},
+    "prepare_persona_for_task": {"name": "get_persona_context_snapshot", "reason": "re-open the frozen context later without re-running recall"},
     # --- lifecycle hooks (docs/lifecycle-hooks.md) ---
     "list_lifecycle_events": {"name": "register_hook", "reason": "subscribe a command/webhook to the event you picked"},
     "register_hook": {"name": "test_hook", "reason": "fire a sample envelope through the new hook to verify delivery"},

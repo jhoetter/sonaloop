@@ -130,7 +130,7 @@ def build_persona_revision_prompt(frame: dict[str, Any], language: str | None = 
 Return ONLY one JSON object with exactly these keys:
 rationale: string (why this drift is justified by consolidated facts — cite them)
 effective_on: "YYYY-MM-DD"
-refs: array of exact source objects {kind: fact|digest|event|evidence, id: string}
+refs: array of exact source objects {{kind: fact|digest|event|evidence, id: string}}
 changes: object with optional keys:
   goals_add, goals_remove, constraints_add, constraints_remove,
   pains_add, pains_remove, tools_add, tools_remove: arrays of strings

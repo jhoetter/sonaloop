@@ -43,6 +43,9 @@ def test_expected_tools_registered():
     expected = {
         "brief_persona", "record_persona", "get_persona", "list_personas",
         "prepare_persona_agent_context",
+        "persona_task_readiness", "prepare_persona_for_task",
+        "get_persona_context_snapshot", "list_persona_context_snapshots",
+        "begin_persona_build", "persona_build_step", "get_persona_build", "list_persona_builds",
         "brief_day", "put_day_plan", "record_day",
         "brief_consolidation", "record_memory_deltas",
         "brief_synthesis", "record_synthesis", "export_synthesis",

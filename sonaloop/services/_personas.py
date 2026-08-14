@@ -72,13 +72,17 @@ from ._common import *  # noqa: F401,F403  (shared helpers + constants)
 
 
 
-def render_soul(persona: dict[str, Any], store: Store | None = None) -> str:
+def render_soul(persona: dict[str, Any], store: Store | None = None,
+                as_of: str | None = None) -> str:
     store = store or Store()
-    persona = effective_persona(persona, store)
-    revisions = store.list_persona_revisions(persona["id"])
-    summaries = store.list_daily_summaries(persona["id"])[-5:]
-    reflections = store.list_reflections(persona["id"])[-3:]
-    events = store.list_experience_events(persona["id"])[-8:]
+    persona = effective_persona(persona, store, as_of=as_of)
+    revisions = [r for r in store.list_persona_revisions(persona["id"])
+                 if not as_of or r["effective_on"][:10] <= as_of[:10]]
+    summaries = store.list_daily_summaries(persona["id"], end=as_of)[-5:]
+    reflections = [r for r in store.list_reflections(persona["id"])
+                   if not as_of or r["period_end"][:10] <= as_of[:10]][-3:]
+    events = store.list_experience_events(
+        persona["id"], end=(f"{as_of[:10]}T23:59" if as_of else None))[-8:]
     state_line = "No simulated day has been run yet."
     if events:
         latest = events[-1]
@@ -547,6 +551,7 @@ def prepare_persona_agent_context(
     persona_id: str,
     task: str | None = None,
     recent_events: int = 8,
+    as_of: str | None = None,
     store: Store | None = None,
 ) -> dict[str, Any]:
     """Build the context packet a subagent must receive to act as a persona.
@@ -560,9 +565,15 @@ def prepare_persona_agent_context(
     if not persona:
         raise KeyError(f"Unknown persona: {persona_id}")
     persona = ensure_persona_runtime_fields(persona, store)
-    soul = get_persona_soul(persona["id"], store)
-    state = get_current_state(persona["id"], store=store)
-    events = store.list_experience_events(persona["id"])[-max(0, recent_events):]
+    if as_of:
+        as_of = _parse_date(as_of).isoformat()
+        soul = {"path": f"inline:persona/{persona['id']}@{as_of}",
+                "content": render_soul(persona, store, as_of=as_of)}
+    else:
+        soul = get_persona_soul(persona["id"], store)
+    state = get_current_state(persona["id"], f"{as_of}T23:59" if as_of else None, store=store)
+    events = store.list_experience_events(
+        persona["id"], end=(f"{as_of}T23:59" if as_of else None))[-max(0, recent_events):]
     event_lines = [
         f"- {e['timestamp']} [{e['event_type']} / {e.get('collaboration_mode', 'unknown')}]: "
         f"{e.get('what_happened', e['summary'])} "
@@ -574,9 +585,18 @@ def prepare_persona_agent_context(
     # --- Memory grounding (spec §5.2/§5.7): the persona can draw on its own
     # project history ON DEMAND, not narrate it constantly. Recall is keyed to
     # the actual task/question so only relevant past surfaces. ---
-    active_projects = memory_mod.list_active_projects(store, persona["id"])
-    open_threads = store.list_threads(persona["id"], "open")
-    recall_hits = memory_mod.recall(store, persona["id"], task, k=6)["hits"] if task and task.strip() else []
+    if as_of:
+        historical = memory_mod.get_state_at(store, persona["id"], as_of)
+        active_projects = [{"entity_id": e["entity_id"], "name": e["name"],
+                            "status": e.get("status_at"), "open_loops": 0,
+                            "valid_facts": len(e.get("facts") or [])}
+                           for e in historical["entities"] if e.get("kind") == "project"]
+        open_threads = historical["open_threads"]
+    else:
+        active_projects = memory_mod.list_active_projects(store, persona["id"])
+        open_threads = store.list_threads(persona["id"], "open")
+    recall_hits = memory_mod.recall(store, persona["id"], task, as_of=as_of, k=6)["hits"] \
+        if task and task.strip() else []
     projects_block = "\n".join(
         f"- {p['name']} — Status: {p.get('status') or 'unbekannt'} (offene Fäden: {p['open_loops']})"
         for p in active_projects[:10]
@@ -639,6 +659,8 @@ authoritative persona identity and simulation rules.
         "display_name": persona["display_name"],
         "soul_loaded": True,
         "soul_path": soul["path"],
+        "as_of": as_of,
+        "persona_version": persona.get("updated_at"),
         "current_state": state,
         "recent_event_ids": [e["id"] for e in events],
         "active_projects": active_projects,
@@ -708,14 +730,16 @@ def export_logs(persona_id: str, start_date: str | None = None, end_date: str | 
 
 
 
-def effective_persona(persona: dict[str, Any], store: Store | None = None) -> dict[str, Any]:
+def effective_persona(persona: dict[str, Any], store: Store | None = None,
+                      as_of: str | None = None) -> dict[str, Any]:
     """Apply persona_revisions (slow, evidence-backed drift) as an overlay view.
 
     Does NOT mutate the stored base persona — the source identity is preserved;
     this returns the *grown* identity used for SOUL rendering and simulation.
     """
     store = store or Store()
-    revisions = store.list_persona_revisions(persona["id"])
+    revisions = [r for r in store.list_persona_revisions(persona["id"])
+                 if not as_of or r["effective_on"][:10] <= as_of[:10]]
     if not revisions:
         return persona
     p = json.loads(json.dumps(persona))

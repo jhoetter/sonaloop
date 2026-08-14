@@ -279,7 +279,7 @@ def utc_now_iso() -> str:
 
 # --- Memory & simulation settings (spec/memory-and-simulation-architecture.md) ---
 
-MEMORY_SCHEMA_VERSION = 4
+MEMORY_SCHEMA_VERSION = 5
 
 
 # --- Methodology engine & prototyping (spec/methodology-engine-and-prototyping.md) ---

@@ -98,6 +98,40 @@ CREATE TABLE IF NOT EXISTS persona_chats (
   data TEXT NOT NULL
 );
 
+-- Governed persona lifecycle: resumable profile→grounding→memory→critic builds,
+-- immutable task-context snapshots, and reviewed chat→memory proposals.
+CREATE TABLE IF NOT EXISTS persona_builds (
+  build_id TEXT PRIMARY KEY,
+  persona_id TEXT NOT NULL,
+  operation_id TEXT NOT NULL,
+  status TEXT NOT NULL,
+  data TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(persona_id, operation_id)
+);
+CREATE INDEX IF NOT EXISTS idx_persona_builds_persona ON persona_builds(persona_id, updated_at);
+
+CREATE TABLE IF NOT EXISTS persona_context_snapshots (
+  id TEXT PRIMARY KEY,
+  persona_id TEXT NOT NULL,
+  project_id TEXT,
+  created_at TEXT NOT NULL,
+  data TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_persona_context_persona ON persona_context_snapshots(persona_id, created_at);
+
+CREATE TABLE IF NOT EXISTS persona_memory_proposals (
+  id TEXT PRIMARY KEY,
+  persona_id TEXT NOT NULL,
+  chat_id TEXT,
+  status TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  data TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_persona_memory_proposals ON persona_memory_proposals(persona_id, status);
+
 CREATE TABLE IF NOT EXISTS lifecycle_hooks (
   id TEXT PRIMARY KEY,
   event TEXT NOT NULL,
