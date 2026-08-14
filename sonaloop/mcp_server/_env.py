@@ -109,6 +109,8 @@ _NEXT: dict[str, dict[str, Any]] = {
     "persona_build_step": {"name": "persona_build_step", "reason": "execute this dispatch, then continue the same build"},
     "persona_task_readiness": {"name": "prepare_persona_for_task", "reason": "freeze the exact context when the task gate is acceptable"},
     "prepare_persona_for_task": {"name": "get_persona_context_snapshot", "reason": "re-open the frozen context later without re-running recall"},
+    "validate_persona_output": {"name": "record_persona_voice_check", "reason": "author and persist the semantic voice verdict against this exact context"},
+    "record_persona_voice_check": {"name": "prepare_persona_for_task", "reason": "use a green, context-bound voice gate for the actual assignment"},
     # --- lifecycle hooks (docs/lifecycle-hooks.md) ---
     "list_lifecycle_events": {"name": "register_hook", "reason": "subscribe a command/webhook to the event you picked"},
     "register_hook": {"name": "test_hook", "reason": "fire a sample envelope through the new hook to verify delivery"},
@@ -120,6 +122,9 @@ _NEXT: dict[str, dict[str, Any]] = {
     "substrate_schema": {"name": "query_projects", "reason": "pin the contract, then page through the projects"},
     "query_projects": {"name": "get_study_result", "reason": "pull one project's full structured result (the automation shape)"},
     "chat_with_persona": {"name": "record_chat_turn", "reason": "author the in-character reply, then persist the exchange"},
+    "brief_memory_from_chat": {"name": "record_memory_proposal", "reason": "author only a bounded conversation-continuity proposal"},
+    "record_memory_proposal": {"name": "review_memory_proposal", "reason": "explicitly approve or reject before future chats may use it"},
+    "review_memory_proposal": {"name": "chat_with_persona", "reason": "approved continuity is now available to a new chat without changing identity or facts"},
     # --- grounding in real material (docs/grounding.md) ---
     "ingest_corpus": {"name": "brief_grounding", "reason": "author a persona (or a patch) from the real chunks, with provenance"},
     "brief_grounding": {"name": "record_grounding", "reason": "persist the provenance (claim -> chunk ids) you authored (record_persona first for a NEW persona)"},

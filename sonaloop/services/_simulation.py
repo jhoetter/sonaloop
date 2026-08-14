@@ -566,6 +566,11 @@ def record_day(persona_id: str, date_value: str, day_plan: dict[str, Any], plan:
         rec = record_memory_deltas(pid, day, deltas, store=store)
         result["entities"] = rec.get("entities_created")
         result["facts"] = rec.get("facts")
+    from ..telemetry import capture_product_event
+    capture_product_event(
+        "persona_day_recorded", subject_kind="persona", subject_id=pid,
+        properties={"activity_count": result["activities"], "has_deltas": bool(deltas)},
+        idempotency_key=f"{pid}:{day}")
     return result
 
 

@@ -246,3 +246,74 @@ def test_historical_context_does_not_read_future_event_or_revision(store):
     assert context["recent_event_ids"] == ["evt_past"]
     assert "Future-only goal" not in context["agent_context"]
     assert "Future work" not in context["agent_context"]
+
+
+def test_memory_projection_is_a_pure_read_and_export_is_workspace_bounded(store):
+    from sonaloop import config
+
+    pid = create_persona(store, "Pure Reader")
+    persona = store.get_persona(pid)
+    memory_file = config.partition_dir() / "personas" / persona["slug"] / "MEMORY.md"
+    assert not memory_file.exists()
+
+    result = services.get_persona_memory(pid, store=store)
+    assert result["persona_id"] == pid and "— MEMORY" in result["content"]
+    assert not memory_file.exists()
+
+    exported = services.export_persona_memory(pid, store=store)
+    assert exported["path"].endswith("MEMORY.md") and memory_file.exists()
+    with pytest.raises(ValueError, match="active workspace partition"):
+        services.export_persona_memory(pid, "/tmp/persona-memory.md", store=store)
+
+
+def test_voice_check_separates_persona_thought_from_analyst_register(store):
+    pid = create_persona(store, "Mina")
+    candidate = "Das ist ein klassisches Findability Problem und erhöht cognitive load."
+    brief = services.validate_persona_output(pid, candidate, store=store)
+    assert {item["phrase"] for item in brief["deterministic_signals"]} == {
+        "findability problem", "cognitive load",
+    }
+    verdict = {
+        "scores": {"authenticity": 1, "register_match": 1,
+                   "knowledge_grounding": 3, "attribution_separation": 1},
+        "issues": [{"kind": "analyst_register",
+                    "detail": "The sentence diagnoses the interface like a researcher."}],
+        "rewrite": "Wo soll ich hier anfangen? Ich sehe nur viele Fragen.",
+    }
+    report = services.record_persona_voice_check(pid, candidate, verdict, store=store)
+    assert report["green"] is False
+    assert services.record_persona_voice_check(pid, candidate, verdict, store=store) == report
+    persisted = next(item for item in store.list_eval_reports(pid)
+                     if item["kind"] == "persona_voice_check")
+    assert candidate not in str(persisted)
+    assert persisted["text_sha256"] == brief["text_sha256"]
+
+
+def test_chat_memory_requires_review_and_only_affects_conversation_continuity(store):
+    pid = create_persona(store, "Samira")
+    opened = services.chat_with_persona(pid, "Was ist dir wichtig?", store=store)
+    services.record_chat_turn(
+        pid, opened["chat_id"], "Was ist dir wichtig?",
+        "Ich möchte erst sehen, was mit meinen Daten passiert.", store=store)
+    brief = services.brief_memory_from_chat(pid, opened["chat_id"], [0], store=store)
+    assert brief["turn_indexes"] == [0]
+    proposal = services.record_memory_proposal(pid, opened["chat_id"], [0], {
+        "summary": "Prior conversation about data handling",
+        "continuity_notes": ["The prior chat discussed what happens to personal data."],
+    }, store=store)
+    assert proposal["status"] == "pending"
+    before = services.chat_with_persona(pid, "Und daran anknüpfend?", store=store)
+    assert "Approved Conversation Continuity" not in before["agent_context"]
+
+    approved = services.review_memory_proposal(
+        proposal["id"], "approve", "Useful continuity for the next chat", store=store)
+    assert approved["status"] == "approved"
+    assert services.review_memory_proposal(
+        proposal["id"], "approve", "same decision", store=store) == approved
+    after = services.chat_with_persona(pid, "Und daran anknüpfend?", store=store)
+    assert "Approved Conversation Continuity" in after["agent_context"]
+    assert "not evidence or lived experience" in after["agent_context"]
+    assert store.list_persona_facts(pid) == []
+    with pytest.raises(ValueError, match="different decision"):
+        services.review_memory_proposal(
+            proposal["id"], "reject", "changed my mind", store=store)

@@ -7,9 +7,9 @@ responses, a usability session, assets, a walkthrough script, a plan run and cha
 The audit is exhaustive by construction: every `readOnlyHint` tool in the
 annotations registry must be either CALLED (args in _tool_args) or SKIPPED with a
 written reason (_SKIPPED) — an unclassified new tool fails the test, so no tool
-ever ships unaudited. Two read-shaped writing tools the ticket names
-(get_persona_memory renders MEMORY.md; export_synthesis returns the document
-inline for format="md") are audited as extras.
+ever ships unaudited. One read-shaped writing tool the ticket names
+(export_synthesis returns the document inline for format="md") is audited as an
+extra. Persona memory is now a pure read; exporting it is a separate bounded write.
 
 Fixed offenders pinned here (sizes from the audit run on this fixture):
 - get_corpus include_chunks=True   306k -> ~12k  (chunk pagination + in-band note)
@@ -291,6 +291,11 @@ def build_fixture(store: Store) -> dict[str, Any]:
             "I can defend the line item at the margins review without a side spreadsheet.",
             store=store)
     ids["chat_id"] = chat_id
+    proposal = services.record_memory_proposal(pid, chat_id, [0], {
+        "summary": "Prior renewal discussion",
+        "continuity_notes": ["The prior chat discussed evidence needed for renewal."],
+    }, store=store)
+    ids["memory_proposal_id"] = proposal["id"]
 
     # --- corpora: two interviews + a quarter's support-ticket export -------------
     c1 = services.ingest_corpus(_transcript(60, 1), "interview",
@@ -535,8 +540,17 @@ def _tool_args(ids: dict[str, Any]) -> dict[str, dict]:
         "list_persona_context_snapshots": {"persona_id": pid},
         "get_persona_build": {"build_id": ids["persona_build_id"]},
         "list_persona_builds": {"persona_id": pid},
+        "validate_persona_output": {
+            "persona_id": pid,
+            "text": "I need to see the export match the dashboard first.",
+        },
+        "brief_memory_from_chat": {"persona_id": pid, "chat_id": ids["chat_id"],
+                                    "turn_indexes": [0]},
+        "get_memory_proposal": {"proposal_id": ids["memory_proposal_id"]},
+        "list_memory_proposals": {"persona_id": pid},
         "persona_deletion_impact": {"persona_id": pid},
         "get_persona_soul": {"persona_id": pid},
+        "get_persona_memory": {"persona_id": pid},
         "get_state_at": {"persona_id": pid, "as_of": day},
         "get_timeline": {"persona_id": pid},
         "get_project": {"persona_id": pid, "entity_id": ids["entity_id"]},
@@ -607,12 +621,11 @@ def _tool_args(ids: dict[str, Any]) -> dict[str, dict]:
     }
 
 
-# Read-shaped writing tools the ticket names explicitly: get_persona_memory renders
-# MEMORY.md to disk (hence W) but returns the full document; export_synthesis with
-# format="md" returns the document inline.
+# Read-shaped writing tools the ticket names explicitly. export_synthesis with
+# format="md" returns the document inline. Persona memory export returns only a
+# bounded write receipt and needs no read-output exception.
 def _extra_args(ids: dict[str, Any]) -> dict[str, dict]:
     return {
-        "get_persona_memory": {"persona_id": ids["persona_id"]},
         "export_synthesis": {"synthesis_id": ids["synthesis_id"], "format": "md"},
         # the cross-host retrieval contract: search caps at 20 hits × short snippets,
         # fetch renders ONE record — both bounded by construction, audited here for real

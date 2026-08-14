@@ -162,6 +162,50 @@ def test_persona_survey_and_prototype_boundaries_emit_structural_events(
     assert all("Private" not in str(event["properties"]) for event in events)
 
 
+def test_persona_preparation_and_review_boundaries_emit_content_free_events(store):
+    from tests.conftest import make_profile
+
+    events = []
+    telemetry.register_product_telemetry_sink("test", events.append)
+    scope = config.set_request_tenant_scope(["ws_test"], "ws_test")
+    actor = config.set_request_actor({
+        "kind": "user", "id": "sub_private", "label": "Private User",
+        "role": "editor", "channel": "mcp",
+    })
+    try:
+        persona = services.record_persona(
+            "Private source description", make_profile("Private Persona"), store=store)
+        services.begin_persona_build(
+            persona["id"], "private-build-operation", days=28, store=store)
+        services.record_persona_voice_check(persona["id"], "Private candidate wording", {
+            "scores": {"authenticity": 5, "register_match": 5,
+                       "knowledge_grounding": 5, "attribution_separation": 5},
+            "issues": [],
+        }, store=store)
+        chat = services.chat_with_persona(persona["id"], "Private question", store=store)
+        services.record_chat_turn(
+            persona["id"], chat["chat_id"], "Private question", "Private answer", store=store)
+        proposal = services.record_memory_proposal(
+            persona["id"], chat["chat_id"], [0], {
+                "summary": "Private summary", "continuity_notes": ["Private note"],
+            }, store=store)
+        services.review_memory_proposal(
+            proposal["id"], "approve", "Private review reason", store=store)
+    finally:
+        config.reset_request_actor(actor)
+        config.reset_request_tenant_scope(scope)
+
+    selected = [event for event in events if event["name"] in {
+        "persona_build_started", "persona_voice_checked",
+        "persona_memory_proposal_reviewed",
+    }]
+    assert {event["name"] for event in selected} == {
+        "persona_build_started", "persona_voice_checked",
+        "persona_memory_proposal_reviewed",
+    }
+    assert all("Private" not in str(event["properties"]) for event in selected)
+
+
 def test_prototype_telemetry_reports_only_observed_branding(store, tmp_path, monkeypatch):
     from sonaloop import prototypes
     from sonaloop.theming import (

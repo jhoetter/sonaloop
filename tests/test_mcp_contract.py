@@ -46,7 +46,11 @@ def test_expected_tools_registered():
         "persona_task_readiness", "prepare_persona_for_task",
         "get_persona_context_snapshot", "list_persona_context_snapshots",
         "begin_persona_build", "persona_build_step", "get_persona_build", "list_persona_builds",
+        "validate_persona_output", "record_persona_voice_check",
+        "brief_memory_from_chat", "record_memory_proposal", "review_memory_proposal",
+        "get_memory_proposal", "list_memory_proposals",
         "brief_day", "put_day_plan", "record_day",
+        "get_persona_memory", "export_persona_memory",
         "brief_consolidation", "record_memory_deltas",
         "brief_synthesis", "record_synthesis", "export_synthesis",
         # the shareable read-only static HTML bundle (token-in-path share secret):

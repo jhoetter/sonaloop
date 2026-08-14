@@ -47,8 +47,14 @@ Host-authored like everything else — the server never generates text:
    the exchange persists and emits the `chat.recorded` lifecycle event.
 3. `get_chat(chat_id)` / `list_chats(persona_id?)` read the durable artifact back.
 
+A recorded exchange does not silently become persona memory. To preserve continuity across
+separate chats, gather selected turns with `brief_memory_from_chat`, persist a pending
+`record_memory_proposal`, then explicitly `review_memory_proposal` with approve/reject and a reason.
+Approved notes are loaded only into later chats and are labelled synthetic conversation — never
+independent evidence, lived experience, facts or identity revision.
+
 CLI: `chat-brief`, `chat-record`, `chat-get`, `chat-list`, plus `query-*`,
-`study-result`, `substrate-schema`.
+`study-result`, `substrate-schema` and the `chat-memory-*` review commands.
 
 ## The auth seam (cloud builds on this)
 

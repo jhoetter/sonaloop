@@ -112,6 +112,26 @@ def register_personas(mcp):
         return _env("list_persona_builds", services.list_persona_builds(persona_id), t)
 
     @mcp.tool()
+    def validate_persona_output(persona_id: str, text: str,
+                                context_snapshot_id: str | None = None,
+                                field_kind: str = "persona_quote") -> dict[str, Any]:
+        """Gather a semantic authenticity check for persona-authored wording. Returns
+        the exact persona context and warning signals; the host authors the verdict."""
+        t = time.perf_counter()
+        return _env("validate_persona_output", services.validate_persona_output(
+            persona_id, text, context_snapshot_id, field_kind), t)
+
+    @mcp.tool()
+    def record_persona_voice_check(persona_id: str, text: str,
+                                   verdict: dict[str, Any],
+                                   context_snapshot_id: str | None = None) -> dict[str, Any]:
+        """Persist the semantic authenticity verdict without retaining the raw candidate
+        text. A green check requires all four dimensions >=4 and no open issue."""
+        t = time.perf_counter()
+        return _env("record_persona_voice_check", services.record_persona_voice_check(
+            persona_id, text, verdict, context_snapshot_id), t)
+
+    @mcp.tool()
     def list_personas(filters: dict[str, Any] | None = None, compact: bool = True,
                       limit: int = 25, cursor: str | None = None) -> dict[str, Any]:
         """Lean one-line overview of personas (slug/name/age/role/segment) — drill in with

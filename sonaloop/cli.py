@@ -80,6 +80,40 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--recent-events", type=int, default=8)
     p.add_argument("--text", action="store_true")
 
+    p = sub.add_parser("persona-readiness")
+    p.add_argument("persona_id")
+
+    p = sub.add_parser("persona-task-readiness")
+    p.add_argument("persona_id"); p.add_argument("task")
+    p.add_argument("--project"); p.add_argument("--as-of"); p.add_argument("--capability")
+
+    p = sub.add_parser("persona-prepare-task")
+    p.add_argument("persona_id"); p.add_argument("task")
+    p.add_argument("--project"); p.add_argument("--as-of"); p.add_argument("--capability")
+    p.add_argument("--recent-events", type=int, default=8)
+
+    p = sub.add_parser("persona-context-get")
+    p.add_argument("snapshot_id")
+    p = sub.add_parser("persona-context-list")
+    p.add_argument("persona_id")
+
+    p = sub.add_parser("persona-build-start")
+    p.add_argument("persona_id"); p.add_argument("operation_id")
+    p.add_argument("--days", type=int, default=28)
+    p = sub.add_parser("persona-build-step")
+    p.add_argument("build_id")
+    p = sub.add_parser("persona-build-get")
+    p.add_argument("build_id")
+    p = sub.add_parser("persona-build-list")
+    p.add_argument("persona_id")
+
+    p = sub.add_parser("persona-voice-brief")
+    p.add_argument("persona_id"); p.add_argument("text")
+    p.add_argument("--snapshot"); p.add_argument("--field-kind", default="persona_quote")
+    p = sub.add_parser("persona-voice-record")
+    p.add_argument("persona_id"); p.add_argument("text"); p.add_argument("verdict_json")
+    p.add_argument("--snapshot")
+
     p = sub.add_parser("persona-update")
     p.add_argument("persona_id")
     p.add_argument("patch_json")
@@ -221,6 +255,23 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("memory")
     p.add_argument("persona_id")
+
+    p = sub.add_parser("memory-export")
+    p.add_argument("persona_id"); p.add_argument("--out")
+
+    p = sub.add_parser("chat-memory-brief")
+    p.add_argument("persona_id"); p.add_argument("chat_id")
+    p.add_argument("--turn", action="append", type=int)
+    p = sub.add_parser("chat-memory-record")
+    p.add_argument("persona_id"); p.add_argument("chat_id"); p.add_argument("proposal_json")
+    p.add_argument("--turn", action="append", type=int, required=True)
+    p = sub.add_parser("chat-memory-review")
+    p.add_argument("proposal_id"); p.add_argument("decision", choices=("approve", "reject"))
+    p.add_argument("reason")
+    p = sub.add_parser("chat-memory-get")
+    p.add_argument("proposal_id")
+    p = sub.add_parser("chat-memory-list")
+    p.add_argument("persona_id"); p.add_argument("--status", choices=("pending", "approved", "rejected"))
 
     p = sub.add_parser("digests")
     p.add_argument("persona_id")
@@ -515,6 +566,33 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "persona-context":
             ctx = services.prepare_persona_agent_context(args.persona_id, args.task, args.recent_events)
             _print(ctx["agent_context"] if args.text else ctx, as_json=not args.text)
+        elif args.command == "persona-readiness":
+            _print(services.persona_readiness(args.persona_id))
+        elif args.command == "persona-task-readiness":
+            _print(services.persona_task_readiness(
+                args.persona_id, args.task, args.project, args.as_of, args.capability))
+        elif args.command == "persona-prepare-task":
+            _print(services.prepare_persona_for_task(
+                args.persona_id, args.task, args.project, args.as_of, args.capability,
+                args.recent_events))
+        elif args.command == "persona-context-get":
+            _print(services.get_persona_context_snapshot(args.snapshot_id))
+        elif args.command == "persona-context-list":
+            _print(services.list_persona_context_snapshots(args.persona_id))
+        elif args.command == "persona-build-start":
+            _print(services.begin_persona_build(args.persona_id, args.operation_id, args.days))
+        elif args.command == "persona-build-step":
+            _print(services.persona_build_step(args.build_id))
+        elif args.command == "persona-build-get":
+            _print(services.get_persona_build(args.build_id))
+        elif args.command == "persona-build-list":
+            _print(services.list_persona_builds(args.persona_id))
+        elif args.command == "persona-voice-brief":
+            _print(services.validate_persona_output(
+                args.persona_id, args.text, args.snapshot, args.field_kind))
+        elif args.command == "persona-voice-record":
+            _print(services.record_persona_voice_check(
+                args.persona_id, args.text, json.loads(args.verdict_json), args.snapshot))
         elif args.command == "persona-update":
             _print(services.update_persona(args.persona_id, json.loads(args.patch_json), args.reason))
         elif args.command == "persona-refresh":
@@ -606,6 +684,20 @@ def main(argv: list[str] | None = None) -> int:
             _print(services.get_open_loops(args.persona_id, args.status))
         elif args.command == "memory":
             _print(services.get_persona_memory(args.persona_id)["content"], as_json=False)
+        elif args.command == "memory-export":
+            _print(services.export_persona_memory(args.persona_id, args.out))
+        elif args.command == "chat-memory-brief":
+            _print(services.brief_memory_from_chat(args.persona_id, args.chat_id, args.turn))
+        elif args.command == "chat-memory-record":
+            _print(services.record_memory_proposal(
+                args.persona_id, args.chat_id, args.turn, json.loads(args.proposal_json)))
+        elif args.command == "chat-memory-review":
+            _print(services.review_memory_proposal(
+                args.proposal_id, args.decision, args.reason))
+        elif args.command == "chat-memory-get":
+            _print(services.get_memory_proposal(args.proposal_id))
+        elif args.command == "chat-memory-list":
+            _print(services.list_memory_proposals(args.persona_id, args.status))
         elif args.command == "digests":
             _print(services.list_digests(args.persona_id, args.scope))
         elif args.command == "plans":

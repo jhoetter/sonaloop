@@ -231,12 +231,22 @@ def chat_with_persona(persona_id: str, message: str, chat_id: str | None = None,
                                   {"role": persona["display_name"], "text": turn["persona_reply"]}))
     language = ensure_content_language(message)
     ctx = prepare_persona_agent_context(persona["id"], message, store=store)  # noqa: F821 (bound)
+    approved = store.list_persona_memory_proposals(persona["id"], "approved")[:8]
+    continuity_notes = [str(note)[:500] for item in approved
+                        for note in ((item.get("proposal") or {}).get("continuity_notes") or [])][:24]
+    continuity = "\n".join(f"- {note}" for note in continuity_notes)[:6_000]
+    agent_context = ctx["agent_context"]
+    if continuity:
+        agent_context += (
+            "\n\n## Approved Conversation Continuity\n"
+            "These notes came from prior synthetic chats. They preserve conversational "
+            "continuity only; they are not evidence or lived experience.\n" + continuity)
     return {
         "schema": "persona_chat", "substrate_version": SUBSTRATE_VERSION,
         "chat_id": chat["id"], "persona_id": persona["id"],
         "display_name": persona["display_name"], "message": message,
         "turns": len(chat["turns"]), "history": history,
-        "soul_path": ctx["soul_path"], "agent_context": ctx["agent_context"],
+        "soul_path": ctx["soul_path"], "agent_context": agent_context,
         "instructions": (
             "Answer AS this persona, grounded in agent_context AND consistent with the prior "
             "turns in `history` — do not force support; say what is uncertain if the record is "

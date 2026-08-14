@@ -298,7 +298,7 @@ def test_persona_create_requires_a_specific_profile_and_starts_thin(store):
     assert readiness["memory_level"] == "thin"
     assert readiness["level"] == "thin"
     assert "durable_facts" in readiness["gaps"]
-    assert readiness["next_action"] == "author_capabilities"
+    assert readiness["next_action"] == "ground_claims"
 
 
 def test_persona_catalog_link_page_and_pull(monkeypatch):

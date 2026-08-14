@@ -22,13 +22,13 @@ DOC_PAGES = [
 
 # ============================ Overview ============================ #
 DOCS_INTRO = {
-    "de": "Sonaloop ist ein **Research-Workspace** mit synthetischen Kunden-Personas, die ein echtes, "
-          "wachsendes Gedächtnis haben. Sie reagieren in **Councils** auf deine Ideen, testen deine "
+    "de": "Sonaloop ist ein **Research-Workspace** mit synthetischen Kunden-Personas, die ein "
+          "wachsendes, quellenbewusstes Gedächtnis haben. Sie reagieren in **Councils** auf deine Ideen, testen deine "
           "**Prototypen** und verdichten sich zu entscheidungsreifen **Reports**. Du bringst eine Frage "
           "mit — die Arbeit passiert gegen Personas, die sich erinnern, und jede Schlussfolgerung ist auf "
           "Evidenz zurückführbar.",
-    "en": "Sonaloop is a **research workspace** built on synthetic customer personas that carry a real, "
-          "growing memory. They react to your ideas in **councils**, test your **prototypes**, and roll up "
+    "en": "Sonaloop is a **research workspace** built on synthetic customer personas that carry a "
+          "growing, source-aware memory. They react to your ideas in **councils**, test your **prototypes**, and roll up "
           "into decision-ready **reports**. You bring a question — the work happens against personas that "
           "remember, and every conclusion traces back to evidence.",
 }
@@ -37,10 +37,8 @@ DOCS_INTRO = {
 PRINCIPLES = [
     ("target",
      ("Memory-geerdet", "Memory-grounded"),
-     ("Jede Persona-Reaktion stammt aus angesammelter, gelebter Erfahrung — nichts wird erfunden, und "
-      "jede Aussage lässt sich auf eine konkrete Erinnerung zurückführen.",
-      "Every persona reaction comes from accumulated, lived experience — nothing is invented, and each "
-      "statement traces back to a specific memory.")),
+     ("Persona-Reaktionen nutzen vorab aufgebauten synthetischen Alltag und unabhängige Quellen. Herkunft und Unsicherheit bleiben sichtbar; eine Simulation wird nie als echte Beobachtung ausgegeben.",
+      "Persona reactions use pre-built synthetic everyday continuity and independent sources. Provenance and uncertainty stay visible; a simulation is never presented as a real observation.")),
     ("councils",
      ("Nicht-direktiv", "Non-directional"),
      ("Personas werden nie dazu gebracht, deine Idee zu mögen. Skepsis, Gleichgültigkeit und Ablehnung "
@@ -127,8 +125,8 @@ DOCS = [
               "alles, was er erlebt hat. Kein statisches Profil — er erinnert sich und entwickelt sich.",
               "A synthetic customer with a **SOUL** (who they are) and a growing memory of everything "
               "they've been through. Not a static profile — it remembers and evolves."),
-     "why": ("Antworten kommen aus gelebter Erfahrung und verschieben sich mit der Zeit, statt jedes Mal denselben Satz zu wiederholen. Die sichtbare Persona-Reife verlangt Profil, unabhängige Evidenz, konsolidierte Fakten und Kontinuität — viele lose Ereignisse allein reichen nicht.",
-             "Answers come from lived experience and shift over time, instead of repeating the same line. Visible persona readiness requires profile depth, independent evidence, consolidated facts and continuity — a pile of loose events is not enough.")},
+     "why": ("Antworten kommen aus vorab aufgebauter Alltagskontinuität und verschieben sich mit der Zeit, statt jedes Mal denselben Satz zu wiederholen. Reife verlangt Profil, unabhängige Evidenz, konsolidierte Fakten, Digest und eine aktuelle Stimmprüfung. Für wichtige Aufgaben wird der verwendete Kontext eingefroren; Chat-Antworten werden nie still zu Fakten.",
+             "Answers come from pre-built everyday continuity and shift over time instead of repeating the same line. Readiness requires profile depth, independent evidence, consolidated facts, a digest, and a current voice check. Consequential tasks freeze the context used; chat replies never silently become facts.")},
     {"art": "project", "icon": "projects", "name": "projects", "group": "container",
      "what": ("Der Behälter für *eine* Studie — eine Frage, von offener Erkundung bis zur klaren Antwort. "
               "Alles, was zu dieser Frage gehört, lebt hier.",
@@ -757,7 +755,7 @@ RECIPES = [
 # to the raw catalogue label. DOMAIN_META: key -> (title_de, title_en, desc_de, desc_en).
 DOMAIN_META = {
     "personas":   ("Personas", "Personas",
-                   "Personas anlegen und in echten Quellen erden.", "Create personas and ground them in real sources."),
+                   "Personas aufbauen, für Aufgaben einfrieren und ihre Stimme prüfen.", "Build personas, freeze task contexts, and check their voice."),
     "simulation": ("Simulation & Erinnerung", "Simulation & memory",
                    "Tage/Monate simulieren und Persona-Erinnerung abrufen.", "Simulate days/months and recall persona memory."),
     "research":   ("Projekt-Graph & Report", "Project graph & report",

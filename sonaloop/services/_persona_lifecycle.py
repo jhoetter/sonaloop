@@ -299,3 +299,218 @@ def list_persona_builds(persona_id: str, store: Store | None = None) -> list[dic
     store = store or Store()
     persona = _require_persona(store, persona_id)
     return store.list_persona_builds(persona["id"])
+
+
+_ANALYST_REGISTER_SIGNALS = (
+    "findability problem", "information architecture", "cognitive load",
+    "progressive disclosure", "top task", "top-task", "usability heuristic",
+)
+_VOICE_DIMENSIONS = ("authenticity", "register_match", "knowledge_grounding",
+                     "attribution_separation")
+
+
+def validate_persona_output(persona_id: str, text: str,
+                            context_snapshot_id: str | None = None,
+                            field_kind: str = "persona_quote",
+                            store: Store | None = None) -> dict[str, Any]:
+    """Gather a semantic voice-check assignment plus deterministic warning signals.
+
+    The host authors the semantic verdict; the server never pretends a keyword scan
+    proves authenticity.  Persist the verdict with ``record_persona_voice_check``.
+    """
+    store = store or Store()
+    persona = _require_persona(store, persona_id)
+    text = str(text or "").strip()
+    if not text:
+        raise ValueError("persona output validation requires non-empty text")
+    if len(text) > 8_000:
+        raise ValueError("persona output validation is limited to 8,000 characters")
+    if context_snapshot_id:
+        snapshot = store.get_persona_context_snapshot(context_snapshot_id)
+        if not snapshot or snapshot.get("persona_id") != persona["id"]:
+            raise ValueError("context snapshot does not belong to this persona")
+        context = snapshot["agent_context"]
+    else:
+        context = prepare_persona_agent_context(  # noqa: F821 (bound)
+            persona["id"], "Validate whether this wording is authentic", store=store)["agent_context"]
+    low = text.casefold()
+    signals = [{"kind": "analyst_register", "phrase": phrase}
+               for phrase in _ANALYST_REGISTER_SIGNALS if phrase in low]
+    digest = hashlib.sha256(text.encode()).hexdigest()
+    return {
+        "schema": "sonaloop.persona_voice_check.v1", "persona_id": persona["id"],
+        "persona_version": persona.get("updated_at"),
+        "context_snapshot_id": context_snapshot_id, "field_kind": str(field_kind)[:40],
+        "text": text, "text_sha256": digest, "deterministic_signals": signals,
+        "requires_semantic_verdict": True,
+        "agent_context": context,
+        "instructions": (
+            "Judge the candidate wording against the loaded persona, not generic good writing. "
+            "Return a verdict object with integer 0..5 scores for authenticity, register_match, "
+            "knowledge_grounding and attribution_separation; `issues` as [{kind, detail}]; "
+            "`rewrite` only when needed. A persona is not a UX analyst: immediate partial thought "
+            "is preferable to polished diagnosis. Deterministic signals are review prompts, not proof."
+        ),
+    }
+
+
+def record_persona_voice_check(persona_id: str, text: str, verdict: dict[str, Any],
+                               context_snapshot_id: str | None = None,
+                               store: Store | None = None) -> dict[str, Any]:
+    """Persist a content-minimal semantic voice verdict; raw candidate text is not stored."""
+    store = store or Store()
+    persona = _require_persona(store, persona_id)
+    brief = validate_persona_output(persona["id"], text, context_snapshot_id, store=store)
+    if not isinstance(verdict, dict):
+        raise ValueError("voice verdict must be an object")
+    scores: dict[str, int] = {}
+    raw_scores = verdict.get("scores") or {}
+    for dimension in _VOICE_DIMENSIONS:
+        try:
+            score = int(raw_scores.get(dimension))
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"voice verdict score {dimension} must be an integer 0..5") from exc
+        if not 0 <= score <= 5:
+            raise ValueError(f"voice verdict score {dimension} must be an integer 0..5")
+        scores[dimension] = score
+    issues = []
+    for issue in verdict.get("issues") or []:
+        if isinstance(issue, dict) and str(issue.get("detail") or "").strip():
+            issues.append({"kind": str(issue.get("kind") or "other")[:40],
+                           "detail": str(issue["detail"]).strip()[:500]})
+    passed = all(value >= 4 for value in scores.values()) and not issues
+    now = utc_now_iso()
+    report = {"id": stable_id("voicecheck", persona["id"], brief["text_sha256"],
+                              context_snapshot_id or brief.get("persona_version") or "current"),
+              "persona_id": persona["id"], "kind": "persona_voice_check",
+              "green": passed, "scores": scores, "issues": issues[:20],
+              "rewrite": str(verdict.get("rewrite") or "").strip()[:2_000] or None,
+              "text_sha256": brief["text_sha256"],
+              "context_snapshot_id": context_snapshot_id,
+              "deterministic_signals": brief["deterministic_signals"],
+              "created_at": now}
+    existing = next((item for item in store.list_eval_reports(persona["id"])
+                     if item.get("id") == report["id"]), None)
+    if existing:
+        comparable = ("scores", "issues", "rewrite", "text_sha256", "context_snapshot_id")
+        if any(existing.get(key) != report.get(key) for key in comparable):
+            raise ValueError("this persona output/context was already checked with a different verdict")
+        return existing
+    store.insert_eval_report(report)
+    store.commit()
+    from ..telemetry import capture_product_event
+    capture_product_event(
+        "persona_voice_checked", subject_kind="persona", subject_id=persona["id"],
+        properties={"passed": passed, "issue_count": len(issues),
+                    "signal_count": len(brief["deterministic_signals"])},
+        idempotency_key=report["id"])
+    return report
+
+
+def brief_memory_from_chat(persona_id: str, chat_id: str,
+                           turn_indexes: list[int] | None = None,
+                           store: Store | None = None) -> dict[str, Any]:
+    """Gather exact chat turns for a proposed conversation-continuity memory.
+
+    A generated reply is never independent evidence and this path cannot write
+    identity revisions or durable facts.
+    """
+    store = store or Store()
+    persona = _require_persona(store, persona_id)
+    chat = store.get_persona_chat(chat_id)
+    if not chat or chat.get("persona_id") != persona["id"]:
+        raise KeyError(f"Unknown chat for persona: {chat_id}")
+    indexes = sorted(set(int(i) for i in (turn_indexes if turn_indexes is not None
+                                          else range(len(chat.get("turns") or [])))))
+    turns = [turn for turn in chat.get("turns") or [] if int(turn.get("idx", -1)) in indexes]
+    if not turns:
+        raise ValueError("at least one existing chat turn is required")
+    if len(turns) > 20:
+        raise ValueError("one chat memory proposal is limited to 20 turns")
+    return {
+        "schema": "sonaloop.chat_memory_proposal.v1", "persona_id": persona["id"],
+        "chat_id": chat_id, "turn_indexes": indexes, "turns": turns,
+        "instructions": (
+            "Author only cross-chat conversational continuity: {summary, continuity_notes:[...]}. "
+            "Do not promote the persona's generated claims into evidence, lived episodes, profile "
+            "traits or identity revisions. Then call record_memory_proposal; a human/host review "
+            "must approve it before another chat may load it."
+        ),
+    }
+
+
+def record_memory_proposal(persona_id: str, chat_id: str, turn_indexes: list[int],
+                           proposal: dict[str, Any], store: Store | None = None) -> dict[str, Any]:
+    """Persist one pending chat-continuity proposal without changing persona memory."""
+    store = store or Store()
+    brief = brief_memory_from_chat(persona_id, chat_id, turn_indexes, store=store)
+    if not isinstance(proposal, dict):
+        raise ValueError("memory proposal must be an object")
+    summary = str(proposal.get("summary") or "").strip()
+    notes = [str(note).strip()[:500] for note in (proposal.get("continuity_notes") or [])
+             if str(note).strip()]
+    if not summary or not notes:
+        raise ValueError("memory proposal requires summary and continuity_notes")
+    clean = {"summary": summary[:1_200], "continuity_notes": notes[:12]}
+    pid = brief["persona_id"]
+    canonical = json.dumps({"persona_id": pid, "chat_id": chat_id,
+                            "turn_indexes": brief["turn_indexes"], "proposal": clean},
+                           sort_keys=True, ensure_ascii=False)
+    proposal_id = "memprop_" + hashlib.sha256(canonical.encode()).hexdigest()[:20]
+    now = utc_now_iso()
+    record = {"id": proposal_id, "schema": "sonaloop.persona_memory_proposal.v1",
+              "persona_id": pid, "chat_id": chat_id,
+              "turn_indexes": brief["turn_indexes"], "proposal": clean,
+              "source_kind": "conversation", "source_refs": [
+                  {"kind": "chat_turn", "id": f"{chat_id}:{idx}"}
+                  for idx in brief["turn_indexes"]],
+              "scope": "conversation_continuity_only", "status": "pending",
+              "created_at": now, "updated_at": now}
+    store.upsert_persona_memory_proposal(record)
+    return record
+
+
+def review_memory_proposal(proposal_id: str, decision: str, reason: str,
+                           store: Store | None = None) -> dict[str, Any]:
+    """Approve/reject conversation continuity; never writes facts or identity."""
+    store = store or Store()
+    record = store.get_persona_memory_proposal(proposal_id)
+    if not record:
+        raise KeyError(f"Unknown persona memory proposal: {proposal_id}")
+    decision = str(decision or "").strip().lower()
+    if decision not in {"approve", "reject"}:
+        raise ValueError("memory proposal decision must be approve|reject")
+    if record.get("status") != "pending":
+        if record.get("decision") == decision:
+            return record
+        raise ValueError("memory proposal was already reviewed with a different decision")
+    if not str(reason or "").strip():
+        raise ValueError("memory proposal review requires a reason")
+    record.update({"status": "approved" if decision == "approve" else "rejected",
+                   "decision": decision, "review_reason": str(reason).strip()[:1_000],
+                   "reviewed_at": utc_now_iso(), "updated_at": utc_now_iso()})
+    store.upsert_persona_memory_proposal(record)
+    from ..telemetry import capture_product_event
+    capture_product_event(
+        "persona_memory_proposal_reviewed", subject_kind="persona",
+        subject_id=record["persona_id"],
+        properties={"decision": decision, "turn_count": len(record["turn_indexes"])},
+        idempotency_key=f"{proposal_id}:{decision}")
+    return record
+
+
+def get_memory_proposal(proposal_id: str, store: Store | None = None) -> dict[str, Any]:
+    store = store or Store()
+    record = store.get_persona_memory_proposal(proposal_id)
+    if not record:
+        raise KeyError(f"Unknown persona memory proposal: {proposal_id}")
+    return record
+
+
+def list_memory_proposals(persona_id: str, status: str | None = None,
+                          store: Store | None = None) -> list[dict[str, Any]]:
+    store = store or Store()
+    persona = _require_persona(store, persona_id)
+    if status and status not in {"pending", "approved", "rejected"}:
+        raise ValueError("memory proposal status must be pending|approved|rejected")
+    return store.list_persona_memory_proposals(persona["id"], status)

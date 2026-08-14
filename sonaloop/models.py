@@ -83,6 +83,13 @@ class ExperienceEvent:
     goal_refs: list[str]
     calendar_event_id: str | None
     created_at: str
+    # Epistemic posture: simulated life is useful continuity, never real-user
+    # observation.  Downstream recall exposes these fields instead of flattening
+    # every memory into an equally certain fact.
+    source_kind: str = "simulated_episode"
+    source_refs: list[Json] = field(default_factory=list)
+    confidence: float = 0.6
+    review_status: str = "unreviewed"
 
     def to_dict(self) -> Json:
         return asdict(self)

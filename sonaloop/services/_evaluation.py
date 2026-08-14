@@ -144,6 +144,12 @@ def record_eval_critic(persona_id: str, verdict: dict[str, Any], start: str | No
                               "persona_id": pid, "kind": f"critic_flag:{fi['dimension']}", "severity": fi["severity"],
                               "detail": fi["issue"], "ref_id": fi["ref_id"], "created_at": now})
     store.commit()
+    from ..telemetry import capture_product_event
+    capture_product_event(
+        "persona_critic_recorded", subject_kind="persona", subject_id=pid,
+        properties={"passed": green, "low_dimension_count": len(low),
+                    "flagged_count": len(payload["flagged_items"])},
+        idempotency_key=report["id"])
     return report
 
 

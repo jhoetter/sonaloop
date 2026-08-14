@@ -72,6 +72,47 @@ def register_substrate(mcp):
                     services.record_chat_turn(persona_id, chat_id, user_message, persona_reply, refs), t)
 
     @mcp.tool()
+    def brief_memory_from_chat(persona_id: str, chat_id: str,
+                               turn_indexes: list[int] | None = None) -> dict[str, Any]:
+        """Gather exact chat turns for a proposed continuity note. Chat output is
+        synthetic conversation, never independent evidence or lived memory."""
+        t = time.perf_counter()
+        return _env("brief_memory_from_chat", services.brief_memory_from_chat(
+            persona_id, chat_id, turn_indexes), t)
+
+    @mcp.tool()
+    def record_memory_proposal(persona_id: str, chat_id: str, turn_indexes: list[int],
+                               proposal: dict[str, Any]) -> dict[str, Any]:
+        """Persist a pending chat-continuity proposal. It affects no persona context
+        until explicitly approved with review_memory_proposal."""
+        t = time.perf_counter()
+        return _env("record_memory_proposal", services.record_memory_proposal(
+            persona_id, chat_id, turn_indexes, proposal), t)
+
+    @mcp.tool()
+    def review_memory_proposal(proposal_id: str, decision: str,
+                               reason: str) -> dict[str, Any]:
+        """Approve or reject a pending continuity note with an auditable reason.
+        Approval only changes future chat continuity, never facts or identity."""
+        t = time.perf_counter()
+        return _env("review_memory_proposal", services.review_memory_proposal(
+            proposal_id, decision, reason), t)
+
+    @mcp.tool()
+    def get_memory_proposal(proposal_id: str) -> dict[str, Any]:
+        """Read one chat-continuity proposal and its review status."""
+        t = time.perf_counter()
+        return _env("get_memory_proposal", services.get_memory_proposal(proposal_id), t)
+
+    @mcp.tool()
+    def list_memory_proposals(persona_id: str,
+                              status: str | None = None) -> dict[str, Any]:
+        """List continuity proposals for one persona, optionally by review status."""
+        t = time.perf_counter()
+        return _env("list_memory_proposals", services.list_memory_proposals(
+            persona_id, status), t)
+
+    @mcp.tool()
     def get_chat(chat_id: str) -> dict[str, Any]:
         """One chat with its full turn history."""
         t = time.perf_counter()

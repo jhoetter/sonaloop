@@ -236,6 +236,8 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     "persona_build_step": W("Advance persona build", idempotent=True),
     "get_persona_build": R("Get persona build"),
     "list_persona_builds": R("List persona builds"),
+    "validate_persona_output": R("Validate persona output"),
+    "record_persona_voice_check": W("Record persona voice check", idempotent=True),
     "preview_persona_update": R("Preview persona update"),
     "list_personas": R("List personas"),
     "get_persona_soul": R("Get persona SOUL"),
@@ -362,7 +364,8 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     "search_entities": R("Search memory entities"),
     "get_open_loops": R("Get open loops"),
     "resolve_entity": R("Resolve entity"),
-    "get_persona_memory": W("Render persona memory", idempotent=True),  # writes MEMORY.md to disk
+    "get_persona_memory": R("Get persona memory"),
+    "export_persona_memory": W("Export persona memory", idempotent=True),
     "brief_month": R("Brief month bundle"),
     "record_month_bundle": W("Record month bundle"),
     "get_current_state": R("Get current state"),
@@ -381,6 +384,11 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     "get_study_result": R("Get study result"),
     "chat_with_persona": W("Chat with persona"),  # opens/continues a durable chat record
     "record_chat_turn": W("Record chat turn"),
+    "brief_memory_from_chat": R("Brief memory from chat"),
+    "record_memory_proposal": W("Record memory proposal", idempotent=True),
+    "review_memory_proposal": W("Review memory proposal", idempotent=True),
+    "get_memory_proposal": R("Get memory proposal"),
+    "list_memory_proposals": R("List memory proposals"),
     "get_chat": R("Get chat"),
     "list_chats": R("List chats"),
 

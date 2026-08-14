@@ -225,9 +225,18 @@ def record_memory_deltas(persona_id: str, date_value: str, deltas: dict[str, Any
             links += 1
     store.commit()
     emb = memory_mod.backfill_persona_embeddings(store, pid)
-    return {"persona_id": pid, "date": day, "entities_created": created, "entities_updated": updated,
-            "facts": facts_written, "threads_opened": threads_opened, "threads_resolved": threads_resolved,
-            "event_links": links, "embeddings": emb}
+    result = {"persona_id": pid, "date": day, "entities_created": created,
+              "entities_updated": updated, "facts": facts_written,
+              "threads_opened": threads_opened, "threads_resolved": threads_resolved,
+              "event_links": links, "embeddings": emb}
+    from ..telemetry import capture_product_event
+    capture_product_event(
+        "persona_memory_consolidated", subject_kind="persona", subject_id=pid,
+        properties={"entities_created": created, "facts_created": facts_written,
+                    "threads_opened": threads_opened,
+                    "threads_resolved": threads_resolved},
+        idempotency_key=f"{pid}:{day}")
+    return result
 
 
 
@@ -271,6 +280,12 @@ def put_digest(persona_id: str, scope: str, date_value: str, digest: dict[str, A
     store.commit()
     memory_mod.upsert_object_embedding(store, "digest", rec["id"], persona["id"], payload["text"])
     store.commit()
+    from ..telemetry import capture_product_event
+    capture_product_event(
+        "persona_digest_recorded", subject_kind="persona", subject_id=persona["id"],
+        properties={"scope": scope, "theme_count": len(payload.get("themes") or []),
+                    "arc_count": len(payload.get("project_arcs") or [])},
+        idempotency_key=rec["id"])
     return rec
 
 

@@ -166,9 +166,16 @@ def register_simulation(mcp):
 
     @mcp.tool()
     def get_persona_memory(persona_id: str) -> dict[str, Any]:
-        """Render + return MEMORY.md: active projects (timelines), open threads, digests."""
+        """Pure read of MEMORY.md content: active projects, threads and digests."""
         t = time.perf_counter()
         return _env("get_persona_memory", services.get_persona_memory(persona_id), t)
+
+    @mcp.tool()
+    def export_persona_memory(persona_id: str, out_path: str | None = None) -> dict[str, Any]:
+        """Explicitly write the rendered MEMORY.md projection to disk."""
+        t = time.perf_counter()
+        return _env("export_persona_memory",
+                    services.export_persona_memory(persona_id, out_path), t)
 
     # ----- F3 autonomous loop driver (month bundles) — relocated here (M3) -----
     @mcp.tool()

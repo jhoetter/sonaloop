@@ -89,7 +89,12 @@ def _persona_readiness_html(readiness: dict) -> str:
           _label(f'{counts["events"]} {t("memory_events_short")}'),
           _label(f'{counts["facts"]} {t("memory_facts_short")}'),
           _label(f'{counts["daily_summaries"]} {t("memory_days_short")}'),
-          _label(f'{counts["evidence"]} {t("memory_evidence_short")}')))
+          _label(f'{counts["grounded_claims"]} {t("memory_grounded_short")}'),
+          _label(f'{counts["digests"]} {t("memory_digests_short")}'),
+          _label(t("memory_critic_ok") if (readiness.get("critic") or {}).get("green")
+                 else t("memory_critic_missing"),
+                 "var(--green)" if (readiness.get("critic") or {}).get("green")
+                 else "var(--muted)")))
 
 # Memory panel — a temporal knowledge graph (entities + fact timelines, superseded facts struck).
 register_css(r"""
@@ -119,6 +124,7 @@ register_css(r"""
 .mem-fact.sup::before{background:var(--line-2)}
 .mem-date{flex:none;color:var(--muted);font-variant-numeric:tabular-nums;min-width:74px}
 .mem-fx{color:var(--ink)}
+.mem-fx-meta{display:block;color:var(--muted);font-size:var(--t-xs);margin-top:2px}
 .mem-fact.sup .mem-fx{color:var(--faint);text-decoration:line-through;text-decoration-color:var(--line-2)}
 .mem-loops{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel)}
 .mem-loop{display:flex;align-items:center;gap:9px;padding:9px 13px;font-size:var(--t-body)}
@@ -192,6 +198,16 @@ def _mem_kind_label(kind: str) -> str:                      # explicit t() calls
             "topic": t("mem_topics"), "tool": t("mem_tools")}.get(kind, kind)
 
 
+def _memory_source_label(source_kind: str) -> str:
+    return {
+        "simulated_episode": t("memory_source_simulated"),
+        "observed": t("memory_source_observed"),
+        "real_evidence": t("memory_source_evidence"),
+        "evidence": t("memory_source_evidence"),
+        "derived_fact": t("memory_source_derived"),
+    }.get(source_kind, source_kind.replace("_", " ") if source_kind else t("memory_source_derived"))
+
+
 def _memory_html(store: Store, persona_id: str, as_of: str | None, q: str | None) -> str:
     p = store.get_persona(persona_id)
     if not p:
@@ -210,10 +226,14 @@ def _memory_html(store: Store, persona_id: str, as_of: str | None, q: str | None
         rows = []
         for f in facts:
             sup = bool(f.get("t_invalid"))
+            review = (t("memory_reviewed") if f.get("review_status") == "reviewed"
+                      else t("memory_unreviewed"))
             rows.append(h("div", {"class_": "mem-fact" + (" sup" if sup else "")},
                           h("span", {"class_": "mem-date"}, ui.local_date(f.get("t_valid") or "")),
                           h("span", {"class_": "mem-fx"}, f.get("fact", ""),
-                            (fragment(" ", sup_label) if sup else None))))
+                            (fragment(" ", sup_label) if sup else None),
+                            h("span", {"class_": "mem-fx-meta"},
+                              f'{_memory_source_label(f.get("source_kind") or "")} · {review}'))))
         status = h("span", {"class_": "mem-status"}, e["status"]) if e.get("status") else None
         return h("div", {"class_": "mem-ent"},
                  h("div", {"class_": "mem-ent-h"}, raw(_icon(icon)), h("b", {}, e.get("name", "—")), status),

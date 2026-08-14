@@ -178,13 +178,28 @@ def list_memory_anomalies(persona_id: str | None = None, store: Store | None = N
 
 
 def get_persona_memory(persona_id: str, store: Store | None = None) -> dict[str, Any]:
+    """Pure read of the rendered memory projection; never touches the filesystem."""
     store = store or Store()
     persona = _require_persona(store, persona_id)
     content = memory_mod.render_memory_md(store, persona)
-    path = memory_path(persona)
+    return {"persona_id": persona["id"], "content": content}
+
+
+def export_persona_memory(persona_id: str, out_path: str | None = None,
+                          store: Store | None = None) -> dict[str, Any]:
+    """Explicitly write the rendered memory projection to a bounded local path."""
+    store = store or Store()
+    persona = _require_persona(store, persona_id)
+    content = memory_mod.render_memory_md(store, persona)
+    base = config.partition_dir().resolve()
+    path = Path(out_path).expanduser() if out_path else memory_path(persona)
+    path = path.resolve() if path.is_absolute() else (base / path).resolve()
+    if not path.is_relative_to(base):
+        raise ValueError("persona memory export must stay inside the active workspace partition")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-    return {"path": runtime_path_ref(path), "content": content}
+    return {"persona_id": persona["id"], "path": runtime_path_ref(path),
+            "bytes": len(content.encode("utf-8"))}
 
 
 # ---- Evaluation (§12.5) & embeddings/forgetting (§12.6) ------------------

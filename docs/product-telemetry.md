@@ -38,6 +38,12 @@ usability/prototype sessions, asset attach/remove, note and section changes, and
 Retry-safe creates and sessions use their durable resource/operation key; an idempotent replay does
 not invent another success.
 
+The persona lifecycle is covered at its semantic boundaries: task context prepared; persona build
+started/advanced/completed; day recorded; memory consolidated; digest and semantic critic recorded;
+persona voice checked; and a chat-memory proposal approved or rejected. Properties are only states,
+counts and booleans (for example `dispatch_kind`, `activity_count`, `passed` and `decision`). Task
+text, persona output, continuity notes, source excerpts and critic prose never enter telemetry.
+
 Product-facing adoption edges are semantic events too: custom/catalog persona creation starts,
 persona views carry only readiness/memory-depth buckets and evidence presence, report exports carry
 format/audience plus default-vs-workspace branding/master sources, design-system publishing and safe
@@ -58,6 +64,10 @@ answer, for example:
 | Are runs producing grounded usage evidence? | `session_recorded` grouped by `grounded`, `visual_trace` and fidelity. |
 | Which cohort sizes reach completion? | `persona_count` on `job_created`/`job_viewed`, joined to `run_finished` by pseudonymous project. |
 | Are thin personas being used or deliberately deepened? | `persona_viewed` readiness and memory-level buckets followed by session/run events; authored memory content is never sent. |
+| Where does persona preparation stall? | `persona_build_started` → repeated `persona_build_advanced` by `dispatch_kind` → `persona_build_completed`. |
+| Are prepared personas actually used with reproducible context? | `persona_context_prepared` by readiness and capability-gate presence, followed by session/run events. |
+| Does the authenticity safeguard catch wording before use? | `persona_voice_checked` grouped by `passed`, issue count and warning-signal count. |
+| Is cross-chat continuity curated? | `persona_memory_proposal_reviewed` by approve/reject decision; no chat content is exported. |
 | Do people use share-ready output? | `report_exported` by `export_format`, `audience`, `branding_source` and `master_source`. |
 | Does workspace branding reach generated work? | `workspace_design_published`/`workspace_design_asset_uploaded` followed by `prototype_registered` or `report_exported` with structural branding-source fields. |
 
