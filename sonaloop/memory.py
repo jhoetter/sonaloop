@@ -127,7 +127,10 @@ def backfill_persona_embeddings(store: Store, persona_id: str) -> dict[str, int]
             counts["disabled"] = len(todo)
             return counts
         for (ot, oid, txt), vec in zip(chunk, vecs):
-            store.upsert_embedding(ot, oid, persona_id, embedding_model(), _pack(vec), len(vec), txt, utc_now_iso())
+            # Persist the provider-qualified vector-space id.  ``embedding_model`` is
+            # the legacy OpenAI-only value and would make Ollama rows invisible to the
+            # read side immediately after a successful backfill.
+            store.upsert_embedding(ot, oid, persona_id, space, _pack(vec), len(vec), txt, utc_now_iso())
             counts["embedded"] += 1
     store.commit()
     return counts
@@ -211,12 +214,22 @@ def recall(store: Store, persona_id: str, query: str, as_of: str | None = None, 
     for e in store.list_experience_events(persona_id):
         if as_of and e["timestamp"][:10] > as_of:
             continue
+        if e.get("memory_state") == "archived":
+            continue
         pool.append({"obj_type": "event", "obj_id": e["id"], "when": e["timestamp"],
                      "text": f"{e.get('task','')}. {e.get('what_happened','')} {e.get('persona_thought','')}",
                      "importance": 3 + len(e.get("open_loops", [])), "ref": e})
-    for f in store.list_persona_facts(persona_id):
-        if as_of and (f["t_valid"][:10] > as_of):
-            continue
+    # Current recall sees only currently-valid facts.  Time-travel recall sees
+    # exactly the interval valid at ``as_of``.  The old implementation admitted
+    # every superseded fact and merely filtered future starts, which let a persona
+    # remember mutually exclusive old and new states at once.
+    facts = store.list_persona_facts(persona_id)
+    if as_of:
+        facts = [f for f in facts if f["t_valid"][:10] <= as_of
+                 and (not f.get("t_invalid") or f["t_invalid"][:10] > as_of)]
+    else:
+        facts = [f for f in facts if not f.get("t_invalid")]
+    for f in facts:
         pool.append({"obj_type": "fact", "obj_id": f["id"], "when": f["t_valid"],
                      "text": f"{ent_name.get(f['entity_id'],'')}: {f['fact']}",
                      "importance": int(f.get("importance", 3)), "ref": f})
@@ -228,8 +241,13 @@ def recall(store: Store, persona_id: str, query: str, as_of: str | None = None, 
     for t in store.list_threads(persona_id):
         if as_of and t.get("opened_on") and t["opened_on"][:10] > as_of:
             continue
+        effective_status = t["status"]
+        if as_of:
+            effective_status = ("resolved" if t.get("closed_on")
+                                and t["closed_on"][:10] <= as_of else "open")
         pool.append({"obj_type": "thread", "obj_id": t["id"], "when": t.get("opened_on"),
-                     "text": t.get("text", ""), "importance": 4 if t["status"] == "open" else 2, "ref": t})
+                     "text": t.get("text", ""), "importance": 4 if effective_status == "open" else 2,
+                     "ref": {**t, "status_at_recall": effective_status}})
 
     # precompute semantic scores via stored embeddings
     emb_index = {}
@@ -259,9 +277,20 @@ def recall(store: Store, persona_id: str, query: str, as_of: str | None = None, 
     scored.sort(key=lambda x: x[0], reverse=True)
     hits = []
     for score, sem, kw, item in scored[:k]:
+        recency = 0.5 ** (_age_days(item["when"], as_of) / half) if half else 0.0
+        importance = min(1.0, item["importance"] / 5.0)
+        source = item["ref"]
         hits.append({
             "obj_type": item["obj_type"], "obj_id": item["obj_id"], "when": item["when"],
             "score": round(score, 4), "semantic": round(sem, 4), "keyword": round(kw, 4),
+            "recency": round(recency, 4), "importance": round(importance, 4),
+            "source_kind": source.get("source_kind") or (
+                "simulated_episode" if item["obj_type"] == "event" else "derived_memory"),
+            "source_refs": source.get("source_refs") or (
+                ([{"kind": "event", "id": source["source_event_id"]}]
+                 if source.get("source_event_id") else [])),
+            "confidence": source.get("confidence"),
+            "review_status": source.get("review_status"),
             "text": item["text"][:280],
         })
     out = {

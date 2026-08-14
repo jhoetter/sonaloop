@@ -130,6 +130,7 @@ def build_persona_revision_prompt(frame: dict[str, Any], language: str | None = 
 Return ONLY one JSON object with exactly these keys:
 rationale: string (why this drift is justified by consolidated facts — cite them)
 effective_on: "YYYY-MM-DD"
+refs: array of exact source objects {kind: fact|digest|event|evidence, id: string}
 changes: object with optional keys:
   goals_add, goals_remove, constraints_add, constraints_remove,
   pains_add, pains_remove, tools_add, tools_remove: arrays of strings
@@ -138,7 +139,8 @@ changes: object with optional keys:
 
 Rules:
 - Change is the EXCEPTION, not the default. Inertia is realistic; most periods need little or no change.
-- Every change must be justified by the supplied facts/digests — never from nothing.
+- Every change must be justified by the supplied facts/digests — never from nothing — and
+  every non-empty change set must carry at least one exact `refs` entry.
 - Never drift the persona toward product/tool enthusiasm unless evidence forces it (and then say why).
 - If nothing should change, return empty `changes` and say so in `rationale`.
 - {language_instruction(language)}

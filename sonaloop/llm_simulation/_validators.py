@@ -150,7 +150,33 @@ def validate_memory_deltas_payload(payload: dict[str, Any]) -> dict[str, Any]:
             "valid_to": (str(f["valid_to"]).strip()[:10] if f.get("valid_to") else None),
             "importance": imp,
             "invalidates": (str(f["invalidates"]).strip()[:400] if f.get("invalidates") else None),
+            "source_event_id": (str(f["source_event_id"]).strip()[:160]
+                                if f.get("source_event_id") else None),
+            "source_activity_title": (str(f["source_activity_title"]).strip()[:200]
+                                      if f.get("source_activity_title") else None),
+            "source_kind": str(f.get("source_kind") or "simulated_episode").strip().lower(),
+            "source_refs": [dict(ref) for ref in (f.get("source_refs") or [])
+                            if isinstance(ref, dict)][:12],
+            "confidence": f.get("confidence"),
+            "review_status": str(f.get("review_status") or "unreviewed").strip().lower(),
         })
+        if out["facts"][-1]["source_kind"] not in {
+                "observed", "simulated_episode", "derived_fact", "imported_evidence"}:
+            raise ValueError("memory fact source_kind must be observed|simulated_episode|"
+                             "derived_fact|imported_evidence")
+        confidence = out["facts"][-1]["confidence"]
+        if confidence is None:
+            confidence = 0.9 if out["facts"][-1]["source_kind"] in {
+                "observed", "imported_evidence"} else 0.6
+        try:
+            confidence = float(confidence)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("memory fact confidence must be within 0..1") from exc
+        if not 0 <= confidence <= 1:
+            raise ValueError("memory fact confidence must be within 0..1")
+        out["facts"][-1]["confidence"] = confidence
+        if out["facts"][-1]["review_status"] not in {"unreviewed", "reviewed", "disputed"}:
+            raise ValueError("memory fact review_status must be unreviewed|reviewed|disputed")
     for t in payload.get("threads", []) or []:
         if not isinstance(t, dict) or not str(t.get("text", "")).strip():
             continue
@@ -216,10 +242,23 @@ def validate_persona_revision_payload(payload: dict[str, Any]) -> dict[str, Any]
             changes["personality"] = pers
     if str(raw.get("notes", "")).strip():
         changes["notes"] = str(raw["notes"]).strip()[:600]
+    rationale = str(payload.get("rationale", "")).strip()[:1200]
+    if not rationale:
+        raise ValueError("Persona revision requires a non-empty rationale.")
+    refs = []
+    for ref in payload.get("refs", []) or []:
+        if not isinstance(ref, dict) or not str(ref.get("kind") or "").strip() \
+                or not str(ref.get("id") or "").strip():
+            raise ValueError("Persona revision refs must be {kind, id} objects.")
+        refs.append({"kind": str(ref["kind"]).strip().lower()[:32],
+                     "id": str(ref["id"]).strip()[:200]})
+    if changes and not refs:
+        raise ValueError("Identity-changing persona revisions require at least one exact source ref.")
     return {
-        "rationale": str(payload.get("rationale", "")).strip()[:1200],
+        "rationale": rationale,
         "effective_on": str(payload.get("effective_on", "")).strip()[:10] or None,
         "changes": changes,
+        "refs": refs[:20],
     }
 
 

@@ -217,9 +217,12 @@ def backfill_embeddings(persona_id: str | None = None, store: Store | None = Non
 
 
 def prune_memory(persona_id: str, keep_days: int = 120, as_of: str | None = None, store: Store | None = None) -> dict[str, Any]:
-    """Salience-based forgetting (§12.6): drop embeddings of old, low-salience
-    episodes (not linked to any entity, no open loop reference) so they fall out
-    of semantic recall. Raw events, facts and digests are retained."""
+    """Salience-based forgetting (§12.6): archive old, low-salience episodes.
+
+    Archived episodes leave active keyword *and* semantic recall while their raw
+    audit/timeline record remains intact.  Entity-linked episodes and open loops are
+    retained.  This is reversible through ``restore_memory_episode``.
+    """
     store = store or Store()
     persona = _require_persona(store, persona_id)
     pid = persona["id"]
@@ -229,14 +232,35 @@ def prune_memory(persona_id: str, keep_days: int = 120, as_of: str | None = None
     linked = set()
     for ent in store.list_entities(pid):
         linked.update(store.list_entity_events(ent["id"]))
-    pruned = 0
+    archived = 0
+    archived_at = utc_now_iso()
     for e in store.list_experience_events(pid):
-        if e["timestamp"][:10] < cutoff and e["id"] not in linked and not e.get("open_loops"):
+        if (e["timestamp"][:10] < cutoff and e["id"] not in linked and not e.get("open_loops")
+                and e.get("memory_state") != "archived"):
             if store.has_embedding("event", e["id"]):
                 store.conn.execute("DELETE FROM embeddings WHERE obj_type='event' AND obj_id=?", (e["id"],))
-                pruned += 1
+            store.set_experience_event_memory_state(e["id"], "archived", archived_at)
+            archived += 1
     store.commit()
-    return {"persona_id": pid, "cutoff": cutoff, "pruned_event_embeddings": pruned}
+    return {"persona_id": pid, "cutoff": cutoff, "archived_events": archived,
+            "raw_events_retained": True}
+
+
+def restore_memory_episode(persona_id: str, event_id: str,
+                           store: Store | None = None) -> dict[str, Any]:
+    """Restore one archived episode to active recall and re-embed it when possible."""
+    store = store or Store()
+    persona = _require_persona(store, persona_id)
+    event = store.get_experience_event(event_id)
+    if not event or event.get("persona_id") != persona["id"]:
+        raise KeyError(f"Unknown memory episode for persona: {event_id}")
+    restored = store.set_experience_event_memory_state(event_id, "active")
+    embedded = memory_mod.upsert_object_embedding(
+        store, "event", event_id, persona["id"],
+        f"{event.get('task','')}. {event.get('what_happened','')} {event.get('persona_thought','')}")
+    store.commit()
+    return {"persona_id": persona["id"], "event_id": event_id,
+            "restored": restored, "embedded": embedded}
 
 
 # ===================================================================== #

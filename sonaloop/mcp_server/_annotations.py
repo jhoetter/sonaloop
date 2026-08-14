@@ -228,6 +228,7 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     "get_persona": R("Get persona"),
     "persona_readiness": R("Assess persona readiness"),
     "brief_persona_memory_onboarding": R("Brief persona memory onboarding"),
+    "preview_persona_update": R("Preview persona update"),
     "list_personas": R("List personas"),
     "get_persona_soul": R("Get persona SOUL"),
     "prepare_persona_agent_context": R("Prepare persona agent context"),

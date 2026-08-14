@@ -102,6 +102,7 @@ _NEXT: dict[str, dict[str, Any]] = {
     "suggest_friction_levels": {"name": "record_usability_session", "reason": "author every step's friction with the canonical levels, then persist"},
     "record_usability_session": {"name": "get_session_funnel", "reason": "aggregate this subject's sessions into the step funnel"},
     "suggest_tech_comfort": {"name": "update_persona", "reason": "patch capabilities.tech_comfort with a canonical level (the hint is the behavioral contract)"},
+    "preview_persona_update": {"name": "update_persona", "reason": "apply this validated patch against the returned expected_updated_at version"},
     # --- lifecycle hooks (docs/lifecycle-hooks.md) ---
     "list_lifecycle_events": {"name": "register_hook", "reason": "subscribe a command/webhook to the event you picked"},
     "register_hook": {"name": "test_hook", "reason": "fire a sample envelope through the new hook to verify delivery"},

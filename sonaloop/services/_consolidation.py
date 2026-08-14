@@ -143,6 +143,8 @@ def record_memory_deltas(persona_id: str, date_value: str, deltas: dict[str, Any
         return eid
 
     facts_written = 0
+    events = store.list_experience_events(pid, f"{day}T00:00", f"{day}T23:59")
+    by_title = {memory_mod.normalize_name(e["task"]): e for e in events}
     for f in payload["facts"]:
         eid = _eid(f["entity"], "project")
         valid_from = f["valid_from"] or day
@@ -157,11 +159,28 @@ def record_memory_deltas(persona_id: str, date_value: str, deltas: dict[str, Any
             for old in store.list_entity_facts(eid, valid_only=True):
                 if old.get("status") and memory_mod.normalize_name(old["status"]) != ns:
                     store.invalidate_entity_fact(old["id"], valid_from)
+        source_event = None
+        if f.get("source_event_id"):
+            candidate = store.get_experience_event(f["source_event_id"])
+            if not candidate or candidate.get("persona_id") != pid:
+                raise ValueError(f"Unknown source_event_id for this persona: {f['source_event_id']}")
+            source_event = candidate
+        elif f.get("source_activity_title"):
+            source_event = by_title.get(memory_mod.normalize_name(f["source_activity_title"]))
+            if not source_event:
+                raise ValueError("source_activity_title does not match an activity on the "
+                                 f"consolidated day: {f['source_activity_title']}")
+        source_refs = list(f.get("source_refs") or [])
+        if source_event and not any(ref.get("id") == source_event["id"] for ref in source_refs):
+            source_refs.insert(0, {"kind": "event", "id": source_event["id"]})
         fid = stable_id("fact", eid, f["fact"], valid_from)
         store.insert_entity_fact({
             "id": fid, "persona_id": pid, "entity_id": eid, "fact": f["fact"], "status": f["status"],
             "t_valid": valid_from, "t_invalid": f["valid_to"], "importance": f["importance"],
-            "source_event_id": None, "created_at": now,
+            "source_event_id": source_event["id"] if source_event else None,
+            "source_kind": f["source_kind"], "source_refs": source_refs,
+            "confidence": f["confidence"], "review_status": f["review_status"],
+            "created_at": now,
         })
         facts_written += 1
         if f["status"]:
@@ -196,8 +215,6 @@ def record_memory_deltas(persona_id: str, date_value: str, deltas: dict[str, Any
         })
         threads_opened += 1
 
-    events = store.list_experience_events(pid, f"{day}T00:00", f"{day}T23:59")
-    by_title = {memory_mod.normalize_name(e["task"]): e for e in events}
     links = 0
     for link in payload["event_links"]:
         ev = by_title.get(memory_mod.normalize_name(link["activity_title"]))
@@ -322,10 +339,22 @@ def record_persona_revision(persona_id: str, revision: dict[str, Any], store: St
     store = store or Store()
     persona = _require_persona(store, persona_id)
     payload = validate_persona_revision_payload(revision)
+    valid_refs = {
+        "fact": {f["id"] for f in store.list_persona_facts(persona["id"])},
+        "digest": {d["id"] for d in store.list_digests(persona["id"])},
+        "event": {e["id"] for e in store.list_experience_events(persona["id"])},
+        "evidence": ({e["id"] for e in store.list_evidence(persona["id"])}
+                     | {cid for claim in ((persona.get("grounding") or {}).get("claims") or [])
+                        for cid in (claim.get("chunk_ids") or [])}),
+    }
+    for ref in payload["refs"]:
+        if ref["kind"] not in valid_refs or ref["id"] not in valid_refs[ref["kind"]]:
+            raise ValueError(f"Persona revision ref does not resolve for this persona: {ref}")
     eff_on = payload["effective_on"] or utc_now_iso()[:10]
     rec = {"id": stable_id("rev", persona["id"], eff_on, payload["rationale"][:40]),
            "persona_id": persona["id"], "effective_on": eff_on,
-           "rationale": payload["rationale"], "changes": payload["changes"], "created_at": utc_now_iso()}
+           "rationale": payload["rationale"], "changes": payload["changes"],
+           "refs": payload["refs"], "created_at": utc_now_iso()}
     store.insert_persona_revision(rec)
     # re-render SOUL with the new effective identity
     persona["soul"] = write_soul(persona, store)

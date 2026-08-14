@@ -73,6 +73,24 @@ class SimulationMixin:
         row = self.conn.execute("SELECT data FROM experience_events WHERE id=?", (event_id,)).fetchone()
         return json.loads(row["data"]) if row else None
 
+    def set_experience_event_memory_state(self, event_id: str, state: str,
+                                          archived_at: str | None = None) -> bool:
+        """Move an episode between active recall and the retained archive.
+
+        The raw episode remains available to timelines/audits; recall deliberately
+        excludes archived rows.  This is reversible and therefore safer than deleting
+        lived history merely to model forgetting.
+        """
+        if state not in {"active", "archived"}:
+            raise ValueError("memory state must be active|archived")
+        event = self.get_experience_event(event_id)
+        if not event:
+            return False
+        event["memory_state"] = state
+        event["archived_at"] = archived_at if state == "archived" else None
+        self.insert_experience_event(event)
+        return True
+
     def list_daily_summaries(self, persona_id: str, start: str | None = None, end: str | None = None) -> list[dict[str, Any]]:
         query = "SELECT data FROM daily_summaries WHERE persona_id=?"
         params: list[Any] = [persona_id]
