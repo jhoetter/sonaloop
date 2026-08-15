@@ -326,7 +326,6 @@ def parent_study_of_council(council_id: str, store: Store | None = None) -> dict
     return None
 
 
-
 def parent_project_of_council(council_id: str, store: Store | None = None) -> dict[str, Any] | None:
     """Reverse lookup: which research project OWNS this council? Councils are scoped to a
     project at creation; this is the direct link (independent of whether a synthesis cites it)."""
@@ -381,7 +380,6 @@ def owning_project_of_synthesis(synthesis_id: str, store: Store | None = None) -
             if owned and all(c in owned for c in cited):
                 return {"id": proj["id"], "slug": proj["slug"], "title": proj["title"]}
     return None
-
 
 
 # M-cleanup: the constellation study-graph service (add_study_to_project / set_study_themes /
@@ -510,7 +508,6 @@ def get_project_graph(project_id: str, store: Store | None = None) -> dict[str, 
                    "themes": len(project.get("themes", []))},
     }
     return _store_project_graph_cache(cache, cache_key, _attach_reports(g, project_id, store))
-
 
 
 def _declared_synthesis_input_edges(nodes: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -695,7 +692,6 @@ def plan_graph(project_id: str, store: Store | None = None) -> dict[str, Any]:
     }
 
 
-
 def derive_sections(project_id: str, store: Store | None = None) -> dict[str, Any]:
     """ESV1 — auto-organization: derive persisted SECTION overlays from the plan so a finished run is
     organized BY CONSTRUCTION (not agent-dependent). One section per methodology phase (a fan + its
@@ -758,13 +754,11 @@ def get_research_frontier(project_id: str, store: Store | None = None) -> dict[s
             "open_question_count": len(open_qs), "notes": notes}
 
 
-
 # M-cleanup: backfill_project_from_syntheses RETIRED (a one-time study-graph migration).
 
 
 # --- Deletes (D in CRUD; reachable from MCP/CLI and the web's structural
 #     write routes — docs/web-mutations.md documents the boundary) -------------
-
 
 
 def delete_research_project(project_id: str, store: Store | None = None) -> dict[str, Any]:

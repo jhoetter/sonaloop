@@ -16,6 +16,14 @@ WORKFLOW_TRACE_SCHEMA = "sonaloop.workflow_trace.v1"
 _TRACE_RE = re.compile(r"^sltrace_[a-f0-9]{24}$")
 
 
+def validate_workflow_trace_id(value: Any) -> str:
+    """Return one normalized workflow trace id or reject malformed input."""
+    trace_id = str(value or "").strip().lower()
+    if not _TRACE_RE.fullmatch(trace_id):
+        raise ValueError("workflow_trace_id must match sltrace_ followed by 24 lowercase hex chars")
+    return trace_id
+
+
 def workflow_trace_id(project: str | Mapping[str, Any]) -> str:
     """Return the canonical stable workflow trace id for one project."""
     if isinstance(project, Mapping):

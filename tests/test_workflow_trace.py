@@ -4,8 +4,15 @@ from __future__ import annotations
 import base64
 import time
 
+import pytest
+
 from sonaloop import services
-from sonaloop.correlation import WORKFLOW_TRACE_SCHEMA, workflow_trace_id, workflow_trace_ref
+from sonaloop.correlation import (
+    WORKFLOW_TRACE_SCHEMA,
+    validate_workflow_trace_id,
+    workflow_trace_id,
+    workflow_trace_ref,
+)
 from sonaloop.mcp_server._env import _env
 
 
@@ -48,3 +55,10 @@ def test_legacy_project_derives_same_trace_without_persisted_field(store):
     restored = services.get_research_project(project["id"], store=store)
 
     assert restored["workflow_trace_id"] == workflow_trace_id(project["id"])
+
+
+def test_workflow_trace_input_validation_is_bounded():
+    expected = workflow_trace_id("project_known")
+    assert validate_workflow_trace_id(expected.upper()) == expected
+    with pytest.raises(ValueError, match="workflow_trace_id"):
+        validate_workflow_trace_id("sltrace_not-a-trace")
