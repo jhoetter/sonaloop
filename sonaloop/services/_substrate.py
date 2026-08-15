@@ -105,8 +105,10 @@ def query_personas(q: str | None = None, limit: int = 50, offset: int = 0,
 
 
 def _project_row(p: dict[str, Any]) -> dict[str, Any]:
+    from ..correlation import workflow_trace_id
     return {"id": p["id"], "slug": p.get("slug", ""), "title": p.get("title", ""),
             "goal": p.get("goal", ""), "status": p.get("status", "active"),
+            "workflow_trace_id": workflow_trace_id(p),
             "methodology": p.get("methodology", ""),
             "councils": len(p.get("council_ids") or []),
             "artifacts": len(p.get("artifacts") or []), "assets": len(p.get("assets") or []),

@@ -102,7 +102,7 @@ _NEXT: dict[str, dict[str, Any]] = {
     "suggest_friction_levels": {"name": "record_usability_session", "reason": "author every step's friction with the canonical levels, then persist"},
     "record_usability_session": {"name": "get_session_funnel", "reason": "aggregate this subject's sessions into the step funnel"},
     "suggest_tech_comfort": {"name": "update_persona", "reason": "patch capabilities.tech_comfort with a canonical level (the hint is the behavioral contract)"},
-    "preview_persona_update": {"name": "update_persona", "reason": "apply this validated patch against the returned expected_updated_at version"},
+    "preview_persona_update": {"name": "update_persona", "reason": "review the impact, then apply the exact patch/version and confirmation token when required"},
     "persona_readiness": {"name": "begin_persona_build", "reason": "resolve readiness gaps through one resumable governed lifecycle"},
     "brief_persona_memory_onboarding": {"name": "begin_persona_build", "reason": "start the resumable lifecycle with a stable operation_id"},
     "begin_persona_build": {"name": "persona_build_step", "reason": "after recording the returned dispatch output, re-assess and advance"},
@@ -209,16 +209,22 @@ def _env(tool: str, data: Any, started: float) -> dict[str, Any]:
         elif data.get("must_link_before_complete"):
             nxt = {"name": "link_evidence",
                    "reason": "after recording the task output, link it to this task before complete_task"}
+    meta: dict[str, Any] = {
+        "tool": tool,
+        "latency_ms": round((time.perf_counter() - started) * 1000, 1),
+        "server_version": SERVER_VERSION,
+        "schema_version": MEMORY_SCHEMA_VERSION,
+    }
+    if isinstance(data, dict):
+        from ..correlation import workflow_trace_from_payload
+        trace = workflow_trace_from_payload(data)
+        if trace:
+            meta["workflow_trace_id"] = trace
     env: dict[str, Any] = {
         "ok": True,
         "data": data,
         "next_recommended_tool": nxt,
-        "_meta": {
-            "tool": tool,
-            "latency_ms": round((time.perf_counter() - started) * 1000, 1),
-            "server_version": SERVER_VERSION,
-            "schema_version": MEMORY_SCHEMA_VERSION,
-        },
+        "_meta": meta,
     }
     if tool in _ENTRY_TOOLS and _db_is_empty():
         env["orientation"] = _ORIENTATION

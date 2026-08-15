@@ -107,6 +107,44 @@ def test_persona_update_preview_version_and_immutable_fields(store):
         services.preview_persona_update(pid, {"id": "other"}, store=store)
 
 
+def test_identity_update_requires_exact_state_bound_preview_token(store):
+    pid = create_persona(store, "Safia")
+    current = store.get_persona(pid)
+    patch = {"display_name": "Safia Berger"}
+
+    preview = services.preview_persona_update(
+        pid, patch, current["updated_at"], store=store)
+
+    assert store.get_persona(pid)["display_name"] == "Safia"
+    assert preview["risk"] == {
+        "level": "identity",
+        "identity_fields": ["display_name"],
+        "confirmation_required": True,
+    }
+    assert preview["confirmation_token"].startswith("update-persona:")
+    assert preview["history_contract"]["past_sessions_unchanged"] is True
+    assert set(preview["impact"]) == {
+        "linked_projects", "active_runs", "historical_councils",
+        "historical_sessions", "frozen_context_snapshots",
+    }
+    with pytest.raises(ValueError, match="confirmation_token"):
+        services.update_persona(
+            pid, patch, "correct a name", current["updated_at"], store=store)
+    with pytest.raises(ValueError, match="confirmation_token"):
+        services.update_persona(
+            pid, {"display_name": "Safia Meier"}, "different patch",
+            current["updated_at"], preview["confirmation_token"], store=store)
+
+    updated = services.update_persona(
+        pid, patch, "correct a name", current["updated_at"],
+        preview["confirmation_token"], store=store)
+    assert updated["display_name"] == "Safia Berger"
+    with pytest.raises(ValueError, match="changed since"):
+        services.update_persona(
+            pid, {"display_name": "Safia Meier"}, "stale preview",
+            current["updated_at"], preview["confirmation_token"], store=store)
+
+
 def test_identity_revision_requires_resolving_source_refs(store):
     pid = create_persona(store, "Imani")
     with pytest.raises(ValueError, match="source ref"):

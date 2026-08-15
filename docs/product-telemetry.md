@@ -12,6 +12,7 @@ workspace treats capture as a no-op.
 
 - a lowercase snake-case event name;
 - optional project and typed subject identifiers;
+- an optional stable workflow trace id (otherwise derived from the project id);
 - at most 32 bounded structural properties; and
 - an optional stable idempotency key.
 
@@ -20,6 +21,11 @@ supply them. Property names that could become a content channel (`text`, `title`
 `prompt`, `email`, `url`, and similar) are rejected, as are nested objects and unbounded
 strings/lists. Entity identifiers use dedicated fields so a hosted sink can pseudonymize
 them before persistence.
+
+`workflow_trace_id` is provider-neutral, content-free and stable for the lifetime of one research
+job. It joins job creation, later MCP calls, the governed run, sessions, reports and exports even
+though their W3C transport trace ids change per request. Cloud exports only a workspace-HMAC
+pseudonym as `sonaloop_workflow_trace_id`; it never sends the raw `sltrace_*` value to PostHog.
 
 The sink registry is replaceable by name. A sink exception is logged and returned as a
 failed sink, but never changes the product operation. A sink may return a receipt for tests

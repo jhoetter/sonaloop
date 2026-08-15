@@ -365,12 +365,20 @@ def register_edit(app) -> None:  # noqa: C901  (route table — one block per en
                 actions=persona_actions(p, values=values,
                                         errors={"display_name": t("field_required")},
                                         edit_open=True)), status_code=400)
-        services.update_persona(persona_id, {
+        patch = {
             "display_name": values["display_name"],
             "role": {"title": values["role_title"]},
             "segment": {"customer_type": values["customer_type"]},
             "company_context": {"industry": values["industry"]},
-        }, reason="web metadata edit", store=store)
+        }
+        preview = services.preview_persona_update(
+            persona_id, patch, expected_updated_at=p.get("updated_at"), store=store)
+        services.update_persona(
+            persona_id, patch, reason="web metadata edit",
+            expected_updated_at=preview["expected_updated_at"],
+            preview_token=preview.get("confirmation_token") or None,
+            store=store,
+        )
         return see_other(f"/personas/{persona_id}")
 
     @app.post("/personas/{persona_id}/delete")

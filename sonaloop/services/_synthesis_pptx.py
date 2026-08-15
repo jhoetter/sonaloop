@@ -572,6 +572,8 @@ def export_synthesis_deliverable(synthesis_id: str, fmt: str, out: str | None = 
     proj = (store.get_research_project(syn["project_id"]) if syn.get("project_id")
             else owning_project_of_synthesis(synthesis_id, store=store))    # noqa: F821 (bound)
     if proj:
+        from ..correlation import stamp_workflow_trace
+        stamp_workflow_trace(result, proj)
         rec = attach_asset(proj["id"], path=path, kind="document",          # noqa: F821 (bound)
                            title=f'{syn.get("title") or synthesis_id} ({fmt.upper()})',
                            source=f"synthesis:{synthesis_id}", direction="out", store=store)

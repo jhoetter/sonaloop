@@ -118,6 +118,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("persona_id")
     p.add_argument("patch_json")
     p.add_argument("--reason", default="cli update")
+    p.add_argument("--expected-updated-at")
+    p.add_argument("--preview-token")
+    p = sub.add_parser("persona-update-preview")
+    p.add_argument("persona_id")
+    p.add_argument("patch_json")
+    p.add_argument("--expected-updated-at")
 
     p = sub.add_parser("persona-refresh", help="Re-pull a catalog persona from its source "
                                                "(drift-safe; --force overwrites local edits).")
@@ -594,7 +600,12 @@ def main(argv: list[str] | None = None) -> int:
             _print(services.record_persona_voice_check(
                 args.persona_id, args.text, json.loads(args.verdict_json), args.snapshot))
         elif args.command == "persona-update":
-            _print(services.update_persona(args.persona_id, json.loads(args.patch_json), args.reason))
+            _print(services.update_persona(
+                args.persona_id, json.loads(args.patch_json), args.reason,
+                args.expected_updated_at, args.preview_token))
+        elif args.command == "persona-update-preview":
+            _print(services.preview_persona_update(
+                args.persona_id, json.loads(args.patch_json), args.expected_updated_at))
         elif args.command == "persona-refresh":
             _print(services.refresh_persona_from_source(args.persona_id, force=args.force))
         elif args.command in _cli_catalog.COMMANDS:

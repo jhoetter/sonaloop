@@ -126,6 +126,8 @@ def create_research_project(title: str, goal: str = "", persona_ids: list[str] |
         status="active", created_at=now, updated_at=now, council_ids=[],
         created_by=creator,
     ).to_dict()
+    from ..correlation import stamp_workflow_trace
+    stamp_workflow_trace(project, pid)
     if creator is None:
         # Keep local/unbound and pre-attribution projects indistinguishable: absence is honest and
         # must never be backfilled from a later editor or retrying request.
@@ -299,7 +301,10 @@ def list_research_projects(store: Store | None = None) -> list[dict[str, Any]]:
 
 def get_research_project(project_id: str, store: Store | None = None) -> dict[str, Any]:
     store = store or Store()
-    return _require_research_project(store, project_id)
+    project = dict(_require_research_project(store, project_id))
+    from ..correlation import stamp_workflow_trace
+    stamp_workflow_trace(project, project)
+    return project
 
 
 def parent_project_of_study(study_id: str, store: Store | None = None) -> dict[str, Any] | None:
@@ -480,6 +485,7 @@ def get_project_graph(project_id: str, store: Store | None = None) -> dict[str, 
     g = {
         "project": {"id": project["id"], "slug": project["slug"], "title": project["title"],
                     "goal": project.get("goal", ""), "status": project.get("status", "active"),
+                    "workflow_trace_id": project.get("workflow_trace_id", ""),
                     "persona_ids": project.get("persona_ids", []), "themes": project.get("themes", []),
                     "methodology": project.get("methodology", ""), "phase": project.get("phase", ""),
                     "integrity": project.get("integrity") or {},

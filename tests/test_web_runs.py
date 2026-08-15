@@ -47,17 +47,17 @@ def test_runs_page_groups_active_stalled_finished(store):
     assert "<details" in html and web.STRINGS["en"]["runs_finished_h"] in html
 
 
-def test_runs_page_stalled_detection_honors_quiet_open_run(store):
-    """An open run gone quiet past the threshold is stalled — and the page's resume
+def test_runs_page_expired_detection_honors_quiet_open_run(store):
+    """An open run gone quiet past 24h is expired — and the page's resume
     snippet names the run id (the project_run_state contract, honored end to end)."""
     pid = _planned(store, "Quiet Run Proj")
     run = S.start_run(pid, store=store)
     run["updated_at"] = "2020-01-01T00:00:00+00:00"            # age the checkpoint
     store.upsert_run(run)
     html = _client().get("/runs?lang=en").text
-    assert web.STRINGS["en"]["runs_stalled_h"] in html
+    assert web.STRINGS["en"]["runs_expired_h"] in html
     assert run["run_id"] in html                                # resume call names the run
-    assert web.STRINGS["en"]["health_attention_stalled"] in html
+    assert web.STRINGS["en"]["health_attention_expired"] in html
     assert web.STRINGS["en"]["health_attention_not_started"] not in html
 
 
@@ -186,7 +186,7 @@ def test_light_topbar_lanes_match_canonical_health_projection(store):
 
     light = collect_run_attention_states(store)
     full = collect_run_states(store)
-    for lane in ("active", "waiting", "stalled"):
+    for lane in ("active", "waiting", "stalled", "expired"):
         assert {row["project_id"] for row in light[lane]} == {
             row["project_id"] for row in full[lane]
         }
@@ -540,7 +540,7 @@ def test_runs_page_support_trace_is_only_inside_closed_diagnostics(store):
     summary_at = html.index("<summary", details_at)
     summary_tag = html[summary_at:html.index(">", summary_at) + 1]
     assert f'aria-label="Technical diagnostics for Support trace disclosure"' in summary_tag
-    assert html.index(web.STRINGS["en"]["health_attention_stalled"]) < details_at
+    assert html.index(web.STRINGS["en"]["health_attention_expired"]) < details_at
     assert details_at < html.index(invariant) < html.index(support_ref)
 
 

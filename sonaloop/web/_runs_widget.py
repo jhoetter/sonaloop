@@ -17,10 +17,10 @@ from __future__ import annotations
 
 import contextvars
 import copy
-from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from .._icons import icon as _picon     # direct import avoids a cycle (_components imports this module)
+from ..run_activity import is_inactive_for
 from ..storage import Store
 from ._i18n import t
 from ._html import h, raw, fragment
@@ -77,21 +77,12 @@ def _latest(rows: list[dict[str, Any]]) -> dict[str, Any] | None:
     ), default=None)
 
 
-def _is_quiet(timestamp: str, stale_hours: int) -> bool:
-    try:
-        value = datetime.fromisoformat(str(timestamp).replace("Z", "+00:00"))
-        if value.tzinfo is None:
-            value = value.replace(tzinfo=timezone.utc)
-        return datetime.now(timezone.utc) - value > timedelta(hours=stale_hours)
-    except (TypeError, ValueError):
-        return False
-
-
 def collect_run_attention_states(store: Store | None = None,
-                                 stale_hours: int = 6) -> dict[str, list[dict[str, Any]]]:
-    """Cheap, truthful SSR projection for the three visible topbar lanes.
+                                 stale_hours: int = 6,
+                                 expire_hours: int = 24) -> dict[str, list[dict[str, Any]]]:
+    """Cheap, truthful SSR projection for the visible topbar attention lanes.
 
-    The widget needs only active, setup-waiting and stalled jobs.  It must not
+    The widget needs only active, setup-waiting, stalled and expired jobs.  It must not
     perform the claim/ref/report verification required by the full run journal
     merely to decide whether to render a status chip.  Active Reaction Test
     preflights remain canonical: an open run blocked on setup is ``waiting``,
@@ -107,7 +98,8 @@ def collect_run_attention_states(store: Store | None = None,
 
     store = store or Store()
     out: dict[str, list[dict[str, Any]]] = {
-        "active": [], "waiting": [], "stalled": [], "finished": [], "unverified": [],
+        "active": [], "waiting": [], "stalled": [], "expired": [],
+        "finished": [], "unverified": [],
     }
     for project in store.list_research_projects():
         lifecycle = str(project.get("status") or "active").strip().casefold()
@@ -137,10 +129,12 @@ def collect_run_attention_states(store: Store | None = None,
                         or policy.get("cohort_preflight_required"))
                     else {"state": "ready"}
                 )
-                if preflight.get("state") == "waiting":
+                if is_inactive_for(str((run or {}).get("updated_at") or ""), expire_hours):
+                    state = driver_state = "expired"
+                elif preflight.get("state") == "waiting":
                     state = "waiting"
                     driver_state = "waiting_on_preflight"
-                elif _is_quiet(str((run or {}).get("updated_at") or ""), stale_hours):
+                elif is_inactive_for(str((run or {}).get("updated_at") or ""), stale_hours):
                     state = driver_state = "stalled"
                 else:
                     state = "running"
@@ -184,7 +178,8 @@ def collect_run_states(store: Store | None = None) -> dict[str, list[dict[str, A
         return cached
     store = store or Store()
     out: dict[str, list[dict[str, Any]]] = {
-        "active": [], "waiting": [], "stalled": [], "finished": [], "unverified": [],
+        "active": [], "waiting": [], "stalled": [], "expired": [],
+        "finished": [], "unverified": [],
     }
     for p in store.list_research_projects():
         # Archive is an evidence-preserving lifecycle state, not an active-work
@@ -199,7 +194,8 @@ def collect_run_states(store: Store | None = None) -> dict[str, list[dict[str, A
             health = None
         if not health:
             continue
-        bucket = {"running": "active", "waiting": "waiting", "stalled": "stalled", "finished": "finished",
+        bucket = {"running": "active", "waiting": "waiting", "stalled": "stalled",
+                  "expired": "expired", "finished": "finished",
                   "unverified": "unverified"}.get(str(health.get("state") or ""))
         if not bucket:
             continue
@@ -217,6 +213,7 @@ def collect_run_states(store: Store | None = None) -> dict[str, list[dict[str, A
             "safe_next_action": action, "trace": health.get("trace"),
             "integrity_findings": health.get("integrity_findings") or [],
             "engine_finished": health.get("engine_finished", False),
+            "activity_lifecycle": health.get("activity_lifecycle") or {},
             "unverified_output": health.get("unverified_output", False)})
     _RUN_STATES_CACHE.set(out)
     return out
@@ -304,6 +301,8 @@ def run_attention_text(run_state: dict[str, Any]) -> str:
                 else t("health_attention_preflight_cohort"))
     if run_state.get("state") == "unverified":
         return t("health_attention_unverified")
+    if run_state.get("state") == "expired":
+        return t("health_attention_expired")
     if run_state.get("state") == "stalled":
         if run_state.get("driver_state") == "not_started":
             return t("health_attention_not_started")
@@ -325,12 +324,14 @@ def project_run_chip(project_id: str, store: Store,
             rs = cached_project_health(project_id, store=store)
         except Exception:  # noqa: BLE001 — the chip is chrome; never break the page
             rs = None
-    if not rs or rs.get("state") not in ("running", "waiting", "stalled", "finished", "unverified"):
+    if not rs or rs.get("state") not in (
+            "running", "waiting", "stalled", "expired", "finished", "unverified"):
         return ""
     state = rs["state"]
     css_state = "active" if state == "running" else state
     label = {"running": t("runs_active_h"), "waiting": t("runs_waiting_h"),
              "stalled": t("runs_stalled_h"),
+             "expired": t("runs_expired_h"),
              "finished": t("runs_finished_h"), "unverified": t("runs_unverified_h")}[state]
     last = (rs.get("last_activity") or "")[:16].replace("T", " ")
     btn = h("button", {"type": "button", "class_": f"sl-toolbtn runchip runchip--{css_state}",
@@ -348,7 +349,7 @@ def project_run_chip(project_id: str, store: Store,
               h("span", {"class_": "muted small"},
                 f'{t("run_last_activity")}: {last}') if last else None),
             h("p", {"class_": "sl-run-attention"}, run_attention_text(rs))
-            if state in {"waiting", "stalled", "unverified"} else None,
+            if state in {"waiting", "stalled", "expired", "unverified"} else None,
             raw(run_diagnostics_html(rs)),
             h("a", {"class_": "runsw-all", "href": "/runs"},
               raw(_picon("arrowRight")), " ", t("runs_view_all")))
@@ -365,8 +366,10 @@ RUNS_WIDGET_CSS = r"""
 .runsw-dot{flex:none;width:7px;height:7px;border-radius:50%;background:var(--faint)}
 .runsw.has-active .runsw-dot{background:var(--green,#34a853);animation:livepulse 1.6s ease-out infinite}
 .runsw.has-waiting .runsw-dot,.runsw.has-stalled .runsw-dot{background:var(--amber);animation:none}
+.runsw.has-expired .runsw-dot{background:var(--red);animation:none}
 .runsw.has-active .runsw-btn{color:var(--green,#34a853);border-color:color-mix(in srgb,var(--green,#34a853) 45%,var(--line))}
 .runsw.has-waiting .runsw-btn,.runsw.has-stalled .runsw-btn{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,var(--line))}
+.runsw.has-expired .runsw-btn{color:var(--red);border-color:color-mix(in srgb,var(--red) 45%,var(--line))}
 .runsw-count{font-variant-numeric:tabular-nums}
 .runsw-fly{position:absolute;right:0;top:calc(100% + 8px);width:min(320px,86vw);z-index:160;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 14px 40px rgba(0,0,0,.3);padding:6px}
 .runsw-fly[hidden]{display:none}
@@ -384,6 +387,7 @@ RUNS_WIDGET_CSS = r"""
 .runchip svg{width:12px;height:12px}
 .runchip--active{color:var(--green,#34a853);border-color:color-mix(in srgb,var(--green,#34a853) 45%,var(--line))}
 .runchip--stalled{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,var(--line))}
+.runchip--expired{color:var(--red);border-color:color-mix(in srgb,var(--red) 45%,var(--line))}
 .runchip--waiting{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,var(--line))}
 .runchip--unverified{color:var(--red);border-color:color-mix(in srgb,var(--red) 45%,var(--line))}
 .runchip-fly{position:absolute;left:0;top:calc(100% + 8px);width:min(380px,86vw);z-index:160;background:var(--panel);
@@ -417,7 +421,8 @@ def _fly_rows(rows: list[dict]) -> str:
 
 def _fly_sections(states: dict[str, list[dict]]) -> str:
     sections = []
-    for key, label in (("waiting", t("runs_setup_h")),
+    for key, label in (("expired", t("runs_expired_h")),
+                       ("waiting", t("runs_setup_h")),
                        ("stalled", t("runs_stalled_h")),
                        ("active", t("runs_active_h"))):
         rows = states[key]
@@ -428,13 +433,18 @@ def _fly_sections(states: dict[str, list[dict]]) -> str:
     return "".join(sections) or h("div", {"class_": "runsw-empty"}, t("runs_none_active"))
 
 
-def chip_label(n_active: int, n_stalled: int, n_waiting: int = 0) -> str:
+def chip_label(n_active: int, n_stalled: int, n_waiting: int = 0,
+               n_expired: int = 0) -> str:
     """Status-chip text: attention wins, otherwise show active governed runs.
 
     Silent failures must remain loud even while another project is progressing. The
     attention count includes both interrupted runs and jobs whose governed run never
     started, so it must not claim that every counted item is a stalled run.
     """
+    if n_expired and (n_waiting or n_stalled):
+        return t("run_stalled_n", n=n_expired + n_waiting + n_stalled)
+    if n_expired:
+        return t("run_expired_n", n=n_expired)
     if n_waiting and n_stalled:
         return t("run_stalled_n", n=n_waiting + n_stalled)
     if n_waiting:
@@ -457,19 +467,21 @@ def runs_widget_markup(store: Store) -> str:
     states = _RUN_STATES_CACHE.get()
     if states is None:
         states = collect_run_attention_states(store)
-    n_active, n_waiting, n_stalled = (
+    n_active, n_waiting, n_stalled, n_expired = (
         len(states["active"]), len(states["waiting"]), len(states["stalled"]),
+        len(states["expired"]),
     )
     cls = ("runsw" + (" has-active" if n_active else "")
            + (" has-waiting" if n_waiting else "")
-           + (" has-stalled" if n_stalled else ""))
+           + (" has-stalled" if n_stalled else "")
+           + (" has-expired" if n_expired else ""))
     btn = h("button", {"type": "button", "class_": "sl-toolbtn runsw-btn", "data-runsw-toggle": True,
                        "aria-haspopup": "dialog", "aria-controls": "runsw-fly",
                        "aria-expanded": "false",
                        "title": t("active_runs"), "aria-label": t("active_runs")},
             h("span", {"class_": "runsw-dot"}),
             h("span", {"class_": "runsw-count", "id": "runsw-count"},
-              chip_label(n_active, n_stalled, n_waiting)))
+              chip_label(n_active, n_stalled, n_waiting, n_expired)))
     fly = h("div", {"class_": "runsw-fly", "id": "runsw-fly", "hidden": True,
                     "data-empty": t("runs_none_active"), "role": "dialog",
                     "aria-labelledby": "runsw-fly-title", "tabindex": "-1"},
@@ -478,7 +490,7 @@ def runs_widget_markup(store: Store) -> str:
             h("a", {"class_": "runsw-all", "href": "/runs"},
               raw(_picon("arrowRight")), " ", t("runs_view_all")))
     return h("div", {"class_": cls, "id": "runsw",
-                     "hidden": not (n_active or n_waiting or n_stalled),
+                     "hidden": not (n_active or n_waiting or n_stalled or n_expired),
                      # the JS re-render composes the localized chip text from these templates
                      "data-l-active-one": t("run_active_n", n=1),
                      "data-l-active-n": t("run_active_n", n="{n}"),
@@ -486,6 +498,9 @@ def runs_widget_markup(store: Store) -> str:
                      "data-l-setup-n": t("run_setup_n", n="{n}"),
                      "data-l-stalled-one": t("run_stalled_n", n=1),
                      "data-l-stalled-n": t("run_stalled_n", n="{n}"),
+                     "data-l-expired-one": t("run_expired_n", n=1),
+                     "data-l-expired-n": t("run_expired_n", n="{n}"),
+                     "data-l-expired-h": t("runs_expired_h"),
                      "data-l-setup-h": t("runs_setup_h"),
                      "data-l-stalled-h": t("runs_stalled_h"),
                      "data-l-active-h": t("runs_active_h")}, btn, fly)
@@ -542,24 +557,28 @@ document.addEventListener('click',function(e){
 if(!window.EventSource) return;   // static fallback: the server-rendered state stands
 function render(d){
   var w=el('runsw'), list=el('runsw-list'), cnt=el('runsw-count'); if(!w||!list||!cnt) return;
-  var act=d.active||[], wait=d.waiting||[], st=d.stalled||[];
+  var act=d.active||[], wait=d.waiting||[], st=d.stalled||[], exp=d.expired||[];
   // Attention remains loud even when another run is active; full zero stays hidden.
-  var n=act.length, q=wait.length, s=st.length, lbl='';
-  if(q&&s){ var total=q+s; lbl=(total===1)?w.getAttribute('data-l-stalled-one'):w.getAttribute('data-l-stalled-n').replace('{n}',total); }
+  var n=act.length, q=wait.length, s=st.length, x=exp.length, lbl='';
+  if(x&&(q||s)){ var attention=x+q+s; lbl=(attention===1)?w.getAttribute('data-l-stalled-one'):w.getAttribute('data-l-stalled-n').replace('{n}',attention); }
+  else if(x) lbl=(x===1)?w.getAttribute('data-l-expired-one'):w.getAttribute('data-l-expired-n').replace('{n}',x);
+  else if(q&&s){ var total=q+s; lbl=(total===1)?w.getAttribute('data-l-stalled-one'):w.getAttribute('data-l-stalled-n').replace('{n}',total); }
   else if(q) lbl=(q===1)?w.getAttribute('data-l-setup-one'):w.getAttribute('data-l-setup-n').replace('{n}',q);
   else if(s) lbl=(s===1)?w.getAttribute('data-l-stalled-one'):w.getAttribute('data-l-stalled-n').replace('{n}',s);
   else if(n) lbl=(n===1)?w.getAttribute('data-l-active-one'):w.getAttribute('data-l-active-n').replace('{n}',n);
   cnt.textContent=lbl||'';
-  w.hidden=!(n||q||s);
+  w.hidden=!(n||q||s||x);
   w.classList.toggle('has-active',n>0);
   w.classList.toggle('has-waiting',q>0);
   w.classList.toggle('has-stalled',s>0);
+  w.classList.toggle('has-expired',x>0);
   function rows(items){ var out=''; items.forEach(function(r){ out+='<a class="runsw-row" href="'+esc(r.url)+'">'
     +'<span class="runsw-t">'+esc(r.title)+'</span>'
     +'<span class="runsw-ts">'+esc((r.last_activity||'').slice(0,16).replace('T',' '))+'</span></a>'; }); return out; }
   function lane(key,label,items){ return items.length?'<div class="runsw-lane" data-run-lane="'+key+'">'
     +'<div class="runsw-lane-h">'+esc(label)+'</div>'+rows(items)+'</div>':''; }
-  var html=lane('waiting',w.getAttribute('data-l-setup-h'),wait)
+  var html=lane('expired',w.getAttribute('data-l-expired-h'),exp)
+    +lane('waiting',w.getAttribute('data-l-setup-h'),wait)
     +lane('stalled',w.getAttribute('data-l-stalled-h'),st)
     +lane('active',w.getAttribute('data-l-active-h'),act);
   if(!html){ var fly=el('runsw-fly'); html='<div class="runsw-empty">'+esc(fly?fly.getAttribute('data-empty'):'')+'</div>'; }

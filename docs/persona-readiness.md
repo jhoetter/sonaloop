@@ -84,9 +84,14 @@ partition. Pruning archives old raw episodes reversibly; it does not silently de
 ## Destructive boundary
 
 Profile edits should use `preview_persona_update`, then `update_persona` with the returned
-`expected_updated_at` and a non-empty reason. Immutable ids, provenance and runtime counters are not
-editable. Identity revisions require an explicit rationale and resolving fact/digest/event/evidence
-refs.
+`expected_updated_at` and a non-empty reason. The preview is side-effect free and includes the exact
+field diff, identity/routine risk, linked-project/session/history counts and the history contract.
+Changes to name, source description, identity traits, segment, demographics, role or company context
+also require its state-bound `confirmation_token`; a changed persona version or changed patch
+invalidates that token. Past sessions and frozen task-context snapshots remain unchanged; future
+context uses the revised profile. Immutable ids, provenance and runtime counters are not editable.
+Identity evolution through lived time still requires an explicit rationale and resolving
+fact/digest/event/evidence refs.
 
 MCP deletion is two-step and state-bound:
 

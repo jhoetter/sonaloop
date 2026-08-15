@@ -72,7 +72,7 @@ def test_cohort_depth_preflight_warns_before_discover(store):
     assert "cohort_warning" not in S.next_action(proj2["id"], store=store)["grounding"]
 
 
-def test_project_run_state_active_stalled_finished(store):
+def test_project_run_state_active_expired_finished(store):
     """A ready step with no driver must be visible: stalled immediately (no open run), active
     while a run is checkpointing, finished when the plan is done — computed on read."""
     pid, _ = _proj(store)
@@ -81,11 +81,11 @@ def test_project_run_state_active_stalled_finished(store):
     assert rs["next_ready"] == ["frame__discover"]
     run = S.start_run(pid, store=store)
     assert S.project_run_state(pid, store=store)["state"] == "active"
-    # a quiet open run goes stalled after the threshold (force by aging the run's updated_at)
+    # a 24h-quiet open run becomes expired but retains the same resumable journal
     run["updated_at"] = "2020-01-01T00:00:00+00:00"
     store.upsert_run(run)
     rs = S.project_run_state(pid, store=store)
-    assert rs["state"] == "stalled" and run["run_id"] in rs["note"]  # resume call names the run
+    assert rs["state"] == "expired" and run["run_id"] in rs["note"]  # resume call names the run
     # Task completion alone is not engine completion: only a governed run may
     # become finished after the finish/critic/handoff contract.
     fid = S.start_project("Freeform", "frage?", store=store)["id"]
@@ -95,7 +95,7 @@ def test_project_run_state_active_stalled_finished(store):
     assert completed["engine_finished"] is False
     # and the project list carries it
     listed = {p["id"]: p for p in S.list_research_projects(store=store)}
-    assert listed[pid]["run_state"]["state"] == "stalled"
+    assert listed[pid]["run_state"]["state"] == "expired"
 
 
 def test_frame_intent_is_one_step_and_phase_ambitions_ride_the_act_lane(store):

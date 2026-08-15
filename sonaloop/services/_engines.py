@@ -929,6 +929,8 @@ def record_prototype_session(persona_id, prototype_id, session_id, date_value, r
         prototype_id=proto["id"], session_id=session_id, date=date_value, reaction=reaction,
         observed_state_refs=refs, created_at=now, statements=statements,
         steps=_durable_prototype_steps(log, session_id)).to_dict()
+    from ..correlation import stamp_workflow_trace
+    stamp_workflow_trace(sess, project_id)
     sess["grounded_verified"] = grounded
     captured_steps = sum(bool((step.get("state") or {}).get("screenshot"))
                          for step in sess.get("steps") or [])
@@ -1599,6 +1601,8 @@ def _start_run_locked(project_id: str, budget: int | None = None, run_id: str | 
            "methodology": plan.get("methodology", ""), "status": "active",
            "budget": requested_budget, "cursor": 0,
            "steps": [], "dispatches": [], "critic_rounds": [], "created_at": now, "updated_at": now}
+    from ..correlation import stamp_workflow_trace
+    stamp_workflow_trace(run, project)
     if operation_id:
         run["operation_id"] = operation_id
         run["operation_fingerprint"] = fingerprint

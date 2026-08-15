@@ -128,6 +128,7 @@ def capture_product_event(
     subject_id: str = "",
     properties: Mapping[str, Any] | None = None,
     idempotency_key: str = "",
+    workflow_trace_id: str = "",
     occurred_at: datetime | None = None,
 ) -> dict[str, Any]:
     """Emit one semantic event to every registered sink, fail-soft.
@@ -147,6 +148,13 @@ def capture_product_event(
     project = _identifier(project_id, "project_id")
     subject = _identifier(subject_id, "subject_id")
     operation = _identifier(idempotency_key, "idempotency_key")
+    if workflow_trace_id:
+        workflow_trace = _identifier(workflow_trace_id, "workflow_trace_id")
+    elif project:
+        from .correlation import workflow_trace_id as derive_workflow_trace_id
+        workflow_trace = derive_workflow_trace_id(project)
+    else:
+        workflow_trace = ""
     now = occurred_at or datetime.now(timezone.utc)
     if now.tzinfo is None:
         raise ValueError("telemetry occurred_at must include a timezone")
@@ -167,6 +175,7 @@ def capture_product_event(
             for key in ("kind", "id", "role", "channel") if actor.get(key)
         },
         "project_id": project,
+        "workflow_trace_id": workflow_trace,
         "subject": ({"kind": kind, "id": subject} if kind else None),
         "properties": _properties(properties),
         "idempotency_key": operation,

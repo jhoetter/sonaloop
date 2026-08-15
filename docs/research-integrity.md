@@ -326,9 +326,16 @@ project header and `/runs`. It projects only persisted structures: the plan fron
 issued/completed dispatches, critic rounds, Product Understanding versions, claim envelopes and
 evidence references. It never treats long prose, a provider label, or a generic host error as proof.
 
-The projection distinguishes `running`, `stalled`, engine-`finished`, and `unverified` output. It
-also names the first unmet invariant, the last successful operation, every repairable integrity
-finding, a safe next action and a redacted `sltrace_*` support reference. The normal project canvas
+The projection distinguishes `running`, setup-`waiting`, `stalled`, inactivity-`expired`,
+engine-`finished`, and `unverified` output. Six hours without journal activity is stalled; after
+24 hours an unfinished active run is shown as expired. Expiry is a **read-time activity projection**:
+the persisted run remains `active`, its immutable journal is preserved, and the same run remains
+safe to resume. It never means that evidence is unverified. `unverified` is reserved for an
+engine-finished/incomplete result whose evidence or hand-off contract does not pass.
+
+The health view also names the first unmet invariant, the last successful operation, every
+repairable integrity finding, a safe next action and a stable `sltrace_*` workflow reference. The
+normal project canvas
 keeps the established run chip and a human-readable state; these support-grade values appear only
 after explicitly opening **Technical diagnostics** in that chip or in `/runs`. Recovery signals keep
 unknowns explicit: Core cannot prove that an external host disconnected, cannot inspect an external
@@ -336,9 +343,12 @@ provider's hidden prompt/reasoning/retry loop, and cannot project the Cloud audi
 join the returned project/run/operation query to its tenant-bound local replay API.
 
 At that Cloud boundary, a valid W3C `traceparent` is preserved and a unique tool span is returned in
-the response. Without propagated context, each request remains its own honest PostHog interaction
-trace; the governed run groups those traces as `$ai_session_id`, and run/project correlation is also
-the MCP conversation rather than a fabricated protocol session. Exported identifiers are
+the response. That transport trace identifies one request. The deterministic `sltrace_*` workflow
+trace identifies one research project across its creation retries, run, sessions, assets, reports,
+exports, MCP envelopes and product events; legacy projects derive the same value without a migration.
+`cloud_get_research_job_trace(workflow_trace_id=...)` resolves the whole locally observable job.
+Without propagated W3C context, each request remains its own honest PostHog interaction trace; the
+governed run groups those traces as `$ai_session_id`. Exported identifiers are
 workspace-HMAC scoped, so Sonaloop spans nest without exposing raw ids, but independently ingested
 raw OpenTelemetry spans do not automatically join them. None of this expands visibility into the
 external model host.

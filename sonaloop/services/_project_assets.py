@@ -226,6 +226,8 @@ def attach_asset(project_id: str, path: str | None = None, content_base64: str |
                if dispatch_ctx.get("dispatch_token") else {}),
         },
     }
+    from ..correlation import stamp_workflow_trace
+    stamp_workflow_trace(record, project)
     if (existing or {}).get("supersedes"):       # the provenance chain survives a re-attach upsert
         record["supersedes"] = existing["supersedes"]
     if existing:

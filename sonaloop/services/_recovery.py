@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import copy
 from collections import Counter
-from datetime import datetime, timedelta, timezone
 import hashlib
 from typing import Any
 
@@ -21,6 +20,7 @@ from ..research_integrity import (
     resolve_project_ref,
 )
 from ..cohort_integrity import current_cohort_preflight, preflight_satisfies_project
+from ..run_activity import activity_deadline, is_inactive_for
 from ..storage import Store
 from .._project_locks import project_lifecycle_locks
 from ..report_handoff import (
@@ -30,7 +30,7 @@ from ..report_handoff import (
 )
 
 
-PROJECT_HEALTH_SCHEMA = "sonaloop.project_health.v1"
+PROJECT_HEALTH_SCHEMA = "sonaloop.project_health.v2"
 PROJECT_LINEAGE_SCHEMA = "sonaloop.project_lineage.v1"
 
 
@@ -45,16 +45,6 @@ def _latest(rows: list[dict[str, Any]]) -> dict[str, Any] | None:
     return max(rows, key=lambda row: (str(row.get("updated_at") or ""),
                                       str(row.get("created_at") or ""),
                                       int(row.get("idx") or 0)), default=None)
-
-
-def _is_quiet(timestamp: str, stale_hours: int) -> bool:
-    try:
-        value = datetime.fromisoformat(str(timestamp).replace("Z", "+00:00"))
-        if value.tzinfo is None:
-            value = value.replace(tzinfo=timezone.utc)
-        return datetime.now(timezone.utc) - value > timedelta(hours=stale_hours)
-    except (TypeError, ValueError):
-        return False
 
 
 def _ref_exists(project_id: str, ref: dict[str, Any], store: Store) -> bool:
@@ -228,11 +218,10 @@ def _preflight_health(project: dict[str, Any], plan: dict[str, Any] | None,
 
 
 def _trace_ref(project: dict[str, Any], run: dict[str, Any] | None) -> dict[str, Any]:
+    from ..correlation import workflow_trace_id
     ingress = dict(project.get("research_job_ingress") or {})
     operation_id = str(ingress.get("operation_id") or project.get("operation_id") or "")
-    raw = "|".join((str(project.get("id") or ""), str((run or {}).get("run_id") or ""),
-                    operation_id))
-    support_ref = "sltrace_" + hashlib.sha256(raw.encode("utf-8")).hexdigest()[:20]
+    support_ref = workflow_trace_id(project)
     query = {"project_id": project.get("id")}
     if run:
         query["run_id"] = run.get("run_id")
@@ -240,6 +229,7 @@ def _trace_ref(project: dict[str, Any], run: dict[str, Any] | None) -> dict[str,
         query["operation_id"] = operation_id
     return {
         "support_ref": support_ref,
+        "workflow_trace_id": support_ref,
         "local_journal": "available" if run else "not_started",
         "cloud_trace_query": query,
         "external_host_visibility": "not_observable",
@@ -279,7 +269,7 @@ def _hydrate_preflight_call(call: dict[str, Any], run: dict[str, Any],
 
 
 def project_health(project_id: str, store: Store | None = None,
-                   stale_hours: int = 6) -> dict[str, Any]:
+                   stale_hours: int = 6, expire_hours: int = 24) -> dict[str, Any]:
     """Project one truthful, repair-oriented state from canonical persisted records."""
     from .. import plan as plan_mod
     from ..plan_assess import assess_project
@@ -293,6 +283,10 @@ def project_health(project_id: str, store: Store | None = None,
     active_runs = [row for row in runs if row.get("status") == "active"]
     finished_runs = [row for row in runs if row.get("status") == "finished"]
     run = _latest(active_runs) or _latest(runs)
+    if expire_hours < stale_hours:
+        raise ValueError("expire_hours must be greater than or equal to stale_hours")
+    run_activity = str((run or {}).get("updated_at") or "")
+    run_expired = bool(active_runs and is_inactive_for(run_activity, expire_hours))
     # The currently actionable run is authoritative.  A historical finished
     # journal must never upgrade a newer active attempt to "finished" while
     # the recovery action correctly says to resume that active attempt.
@@ -462,7 +456,7 @@ def project_health(project_id: str, store: Store | None = None,
             issue("engine_completion_missing",
                   "The plan may be complete, but no run has reached engine-verified finished state.")
 
-    unverified = preflight.get("state") == "waiting" or any(row["code"] in {
+    integrity_unverified = preflight.get("state") == "waiting" or any(row["code"] in {
         "product_understanding_missing", "orphaned_evidence", "claim_provenance_incomplete",
         "invalid_evidence_ref", "assessment_unavailable", "engine_completion_missing",
         "expected_sections_missing", "conclusion_missing", "report_missing",
@@ -475,19 +469,23 @@ def project_health(project_id: str, store: Store | None = None,
         driver_state = lifecycle
         state = lifecycle
     elif active_runs:
-        if preflight.get("state") == "waiting":
+        if run_expired:
+            driver_state = ("expired_waiting_on_preflight"
+                            if preflight.get("state") == "waiting" else "expired")
+            state = "expired"
+        elif preflight.get("state") == "waiting":
             # The journal is resumable but no useful research can proceed until
             # the current evidence/cohort gate is discharged.  "running" would
             # falsely imply autonomous background work.
             driver_state = "waiting_on_preflight"
             state = "waiting"
         else:
-            quiet = _is_quiet(str((run or {}).get("updated_at") or ""), stale_hours)
+            quiet = is_inactive_for(str((run or {}).get("updated_at") or ""), stale_hours)
             driver_state = "stalled" if quiet else "running"
             state = driver_state
     elif authoritative_finished:
         driver_state = "engine_finished"
-        state = "unverified" if unverified else "finished"
+        state = "unverified" if integrity_unverified else "finished"
     elif plan_complete:
         driver_state = "not_engine_finished"
         state = "unverified"
@@ -499,6 +497,13 @@ def project_health(project_id: str, store: Store | None = None,
         driver_state = "not_started" if not runs else "stopped"
         state = "stalled"
 
+    if state == "expired":
+        issue(
+            "run_expired",
+            f"This unfinished run has had no recorded activity for more than {expire_hours} hours. "
+            "Its journal is preserved and can be resumed safely.",
+            severity="attention",
+        )
     if state == "stalled" and not issues:
         if not runs:
             issue("run_not_started", "Open plan work has not started a governed run yet.")
@@ -593,12 +598,25 @@ def project_health(project_id: str, store: Store | None = None,
         "driver_state": driver_state,
         "lifecycle": lifecycle,
         "engine_finished": authoritative_finished,
+        "persisted_run_status": str((run or {}).get("status") or "not_started"),
         "run_inventory": {
             "active": len(active_runs),
             "historical_finished": len(finished_runs),
             "total": len(runs),
         },
-        "unverified_output": unverified,
+        "unverified_output": state == "unverified",
+        "activity_lifecycle": {
+            "state": "expired" if run_expired else "current",
+            "stale_after_hours": int(stale_hours),
+            "expires_after_hours": int(expire_hours),
+            "expires_at": activity_deadline(run_activity, expire_hours) if active_runs else "",
+            "resumable": bool(active_runs),
+            "note": (
+                "Expiry is an inactivity projection only; the active journal remains resumable "
+                "and no evidence is marked unverified."
+                if run_expired else ""
+            ),
+        },
         "last_activity": max([str(project.get("updated_at") or "")]
                              + [str(row.get("updated_at") or "") for row in runs]),
         "run_id": str((run or {}).get("run_id") or ""),

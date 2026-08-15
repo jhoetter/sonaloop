@@ -167,21 +167,28 @@ def register_personas(mcp):
     @mcp.tool()
     def preview_persona_update(persona_id: str, patch: dict[str, Any],
                                expected_updated_at: str | None = None) -> dict[str, Any]:
-        """Validate an editable-field patch and return its diff/current version without writing."""
+        """Validate a persona patch without writing. Returns its field diff, affected artifact
+        counts, history guarantees and — for identity-changing fields — a state-bound confirmation
+        token required by update_persona."""
         t = time.perf_counter()
         return _env("preview_persona_update",
                     services.preview_persona_update(persona_id, patch, expected_updated_at), t)
 
     @mcp.tool()
     def update_persona(persona_id: str, patch: dict[str, Any], reason: str,
-                       expected_updated_at: str | None = None) -> dict[str, Any]:
+                       expected_updated_at: str | None = None,
+                       preview_token: str | None = None) -> dict[str, Any]:
         """Apply a host-authored patch to a persona's profile; records a revision with the reason.
+        Changes to identity fields (name, role, segment, demographics, company context or source
+        description) require the exact preview_token from preview_persona_update. Routine changes
+        remain one-step. Re-preview whenever the persona or patch changes.
         A `capabilities` patch ({rungs:{see,walk,drive,login}, tech_comfort: 1-5 (see
         suggest_tech_comfort), devices, accessibility, provenance}) is validated (shape +
         vocabulary) and merged into a full normalized profile, marked authored."""
         t = time.perf_counter()
         return _env("update_persona",
-                    services.update_persona(persona_id, patch, reason, expected_updated_at), t)
+                    services.update_persona(
+                        persona_id, patch, reason, expected_updated_at, preview_token), t)
 
     @mcp.tool()
     def suggest_tech_comfort() -> dict[str, Any]:

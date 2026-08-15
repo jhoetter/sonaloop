@@ -151,6 +151,7 @@ def _projects_page(page: int = 1, q: str = "") -> str:
                 "active": t("runs_active_h"), "running": t("health_running"),
                 "waiting": t("runs_waiting_h"),
                 "stalled": t("runs_stalled_h"),
+                "expired": t("runs_expired_h"),
                 "finished": t("runs_finished_h"),
                 "unverified": t("runs_unverified_h"),
                 "archived": t("health_archived"), "superseded": t("health_superseded"),
@@ -158,6 +159,7 @@ def _projects_page(page: int = 1, q: str = "") -> str:
             color = {
                 "active": "var(--green)", "running": "var(--green)",
                 "waiting": "var(--amber)", "stalled": "var(--amber)",
+                "expired": "var(--red)",
                 "finished": "var(--muted)",
                 "unverified": "var(--red)",
                 "archived": "var(--muted)", "superseded": "var(--muted)",

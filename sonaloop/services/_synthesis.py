@@ -260,6 +260,9 @@ def record_synthesis(title: str, start_input: str, council_ids: list[str] | None
         sections=prev.get("sections", []),
         graph_snapshot=prev.get("graph_snapshot"),
     ).to_dict()
+    if project_id:
+        from ..correlation import stamp_workflow_trace
+        stamp_workflow_trace(rec, project_id)
     predictions_out = [_A.validate_predicted_behavior(pb) for pb in (predictions or [])]
     _A.assign_part_ids(predictions_out, "pb")
     rec["predictions"] = predictions_out or prev.get("predictions", [])

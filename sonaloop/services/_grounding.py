@@ -275,7 +275,13 @@ def record_grounding(persona_id: str, corpus_ids: list[str],
             raise ValueError(f"Unknown chunk ids in provenance: {unknown}")
         claims.append({"claim": claim, "chunk_ids": chunk_ids, "grounded_at": now})
     if patch:
-        update_persona(persona_id, patch, reason, store=store)  # noqa: F821 (bound)
+        preview = preview_persona_update(persona_id, patch, store=store)  # noqa: F821 (bound)
+        update_persona(  # noqa: F821 (bound)
+            persona_id, patch, reason,
+            expected_updated_at=preview["expected_updated_at"],
+            preview_token=preview.get("confirmation_token") or None,
+            store=store,
+        )
     persona = store.get_persona(persona_id)
     grounding = persona.get("grounding") or {"corpus_ids": [], "claims": []}
     grounding["corpus_ids"] = sorted(set(grounding["corpus_ids"]) | set(corpus_ids))

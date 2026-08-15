@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import base64
 import json
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from starlette.testclient import TestClient
@@ -49,7 +50,7 @@ def test_project_health_names_incomplete_dispatch_and_safe_existing_resume(store
     dispatch = services.run_step(run["run_id"], store=store)
 
     health = services.project_health(project["id"], store=store)
-    assert health["schema"] == "sonaloop.project_health.v1"
+    assert health["schema"] == "sonaloop.project_health.v2"
     assert health["state"] == "running"
     assert health["unmet_invariant"]["code"] == "dispatch_incomplete"
     assert health["safe_next_action"]["kind"] == "resume_existing_run"
@@ -186,7 +187,7 @@ def test_project_health_fails_closed_for_malformed_legacy_reference(store):
                for issue in health["integrity_findings"])
 
 
-def test_project_health_distinguishes_never_started_from_quiet_active(store):
+def test_project_health_distinguishes_never_started_stalled_and_expired(store):
     never = services.start_project(
         "Created only", "q", methodology="double_diamond", store=store)
     never_health = services.project_health(never["id"], stale_hours=1, store=store)
@@ -201,13 +202,25 @@ def test_project_health_distinguishes_never_started_from_quiet_active(store):
     quiet = services.start_project(
         "Quiet owner", "q", methodology="double_diamond", store=store)
     run = services.start_run(quiet["id"], store=store)
-    run["updated_at"] = "2020-01-01T00:00:00+00:00"
+    run["updated_at"] = (datetime.now(timezone.utc) - timedelta(hours=7)).isoformat()
     store.upsert_run(run)
-    quiet_health = services.project_health(quiet["id"], stale_hours=1, store=store)
+    quiet_health = services.project_health(quiet["id"], store=store)
     assert quiet_health["state"] == "stalled"
     assert quiet_health["driver_state"] == "stalled"
-    assert quiet_health["run_inventory"]["total"] == 1
-    assert quiet_health["safe_next_action"]["kind"] == "resume_existing_run"
+    assert quiet_health["activity_lifecycle"]["state"] == "current"
+
+    run["updated_at"] = (datetime.now(timezone.utc) - timedelta(hours=25)).isoformat()
+    store.upsert_run(run)
+    expired_health = services.project_health(quiet["id"], store=store)
+    assert expired_health["state"] == "expired"
+    assert expired_health["driver_state"] == "expired"
+    assert expired_health["persisted_run_status"] == "active"
+    assert expired_health["unverified_output"] is False
+    assert expired_health["activity_lifecycle"]["resumable"] is True
+    assert expired_health["run_inventory"]["total"] == 1
+    assert expired_health["safe_next_action"]["kind"] == "resume_existing_run"
+    assert any(row["code"] == "run_expired"
+               for row in expired_health["integrity_findings"])
 
 
 def test_project_health_prefers_a_newer_stopped_attempt_over_historical_finish(store):

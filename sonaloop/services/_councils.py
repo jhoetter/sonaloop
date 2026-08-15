@@ -530,6 +530,8 @@ def record_council(project_id: str, prompt: str, persona_ids: list[str],
         findings=findings_out,
         prompts=prompts_out,
     ).to_dict()
+    from ..correlation import stamp_workflow_trace
+    stamp_workflow_trace(session, project)
     if predictions_out:
         session["predictions"] = predictions_out
     if posture:

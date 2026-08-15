@@ -60,16 +60,19 @@ def _meta_line(r: dict) -> str:
 
 def _run_row(r: dict, *, stalled: bool = False, unverified: bool = False) -> str:
     waiting = r.get("state") == "waiting"
-    state_label = (t("runs_waiting_h") if waiting else
+    expired = r.get("state") == "expired"
+    state_label = (t("runs_expired_h") if expired else
+                   t("runs_waiting_h") if waiting else
                    t("runs_unverified_h") if unverified else
                    (t("runs_not_started") if r.get("driver_state") == "not_started"
                     else t("runs_stopped") if r.get("driver_state") == "stopped"
                     else t("stalled")) if stalled else t("runs_active_h"))
-    state_color = ("var(--red)" if unverified
+    state_color = ("var(--red)" if unverified or expired
                    else "var(--amber)" if stalled or waiting else "var(--green)")
     attention = run_attention_text(r)
     return h("div", {"class_": "runrow" + (" runrow-waiting" if waiting else "")
                      + (" runrow-stalled" if stalled else "")
+                     + (" runrow-expired" if expired else "")
                      + (" runrow-unverified" if unverified else ""),
                      "role": "status", "aria-label": state_label},
              h("div", {"class_": "runrow-head"},
@@ -88,6 +91,7 @@ _RUNS_CSS = register_css(r"""
 .runrow{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);padding:11px 13px;margin:0 0 8px}
 .runrow-stalled{border-color:var(--amber)}
 .runrow-waiting{border-color:var(--amber)}
+.runrow-expired{border-color:var(--red)}
 .runrow-unverified{border-color:var(--red)}
 .runrow-head{display:flex;align-items:center;gap:10px;justify-content:space-between}
 .runrow-head a{display:inline-flex;align-items:center;gap:8px;color:var(--ink);text-decoration:none;min-width:0}
@@ -118,6 +122,7 @@ def register_runs(app) -> None:
         states = collect_run_states(store)
         waiting = [_run_row(r) for r in states["waiting"]]
         stalled = [_run_row(r, stalled=True) for r in states["stalled"]]
+        expired = [_run_row(r) for r in states["expired"]]
         active = [_run_row(r) for r in states["active"]]
         unverified = [_run_row(r, unverified=True) for r in states["unverified"]]
         finished = [h("div", {"class_": "runrow"},
@@ -126,12 +131,13 @@ def register_runs(app) -> None:
                         h("span", {"class_": "muted small"}, ui.local_ts(r["last_activity"]))),
                       raw(run_diagnostics_html(r)))
                     for r in states["finished"]]
-        if not (waiting or stalled or active or unverified or finished):
+        if not (waiting or stalled or expired or active or unverified or finished):
             core = h("div", {"class_": "sl-empty"},
                      h("div", {"class_": "sl-empty__icon"}, raw(_icon("play"))),
                      h("p", {"class_": "sl-empty__body"}, t("no_runs")))
         else:
             core = fragment(
+                raw(_section(t("runs_expired_h"), expired)),
                 raw(_section(t("runs_setup_h"), waiting)),
                 raw(_section(t("runs_stalled_h"), stalled)),
                 h("details", {"class_": "runs-fin sl-runs-unverified", "open": True},
@@ -140,7 +146,7 @@ def register_runs(app) -> None:
                 raw(_section(t("runs_active_h"), active)),
                 # When nothing is stalled or active, the finished journal IS the page — render
                 # it open instead of greeting the reader with one collapsed chevron (ux-audit P5).
-                h("details", {"class_": "runs-fin", "open": True if not (waiting or stalled or active or unverified) else None},
+                h("details", {"class_": "runs-fin", "open": True if not (waiting or stalled or expired or active or unverified) else None},
                   h("summary", {}, f'{t("runs_finished_h")} ({len(finished)})'),
                   fragment(*finished)) if finished else None)
         # (the data-copy clipboard handler ships with the chrome — RUNS_WIDGET_JS)

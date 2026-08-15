@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 import pytest
 
 from sonaloop import config, services, telemetry
+from sonaloop.correlation import workflow_trace_id
 
 
 @pytest.fixture(autouse=True)
@@ -45,6 +46,7 @@ def test_provider_neutral_sink_receives_request_context_and_structural_metadata(
         "kind": "user", "id": "sub_private", "role": "editor", "channel": "web",
     }
     assert events[0]["subject"] == {"kind": "job", "id": "project_private"}
+    assert events[0]["workflow_trace_id"] == workflow_trace_id("project_private")
     assert events[0]["properties"]["persona_count"] == 8
 
 
@@ -104,6 +106,9 @@ def test_core_product_functions_emit_semantic_events_after_success(store):
     assert [event["name"] for event in events] == [
         "job_created", "job_updated", "run_started",
     ]
+    assert {event["workflow_trace_id"] for event in events} == {
+        project["workflow_trace_id"],
+    }
     assert all("Private" not in str(event["properties"]) for event in events)
 
 

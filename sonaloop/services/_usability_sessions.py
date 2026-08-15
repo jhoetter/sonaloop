@@ -495,6 +495,9 @@ def record_usability_session(persona_id, subject, fidelity, date_value, steps, o
         id=sess_id, project_id=project_id or "", persona_id=persona_id, date=date_value,
         subject=subject, fidelity=fidelity, steps=norm_steps, outcome=norm_outcome,
         created_at=(existing or {}).get("created_at") or now, statements=norm_statements).to_dict()
+    if known_project:
+        from ..correlation import stamp_workflow_trace
+        stamp_workflow_trace(sess, str(project_id))
     sess["visual_trace"] = _visual_trace(norm_steps)
     if subject.get("kind") == "prototype":
         proto = store.get_prototype(str(subject.get("id") or "")) or {}

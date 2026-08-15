@@ -113,6 +113,11 @@ It validates that the named run is active and belongs to the project, then retur
 marks a run finished. `project_health(project_id)` supplies that exact call plus the unmet invariant,
 last checkpoint and redacted support trace reference.
 
+An active journal with no recorded activity for six hours is projected as `stalled`; after 24 hours
+it is projected as `expired`. Expiry is deliberately not written as a terminal run status: the
+persisted row remains `active`, the journal remains immutable and `resume_project_run` continues that
+exact run. `unverified` is a separate evidence-quality state and is never inferred from elapsed time.
+
 ## Run journal checkpoints
 
 The persisted dispatch claim includes its workspace, project, run, task, cursor,

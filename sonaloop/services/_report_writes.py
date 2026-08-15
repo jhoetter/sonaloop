@@ -228,6 +228,8 @@ def _record_synthesis_outline_locked(
             "limitations": list(project.get("research_limitations") or []),
             "outline_payload_fingerprint": fingerprint,
         })
+    from ..correlation import stamp_workflow_trace
+    stamp_workflow_trace(report, project)
     claims = _outline_claims(report)
     if operation_id:
         claims.append({"operation_id": operation_id, "payload_fingerprint": fingerprint,

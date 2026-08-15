@@ -100,6 +100,12 @@ that token. The UI renders the same impact before typed confirmation. Personal
 profile/SOUL/memory is removed and the persona is detached from active cohorts;
 historical councils and recorded sessions remain as research evidence.
 
+Persona updates expose the same preview discipline: `preview_persona_update`
+returns a field diff, linked-history impact and history guarantees. Identity-shaped
+changes additionally require the returned state-bound token in `update_persona`;
+routine goals/tool/capability corrections remain one-step. The existing web metadata
+form validates and previews its exact patch against the displayed version before it writes.
+
 ## The write-path pattern (web/_forms.py)
 
 Every mutating route follows one shape:
