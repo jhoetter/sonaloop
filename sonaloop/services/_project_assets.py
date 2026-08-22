@@ -157,6 +157,9 @@ def attach_asset(project_id: str, path: str | None = None, content_base64: str |
     text documents) lands on the project. `direction` is `in` (evidence, the
     default) or `out` (a deliverable produced from the project). Re-attaching
     identical bytes is an idempotent upsert (title/notes/direction refresh).
+    A user-triggered `out` attachment without a dispatch token is a delivery
+    projection: it may be generated while a governed research run is active,
+    but it never consumes, completes, or checkpoints that run's dispatch.
     Emits `asset.attached`."""
     store = store or Store()
     project = _require_research_project(store, project_id)  # noqa: F821 (bound)
@@ -173,9 +176,24 @@ def attach_asset(project_id: str, path: str | None = None, content_base64: str |
                 config.partition_dir().resolve()):
             raise ValueError("asset path must stay inside the active workspace partition; "
                              "upload external material with content_base64")
-    dispatch_ctx = prepare_dispatch_write(  # noqa: F821 (bound)
-        project["id"], dispatch_token, None, "asset", store,
-        allowed_buckets={"analyze", "act", "verify"})
+    # Report downloads are projections OF evidence already recorded by the run,
+    # not new research evidence FOR the run.  Keep that boundary explicit: an
+    # outgoing file requested by a user can be attached while the original run
+    # is still active, without stealing its sole dispatch or advancing it.  A
+    # token-bearing output still takes the governed path, and incoming/default
+    # assets remain strict so agents cannot bypass trace ownership accidentally.
+    if direction == "out" and not dispatch_token:
+        dispatch_ctx = {
+            "state": "delivery",
+            "project_id": project["id"],
+            "output_kind": "asset",
+            "operation_id": "",
+            "key": "",
+        }
+    else:
+        dispatch_ctx = prepare_dispatch_write(  # noqa: F821 (bound)
+            project["id"], dispatch_token, None, "asset", store,
+            allowed_buckets={"analyze", "act", "verify"})
     if path:
         assert src is not None
         data = src.read_bytes()

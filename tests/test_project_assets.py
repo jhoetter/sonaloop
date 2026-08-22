@@ -8,6 +8,7 @@ import pytest
 
 from sonaloop import config
 from sonaloop import services
+from sonaloop.plan import PlanError
 from sonaloop.services import _hooks
 
 from conftest import create_persona
@@ -183,6 +184,32 @@ def test_export_synthesis_deliverable_attaches_out_asset(store, project, tmp_pat
     assert rec["title"] == "Component finder (PPTX)"
     with pytest.raises(ValueError):
         services.export_synthesis_deliverable(syn["id"], "docx", store=store)
+
+
+def test_outgoing_delivery_can_attach_without_advancing_active_run(store, project, tmp_path):
+    """A presentation download is a read-side projection, not a run dispatch output."""
+    governed = store.get_research_project(project["id"])
+    governed["governance_contract"] = "dispatch_v1"
+    store.upsert_research_project(governed)
+    run = services.start_run(project["id"], operation_id="active-delivery-run", store=store)
+    dispatch = services.run_step(run["run_id"], store=store)
+    assert dispatch["dispatch_token"]
+    f = tmp_path / "stakeholder-report.pptx"
+    f.write_bytes(b"PK\x03\x04 stakeholder deck")
+
+    with pytest.raises(PlanError):
+        services.attach_asset(project["id"], path=str(f), store=store)
+
+    rec = services.attach_asset(
+        project["id"], path=str(f), direction="out",
+        source="synthesis:report-example", store=store,
+    )
+    assert rec["direction"] == "out"
+    assert rec["dispatch_provenance"] == {"state": "delivery"}
+    assert rec["dispatch"]["state"] == "delivery"
+    persisted_run = store.list_runs(project["id"])[0]
+    assert persisted_run["status"] == "active"
+    assert not persisted_run.get("checkpoints")
 
 
 def test_export_synthesis_deliverable_relative_path_lands_in_data_exports(store, project, tmp_path, monkeypatch):

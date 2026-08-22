@@ -87,6 +87,12 @@ both. When `deck.master_asset_ref` points at an approved 16:9 `.pptx`, its theme
 masters and layouts are retained while uploaded sample slides are discarded. Without
 one, the polished Sonaloop deck is the deterministic default.
 
+These downloads are delivery projections of already recorded evidence. They remain
+available while the underlying governed run is active and are attached with dispatch
+state `delivery`; creating one never consumes, completes, or checkpoints the run's
+current dispatch. Incoming evidence and token-bearing run outputs keep the strict
+dispatch contract.
+
 ## In the inspector (UX U8)
 
 - **Detail page** `/assets/{id}` (global id resolution): image preview / file
