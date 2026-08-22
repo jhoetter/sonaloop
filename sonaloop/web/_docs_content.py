@@ -110,10 +110,12 @@ PRINCIPLES = [
       "never relaxed.")),
     ("syntheses",
      ("Präsentationsreif", "Presentation-grade"),
-     ("Jeder Report lässt sich direkt als kurze **Stakeholder-PDF** oder als editierbares **PowerPoint** teilen. Das veröffentlichte Workspace-Branding und ein optionaler Firmen-Master werden übernommen; "
-      "ohne Master nutzt Sonaloop eine ruhige, gute Vorlage.",
-      "Every report can be shared directly as a concise **stakeholder PDF** or editable **PowerPoint**. Published workspace branding and an optional company master carry through; without one, Sonaloop "
-      "uses a polished default.")),
+     ("Jeder Report lässt sich direkt als kurze **Stakeholder-PDF** oder als editierbares **PowerPoint** teilen. Workspace-Owner laden unter **Workspace → Vorlagen** einen 16:9-Firmenmaster hoch. Sonaloop entfernt konkrete Inhaltsfolien beim Upload und übernimmt Layouts, Hintergründe und Theme-Schriften für neue Exporte; ohne Master gilt die ruhige Standardvorlage.",
+      "Every report can be shared directly as a concise **stakeholder PDF** or editable **PowerPoint**. Workspace owners upload a 16:9 company master under **Workspace → Templates**. Sonaloop strips concrete content slides at upload and applies its layouts, backgrounds, and theme fonts to new exports; without a master, the polished default applies.")),
+    ("prototype",
+     ("Offen an Design-Tools übergeben", "Open hand-off to design tools"),
+     ("Der read-only **Design-Handoff** bündelt Findings, Persona-Stimmen, Evidenz-Refs, Entscheidungen, Screens, Mockups, Tests und Workspace-Tokens. Ein KI-Host kann damit ein separat verbundenes Figma-, Canvas-, Code- oder Dokument-MCP bedienen — ohne Sonaloop Figma-Zugriff zu geben.",
+      "The read-only **design hand-off** bundles findings, persona voices, evidence refs, decisions, screens, mockups, tests, and workspace tokens. An AI host can use it with a separately connected Figma, canvas, code, or document MCP — without granting Sonaloop Figma access.")),
 ]
 
 # ============================ Concepts ============================ #
@@ -777,6 +779,9 @@ DOMAIN_META = {
                    "Signale festhalten und Knoten in Sections gruppieren.", "Capture signals and group nodes into sections."),
     "eval":       ("Evaluation & Kritik", "Evaluation & critics",
                    "Runs bewerten und Abdeckung/Qualität kritisieren.", "Score runs and critique coverage/quality."),
+    "handoff":    ("Design-Handoff", "Design hand-off",
+                   "Research samt Evidenz und Workspace-Tokens an andere Design- oder Code-MCPs übergeben.",
+                   "Pass evidence-linked research and workspace tokens to other design or code MCPs."),
 }
 # Super-groups organize the domains into a lifecycle-shaped taxonomy. Shape: (title_de, title_en, desc_de,
 # desc_en, [domain_keys]). The synthetic "__extras__" key carries resources & prompts.
@@ -790,7 +795,7 @@ SUPER_GROUPS = [
     ("Evidenz & Reports", "Evidence & reports",
      "Councils, Prototypen, Notizen — und die Reports, die sie verdichten.",
      "Councils, prototypes, notes — and the reports that fold them up.",
-     ["council", "prototypes", "sections"]),
+     ["council", "prototypes", "sections", "handoff"]),
     ("Evaluation", "Evaluation",
      "Qualität und Abdeckung prüfen.", "Check quality and coverage.",
      ["eval"]),

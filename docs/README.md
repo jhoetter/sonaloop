@@ -45,6 +45,7 @@ canonical published home:
 - [persona-readiness.md](persona-readiness.md), [grounding.md](grounding.md), [calibration.md](calibration.md), [embeddings.md](embeddings.md) — persona lifecycle, evidence, prediction quality, recall
 - [product-telemetry.md](product-telemetry.md) — provider-neutral semantic events, privacy boundary and hosted outbox adapter
 - [substrate.md](substrate.md), [artifact-inventory.md](artifact-inventory.md), [project-assets.md](project-assets.md), [opt-in-aggregation-design.md](opt-in-aggregation-design.md)
+- [design-delivery.md](design-delivery.md) — sanitized workspace PowerPoint masters and the provider-neutral MCP research-to-design hand-off
 - [taxonomy-audit-current-primitives-forms.md](taxonomy-audit-current-primitives-forms.md) — current primitive/form inventory, aliases, migration owners and compatibility requirements
 - [taxonomy-registry-schema.md](taxonomy-registry-schema.md) — machine-readable primitive/form registry contract and validation rules
 - [taxonomy-backcompat-migration.md](taxonomy-backcompat-migration.md) — lazy migration plan for old records, URLs, MCP tools and stores
