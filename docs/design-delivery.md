@@ -8,6 +8,21 @@ Sonaloop has two separate design-delivery boundaries:
 
 Neither path gives Sonaloop access to a customer's destination design account.
 
+## Customer result surface
+
+Cloud workspace members use a result-first job projection. Once a durable report,
+outcome, synthesis, prototype, or deliverable exists, the job reads **Result ready** even
+when the underlying autonomous run has paused or expired. The normal customer surface
+does not expose the global runs/attention widget, run journal route, run chip, plan setup,
+or engine-health vocabulary. It shows results first and keeps the deeper research outline
+collapsed but available.
+
+This projection does not alter the plan/run source of truth. Owners/operators retain the
+technical run surface for recovery and audit; customer roles cannot access `/runs` or
+`/api/runs`. A real missing user choice still appears as **Input required** because it is
+actionable for the customer. A useful result is never relabeled as broken merely because
+the engine had more internal work queued.
+
 ## PowerPoint master contract
 
 Cloud workspace owners upload a `.pptx` under **Workspace → Templates**. The upload

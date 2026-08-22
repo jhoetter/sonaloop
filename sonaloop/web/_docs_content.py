@@ -510,7 +510,8 @@ INSPECTOR_SECTIONS = [
       "You watch the study come together — no manual refreshing.")),
     ("runs", "play",
      ("Laufende Runs", "Runs"),
-     ("Oben in der Leiste zeigt ein Status-Punkt, ob gerade Studien **aktiv** laufen — er wird "
+     ("In der normalen Cloud-Kundenansicht stehen **Ergebnisse** vor Lauftechnik: Sobald ein Report, eine Synthese, ein Prototyp oder ein anderes Ergebnis vorliegt, zeigt der Job **Ergebnis bereit**. Ein intern pausierter oder abgelaufener Agentenlauf macht ein vorhandenes Ergebnis nicht zu einem Fehler. Globale Run-/Aufmerksamkeitsanzeigen, Run-Chips und Journale bleiben dort verborgen; nur eine tatsächlich benötigte Nutzerentscheidung erscheint als **Eingabe benötigt**. Owner/Operatoren behalten die technische Ansicht für Diagnose und Wiederaufnahme. "
+      "Dort zeigt oben in der Leiste ein Status-Punkt, ob gerade Studien **aktiv** laufen — er wird "
       "**gelb**, wenn ein Projekt feststeckt (das stille Scheitern soll laut sein). Im "
       "Projekt-Kopf trägt jedes Projekt seinen eigenen **Run-Chip** (Zustand · letzte Aktivität). "
       "Benötigte Eingabe erscheint dort ruhig als **Wartet auf Eingabe** mit genau einem nächsten "
@@ -572,7 +573,8 @@ INSPECTOR_SECTIONS = [
       "Explizites Ersetzen oder Archivieren bewahrt Evidenz; es löscht nichts. Archivierte Jobs "
       "verschwinden aus der normalen Jobs-Übersicht, der Befehlspalette, den Job-Verweisen auf "
       "Methodikseiten, dem Run-Journal und dem globalen Run-Status (einschließlich API), bleiben aber über ihren exakten Detail-Link vollständig inspizierbar.",
-      "A status dot in the top bar shows whether studies are **running** right now — it turns "
+      "The normal Cloud customer surface puts **results** before run mechanics: once a report, synthesis, prototype, or other outcome exists, the job reads **Result ready**. An internally paused or expired agent run does not turn an available result into an error. Global run/attention widgets, run chips, and journals stay hidden there; only a real user decision appears as **Input required**. Owners/operators retain the technical surface for diagnosis and continuation. "
+      "There, a status dot in the top bar shows whether studies are **running** right now — it turns "
       "**amber** when a project is stalled (the silent failure mode should be loud). In the "
       "project header every project carries its own **run chip** (state · last activity). "
       "Needed input appears there quietly as **Waiting for input** with exactly one next step rather "
