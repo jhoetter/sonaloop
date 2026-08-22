@@ -33,25 +33,38 @@ masters, layouts, placeholders, page geometry, and document properties remain.
 
 The stored asset retains two hashes: the immutable source upload hash used by the
 workspace reference and a stored hash for the sanitized zero-slide package. Metadata
-records the source/stored sizes, discarded slide count, layout names, placeholder types,
-and inferred semantic role counts.
+records the source/stored sizes, discarded slide count, layout names, placeholder types
+and geometry, theme colors/fonts, a semantic palette, inferred roles, and a compatibility
+summary. The normal workspace UI reduces this to **ready** or **limited** plus the supported
+slide purposes; the detailed profile stays in the advanced surface and export provenance.
 
 At export, `sonaloop._pptx_master.layout_for_slide` maps generated slide kinds onto a
-small semantic role vocabulary derived from layout names:
+small semantic role vocabulary derived first from multilingual layout names and then,
+for agency-specific or opaque names, from portable placeholder structure:
 
 | Generated kind | Preferred master role |
 | --- | --- |
 | `cover`, `title` | `cover` |
+| `agenda` | `agenda`, then `content` |
 | `section`, `canvas-section` | `section` |
-| `closing` | `closing`, then `section` |
-| all other report slides | `content` |
+| `comparison`, `charts` | `two_column`, then `content` |
+| `image` | `image`, then `content` |
+| `closing` | `closing`, then `section`/`cover` |
+| all other report slides | `content`, `two_column`, or `image` |
 
-Unknown names and missing roles fall back to the blank/emptiest layout. When a customer
-master is active, the renderer preserves master/layout backgrounds and theme font
-inheritance. It suppresses the generated Sonaloop canvas, logo, footer, and forced
-Geist/Geist Mono font names. Research content and editable charts remain generated
-shapes; Cloud applies the published workspace palette and records the master profile in
-the export provenance.
+Native title, subtitle, body, and picture placeholders receive report content wherever
+the selected layout provides them. Generated editable content is fitted to the layout's
+content grid. Inherited bullets are disabled when the report already supplies numbering.
+Missing roles fall back through the compatible roles above and finally to the blank or
+emptiest layout.
+
+When a customer master is active, it owns layout backgrounds, fixed artwork, theme-font
+inheritance, and color language. Sonaloop derives the editable chart/card palette from the
+master theme and actual layout artwork; Cloud does not recolor it with the workspace web
+palette. The generated Sonaloop canvas, logo, footer, and forced Geist/Geist Mono font
+names are suppressed. Each export records a content-free QA result covering exact master
+part retention, layout use, filled placeholders, slide bounds, explicit font overrides,
+and colors outside the derived master palette.
 
 ## Design hand-off contract
 
