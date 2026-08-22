@@ -10,12 +10,11 @@ DATA_DIR/exports/, never the caller's CWD) and records the file ON the owning pr
 from __future__ import annotations
 
 import re as _re_pptx
-from pathlib import Path
 
 from .. import artifacts as _A
-from .. import config
 from ..config import content_language
 from ..storage import Store
+from ._presentation_pptx import compile_presentation_plan_slides
 from ._synthesis import _SYNTHESIS_EXPORT_LABELS, get_synthesis
 
 
@@ -430,168 +429,6 @@ def _effort_impact_chart(syn: dict) -> dict | None:
             "quadrants": [L["q_quick"], L["q_big"], L["q_fill"], L["q_sink"]]}
 
 
-def _presentation_asset_path(project_id: str, value, store: Store) -> str:
-    """Resolve a plan asset reference to its active-workspace file without exposing paths."""
-    if isinstance(value, dict):
-        asset_id = str(value.get("asset_id") or value.get("id") or "")
-    else:
-        asset_id = str(value or "")
-    if not asset_id:
-        return ""
-    try:
-        record = get_asset(project_id, asset_id, store=store)  # noqa: F821 (bound)
-    except (KeyError, ValueError):
-        path = Path(asset_id)
-        return str(path) if path.is_file() else ""
-    path = config.partition_dir() / "assets" / Path(record.get("asset_path", "")).name
-    return str(path) if path.is_file() else ""
-
-
-def _presentation_persona_item(raw, store: Store) -> dict:
-    item = dict(raw) if isinstance(raw, dict) else {"persona_id": str(raw or "")}
-    persona_id = str(item.get("persona_id") or item.get("id") or "")
-    persona = store.get_persona(persona_id) or {}
-    role = persona.get("role") or {}
-    segment = persona.get("segment") or {}
-    lens = str(item.get("lens") or item.get("detail") or role.get("title") or "")
-    if not lens and segment:
-        lens = " · ".join(str(value) for value in list(segment.values())[:2] if value)
-    avatar = ""
-    avatar_path = (persona.get("avatar") or {}).get("path")
-    if avatar_path:
-        try:
-            from ._snapshots import _avatar_disk_path
-            candidate = _avatar_disk_path(avatar_path)
-            avatar = str(candidate) if candidate.exists() else ""
-        except Exception:
-            avatar = ""
-    return {
-        **item,
-        "persona_id": persona_id,
-        "name": str(item.get("name") or persona.get("display_name") or persona_id),
-        "lens": lens,
-        "avatar": avatar,
-    }
-
-
-def _plan_support(slide: dict) -> list[str]:
-    values = slide.get("support") or slide.get("items") or []
-    out = []
-    for value in values:
-        if isinstance(value, dict):
-            text = value.get("text") or value.get("title") or value.get("label")
-        else:
-            text = value
-        if str(text or "").strip():
-            out.append(_strip_md(str(text)))
-    return out
-
-
-def _presentation_plan_slides(report: dict, store: Store, title: str,
-                              de: bool) -> list[dict]:
-    """Compile a stored semantic plan into the neutral native-PPTX slide model."""
-    plan = dict(report.get("presentation_plan") or {})
-    project_id = str(report.get("project_id") or "")
-
-    def compile_one(raw: dict) -> dict:
-        slide = dict(raw)
-        kind = str(slide.get("kind") or "content")
-        headline = _strip_md(str(slide.get("headline") or slide.get("title") or ""))
-        common = {
-            "speaker_notes": dict(slide.get("speaker_notes") or {}),
-            "evidence_refs": list(slide.get("evidence_refs") or []),
-        }
-        if kind == "cover":
-            return {**common, "kind": "cover", "logo": True, "canvas": "dawn",
-                    "eyebrow": str(slide.get("eyebrow") or "Research presentation"),
-                    "title": headline,
-                    "subtitle": _strip_md(str(slide.get("subheadline") or
-                                              slide.get("subtitle") or plan.get("objective") or "")),
-                    "meta": str(slide.get("meta") or
-                                f"{plan.get('audience', '')} · {plan.get('duration_minutes', 10)} min"),
-                    "date": str(slide.get("date") or report.get("created_at", "")[:10]),
-                    "image": _presentation_asset_path(
-                        project_id, slide.get("asset_id") or slide.get("image_ref"), store)}
-        if kind in {"decision", "insight", "recommendation", "risk"}:
-            tone = ("recommendation" if kind in {"decision", "recommendation"}
-                    else "risk" if kind == "risk" else "insight")
-            return {**common, "kind": tone, "tone": tone,
-                    "eyebrow": str(slide.get("eyebrow") or (
-                        ("Entscheidung" if de else "Decision") if kind == "decision" else kind)),
-                    "statement": headline, "support": _plan_support(slide),
-                    "meta": str(slide.get("meta") or "")}
-        if kind in {"persona_grid", "persona_detail"}:
-            rows = slide.get("items") or slide.get("personas") or slide.get("persona_ids") or []
-            return {**common, "kind": kind, "heading": headline,
-                    "items": [_presentation_persona_item(row, store) for row in rows],
-                    "footnote": str(slide.get("footnote") or "")}
-        if kind == "stimulus_comparison":
-            panels = []
-            for raw_panel in (slide.get("left") or {}, slide.get("right") or {}):
-                panel = dict(raw_panel)
-                panel["image"] = _presentation_asset_path(
-                    project_id, panel.get("asset_id") or panel.get("image_ref") or panel.get("image"), store)
-                panels.append(panel)
-            return {**common, "kind": kind, "heading": headline,
-                    "left": panels[0], "right": panels[1]}
-        if kind == "preference_shift":
-            return {**common, "kind": kind, "heading": headline,
-                    "before": dict(slide.get("before") or {}),
-                    "after": dict(slide.get("after") or {}),
-                    "switchers": list(slide.get("switchers") or []),
-                    "switch_label": str(slide.get("switch_label") or
-                                        ("Gewechselt" if de else "Changed"))}
-        if kind == "annotated_screen":
-            return {**common, "kind": kind, "heading": headline,
-                    "image": _presentation_asset_path(
-                        project_id, slide.get("asset_id") or slide.get("image_ref") or slide.get("image"), store),
-                    "annotations": list(slide.get("annotations") or [])}
-        if kind in {"next_steps", "timeline"}:
-            return {**common, "kind": "timeline", "heading": headline,
-                    "steps": list(slide.get("steps") or slide.get("items") or [])}
-        if kind == "source_index":
-            return {**common, "kind": "table", "heading": headline,
-                    "columns": list(slide.get("columns") or
-                                    (["Quelle", "Beitrag"] if de else ["Source", "Contribution"])),
-                    "rows": list(slide.get("rows") or [])}
-        if kind == "image":
-            return {**common, "kind": "image", "heading": headline,
-                    "image": _presentation_asset_path(
-                        project_id, slide.get("asset_id") or slide.get("image_ref") or slide.get("image"), store),
-                    "caption": str(slide.get("caption") or "")}
-        if kind == "quote":
-            return {**common, "kind": "quote",
-                    "text": str(slide.get("text") or headline),
-                    "attribution": str(slide.get("attribution") or ""),
-                    "role": str(slide.get("role") or "")}
-        if kind in {"stats", "summary", "pillars", "voices", "comparison", "table",
-                    "chart", "charts", "agenda", "section", "closing"}:
-            compiled = {**slide, **common, "kind": kind}
-            if kind in {"stats", "summary", "pillars", "voices", "comparison", "table",
-                        "chart", "charts", "agenda"}:
-                compiled["heading"] = headline
-            elif kind in {"section", "closing"}:
-                compiled["title"] = headline
-            return compiled
-        blocks = list(slide.get("blocks") or [])
-        if not blocks:
-            blocks = _li(_plan_support(slide))
-        return {**common, "kind": "content", "heading": headline, "blocks": blocks}
-
-    slides = [compile_one(slide) for slide in (plan.get("slides") or [])]
-    appendix = list(plan.get("appendix") or [])
-    if appendix:
-        slides.append({
-            "kind": "section", "num": "A", "title": "Anhang" if de else "Appendix",
-            "subtitle": "Vertiefung, Persona-Details und Quellen" if de else
-                        "Detail, persona profiles and sources",
-            "speaker_notes": {"takeaway": "Appendix", "talk_track":
-                              "Use the following slides for questions and evidence detail."},
-        })
-        slides.extend(compile_one(slide) for slide in appendix)
-    return slides
-
-
 def _analytic_slides(syn: dict, store: Store, L: dict, de: bool, title: str, kind_label: str) -> list[dict]:
     """The analytic-layer deck (convergence synthesis / sectionless project synthesis) built from
     the master template's layout vocabulary (ux-contract §9 V11): a statement verdict + takeaway
@@ -862,7 +699,7 @@ def export_synthesis_pptx(synthesis_id: str, store: Store | None = None,
 
     secs = syn.get("sections", [])
     if syn.get("presentation_plan"):
-        slides = _presentation_plan_slides(syn, store, title, de)
+        slides = compile_presentation_plan_slides(syn, store, title, de, _strip_md)
     # A project synthesis without report sections (report flow never run) still has the
     # analytic layers — fall through to that deck instead of an empty cover+closing shell.
     elif syn.get("scope") == "project" and secs:
