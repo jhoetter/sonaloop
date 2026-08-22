@@ -177,6 +177,7 @@ def test_stored_plan_renders_visual_story_native_notes_and_appendix(store):
     }
     services.record_presentation_plan(
         report["id"], plan, operation_id="visual-deck-v1", store=store)
+    assert presentation_plan_qa(validate_presentation_plan(plan))["status"] == "pass"
 
     data = services.export_synthesis_pptx(report["id"], store=store)
     deck = Presentation(io.BytesIO(data))

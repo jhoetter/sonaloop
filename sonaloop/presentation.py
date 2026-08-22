@@ -303,7 +303,8 @@ def presentation_plan_qa(plan: dict[str, Any]) -> dict[str, Any]:
     visual_kinds = {
         "stats", "stimulus_comparison", "persona_grid", "persona_detail",
         "preference_shift", "annotated_screen", "comparison", "timeline",
-        "chart", "charts", "table", "image", "pillars", "voices",
+        "chart", "charts", "table", "image", "pillars", "voices", "decision",
+        "insight", "recommendation", "risk", "next_steps",
     }
     visual_count = sum(str(slide.get("kind") or "") in visual_kinds for slide in core)
     for slide in core:
