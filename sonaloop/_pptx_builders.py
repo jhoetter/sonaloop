@@ -409,6 +409,154 @@ def build_stats(s, e):
     e.footer(slide)
 
 
+def _place_image(slide, path, left, top, width, height, *, cover=False):
+    """Place a local image into a fixed box while preserving its aspect ratio."""
+    if not path:
+        return None
+    try:
+        pic = slide.shapes.add_picture(str(path), Inches(left), Inches(top))
+        source_ratio = pic.width / pic.height
+        target_ratio = width / height
+        if cover:
+            pic.width, pic.height = Inches(width), Inches(height)
+            if source_ratio > target_ratio:
+                crop = (1 - target_ratio / source_ratio) / 2
+                pic.crop_left = pic.crop_right = crop
+            elif source_ratio < target_ratio:
+                crop = (1 - source_ratio / target_ratio) / 2
+                pic.crop_top = pic.crop_bottom = crop
+        else:
+            scale = min(Inches(width) / pic.width, Inches(height) / pic.height)
+            pic.width = int(pic.width * scale); pic.height = int(pic.height * scale)
+            pic.left = Inches(left) + (Inches(width) - pic.width) // 2
+            pic.top = Inches(top) + (Inches(height) - pic.height) // 2
+        return pic
+    except Exception:
+        return None
+
+
+def build_persona_grid(s, e):
+    """Cohort at a glance: portraits/initials, names and the task-relevant lens."""
+    prs, blank, W, H = e.prs, e.blank, e.W, e.H
+    slide = prs.slides.add_slide(blank); e.bg(slide)
+    e.heading_band(slide, s)
+    items = list(s.get("items") or [])[:8]
+    columns = 4 if len(items) > 4 else max(1, len(items))
+    rows = max(1, (len(items) + columns - 1) // columns)
+    gap = 0.18
+    cell_w = (W.inches - 1.4 - gap * (columns - 1)) / columns
+    cell_h = (H.inches - 2.35 - gap * (rows - 1)) / rows
+    for index, item in enumerate(items):
+        col, row = index % columns, index // columns
+        x = 0.7 + col * (cell_w + gap); y = 1.72 + row * (cell_h + gap)
+        e.rrect(slide, x, y, cell_w, cell_h, _PANEL, radius=0.05, line=_LINE)
+        image = _place_image(slide, item.get("avatar"), x + 0.22, y + 0.22,
+                             0.72, 0.72, cover=True)
+        if image is None:
+            e.initials_chip(slide, x + 0.22, y + 0.22, 0.72, item.get("name"))
+        e.text(slide, x + 1.08, y + 0.19, cell_w - 1.28, 0.36,
+               str(item.get("name") or ""), size=12, bold=True)
+        if item.get("badge"):
+            badge = e.text(slide, x + 1.08, y + 0.54, cell_w - 1.28, 0.25,
+                           str(item["badge"]).upper(), size=8.5, bold=True, color=_ACCENT)
+            e.mono_run(badge.text_frame.paragraphs[0].runs[0])
+        e.text(slide, x + 0.22, y + 1.08, cell_w - 0.44,
+               max(0.45, cell_h - 1.28),
+               str(item.get("lens") or item.get("detail") or ""), size=10.5,
+               color=_MUTED, anchor=MSO_ANCHOR.TOP)
+    if s.get("footnote"):
+        e.text(slide, 0.7, H.inches - 0.48, W.inches - 1.4, 0.25,
+               s["footnote"], size=9.5, color=_FAINT)
+    e.footer(slide)
+
+
+def build_stimulus_comparison(s, e):
+    """Two real stimuli side-by-side; callouts support, never replace, the screens."""
+    prs, blank, W, H = e.prs, e.blank, e.W, e.H
+    slide = prs.slides.add_slide(blank); e.bg(slide)
+    e.heading_band(slide, s)
+    gap = 0.3; column_w = (W.inches - 1.4 - gap) / 2
+    for index, panel in enumerate((s.get("left") or {}, s.get("right") or {})):
+        x = 0.7 + index * (column_w + gap)
+        e.rrect(slide, x, 1.72, column_w, H.inches - 2.2, _PANEL,
+                radius=0.04, line=_ACCENT if panel.get("highlight") else _LINE)
+        label = str(panel.get("label") or panel.get("title") or f"Option {index + 1}")
+        e.text(slide, x + 0.22, 1.88, column_w - 0.44, 0.32, label,
+               size=12.5, bold=True, color=_ACCENT if panel.get("highlight") else _INK)
+        image_top, image_h = 2.3, 3.25
+        pic = _place_image(slide, panel.get("image"), x + 0.22, image_top,
+                           column_w - 0.44, image_h)
+        if pic is None:
+            e.rrect(slide, x + 0.22, image_top, column_w - 0.44, image_h,
+                    _SURFACE2, radius=0.02, line=_LINE)
+            e.text(slide, x + 0.22, image_top + image_h / 2 - 0.2,
+                   column_w - 0.44, 0.4, "Stimulus", size=11,
+                   color=_FAINT, align=PP_ALIGN.CENTER)
+        callouts = [str(value) for value in (panel.get("callouts") or []) if str(value)]
+        if callouts:
+            e.text(slide, x + 0.22, 5.72, column_w - 0.44, 0.68,
+                   "  ·  ".join(callouts[:3]), size=9.5, color=_MUTED,
+                   anchor=MSO_ANCHOR.TOP)
+    e.footer(slide)
+
+
+def build_preference_shift(s, e):
+    """A before→after decision movement with explicit denominators and switchers."""
+    prs, blank, W, H = e.prs, e.blank, e.W, e.H
+    slide = prs.slides.add_slide(blank); e.bg(slide)
+    e.heading_band(slide, s)
+    before, after = s.get("before") or {}, s.get("after") or {}
+    for item, x, highlighted in ((before, 1.0, False), (after, 7.55, True)):
+        e.rrect(slide, x, 2.0, 4.75, 3.25, _PANEL, radius=0.05,
+                line=_ACCENT if highlighted else _LINE)
+        e.text(slide, x + 0.35, 2.32, 4.05, 0.32,
+               str(item.get("label") or ""), size=11, bold=True,
+               color=_ACCENT if highlighted else _MUTED)
+        value, total = str(item.get("value") or ""), str(item.get("total") or "")
+        display = f"{value}/{total}" if total and "/" not in value else value
+        e.text(slide, x + 0.35, 2.8, 4.05, 1.0, display, size=48, bold=True,
+               color=_ACCENT if highlighted else _INK, anchor=MSO_ANCHOR.MIDDLE)
+        e.text(slide, x + 0.35, 4.0, 4.05, 0.72,
+               str(item.get("detail") or ""), size=11, color=_MUTED,
+               anchor=MSO_ANCHOR.TOP)
+    e.connector(slide, 5.95, 3.55, 7.35, 3.55, _ACCENT, width=2.0)
+    e.text(slide, 6.15, 3.08, 1.0, 0.35, "→", size=26, bold=True,
+           color=_ACCENT, align=PP_ALIGN.CENTER)
+    switchers = [str(item.get("name") or item) if isinstance(item, dict) else str(item)
+                 for item in (s.get("switchers") or [])]
+    if switchers:
+        e.text(slide, 4.7, 5.62, 3.9, 0.45,
+               (str(s.get("switch_label") or "Changed") + ": " + ", ".join(switchers)),
+               size=10.5, color=_MUTED, align=PP_ALIGN.CENTER)
+    e.footer(slide)
+
+
+def build_annotated_screen(s, e):
+    """A real screen plus numbered findings/revisions in an editable annotation rail."""
+    prs, blank, W, H = e.prs, e.blank, e.W, e.H
+    slide = prs.slides.add_slide(blank); e.bg(slide)
+    e.heading_band(slide, s)
+    pic = _place_image(slide, s.get("image"), 0.7, 1.72, 7.3, H.inches - 2.25)
+    if pic is None:
+        e.rrect(slide, 0.7, 1.72, 7.3, H.inches - 2.25, _SURFACE2,
+                radius=0.03, line=_LINE)
+    annotations = list(s.get("annotations") or [])[:4]
+    rail_x, rail_w = 8.35, W.inches - 8.35 - 0.7
+    gap = 0.18
+    card_h = ((H.inches - 2.25 - gap * max(0, len(annotations) - 1))
+              / max(1, len(annotations)))
+    for index, item in enumerate(annotations, 1):
+        y = 1.72 + (index - 1) * (card_h + gap)
+        e.rrect(slide, rail_x, y, rail_w, card_h, _PANEL, radius=0.04, line=_LINE)
+        e.initials_chip(slide, rail_x + 0.2, y + 0.2, 0.36, str(index))
+        e.text(slide, rail_x + 0.7, y + 0.16, rail_w - 0.9, 0.34,
+               str(item.get("title") or item.get("label") or ""), size=11, bold=True)
+        e.text(slide, rail_x + 0.2, y + 0.62, rail_w - 0.4,
+               max(0.35, card_h - 0.78), str(item.get("text") or ""),
+               size=10, color=_MUTED, anchor=MSO_ANCHOR.TOP)
+    e.footer(slide)
+
+
 def build_chart(s, e):
     prs, blank, W, H = e.prs, e.blank, e.W, e.H
     slide = prs.slides.add_slide(blank); e.bg(slide)
@@ -558,5 +706,9 @@ PAINTERS = {
     "quote": build_quote, "voices": build_voices, "stats": build_stats,
     "chart": build_chart, "charts": build_charts, "table": build_table,
     "comparison": build_comparison, "timeline": build_timeline,
+    "stimulus_comparison": build_stimulus_comparison,
+    "persona_grid": build_persona_grid, "persona_detail": build_persona_grid,
+    "preference_shift": build_preference_shift,
+    "annotated_screen": build_annotated_screen,
     "closing": build_closing, "image": build_image,
 }

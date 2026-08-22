@@ -33,7 +33,9 @@ def test_renderer_uses_uploaded_master_layouts_but_discards_sample_slides():
     template.save(source)
 
     data = _pptx.render([
-        {"kind": "cover", "title": "Generated", "subtitle": "From report"},
+        {"kind": "cover", "title": "Generated", "subtitle": "From report",
+         "speaker_notes": {"talk_track": "Open with the decision context.",
+                           "caveats": ["Directional evidence."]}},
         {"kind": "section", "num": "01", "title": "Findings"},
         {"kind": "content", "heading": "Evidence", "blocks": [{"type": "p", "text": "Useful"}]},
         {"kind": "closing", "title": "Done"},
@@ -52,6 +54,9 @@ def test_renderer_uses_uploaded_master_layouts_but_discards_sample_slides():
     assert all(run.font.name is None for slide in rendered.slides
                for shape in slide.shapes if shape.has_text_frame
                for paragraph in shape.text_frame.paragraphs for run in paragraph.runs)
+    notes = rendered.slides[0].notes_slide.notes_text_frame.text
+    assert "TALK TRACK" in notes and "Open with the decision context." in notes
+    assert "CAVEATS" in notes and "Directional evidence." in notes
 
 
 def test_master_profile_exposes_semantic_layout_roles():

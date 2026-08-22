@@ -380,12 +380,14 @@ def render(slides: list[dict], *, title: str = "Report",
     )
     from . import _pptx_builders as _b
     from ._pptx_master_native import apply_master_native_layout
+    from ._pptx_notes import apply_speaker_notes
     for s in slides:
         eng.blank = _layout_for_slide(prs, s, blank) if master_mode else blank
         _b.PAINTERS.get(s.get("kind"), _b.build_content)(s, eng)
         if master_mode:
             apply_master_native_layout(
                 prs.slides[-1], s, slide_width=int(W), slide_height=int(H))
+        apply_speaker_notes(prs.slides[-1], s)
 
 
     buf = io.BytesIO()

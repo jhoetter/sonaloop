@@ -115,8 +115,10 @@ def _wanted_roles(kind: str) -> tuple[str, ...]:
         return ("closing", "section", "cover")
     if kind == "image":
         return ("image", "content")
-    if kind in {"comparison", "charts"}:
+    if kind in {"comparison", "charts", "stimulus_comparison"}:
         return ("two_column", "content")
+    if kind in {"persona_grid", "persona_detail", "preference_shift", "annotated_screen"}:
+        return ("content", "two_column", "image")
     return ("content", "two_column", "image")
 
 

@@ -1,7 +1,10 @@
 """Evidence-linked presentation plans: gather → author → persist."""
 from __future__ import annotations
 
+import io
+
 import pytest
+from pptx import Presentation
 
 from sonaloop import services
 from sonaloop.models import Synthesis
@@ -9,6 +12,12 @@ from sonaloop.presentation import (
     PRESENTATION_PLAN_SCHEMA,
     presentation_plan_qa,
     validate_presentation_plan,
+)
+from conftest import create_persona
+
+
+PNG_BASE64 = (
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
 )
 
 
@@ -103,3 +112,86 @@ def test_every_packaged_methodology_has_a_deck_prompt_profile(store):
         profile = services.get_methodology(row["key"], store=store).get("presentation", {}).get("deck")
         assert profile and profile["story_beats"], row["key"]
         assert profile["required_visuals"] and profile["appendix"] and profile["avoid"]
+
+
+def test_stored_plan_renders_visual_story_native_notes_and_appendix(store):
+    project, report = _report(store)
+    persona_ids = [create_persona(store, name) for name in ("Alba Costa", "Bruno Keller")]
+    screen = services.attach_asset(
+        project["id"], content_base64=PNG_BASE64, filename="stimulus-b.png",
+        title="Variant B", store=store,
+    )
+    notes = {
+        "takeaway": "B wins only after one revision.",
+        "talk_track": "Explain what changed between the blind and informed reactions.",
+        "evidence": ["council:round-2"],
+        "caveats": ["Synthetic reactions are directional evidence."],
+        "transition": "Now show the exact revision.",
+        "timing_seconds": 45,
+    }
+    plan = {
+        "schema": PRESENTATION_PLAN_SCHEMA,
+        "title": "Reaction decision", "audience": "project team",
+        "objective": "Choose the next iteration", "duration_minutes": 10,
+        "slides": [
+            {"id": "cover", "kind": "cover", "headline": "B is the stronger base",
+             "subheadline": "One critical revision remains", "speaker_notes": notes},
+            {"id": "stimuli", "kind": "stimulus_comparison", "headline": "What participants saw",
+             "left": {"label": "A", "asset_id": screen["id"], "callouts": ["More detail"]},
+             "right": {"label": "B", "asset_id": screen["id"], "highlight": True,
+                       "callouts": ["Clearer action"]},
+             "evidence_refs": [screen["id"]], "speaker_notes": notes},
+            {"id": "cohort", "kind": "persona_grid", "headline": "Two distinct customer lenses",
+             "items": [{"persona_id": persona_ids[0], "badge": "digital"},
+                       {"persona_id": persona_ids[1], "badge": "cautious"}],
+             "evidence_refs": persona_ids, "speaker_notes": notes},
+            {"id": "movement", "kind": "preference_shift", "headline": "Context resolves the split",
+             "before": {"label": "Blind reaction", "value": 6, "total": 8,
+                        "detail": "B preferred"},
+             "after": {"label": "After explanation", "value": 8, "total": 8,
+                       "detail": "B preferred"},
+             "switchers": ["Bruno", "Clara"], "evidence_refs": ["council:round-2"],
+             "speaker_notes": notes},
+            {"id": "revision", "kind": "annotated_screen", "headline": "Make the interruption risk explicit",
+             "asset_id": screen["id"],
+             "annotations": [{"title": "Set expectation", "text": "Plan ten uninterrupted minutes."},
+                             {"title": "Name consequence", "text": "An aborted switch restarts."}],
+             "evidence_refs": ["council:round-2"], "speaker_notes": notes},
+            {"id": "risk", "kind": "risk", "headline": "Do not present synthetic preference as conversion proof",
+             "support": ["Validate the revised copy with observed behavior."],
+             "evidence_refs": ["report:limitations"], "speaker_notes": notes},
+            {"id": "next", "kind": "next_steps", "headline": "Revise, test, decide",
+             "steps": [{"label": "Now", "title": "Revise copy", "text": "Add duration and restart risk."},
+                       {"label": "Next", "title": "Behavioral test", "text": "Observe completion and confusion."}],
+             "evidence_refs": ["report:decision"], "speaker_notes": notes},
+        ],
+        "appendix": [
+            {"id": "persona-detail", "kind": "persona_detail", "headline": "Persona detail",
+             "items": [{"persona_id": persona_ids[0]}, {"persona_id": persona_ids[1]}],
+             "speaker_notes": notes},
+            {"id": "sources", "kind": "source_index", "headline": "Sources",
+             "columns": ["Source", "Contribution"],
+             "rows": [["Reaction round 2", "Preference after context"]],
+             "speaker_notes": notes},
+        ],
+    }
+    services.record_presentation_plan(
+        report["id"], plan, operation_id="visual-deck-v1", store=store)
+
+    data = services.export_synthesis_pptx(report["id"], store=store)
+    deck = Presentation(io.BytesIO(data))
+    visible = "\n".join(
+        shape.text_frame.text for slide in deck.slides for shape in slide.shapes
+        if shape.has_text_frame
+    )
+
+    assert len(deck.slides) == 10  # seven core + appendix divider + two appendix slides
+    assert "What participants saw" in visible
+    assert "Alba Costa" in visible and "Bruno Keller" in visible
+    assert "6/8" in visible and "8/8" in visible
+    assert "Thank you" not in visible
+    assert all("TALK TRACK" in slide.notes_slide.notes_text_frame.text
+               for slide in deck.slides)
+    assert "45 SEC" in deck.slides[0].notes_slide.notes_text_frame.text
+    assert "Synthetic reactions are directional evidence." in \
+        deck.slides[0].notes_slide.notes_text_frame.text
