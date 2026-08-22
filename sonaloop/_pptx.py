@@ -73,6 +73,7 @@ _TS = {k: v.get("size", 13) for k, v in _TYPE.items()}
 # Number formatting + the chart painters live in _pptx_charts (split for the LOC bar).
 from . import _pptx_charts as _pc
 from ._pptx_charts import _num
+from ._pptx_master import blank_layout as _blank_layout, layout_for_slide as _layout_for_slide
 
 
 def _empty_template_presentation(data: bytes):
@@ -92,17 +93,6 @@ def _empty_template_presentation(data: bytes):
     return prs
 
 
-def _blank_layout(prs):
-    layouts = list(prs.slide_layouts)
-    if not layouts:
-        raise ValueError("PowerPoint master contains no slide layouts")
-    for layout in layouts:
-        if str(getattr(layout, "name", "")).strip().casefold() in {
-                "blank", "leer", "leere folie", "vide", "en blanco"}:
-            return layout
-    return min(layouts, key=lambda layout: len(layout.placeholders))
-
-
 def render(slides: list[dict], *, title: str = "Report",
            master_template: bytes | None = None) -> bytes:
     from pptx import Presentation
@@ -111,6 +101,7 @@ def render(slides: list[dict], *, title: str = "Report",
     from pptx.enum.text import PP_ALIGN
     from types import SimpleNamespace
 
+    master_mode = master_template is not None
     prs = (_empty_template_presentation(master_template)
            if master_template else Presentation())
     if not master_template:
@@ -123,6 +114,8 @@ def render(slides: list[dict], *, title: str = "Report",
     rgb = lambda hexv: RGBColor.from_string(hexv)
 
     def _bg(slide, hexv=_BG):
+        if master_mode:
+            return
         slide.background.fill.solid()
         slide.background.fill.fore_color.rgb = rgb(hexv)
 
@@ -137,7 +130,8 @@ def render(slides: list[dict], *, title: str = "Report",
         r.font.size = Pt(size)
         r.font.bold = bold
         r.font.italic = italic
-        r.font.name = "Geist"
+        if not master_mode:
+            r.font.name = "Geist"
         r.font.color.rgb = rgb(color)
         return r
 
@@ -147,6 +141,8 @@ def render(slides: list[dict], *, title: str = "Report",
         _noshadow(bar)
 
     def _footer(slide):
+        if master_mode:
+            return
         ft = _box(slide, W - Inches(5.0), H - Inches(0.42), Inches(4.3), Inches(0.3))
         p = ft.paragraphs[0]; p.alignment = PP_ALIGN.RIGHT
         _run(p, title, size=9, color=_FAINT)
@@ -306,6 +302,8 @@ def render(slides: list[dict], *, title: str = "Report",
 
     def _logo_row(slide, x, y, mark=0.42):
         """The brand moment: mark + wordmark ("sona" ink · "loop" muted)."""
+        if master_mode:
+            return
         b64 = _da.LOGOS.get("sonaloop")
         if b64:
             _pic(slide, b64, x, y + 0.04, mark, mark)
@@ -319,7 +317,8 @@ def render(slides: list[dict], *, title: str = "Report",
     # painter-for-painter (single source: deck.data.mjs / vendored _deck.py), so the docs
     # previews at #/deck and the exported deck look the same. ──────────────────────────
     def _mono_run(r):
-        r.font.name = "Geist Mono"
+        if not master_mode:
+            r.font.name = "Geist Mono"
         return r
 
     def _heading_band(slide, s, default=""):
@@ -358,8 +357,10 @@ def render(slides: list[dict], *, title: str = "Report",
     # builders (one build_<kind> per layout) live in _pptx_builders and paint THROUGH this
     # engine — the same primitives the chart painters use via _pptx_charts.draw — so the
     # slide, chart and builder layers can never drift apart. ────────────────────────────
+    deck_assets = (_da if not master_mode else
+                   SimpleNamespace(CANVASES={}, LOGOS={}, ICONS=_da.ICONS))
     eng = SimpleNamespace(
-        prs=prs, blank=blank, W=W, H=H, title=title, rgb=rgb, da=_da, num=_num,
+        prs=prs, blank=blank, W=W, H=H, title=title, rgb=rgb, da=deck_assets, num=_num,
         bg=_bg, box=_box, run=_run, rule=_rule, footer=_footer,
         text=_text, rrect=_rrect, connector=_connector, dot=_dot, noshadow=_noshadow,
         est_h=_est_h, callout_box=_callout_box, chart=_chart, pic=_pic, pic_cover=_pic_cover,
@@ -368,6 +369,7 @@ def render(slides: list[dict], *, title: str = "Report",
     )
     from . import _pptx_builders as _b
     for s in slides:
+        eng.blank = _layout_for_slide(prs, s, blank) if master_mode else blank
         _b.PAINTERS.get(s.get("kind"), _b.build_content)(s, eng)
 
 

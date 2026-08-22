@@ -21,6 +21,10 @@ def test_renderer_uses_uploaded_master_layouts_but_discards_sample_slides():
     template = Presentation()
     template.slide_width = Inches(13.333)
     template.slide_height = Inches(7.5)
+    template.slide_layouts[0].name = "SHKB Cover"
+    template.slide_layouts[2].name = "SHKB Section"
+    template.slide_layouts[3].name = "SHKB Content"
+    template.slide_layouts[6].name = "SHKB Blank"
     template.slides.add_slide(template.slide_layouts[6])
     template.core_properties.subject = "Customer master"
     source = io.BytesIO()
@@ -28,14 +32,43 @@ def test_renderer_uses_uploaded_master_layouts_but_discards_sample_slides():
 
     data = _pptx.render([
         {"kind": "cover", "title": "Generated", "subtitle": "From report"},
+        {"kind": "section", "num": "01", "title": "Findings"},
+        {"kind": "content", "heading": "Evidence", "blocks": [{"type": "p", "text": "Useful"}]},
         {"kind": "closing", "title": "Done"},
     ], title="Generated", master_template=source.getvalue())
     rendered = Presentation(io.BytesIO(data))
 
-    assert len(rendered.slides) == 2
+    assert len(rendered.slides) == 4
     assert rendered.core_properties.subject == "Customer master"
     assert rendered.slide_width == Inches(13.333)
     assert rendered.slide_height == Inches(7.5)
+    assert [rendered.slides[index].slide_layout.name for index in range(3)] == [
+        "SHKB Cover", "SHKB Section", "SHKB Content",
+    ]
+    assert all(slide._element.cSld.bg is None for slide in rendered.slides)
+    assert not any(shape.shape_type == 13 for shape in rendered.slides[0].shapes)
+    assert all(run.font.name is None for slide in rendered.slides
+               for shape in slide.shapes if shape.has_text_frame
+               for paragraph in shape.text_frame.paragraphs for run in paragraph.runs)
+
+
+def test_master_profile_exposes_semantic_layout_roles():
+    from sonaloop._pptx_master import inspect_master_template
+
+    template = Presentation()
+    template.slide_layouts[0].name = "SHKB Cover"
+    template.slide_layouts[2].name = "SHKB Section Divider"
+    template.slide_layouts[3].name = "SHKB Content"
+    source = io.BytesIO()
+    template.save(source)
+
+    profile = inspect_master_template(source.getvalue())
+
+    assert profile["layout_count"] == len(template.slide_layouts)
+    assert profile["role_counts"]["cover"] >= 1
+    assert profile["role_counts"]["section"] >= 1
+    assert profile["role_counts"]["content"] >= 1
+    assert profile["layouts"][0]["name"] == "SHKB Cover"
 
 # A showcase-shaped convergence synthesis: caps-label exec prose, stanced voices with verbatim
 # council quotes, scored recommendations and label-led findings — the report shape the owner's

@@ -46,7 +46,7 @@ def build_title(s, e):
     tf = e.box(slide, Inches(0.9), Inches(2.15), W - Inches(1.8), Inches(3.4))
     p0 = tf.paragraphs[0]
     eb = e.run(p0, (s.get("eyebrow", "") or "").upper(), size=12, bold=True, color=_ACCENT)
-    eb.font.name = "Geist Mono"
+    e.mono_run(eb)
     p1 = tf.add_paragraph(); p1.space_before = Pt(8)
     e.run(p1, s.get("title", title), size=38, bold=True)
     if s.get("subtitle"):
@@ -67,7 +67,7 @@ def build_content(s, e):
     htf = e.box(slide, Inches(0.7), Inches(0.5), W - Inches(1.4), Inches(0.9))
     hp = htf.paragraphs[0]
     if s.get("num"):
-        r = e.run(hp, s["num"] + "   ", size=16, bold=True, color=_FAINT); r.font.name = "Geist Mono"
+        e.mono_run(e.run(hp, s["num"] + "   ", size=16, bold=True, color=_FAINT))
     e.run(hp, s.get("heading", ""), size=24, bold=True)
     e.rule(slide, 0.72, 1.34, 0.85)
 
@@ -144,7 +144,7 @@ def build_image(s, e):
     htf = e.box(slide, Inches(0.7), Inches(0.5), W - Inches(1.4), Inches(0.9))
     hp = htf.paragraphs[0]
     if s.get("num"):
-        r = e.run(hp, s["num"] + "   ", size=16, bold=True, color=_FAINT); r.font.name = "Geist Mono"
+        e.mono_run(e.run(hp, s["num"] + "   ", size=16, bold=True, color=_FAINT))
     e.run(hp, s.get("heading", ""), size=24, bold=True)
     e.rule(slide, 0.72, 1.34, 0.85)
     L, T = 0.7, 1.7
