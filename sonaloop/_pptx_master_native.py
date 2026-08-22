@@ -140,8 +140,7 @@ def _populate_image(slide, spec: dict[str, Any]) -> bool:
     _clear_generated(slide)
     title = _largest(_placeholders(slide, _TITLE_TYPES))
     if title is not None:
-        _set_placeholder(title, ["   ".join(filter(None, [
-            str(spec.get("num") or ""), str(spec.get("heading") or "")]))])
+        _set_placeholder(title, [str(spec.get("heading") or "")])
     try:
         picture.insert_picture(str(image))
     except Exception:
@@ -185,7 +184,9 @@ def _adapt_content(slide, spec: dict[str, Any], slide_width: int, slide_height: 
     title = _largest(_placeholders(slide, _TITLE_TYPES))
     generated = list(_generated_shapes(slide))
     if heading and title is not None:
-        _set_placeholder(title, ["   ".join(filter(None, [str(spec.get("num") or ""), heading]))])
+        # A native master controls title geometry.  Prefix numbers are a Sonaloop-default
+        # decoration and can sit beneath customer artwork or outside a narrow title placeholder.
+        _set_placeholder(title, [heading])
         header_bottom = Inches(1.52)
         for shape in list(generated):
             if int(shape.top + shape.height) <= header_bottom:

@@ -367,6 +367,41 @@ def test_project_section_prose_is_budgeted_with_report_footnote(store):
     assert any("Details in the full report" in t for t in texts)
 
 
+def test_project_deck_translates_engine_phases_into_stakeholder_chapters(store):
+    phases = [
+        ("Product understanding", "The comparison covers two customer-facing variants."),
+        ("Cohort integrity", "Eight simulated participants supplied directional reactions."),
+        ("React", "Variant B was preferred by six of eight participants."),
+        ("Gate", "Decision: continue with variant B after making the interruption risk visible."),
+    ]
+    rep = {
+        "id": "rpresent", "title": "Concept comparison — Report", "scope": "project",
+        "project_id": "", "created_at": "2026-08-22T00:00:00+00:00",
+        "lead": ("This report carries the evidence along the research phases from the initial "
+                 "question to prioritised conclusions."),
+        "council_ids": [], "findings": [], "statements": [], "prompts": [],
+        "graph_snapshot": None,
+        "sections": [{
+            "id": f"s{index}", "heading": heading, "markdown": markdown,
+            "intent": f"Author the {heading} phase ({'converge' if index == 4 else 'diverge'}) "
+                      "grounded in its evidence + what it produced.",
+            "citations": [], "source_study_ids": ["note:a", "council:b"], "figures": [],
+        } for index, (heading, markdown) in enumerate(phases, 1)],
+    }
+    store.upsert_synthesis(rep)
+    prs = Presentation(io.BytesIO(services.export_synthesis_pptx("rpresent", store=store)))
+    deck_text = "\n".join(text for _, text in _frame_texts(prs))
+
+    for label in ("Test subject & context", "Participants & limitations",
+                  "Reactions & key findings", "Decision & recommendations"):
+        assert label in deck_text
+    lines = {line.strip() for line in deck_text.splitlines()}
+    assert not any(heading in lines for heading, _markdown in phases)
+    assert "Decision: continue with variant B" in deck_text  # result-led cover subtitle
+    assert "2 sources in the full report" in deck_text
+    assert "note:a" not in deck_text and "council:b" not in deck_text
+
+
 # ------------------------------------------------------------------- helpers
 
 

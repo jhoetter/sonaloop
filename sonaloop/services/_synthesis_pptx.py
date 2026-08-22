@@ -127,6 +127,70 @@ def _clamp_prose(text: str, limit: int) -> tuple[str, bool]:
     return out, False
 
 
+_PRESENTATION_PHASE_LABELS = {
+    "de": (
+        (("product understanding", "product-understanding"), "Testgegenstand & Ausgangslage"),
+        (("cohort integrity", "cohort-integrity"), "Testgruppe & Aussagekraft"),
+        (("react", "reaction"), "Reaktionen & zentrale Erkenntnisse"),
+        (("gate", "decide", "deliver"), "Entscheidung & Empfehlungen"),
+        (("discover", "empathize", "explore"), "Ausgangslage & Bedürfnisse"),
+        (("define", "frame"), "Fokus & Fragestellung"),
+        (("ideate", "develop"), "Lösungsrichtungen"),
+        (("prototype",), "Prototyp"),
+        (("test", "validate"), "Validierung"),
+    ),
+    "en": (
+        (("product understanding", "product-understanding"), "Test subject & context"),
+        (("cohort integrity", "cohort-integrity"), "Participants & limitations"),
+        (("react", "reaction"), "Reactions & key findings"),
+        (("gate", "decide", "deliver"), "Decision & recommendations"),
+        (("discover", "empathize", "explore"), "Context & user needs"),
+        (("define", "frame"), "Focus & research question"),
+        (("ideate", "develop"), "Solution directions"),
+        (("prototype",), "Prototype"),
+        (("test", "validate"), "Validation"),
+    ),
+}
+
+
+def _presentation_section_heading(section: dict, index: int, total: int, de: bool) -> str:
+    """Turn plan-phase labels into stakeholder chapter labels without altering the report."""
+    explicit = _strip_md(section.get("presentation_heading", ""))
+    if explicit:
+        return explicit
+    heading = _strip_md(section.get("heading", ""))
+    intent = str(section.get("intent") or "")
+    # Authored thematic headings are already customer copy.  Only translate scaffolder-shaped
+    # phase labels ("Author the X phase (diverge|converge) …").
+    if not _re_pptx.search(r"\bphase\s*\((?:diverge|converge)", intent, _re_pptx.I):
+        return heading
+    normalized = heading.casefold().replace("_", " ").strip()
+    language = "de" if de else "en"
+    for tokens, label in _PRESENTATION_PHASE_LABELS[language]:
+        if any(token in normalized for token in tokens):
+            return label
+    if index == 1:
+        return "Ausgangslage" if de else "Context"
+    if index == total:
+        return "Entscheidung & nächste Schritte" if de else "Decision & next steps"
+    return f'{"Erkenntnisse" if de else "Findings"} {index - 1}'
+
+
+def _report_cover_lead(synthesis: dict, sections: list[dict], de: bool) -> str:
+    """Prefer an authored lead; replace report-scaffolder boilerplate with the conclusion."""
+    lead = _strip_md(synthesis.get("lead", ""))
+    generic = (
+        "entlang der forschungsphasen" in lead.casefold()
+        or "along the research phases" in lead.casefold()
+    )
+    if lead and not generic:
+        return _clamp_prose(lead, 220)[0]
+    for block in _md_blocks((sections[-1] if sections else {}).get("markdown", "")):
+        if block.get("type") in {"p", "callout", "quote"} and block.get("text"):
+            return _clamp_prose(block["text"], 220)[0]
+    return "Ergebnisse und Empfehlungen" if de else "Findings and recommendations"
+
+
 # Authored exec prose often segments itself with caps-lock labels ("DAS GEWINNERKONZEPT: …",
 # "SURVEY-RÜCKHALT (5 Antworten): …") — those labels are the natural takeaway-card titles.
 _LBL_WORD = r"(?:[0-9A-ZÄÖÜ][0-9A-ZÄÖÜ\-/&'\.]+|\([^()]{1,40}\))"
@@ -637,26 +701,16 @@ def export_synthesis_pptx(synthesis_id: str, store: Store | None = None,
     # A project synthesis without report sections (report flow never run) still has the
     # analytic layers — fall through to that deck instead of an empty cover+closing shell.
     if syn.get("scope") == "project" and secs:
-        node_title = {n["study_id"]: (n.get("title") or "") for n in (syn.get("graph_snapshot") or {}).get("nodes", [])}
-
-        def ref_title(ref: str) -> str:
-            if node_title.get(ref):
-                return node_title[ref]
-            rid = ref.split(":", 1)[-1]
-            s = store.get_synthesis(rid)
-            if s:
-                return s.get("title", rid)
-            c = store.get_council_session(rid)
-            return (c.get("prompt") or rid)[:60] if c else rid
-
         meta = f"{len(secs)} {'Abschnitte' if de else 'sections'}"
+        headings = [_presentation_section_heading(sec, idx, len(secs), de)
+                    for idx, sec in enumerate(secs, 1)]
         slides.append({"kind": "cover", "logo": True, "canvas": "dawn",
                        "eyebrow": kind_label, "title": title,
-                       "subtitle": _strip_md(syn.get("lead", "")), "meta": meta,
+                       "subtitle": _report_cover_lead(syn, secs, de), "meta": meta,
                        "date": syn.get("created_at", "")[:10]})
         if len(secs) >= 3:  # the reader's map — only when there are chapters to map
             slides.append({"kind": "agenda", "heading": "Inhalt" if de else "Contents",
-                           "items": [_strip_md(sec.get("heading", "")) for sec in secs]})
+                           "items": headings})
         for idx, sec in enumerate(secs, 1):
             figs = sec.get("figures") or []
             charts = [c for c in (_figure_to_chart(f, store) for f in figs) if c]
@@ -666,16 +720,18 @@ def export_synthesis_pptx(synthesis_id: str, store: Store | None = None,
             if clipped:
                 foot_parts.append(L["details_in_report"])
             if sec.get("source_study_ids"):
-                foot_parts.append(("Quellen: " if de else "Sources: ")
-                                  + ", ".join(ref_title(x) for x in sec["source_study_ids"]))
-            slides.append({"kind": "content", "num": f"{idx:02d}", "heading": sec.get("heading", ""),
+                count = len(set(sec["source_study_ids"]))
+                foot_parts.append(
+                    f"{count} Quellen im vollständigen Report" if de
+                    else f"{count} sources in the full report")
+            slides.append({"kind": "content", "num": f"{idx:02d}", "heading": headings[idx - 1],
                            "blocks": blocks,
                            "chart": charts[0] if charts else None, "footnote": " · ".join(foot_parts)})
             for c in charts[1:]:
-                slides.append({"kind": "content", "num": f"{idx:02d}", "heading": sec.get("heading", ""),
+                slides.append({"kind": "content", "num": f"{idx:02d}", "heading": headings[idx - 1],
                                "blocks": [], "chart": c})
             for path, cap in images:   # prototype screenshots / images / avatars — one slide each, fitted
-                slides.append({"kind": "image", "num": f"{idx:02d}", "heading": sec.get("heading", ""),
+                slides.append({"kind": "image", "num": f"{idx:02d}", "heading": headings[idx - 1],
                                "image": path, "caption": cap})
     else:
         slides.extend(_analytic_slides(syn, store, L, de, title, kind_label))
