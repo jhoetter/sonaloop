@@ -39,6 +39,7 @@ from ._tools_calibration import register_calibration
 from ._tools_flows import register_flows
 from ._tools_examples import register_examples
 from ._tools_retrieval import register_retrieval
+from ._tools_handoff import register_handoff
 
 
 def _load_tool_extensions(mcp) -> int:
@@ -97,6 +98,7 @@ def build_server():
     register_flows(mcp)
     register_examples(mcp)
     register_retrieval(mcp)
+    register_handoff(mcp)
 
     # Directory gate: every core tool gets its title + read-only/destructive/open-world
     # hints from the central registry (one place, CI-linted by tests/test_mcp_annotations.py).

@@ -392,6 +392,9 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     "get_chat": R("Get chat"),
     "list_chats": R("List chats"),
 
+    # ---- hand-off (_tools_handoff) ----
+    "get_design_handoff": R("Get design hand-off"),
+
     # ---- surveys (_tools_surveys) ----
     "brief_survey": R("Brief survey"),
     "record_survey": W("Record survey"),

@@ -27,10 +27,11 @@ _DOMAIN_LABELS = {
     "catalog": "Persona catalog (browse, recommend & pull from sonaloop-data)",
     "simulation": "Simulation & memory (days/months/recall/timeline)",
     "eval": "Evaluation & critics",
+    "handoff": "Research-to-design hand-off",
 }
 _ORDER = ["plan", "council", "prototypes", "usability", "walkthrough", "surveys", "hypotheses",
           "decisions", "sections", "research", "jobs", "methodology", "personas", "catalog",
-          "simulation", "eval"]
+          "simulation", "eval", "handoff"]
 
 
 def _deco_name(d: ast.expr) -> str:

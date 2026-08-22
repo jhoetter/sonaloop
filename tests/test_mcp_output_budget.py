@@ -501,6 +501,7 @@ def _tool_args(ids: dict[str, Any]) -> dict[str, dict]:
         "get_project_graph": {"project_id": proj},
         "get_research_frontier": {"project_id": proj},
         "get_study_result": {"project_id": proj},
+        "get_design_handoff": {"project_id": proj},
         "list_artifacts": {"project_id": proj},
         "list_assets": {"project_id": proj},
         "list_flows": {"project_id": proj},
