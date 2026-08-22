@@ -66,13 +66,15 @@ def _set_hole_size(plot, val: str):
     hole.set("val", val)
 
 
-def _clean_area(chart):
+def _clean_area(chart, ctx):
     """Transparent chart area (blend into the slide) + brand default font — for the donut ring,
     which stays a native chart (arcs are impractical as shapes)."""
     from pptx.util import Pt
     from pptx.oxml.ns import qn
     try:
-        chart.font.name = "Geist"; chart.font.size = Pt(10); chart.font.color.rgb = _rgb(_MUTED)
+        if ctx.font_name:
+            chart.font.name = ctx.font_name
+        chart.font.size = Pt(10); chart.font.color.rgb = ctx.rgb(_MUTED)
         cs = chart._chartSpace
         spPr = cs.makeelement(qn("c:spPr"), {})
         cs.find(qn("c:chart")).addnext(spPr)
@@ -112,11 +114,11 @@ def _donut_chart(ctx, slide, ch, bx, by, bw, bh):
     chart = slide.shapes.add_chart(XL_CHART_TYPE.DOUGHNUT, Inches(bx), Inches(by + (bh - size) / 2),
                                    Inches(size), Inches(size), cd).chart
     chart.has_title = False; chart.has_legend = False
-    _clean_area(chart)
+    _clean_area(chart, ctx)
     plot = chart.plots[0]; plot.has_data_labels = False
     try:
         for j, pt in enumerate(plot.series[0].points):
-            pt.format.fill.solid(); pt.format.fill.fore_color.rgb = _rgb(cols[j % len(cols)])
+            pt.format.fill.solid(); pt.format.fill.fore_color.rgb = ctx.rgb(cols[j % len(cols)])
             pt.format.line.fill.background()
         _set_hole_size(plot, "62")
     except Exception:
@@ -247,12 +249,12 @@ def _gauge_chart(ctx, slide, ch, bx, by, bw, bh):
         chart = slide.shapes.add_chart(XL_CHART_TYPE.DOUGHNUT, Inches(gx), Inches(by),
                                        Inches(size), Inches(size), cd).chart
         chart.has_title = False; chart.has_legend = False
-        _clean_area(chart)
+        _clean_area(chart, ctx)
         plot = chart.plots[0]; plot.has_data_labels = False
         try:
             pts = plot.series[0].points
             for idx, col in ((0, _SERIES[i % len(_SERIES)]), (1, _SURFACE2)):
-                pts[idx].format.fill.solid(); pts[idx].format.fill.fore_color.rgb = _rgb(col)
+                pts[idx].format.fill.solid(); pts[idx].format.fill.fore_color.rgb = ctx.rgb(col)
                 pts[idx].format.line.fill.background()
             _set_hole_size(plot, "70")
         except Exception:
@@ -283,10 +285,11 @@ def _dot_plot_chart(ctx, slide, ch, bx, by, bw, bh):
         mean = round(sum(vals) / len(vals) * 10) / 10; col = _SERIES[i % len(_SERIES)]
         ctx.text(slide, bx, ry, label_w - 0.08, row_h, r.get("label", ""), size=11)
         ctx.connector(slide, tx, cyc, tx + tw, cyc, _LINE, width=0.75)
-        d = 0.13; tint = _mix(col, _BG, 0.45)
+        d = 0.13; tint = _mix(ctx.color(col), ctx.color(_BG), 0.45)
         for v in vals:
             ov = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(xof(v) - d / 2), Inches(cyc - d / 2), Inches(d), Inches(d))
-            ov.fill.solid(); ov.fill.fore_color.rgb = _rgb(tint); ov.line.fill.background(); ctx.noshadow(ov)
+            ov.fill.solid(); ov.fill.fore_color.rgb = ctx.rgb(tint)
+            ov.line.fill.background(); ctx.noshadow(ov)
         mh = 0.22
         ctx.rrect(slide, xof(mean) - 0.025, cyc - mh / 2, 0.05, mh, col, radius=0.3)
         ctx.text(slide, tx + tw + 0.05, ry, value_w, row_h, _num(mean) + u, size=10, color=_MUTED)
@@ -320,7 +323,8 @@ def _heatmap_chart(ctx, slide, ch, bx, by, bw, bh):
                 ctx.rrect(slide, cxp, ry, cell_w, cell_h, _SURFACE2, radius=0.12)
             else:
                 t = 0.0 if mx == mn else max(0.0, min(1.0, (float(v) - mn) / (mx - mn)))
-                ctx.rrect(slide, cxp, ry, cell_w, cell_h, _mix(_SURFACE2, _ACCENT, t), radius=0.12)
+                ctx.rrect(slide, cxp, ry, cell_w, cell_h,
+                          _mix(ctx.color(_SURFACE2), ctx.color(_ACCENT), t), radius=0.12)
                 ctx.text(slide, cxp, ry, cell_w, cell_h, _num(v), size=10, color=_INK,
                          align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
 
@@ -351,13 +355,17 @@ def _line_chart(ctx, slide, ch, bx, by, bw, bh):
     chart.has_title = False; chart.has_legend = multi
     if multi:
         chart.legend.position = XL_LEGEND_POSITION.BOTTOM; chart.legend.include_in_layout = False
-        chart.legend.font.size = Pt(9); chart.legend.font.name = "Geist"; chart.legend.font.color.rgb = _rgb(_MUTED)
-    _clean_area(chart)
+        chart.legend.font.size = Pt(9)
+        if ctx.font_name:
+            chart.legend.font.name = ctx.font_name
+        chart.legend.font.color.rgb = ctx.rgb(_MUTED)
+    _clean_area(chart, ctx)
     for i, ser in enumerate(chart.series):
         is_target = has_target and i == len(lines)
         col = _MUTED if is_target else _SERIES[i % len(_SERIES)]
         try:
-            ser.format.line.color.rgb = _rgb(col); ser.format.line.width = Pt(1.25 if is_target else 2)
+            ser.format.line.color.rgb = ctx.rgb(col)
+            ser.format.line.width = Pt(1.25 if is_target else 2)
             ser.smooth = False
             if is_target:
                 from pptx.enum.chart import XL_MARKER_STYLE
@@ -368,9 +376,11 @@ def _line_chart(ctx, slide, ch, bx, by, bw, bh):
             pass
     try:
         for ax in (chart.category_axis, chart.value_axis):
-            ax.tick_labels.font.size = Pt(9); ax.tick_labels.font.name = "Geist"
-            ax.tick_labels.font.color.rgb = _rgb(_MUTED)
-            ax.format.line.color.rgb = _rgb(_LINE)
+            ax.tick_labels.font.size = Pt(9)
+            if ctx.font_name:
+                ax.tick_labels.font.name = ctx.font_name
+            ax.tick_labels.font.color.rgb = ctx.rgb(_MUTED)
+            ax.format.line.color.rgb = ctx.rgb(_LINE)
         chart.value_axis.has_major_gridlines = False
     except Exception:
         pass
@@ -395,20 +405,27 @@ def _area_chart(ctx, slide, ch, bx, by, bw, bh):
                                    Inches(bw), Inches(bh), cd).chart
     chart.has_title = False; chart.has_legend = True
     chart.legend.position = XL_LEGEND_POSITION.BOTTOM; chart.legend.include_in_layout = False
-    chart.legend.font.size = Pt(9); chart.legend.font.name = "Geist"; chart.legend.font.color.rgb = _rgb(_MUTED)
-    _clean_area(chart)
+    chart.legend.font.size = Pt(9)
+    if ctx.font_name:
+        chart.legend.font.name = ctx.font_name
+    chart.legend.font.color.rgb = ctx.rgb(_MUTED)
+    _clean_area(chart, ctx)
     for i, ser in enumerate(chart.series):
         col = _SERIES[i % len(_SERIES)]
         try:
-            ser.format.fill.solid(); ser.format.fill.fore_color.rgb = _rgb(_mix(col, _BG, 0.35))
-            ser.format.line.color.rgb = _rgb(col); ser.format.line.width = Pt(1.25)
+            ser.format.fill.solid()
+            ser.format.fill.fore_color.rgb = ctx.rgb(
+                _mix(ctx.color(col), ctx.color(_BG), 0.35))
+            ser.format.line.color.rgb = ctx.rgb(col); ser.format.line.width = Pt(1.25)
         except Exception:
             pass
     try:
         for ax in (chart.category_axis, chart.value_axis):
-            ax.tick_labels.font.size = Pt(9); ax.tick_labels.font.name = "Geist"
-            ax.tick_labels.font.color.rgb = _rgb(_MUTED)
-            ax.format.line.color.rgb = _rgb(_LINE)
+            ax.tick_labels.font.size = Pt(9)
+            if ctx.font_name:
+                ax.tick_labels.font.name = ctx.font_name
+            ax.tick_labels.font.color.rgb = ctx.rgb(_MUTED)
+            ax.format.line.color.rgb = ctx.rgb(_LINE)
         chart.value_axis.has_major_gridlines = False
     except Exception:
         pass

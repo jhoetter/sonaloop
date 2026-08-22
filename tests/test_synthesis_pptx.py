@@ -3,6 +3,8 @@ the master template's layout vocabulary (statement verdict, takeaway cards, char
 slides, numbered recommendation cards) and NO slide carries a wall of continuous prose — leads are
 clamped renderer-side, markdown artifacts and bare artifact ids never reach a slide."""
 import io
+import re
+import zipfile
 
 from pptx import Presentation
 from pptx.util import Inches
@@ -69,6 +71,81 @@ def test_master_profile_exposes_semantic_layout_roles():
     assert profile["role_counts"]["section"] >= 1
     assert profile["role_counts"]["content"] >= 1
     assert profile["layouts"][0]["name"] == "SHKB Cover"
+
+
+def test_opaque_layout_names_are_classified_from_placeholder_structure():
+    """A customer's agency-specific naming must not be required for master support."""
+    from sonaloop._pptx_master import inspect_master_template, layout_for_slide
+
+    template = Presentation()
+    for index, layout in enumerate(template.slide_layouts):
+        layout.name = f"ACME-{index:02d}"
+    source = io.BytesIO()
+    template.save(source)
+
+    profile = inspect_master_template(source.getvalue())
+    assert profile["compatibility"]["status"] == "ready"
+    assert profile["role_counts"]["cover"] >= 1
+    assert profile["role_counts"]["content"] >= 1
+    assert profile["role_counts"]["two_column"] >= 1
+    assert profile["role_counts"]["image"] >= 1
+    assert layout_for_slide(template, {"kind": "cover"}).name == "ACME-00"
+    assert layout_for_slide(template, {"kind": "comparison"}).name == "ACME-03"
+    assert layout_for_slide(template, {"kind": "image"}).name == "ACME-08"
+
+
+def test_native_agenda_disables_inherited_auto_numbering():
+    from pptx.oxml.ns import qn
+    from sonaloop import _pptx
+
+    template = Presentation()
+    template.slide_layouts[1].name = "Customer Agenda"
+    source = io.BytesIO()
+    template.save(source)
+    data = _pptx.render([
+        {"kind": "agenda", "heading": "Inhalt", "items": ["Ergebnis", "Empfehlungen"]},
+    ], master_template=source.getvalue())
+    rendered = Presentation(io.BytesIO(data))
+    body = next(shape for shape in rendered.slides[0].placeholders
+                if shape.placeholder_format.type.name.casefold() in {"body", "object"})
+
+    assert body.text_frame.text.splitlines() == ["01   Ergebnis", "02   Empfehlungen"]
+    assert all(paragraph._p.pPr.find(qn("a:buNone")) is not None
+               for paragraph in body.text_frame.paragraphs)
+
+
+def test_master_theme_drives_generated_color_and_passes_package_qa():
+    from sonaloop import _pptx
+    from sonaloop._deck import PALETTE
+    from sonaloop._pptx_master import master_color_map, master_palette
+    from sonaloop._pptx_master_native import inspect_rendered_master_deck
+
+    template = Presentation()
+    raw = io.BytesIO()
+    template.save(raw)
+    incoming = zipfile.ZipFile(io.BytesIO(raw.getvalue()))
+    branded = io.BytesIO()
+    with zipfile.ZipFile(branded, "w") as outgoing:
+        for item in incoming.infolist():
+            value = incoming.read(item.filename)
+            if item.filename == "ppt/theme/theme1.xml":
+                value = re.sub(
+                    rb'(<a:accent1>\s*<a:srgbClr val=")[0-9A-Fa-f]{6}("/>)',
+                    rb'\g<1>13A085\2', value,
+                )
+            outgoing.writestr(item, value)
+    master = branded.getvalue()
+    slides = [{"kind": "summary", "heading": "Ergebnis", "items": [
+        {"title": "Signal", "text": "Aussage aus dem Report"},
+    ]}]
+    data = _pptx.render(slides, master_template=master)
+    semantic = master_palette(master)["palette"]
+    mapping = master_color_map(master)
+
+    assert semantic["accent"] == "13A085"
+    assert mapping[PALETTE["accent"]] == "13A085"
+    assert mapping[PALETTE["panel"]] == semantic["panel"]  # white panel never becomes dark ink
+    assert inspect_rendered_master_deck(data, master)["status"] == "pass"
 
 # A showcase-shaped convergence synthesis: caps-label exec prose, stanced voices with verbatim
 # council quotes, scored recommendations and label-led findings — the report shape the owner's

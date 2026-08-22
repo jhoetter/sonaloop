@@ -682,10 +682,7 @@ def export_synthesis_pptx(synthesis_id: str, store: Store | None = None,
 
     slides.append({"kind": "closing", "logo": True,
                    "title": "Vielen Dank" if de else "Thank you",
-                   "text": ("Erstellt mit der Sonaloop-Research-Engine — jede Aussage in diesem Deck "
-                            "führt auf eine inspizierbare Session zurück." if de else
-                            "Built with the Sonaloop research engine — every statement in this deck "
-                            "traces back to an inspectable session."),
+                   "text": "",
                    "meta": f"{kind_label} · {title} · {syn.get('created_at', '')[:10]}"})
     return _pptx.render(slides, title=title or kind_label,
                         master_template=master_template)

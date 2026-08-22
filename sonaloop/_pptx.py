@@ -73,7 +73,11 @@ _TS = {k: v.get("size", 13) for k, v in _TYPE.items()}
 # Number formatting + the chart painters live in _pptx_charts (split for the LOC bar).
 from . import _pptx_charts as _pc
 from ._pptx_charts import _num
-from ._pptx_master import blank_layout as _blank_layout, layout_for_slide as _layout_for_slide
+from ._pptx_master import (
+    blank_layout as _blank_layout,
+    layout_for_slide as _layout_for_slide,
+    master_color_map as _master_color_map,
+)
 
 
 def _empty_template_presentation(data: bytes):
@@ -111,7 +115,13 @@ def render(slides: list[dict], *, title: str = "Report",
     prs.core_properties.author = "Sonaloop"
     blank = _blank_layout(prs)
     W, H = prs.slide_width, prs.slide_height
-    rgb = lambda hexv: RGBColor.from_string(hexv)
+    color_map = _master_color_map(master_template) if master_template else {}
+
+    def _color(hexv):
+        value = str(hexv or "000000").lstrip("#").upper()
+        return color_map.get(value, value)
+
+    rgb = lambda hexv: RGBColor.from_string(_color(hexv))
 
     def _bg(slide, hexv=_BG):
         if master_mode:
@@ -259,7 +269,8 @@ def render(slides: list[dict], *, title: str = "Report",
     # SAME shape primitives via this ctx, so slide and chart layers can't drift apart.
     from types import SimpleNamespace
     _ctx = SimpleNamespace(text=_text, rrect=_rrect, connector=_connector, dot=_dot,
-                           run=_run, noshadow=_noshadow)
+                           run=_run, noshadow=_noshadow, rgb=rgb, color=_color,
+                           font_name=None if master_mode else "Geist")
 
     def _chart(slide, ch, x, y, cx, cy):
         _pc.draw(_ctx, slide, ch, x, y, cx, cy)
@@ -368,9 +379,13 @@ def render(slides: list[dict], *, title: str = "Report",
         grid_cells=_grid_cells, oval=_oval, initials_chip=_initials_chip,
     )
     from . import _pptx_builders as _b
+    from ._pptx_master_native import apply_master_native_layout
     for s in slides:
         eng.blank = _layout_for_slide(prs, s, blank) if master_mode else blank
         _b.PAINTERS.get(s.get("kind"), _b.build_content)(s, eng)
+        if master_mode:
+            apply_master_native_layout(
+                prs.slides[-1], s, slide_width=int(W), slide_height=int(H))
 
 
     buf = io.BytesIO()
