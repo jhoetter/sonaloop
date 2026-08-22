@@ -58,6 +58,12 @@ content grid. Inherited bullets are disabled when the report already supplies nu
 Missing roles fall back through the compatible roles above and finally to the blank or
 emptiest layout.
 
+Project-report decks are a stakeholder projection, not a run journal. Scaffolder phase
+names such as product-understanding or gate are translated into plain chapter labels;
+an authored `presentation_heading` wins when present. Boilerplate cover copy is replaced
+by the report's conclusion, and slide footers show only the number of sources available in
+the full report. Source identities, citations, and the unabridged prose remain in Sonaloop.
+
 When a customer master is active, it owns layout backgrounds, fixed artwork, theme-font
 inheritance, and color language. Sonaloop derives the editable chart/card palette from the
 master theme and actual layout artwork; Cloud does not recolor it with the workspace web
