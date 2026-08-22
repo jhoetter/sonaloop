@@ -24,7 +24,20 @@
     "figure": "loop",
     "complexity": "medium",
     "summary": "Frame the problem, then build the solution.",
-    "jobs": "Ambiguous HMW questions, positioning work, and buildable solution specs."
+    "jobs": "Ambiguous HMW questions, positioning work, and buildable solution specs.",
+    "deck": {
+      "purpose": "Make both convergence decisions visible: the chosen problem and the tested solution.",
+      "story_beats": [
+        {"role": "problem_breadth", "question": "What did we hear across the problem space?", "preferred_visuals": ["persona_grid", "summary"]},
+        {"role": "point_of_view", "question": "Which problem and HMW did the evidence justify?", "preferred_visuals": ["decision", "quote"]},
+        {"role": "solution_breadth", "question": "Which distinct solution directions were explored?", "preferred_visuals": ["stimulus_comparison", "comparison"]},
+        {"role": "prototype_test", "question": "What survived actual use?", "preferred_visuals": ["annotated_screen", "preference_shift", "chart"]},
+        {"role": "spec", "question": "What is now buildable and what remains risky?", "preferred_visuals": ["recommendation", "next_steps"]}
+      ],
+      "required_visuals": ["problem clusters", "point of view", "solution alternatives", "tested prototype", "buildable handoff"],
+      "appendix": ["full affinity evidence", "persona details", "prototype sessions", "open risks and source index"],
+      "avoid": ["using methodology phases as slide titles", "jumping from complaints directly to one solution", "hiding the rejected alternatives"]
+    }
   },
   "steps": [
     {

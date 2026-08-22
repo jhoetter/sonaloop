@@ -349,6 +349,27 @@ _VIRTUAL_SPECS: dict[str, dict[str, Any]] = {
             "complexity": "light",
             "summary": "Fast reaction scoring and a gate for one fixed stimulus.",
             "jobs": "Content, messaging, launch-copy and announcement checks.",
+            "deck": {
+                "purpose": "Enable a ship, revise or review decision for one fixed stimulus.",
+                "story_beats": [
+                    {"role": "decision", "question": "What should happen next?",
+                     "preferred_visuals": ["decision", "stats"]},
+                    {"role": "stimulus", "question": "What exactly did the cohort see?",
+                     "preferred_visuals": ["stimulus_comparison", "annotated_screen"]},
+                    {"role": "cohort", "question": "Which perspectives shaped the result?",
+                     "preferred_visuals": ["persona_grid"]},
+                    {"role": "reaction", "question": "What landed, confused or changed?",
+                     "preferred_visuals": ["preference_shift", "chart", "quote"]},
+                    {"role": "revision", "question": "What concrete change follows?",
+                     "preferred_visuals": ["annotated_screen", "recommendation", "next_steps"]},
+                ],
+                "required_visuals": ["real stimulus", "cohort overview",
+                                     "scored reaction or gate", "concrete revision"],
+                "appendix": ["persona details", "response table by persona",
+                             "method and limitations", "source index"],
+                "avoid": ["describing an available stimulus only in prose", "hiding denominators",
+                          "calling synthetic reactions observed customer behavior"],
+            },
         },
         "steps": [
             {

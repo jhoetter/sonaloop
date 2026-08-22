@@ -25,7 +25,21 @@
     "figure": "coreSample",
     "complexity": "deep",
     "summary": "Three diamonds with a fidelity ladder from rough options to tested refinement.",
-    "jobs": "High-stakes ideation where breadth, prototype variety, and down-selection matter."
+    "jobs": "High-stakes ideation where breadth, prototype variety, and down-selection matter.",
+    "deck": {
+      "purpose": "Show the evidence funnel from broad needs through varied lo-fi concepts to a tested mid-fi handoff.",
+      "story_beats": [
+        {"role": "problem_portfolio", "question": "Which distinct problem patterns emerged?", "preferred_visuals": ["persona_grid", "table", "summary"]},
+        {"role": "affinity", "question": "How did signals converge into priority problems?", "preferred_visuals": ["comparison", "decision"]},
+        {"role": "lofi_portfolio", "question": "How broad and diverse was the concept space?", "preferred_visuals": ["stimulus_comparison", "image"]},
+        {"role": "down_select", "question": "Which concepts advanced and why?", "preferred_visuals": ["preference_shift", "table", "decision"]},
+        {"role": "midfi", "question": "How did the shortlist become a credible solution?", "preferred_visuals": ["annotated_screen", "comparison"]},
+        {"role": "solution_presentation", "question": "What won, for whom, and with which risks?", "preferred_visuals": ["recommendation", "next_steps"]}
+      ],
+      "required_visuals": ["problem clusters", "lo-fi concept gallery", "down-selection", "mid-fi prototype", "observed sessions", "solution handoff"],
+      "appendix": ["all concepts", "ranking rationale", "session details", "persona details", "evidence trail"],
+      "avoid": ["making every prototype look like the same form", "omitting the dark-horse concept", "presenting the final concept without its selection trail"]
+    }
   },
   "steps": [
     {

@@ -24,7 +24,20 @@
     "figure": "convene",
     "complexity": "medium",
     "summary": "Empathy-first divergence, a sharp POV, then rapid prototype testing.",
-    "jobs": "Fast human-centered concept work and continuous discovery loops."
+    "jobs": "Fast human-centered concept work and continuous discovery loops.",
+    "deck": {
+      "purpose": "Tell an empathy-led story from lived context to a rapidly tested prototype.",
+      "story_beats": [
+        {"role": "empathy", "question": "Whose lived context changes how we see the problem?", "preferred_visuals": ["persona_grid", "quote"]},
+        {"role": "needs", "question": "Which needs and surprising insights matter most?", "preferred_visuals": ["summary", "quote"]},
+        {"role": "pov", "question": "What is the focused point of view and HMW?", "preferred_visuals": ["decision"]},
+        {"role": "ideas", "question": "Which different ideas were made tangible?", "preferred_visuals": ["stimulus_comparison", "image"]},
+        {"role": "test", "question": "What changed after people used the prototype?", "preferred_visuals": ["annotated_screen", "preference_shift", "next_steps"]}
+      ],
+      "required_visuals": ["empathy voices", "POV", "idea breadth", "prototype", "test learning"],
+      "appendix": ["persona details", "idea inventory", "test sessions", "source index"],
+      "avoid": ["leading with process diagrams", "reducing empathy to demographics", "showing a prototype without the need it addresses"]
+    }
   },
   "steps": [
     {

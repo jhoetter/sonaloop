@@ -24,7 +24,20 @@
     "image": "customer-discovery.jpg",
     "complexity": "medium",
     "summary": "Honest problem interviews, validate what's real, then test if a solution earns real interest.",
-    "jobs": "Pre-build validation: is the problem real, frequent and worth solving, and would anyone switch?"
+    "jobs": "Pre-build validation: is the problem real, frequent and worth solving, and would anyone switch?",
+    "deck": {
+      "purpose": "Separate real problem evidence from compliments and decide whether to pursue, pivot or drop.",
+      "story_beats": [
+        {"role": "facts", "question": "What did people actually do in recent situations?", "preferred_visuals": ["timeline", "quote", "table"]},
+        {"role": "patterns", "question": "Which problems recur for which segments?", "preferred_visuals": ["persona_grid", "chart", "summary"]},
+        {"role": "problem_validation", "question": "Which problem is frequent, painful and underserved?", "preferred_visuals": ["decision", "comparison"]},
+        {"role": "demand", "question": "Which demand signals go beyond polite interest?", "preferred_visuals": ["preference_shift", "table"]},
+        {"role": "decision", "question": "Should we pursue, pivot or drop, and what remains assumed?", "preferred_visuals": ["decision", "next_steps"]}
+      ],
+      "required_visuals": ["behavioral evidence", "problem patterns", "demand signals", "fact-versus-hypothesis boundary", "decision"],
+      "appendix": ["interview evidence", "persona details", "assumption register", "source index"],
+      "avoid": ["counting compliments as commitment", "pitching the solution in the problem story", "concealing contradictory or indifferent voices"]
+    }
   },
   "steps": [
     {

@@ -394,6 +394,8 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
 
     # ---- hand-off (_tools_handoff) ----
     "get_design_handoff": R("Get design hand-off"),
+    "brief_presentation": R("Brief presentation plan"),
+    "record_presentation_plan": W("Record presentation plan", idempotent=True),
 
     # ---- surveys (_tools_surveys) ----
     "brief_survey": R("Brief survey"),

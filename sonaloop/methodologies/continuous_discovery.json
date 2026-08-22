@@ -23,7 +23,20 @@
     "image": "continuous-discovery.jpg",
     "complexity": "medium",
     "summary": "A weekly habit: interview, map opportunities, ideate, test the riskiest assumptions.",
-    "jobs": "Ongoing product discovery against a clear outcome, where small steady learning beats a one-off study."
+    "jobs": "Ongoing product discovery against a clear outcome, where small steady learning beats a one-off study.",
+    "deck": {
+      "purpose": "Provide a current decision snapshot: what changed, what was tested and where the next weekly focus belongs.",
+      "story_beats": [
+        {"role": "outcome", "question": "Which product outcome anchors this cycle?", "preferred_visuals": ["stats", "decision"]},
+        {"role": "opportunity_tree", "question": "Which opportunities are currently supported by evidence?", "preferred_visuals": ["comparison", "table"]},
+        {"role": "new_signals", "question": "What changed since the last touchpoints?", "preferred_visuals": ["timeline", "persona_grid", "quote"]},
+        {"role": "assumption_tests", "question": "Which risky assumptions were tested and with what result?", "preferred_visuals": ["chart", "annotated_screen", "preference_shift"]},
+        {"role": "next_focus", "question": "Where should next week's learning effort go?", "preferred_visuals": ["decision", "next_steps"]}
+      ],
+      "required_visuals": ["target outcome", "current opportunity map", "new evidence", "assumption test result", "next focus"],
+      "appendix": ["opportunity evidence", "touchpoint details", "persona details", "assumption register", "source index"],
+      "avoid": ["presenting a cycle snapshot as final truth", "hiding changes since the previous cycle", "listing opportunities without evidence strength"]
+    }
   },
   "steps": [
     {

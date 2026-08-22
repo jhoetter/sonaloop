@@ -25,7 +25,20 @@
     "figure": "signal",
     "complexity": "medium",
     "summary": "Anchor on the job-to-be-done, pick the strongest problem, validate a minimal answer.",
-    "jobs": "Demand, pricing, churn, and MVP questions where the customer job is the anchor."
+    "jobs": "Demand, pricing, churn, and MVP questions where the customer job is the anchor.",
+    "deck": {
+      "purpose": "Connect the customer job and highest-value struggle to a tested minimal answer and next experiment.",
+      "story_beats": [
+        {"role": "job_context", "question": "What progress is the customer trying to make?", "preferred_visuals": ["quote", "timeline"]},
+        {"role": "problem_pick", "question": "Which underserved struggle is worth solving first?", "preferred_visuals": ["decision", "table"]},
+        {"role": "hypothesis", "question": "What minimal answer should change behavior?", "preferred_visuals": ["comparison", "stimulus_comparison"]},
+        {"role": "validation", "question": "What did the test validate or falsify?", "preferred_visuals": ["chart", "annotated_screen", "preference_shift"]},
+        {"role": "learning", "question": "What is the next smallest useful experiment?", "preferred_visuals": ["recommendation", "next_steps"]}
+      ],
+      "required_visuals": ["job statement", "chosen struggle", "MVP or hypothesis", "test result", "next experiment"],
+      "appendix": ["job evidence", "persona details", "assumption register", "raw responses", "source index"],
+      "avoid": ["confusing stated preference with demand", "showing feature lists before the job", "hiding falsified assumptions"]
+    }
   },
   "steps": [
     {

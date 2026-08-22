@@ -24,7 +24,20 @@
     "image": "jtbd-switch.jpg",
     "complexity": "medium",
     "summary": "Reconstruct a real switch and its four forces to name the job and design the winning hire.",
-    "jobs": "Demand and switching questions: what job customers hire for, and what makes them change."
+    "jobs": "Demand and switching questions: what job customers hire for, and what makes them change.",
+    "deck": {
+      "purpose": "Explain the causal switching story and what a new solution must overcome to be hired.",
+      "story_beats": [
+        {"role": "timeline", "question": "How did the switch unfold from first thought to decision?", "preferred_visuals": ["timeline", "quote"]},
+        {"role": "forces", "question": "What pushed, pulled, worried and preserved habit?", "preferred_visuals": ["comparison", "chart"]},
+        {"role": "job", "question": "What was the solution actually hired to do?", "preferred_visuals": ["decision", "quote"]},
+        {"role": "hire_criteria", "question": "What must amplify change and reduce anxiety?", "preferred_visuals": ["summary", "table"]},
+        {"role": "validation", "question": "Would the proposed answer really win the switch?", "preferred_visuals": ["annotated_screen", "preference_shift", "next_steps"]}
+      ],
+      "required_visuals": ["switch timeline", "four forces", "job statement", "hire criteria", "switch validation"],
+      "appendix": ["individual switching stories", "persona details", "force evidence", "source index"],
+      "avoid": ["flattening different switch timelines into one invented journey", "treating pull alone as sufficient", "omitting anxiety and habit"]
+    }
   },
   "steps": [
     {

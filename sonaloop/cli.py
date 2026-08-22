@@ -415,6 +415,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--report"); p.add_argument("--operation-id"); p.add_argument("--dispatch-token")
     p = sub.add_parser("report-section-brief"); p.add_argument("project_id"); p.add_argument("section_id"); p.add_argument("--report")
     p = sub.add_parser("report-section"); p.add_argument("project_id"); p.add_argument("section_id"); p.add_argument("file"); p.add_argument("--report"); p.add_argument("--dispatch-token")
+    p = sub.add_parser("presentation-brief"); p.add_argument("synthesis_id"); p.add_argument("--audience", default="stakeholder"); p.add_argument("--duration", type=int, default=10)
+    p = sub.add_parser("presentation-record"); p.add_argument("synthesis_id"); p.add_argument("file"); p.add_argument("--operation-id")
     p = sub.add_parser("report-export")
     p.add_argument("project_id"); p.add_argument("--format", choices=["md", "json"], default="md"); p.add_argument("--out"); p.add_argument("--report")
     p = sub.add_parser("template-deck", help="Render the PPTX master template (every layout, placeholder content) — the demo deck."); p.add_argument("--out", default="master-template.pptx")
@@ -879,6 +881,14 @@ def main(argv: list[str] | None = None) -> int:
                 args.project_id, args.section_id,
                 json.loads(Path(args.file).read_text(encoding="utf-8")), args.report,
                 dispatch_token=args.dispatch_token))
+        elif args.command == "presentation-brief":
+            _print(services.brief_presentation(
+                args.synthesis_id, args.audience, args.duration))
+        elif args.command == "presentation-record":
+            _print(services.record_presentation_plan(
+                args.synthesis_id,
+                json.loads(Path(args.file).read_text(encoding="utf-8")),
+                operation_id=args.operation_id))
         elif args.command == "report-export":
             content = services.export_report(args.project_id, args.report, args.format)
             _print({"path": services.write_export(content, args.out)} if args.out else content, as_json=bool(args.out) or args.format == "json")

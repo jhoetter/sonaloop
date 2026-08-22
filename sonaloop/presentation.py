@@ -1,15 +1,9 @@
-"""Presentation-from-data resolver (spec/methodology-presentation-from-data.md).
+"""Presentation-from-data resolver and evidence-linked report deck plans.
 
-The UI must render a methodology ENTIRELY from data. This module is the single resolver: given a
-tag (capability/role/artifact-type/discriminator) and an optional object-level `presentation` block,
-it returns {label, short, color, icon, glyph} from one of three sources only:
-
-  (S1) verbatim     — the raw tag string
-  (S2) data hint    — a `presentation` block authored via MCP (object-level, or in suggestions/*.json)
-  (S3) generic fn   — hash(tag)->palette color; raw string label; no icon/glyph
-
-There is NO code map keyed to a specific value (no {"lofi": ...}, no {"prototype": ...}). All such
-hints live in suggestions/*.json (authored via MCP) and are looked up by tag here.
+The existing resolver keeps methodology/artifact presentation data-driven. The
+deck-plan contract below adds a second, compatible concern: an MCP host authors
+the story, visible claims, source refs and speaker notes once; PPTX export then
+compiles the reviewed plan into any workspace master without model improvisation.
 """
 from __future__ import annotations
 
@@ -18,22 +12,12 @@ from functools import lru_cache
 from typing import Any
 
 from .config import suggestions_dir
-
-# Public deck-preview seam (sonaloop-research's deck.py rasterises the title slide of a
-# generated .pptx). Re-exported here so extensions import a public name rather than the
-# private _pptx_preview module; PIL/python-pptx stay lazy inside the function.
 from ._pptx_preview import render_first_slide  # noqa: F401, E402
 
-# A fixed, value-agnostic palette (colors are assigned by HASHING the tag, not by name).
+
+# Presentation-from-data resolver (spec/methodology-presentation-from-data.md).
 PALETTE = ["#6b7cff", "#34a853", "#f29900", "#a142f4", "#ea4335", "#00897b", "#5f6368", "#d81b60"]
-
-# Structural default glyphs (keyed to the geometric fan/waist BOOLEAN, never to a value string).
-FAN_GLYPH, WAIST_GLYPH = "◇", "◆"  # ◇ hollow (fan) / ◆ filled (waist)
-
-# Maps the (open-ended) Unicode notation glyphs used in suggestions/*.json and the
-# fan/waist structural defaults onto sonaloop-design icon names, so the research graph
-# and overview render real icons instead of text glyphs. Unmapped glyphs fall back
-# to "square" (a neutral marker) rather than leaking raw Unicode.
+FAN_GLYPH, WAIST_GLYPH = "◇", "◆"
 GLYPH_ICON: dict[str, str] = {
     "◇": "diamond", "◆": "diamondFilled",
     "▢": "square", "▣": "squareSplit", "▤": "squareRows", "▧": "squareSplit",
@@ -41,18 +25,13 @@ GLYPH_ICON: dict[str, str] = {
     "⇄": "exchange", "∿": "wave", "❯∿": "wave",
     "⌕": "search", "✎": "pencil", "➤": "caretRight",
 }
+DEFAULT_ARTIFACT_TYPE = "prototype"
 
 
 def glyph_icon(glyph: str | None) -> str:
-    """Resolve a notation glyph to a sonaloop-design name. "" for no glyph; an
-    unknown non-empty glyph maps to the neutral 'square' so nothing renders raw."""
     if not glyph:
         return ""
     return GLYPH_ICON.get(glyph, "square")
-
-# The conventional artifact type for compatibility records that predate the `type` field. A single
-# back-compat default (not a value-keyed table); the real type list lives in artifact_types.json.
-DEFAULT_ARTIFACT_TYPE = "prototype"
 
 
 def hash_color(tag: str, palette: list[str] | None = None) -> str:
@@ -64,38 +43,35 @@ def hash_color(tag: str, palette: list[str] | None = None) -> str:
 
 @lru_cache(maxsize=1)
 def _hints() -> dict[str, dict[str, Any]]:
-    """Flatten all suggestions/*.json into a tag -> presentation(+meta) map. Includes nested
-    artifact-type discriminators. Pure data; reloadable by clearing the cache."""
     out: dict[str, dict[str, Any]] = {}
-    d = suggestions_dir()
-    if not d.exists():
+    directory = suggestions_dir()
+    if not directory.exists():
         return out
-    for path in sorted(d.glob("*.json")):
+    for path in sorted(directory.glob("*.json")):
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
         except Exception:
             continue
         if data.get("kind") == "ideation_lenses":
-            continue  # creativity lenses are not presentation tags; read via ideation_lenses()
+            continue
         for item in data.get("items", []) or []:
             tag = item.get("tag")
             if not tag:
                 continue
             entry = dict(item.get("presentation") or {})
-            for k in ("renderer", "default_template", "_note"):
-                if item.get(k):
-                    entry[k] = item[k]
+            for key in ("renderer", "default_template", "_note"):
+                if item.get(key):
+                    entry[key] = item[key]
             out.setdefault(tag, {}).update(entry)
-            # nested discriminators (e.g. an artifact type's lofi/midfi) are tags too
-            for disc in item.get("discriminators", []) or []:
-                dtag = disc.get("tag")
-                if not dtag:
+            for discriminator in item.get("discriminators", []) or []:
+                discriminator_tag = discriminator.get("tag")
+                if not discriminator_tag:
                     continue
-                dentry = dict(disc.get("presentation") or {})
-                if disc.get("template"):
-                    dentry["template"] = disc["template"]
-                dentry["_parent"] = tag
-                out.setdefault(dtag, {}).update(dentry)
+                discriminator_entry = dict(discriminator.get("presentation") or {})
+                if discriminator.get("template"):
+                    discriminator_entry["template"] = discriminator["template"]
+                discriminator_entry["_parent"] = tag
+                out.setdefault(discriminator_tag, {}).update(discriminator_entry)
     return out
 
 
@@ -104,8 +80,6 @@ def reload_hints() -> None:
 
 
 def present(tag: str, own: dict[str, Any] | None = None) -> dict[str, Any]:
-    """Resolve display fields for a tag. own = an object-level `presentation` block (highest
-    priority, S2); then suggestions hints (S2); then generic fallbacks (S3)."""
     hint = _hints().get(tag, {})
     merged = {**hint, **(own or {})}
     label = merged.get("label") or (tag or "")
@@ -119,23 +93,14 @@ def present(tag: str, own: dict[str, Any] | None = None) -> dict[str, Any]:
 
 
 def step_glyph(is_fan: bool, own: dict[str, Any] | None = None) -> str:
-    """The strip glyph is a function of the STRUCTURAL fan/waist boolean (S3), or a data override (S2)."""
-    g = (own or {}).get("glyph")
-    return g or (FAN_GLYPH if is_fan else WAIST_GLYPH)
+    return (own or {}).get("glyph") or (FAN_GLYPH if is_fan else WAIST_GLYPH)
 
-
-# ---- artifact-type registry helpers (data-driven; replaces the TEMPLATES code map) ----
 
 def artifact_type_meta(type_tag: str) -> dict[str, Any]:
     return _hints().get(type_tag, {})
 
 
 def default_discriminator(type_tag: str) -> str:
-    """Best-effort data default for a type's discriminator.
-
-    Prefer the discriminator whose template equals the type default; otherwise use the
-    first discriminator declared under that type. This keeps UI fallbacks data-derived.
-    """
     default_template = (_hints().get(type_tag) or {}).get("default_template")
     fallback = ""
     for tag, meta in _hints().items():
@@ -148,78 +113,221 @@ def default_discriminator(type_tag: str) -> str:
 
 
 def discriminator_tags(type_tag: str) -> list[str]:
-    """Tags declared as discriminators of an artifact type (data-driven; e.g. the fidelity
-    ladder lofi/midfi/hifi under `prototype`). No fidelity vocabulary is hardcoded in code."""
-    return [t for t, v in _hints().items() if v.get("_parent") == type_tag]
+    return [tag for tag, value in _hints().items() if value.get("_parent") == type_tag]
 
 
 @lru_cache(maxsize=1)
 def edge_colors() -> dict[str, str]:
-    """Graph edge-type → color, from suggestions/edge_types.json (DATA; no edge color hardcoded in
-    engine/UI — Layer 2). Empty if the file is missing; callers fall back to a generic grey."""
-    import json
-    p = suggestions_dir() / "edge_types.json"
+    path = suggestions_dir() / "edge_types.json"
     out: dict[str, str] = {}
-    if p.exists():
-        try:
-            data = json.loads(p.read_text(encoding="utf-8"))
-        except Exception:
-            return out
-        for it in data.get("items", []) or []:
-            if it.get("tag"):
-                out[it["tag"]] = (it.get("presentation") or {}).get("color") or "#9aa0a6"
+    if not path.exists():
+        return out
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return out
+    for item in data.get("items", []) or []:
+        if item.get("tag"):
+            out[item["tag"]] = (item.get("presentation") or {}).get("color") or "#9aa0a6"
     return out
 
 
 @lru_cache(maxsize=1)
 def ideation_lenses() -> list[dict[str, Any]]:
-    """SUGGESTED creativity lenses (DATA) surfaced on ideation steps to push the solution space toward
-    non-obvious, innovative concepts (analogy, make-the-invisible-experienceable→simulation, reversal,
-    extreme-user, …). Pure suggestion; editable in suggestions/ideation_lenses.json."""
-    import json
-    p = suggestions_dir() / "ideation_lenses.json"
-    if not p.exists():
+    path = suggestions_dir() / "ideation_lenses.json"
+    if not path.exists():
         return []
     try:
-        data = json.loads(p.read_text(encoding="utf-8"))
+        data = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return []
-    return [{"tag": i.get("tag", ""), "label": i.get("label", ""), "prompt": i.get("prompt", "")}
-            for i in data.get("items", []) or [] if i.get("prompt")]
+    return [{"tag": item.get("tag", ""), "label": item.get("label", ""),
+             "prompt": item.get("prompt", "")}
+            for item in data.get("items", []) or [] if item.get("prompt")]
 
 
 def artifact_palette() -> list[dict[str, Any]]:
-    """The available artifact ARCHETYPES (top-level types with a renderer) as DATA, so the orchestrator
-    can diversify concept KIND instead of defaulting to a form — a guided flow, a comparison, an
-    overview, a card interface, an interactive MODEL (steerable numbers/curve), …. Pure suggestion;
-    invent your own by adding to suggestions/artifact_types.json."""
-    out = [{"tag": tag, "label": v.get("label") or tag, "note": v.get("_note", "")}
-           for tag, v in _hints().items() if v.get("default_template") and not v.get("_parent")]
-    return sorted(out, key=lambda x: x["tag"])
+    out = [{"tag": tag, "label": value.get("label") or tag,
+            "note": value.get("_note", "")}
+           for tag, value in _hints().items()
+           if value.get("default_template") and not value.get("_parent")]
+    return sorted(out, key=lambda item: item["tag"])
 
 
 def resolve_template(type_tag: str, tags: list[str] | None = None,
                      explicit: str | None = None) -> str | None:
-    """Resolve a renderer template for an artifact from DATA. Precedence: an explicit template wins;
-    else a discriminator OF THIS TYPE that a tag matches (the fidelity ladder under `prototype`); else
-    the type's own default_template; else a global tag→template match (back-compat for a tag used as a
-    standalone type). Scoping discriminators to the type prevents a shared discriminator tag (e.g.
-    `midfi`) on one type from hijacking another type's template."""
     if explicit:
         return explicit
     hints = _hints()
-    # 1) a discriminator declared UNDER type_tag (e.g. prototype's lofi/midfi/hifi)
-    for tg in (tags or []):
-        h = hints.get(tg) or {}
-        if h.get("template") and h.get("_parent") == type_tag:
-            return h["template"]
-    # 2) the type's own default renderer (a model tagged `midfi` stays spa-model, self-theming)
+    for tag in tags or []:
+        hint = hints.get(tag) or {}
+        if hint.get("template") and hint.get("_parent") == type_tag:
+            return hint["template"]
     own_default = (hints.get(type_tag) or {}).get("default_template")
     if own_default:
         return own_default
-    # 3) back-compat: a tag that itself maps to a template
-    for tg in (tags or []):
-        tmpl = (hints.get(tg) or {}).get("template")
-        if tmpl:
-            return tmpl
+    for tag in tags or []:
+        template = (hints.get(tag) or {}).get("template")
+        if template:
+            return template
     return None
+
+
+PRESENTATION_PLAN_SCHEMA = "sonaloop.presentation_plan.v1"
+
+# Presentation vocabulary, not methodology vocabulary. Methodology specs choose
+# among these generic visual forms through data-authored deck profiles.
+PRESENTATION_KINDS = (
+    "cover", "decision", "agenda", "section", "summary", "stats",
+    "stimulus_comparison", "persona_grid", "persona_detail",
+    "preference_shift", "annotated_screen", "insight", "quote",
+    "recommendation", "comparison", "timeline", "chart", "table",
+    "image", "next_steps", "source_index", "closing", "content",
+)
+
+_NON_EVIDENCE_KINDS = {"cover", "agenda", "section", "closing", "source_index"}
+
+
+def _strings(value: Any):
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, list):
+        for item in value:
+            yield from _strings(item)
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            if key not in {"speaker_notes", "evidence_refs", "source_refs"}:
+                yield from _strings(item)
+
+
+def visible_word_count(slide: dict[str, Any]) -> int:
+    """Approximate visible copy, excluding notes and machine/source references."""
+    return sum(len(text.split()) for text in _strings(slide))
+
+
+def validate_presentation_plan(payload: dict[str, Any]) -> dict[str, Any]:
+    """Validate and normalize one authored presentation plan.
+
+    Methodology-specific requirements stay in the methodology's
+    ``presentation.deck`` data. This validator enforces only the stable delivery
+    contract shared by every deck.
+    """
+    if not isinstance(payload, dict):
+        raise ValueError("presentation plan must be an object")
+    schema = str(payload.get("schema") or PRESENTATION_PLAN_SCHEMA)
+    if schema != PRESENTATION_PLAN_SCHEMA:
+        raise ValueError(f"presentation plan schema must be {PRESENTATION_PLAN_SCHEMA!r}")
+    for field in ("title", "audience", "objective"):
+        if not str(payload.get(field) or "").strip():
+            raise ValueError(f"presentation plan needs non-empty {field!r}")
+    try:
+        duration = int(payload.get("duration_minutes") or 10)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("duration_minutes must be an integer") from exc
+    if duration < 1 or duration > 180:
+        raise ValueError("duration_minutes must be between 1 and 180")
+
+    core = list(payload.get("slides") or [])
+    appendix = list(payload.get("appendix") or [])
+    if len(core) < 2 or len(core) > 18:
+        raise ValueError("presentation plan needs 2..18 core slides")
+    if len(appendix) > 40:
+        raise ValueError("presentation appendix may contain at most 40 slides")
+
+    normalized: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for appendix_flag, rows in ((False, core), (True, appendix)):
+        for index, raw in enumerate(rows, 1):
+            if not isinstance(raw, dict):
+                raise ValueError("every presentation slide must be an object")
+            slide = dict(raw)
+            sid = str(slide.get("id") or
+                      f"{'appendix' if appendix_flag else 'slide'}_{index}").strip()
+            if sid in seen:
+                raise ValueError(f"duplicate presentation slide id {sid!r}")
+            seen.add(sid)
+            kind = str(slide.get("kind") or "content").strip()
+            if kind not in PRESENTATION_KINDS:
+                raise ValueError(
+                    f"unsupported presentation kind {kind!r}; use one of {PRESENTATION_KINDS}")
+            headline = str(slide.get("headline") or slide.get("title") or "").strip()
+            if not headline:
+                raise ValueError(f"presentation slide {sid!r} needs a headline")
+            if len(headline) > 180:
+                raise ValueError(f"presentation slide {sid!r} headline exceeds 180 characters")
+            notes = dict(slide.get("speaker_notes") or {})
+            if not str(notes.get("talk_track") or "").strip():
+                raise ValueError(f"presentation slide {sid!r} needs speaker_notes.talk_track")
+            refs = [str(value).strip() for value in (slide.get("evidence_refs") or [])
+                    if str(value).strip()]
+            if not appendix_flag and kind not in _NON_EVIDENCE_KINDS and not refs:
+                raise ValueError(f"presentation slide {sid!r} needs evidence_refs")
+            normalized.append({
+                **slide,
+                "id": sid,
+                "kind": kind,
+                "headline": headline,
+                "evidence_refs": list(dict.fromkeys(refs)),
+                "speaker_notes": {
+                    "takeaway": str(notes.get("takeaway") or headline).strip(),
+                    "talk_track": str(notes.get("talk_track") or "").strip(),
+                    "evidence": [str(value).strip() for value in
+                                 (notes.get("evidence") or refs) if str(value).strip()],
+                    "caveats": [str(value).strip() for value in
+                                (notes.get("caveats") or []) if str(value).strip()],
+                    "transition": str(notes.get("transition") or "").strip(),
+                    "backup": [str(value).strip() for value in
+                               (notes.get("backup") or []) if str(value).strip()],
+                    "timing_seconds": max(0, min(900, int(notes.get("timing_seconds") or 0))),
+                },
+                "appendix": appendix_flag,
+            })
+
+    split = len(core)
+    out = {
+        **payload,
+        "schema": PRESENTATION_PLAN_SCHEMA,
+        "version": int(payload.get("version") or 1),
+        "duration_minutes": duration,
+        "slides": normalized[:split],
+        "appendix": normalized[split:],
+    }
+    return out
+
+
+def presentation_plan_qa(plan: dict[str, Any]) -> dict[str, Any]:
+    """Content-design checks that remain useful independently of the master."""
+    core = list(plan.get("slides") or [])
+    warnings: list[dict[str, Any]] = []
+    visual_kinds = {
+        "stats", "stimulus_comparison", "persona_grid", "persona_detail",
+        "preference_shift", "annotated_screen", "comparison", "timeline",
+        "chart", "table", "image",
+    }
+    visual_count = sum(str(slide.get("kind") or "") in visual_kinds for slide in core)
+    for slide in core:
+        words = visible_word_count(slide)
+        if words > 70 and slide.get("kind") not in {"table", "source_index"}:
+            warnings.append({"code": "visible_copy_dense", "slide_id": slide["id"],
+                             "words": words})
+        notes = slide.get("speaker_notes") or {}
+        if slide.get("kind") not in _NON_EVIDENCE_KINDS and not notes.get("caveats"):
+            warnings.append({"code": "speaker_caveat_missing", "slide_id": slide["id"]})
+    if len(core) < 10 and any(slide.get("kind") == "agenda" for slide in core):
+        warnings.append({"code": "agenda_unnecessary_for_short_deck"})
+    if core and core[-1].get("kind") == "closing" and not any(
+            core[-1].get(key) for key in ("items", "steps", "decision", "next_action")):
+        warnings.append({"code": "generic_closing_without_action",
+                         "slide_id": core[-1]["id"]})
+    ratio = visual_count / max(1, len(core))
+    if ratio < 0.6:
+        warnings.append({"code": "too_few_visual_slides", "ratio": round(ratio, 2)})
+    return {
+        "status": "pass" if not warnings else "review",
+        "core_slide_count": len(core),
+        "appendix_slide_count": len(plan.get("appendix") or []),
+        "visual_slide_ratio": round(ratio, 2),
+        "speaker_notes_count": sum(bool(slide.get("speaker_notes", {}).get("talk_track"))
+                                   for slide in core + list(plan.get("appendix") or [])),
+        "warnings": warnings,
+    }

@@ -23,7 +23,21 @@
     "image": "design-sprint.jpg",
     "complexity": "medium",
     "summary": "Map, sketch, decide, prototype, test — a timeboxed run from question to tested concept.",
-    "jobs": "High-stakes decisions you want de-risked fast, before committing to a full build."
+    "jobs": "High-stakes decisions you want de-risked fast, before committing to a full build.",
+    "deck": {
+      "purpose": "Show how a sprint question became one tested direction and a go, iterate or drop decision.",
+      "story_beats": [
+        {"role": "sprint_question", "question": "What risk did the sprint have to resolve?", "preferred_visuals": ["decision", "timeline"]},
+        {"role": "map", "question": "Where in the customer journey is the leverage point?", "preferred_visuals": ["timeline", "annotated_screen"]},
+        {"role": "concepts", "question": "Which genuinely different concepts competed?", "preferred_visuals": ["stimulus_comparison", "comparison"]},
+        {"role": "decision", "question": "Why did one concept win?", "preferred_visuals": ["decision", "table"]},
+        {"role": "prototype_test", "question": "What happened when personas used it?", "preferred_visuals": ["annotated_screen", "preference_shift", "quote"]},
+        {"role": "handoff", "question": "What should the team build or change next?", "preferred_visuals": ["recommendation", "next_steps"]}
+      ],
+      "required_visuals": ["concept gallery", "winning storyboard or prototype", "observed test evidence", "decision"],
+      "appendix": ["discarded concepts", "test sessions", "persona details", "source index"],
+      "avoid": ["showing only the winning idea", "summarizing sessions without the tested prototype", "equating preference with observed usability"]
+    }
   },
   "steps": [
     {
