@@ -167,7 +167,8 @@ def test_stored_plan_renders_visual_story_native_notes_and_appendix(store):
         ],
         "appendix": [
             {"id": "persona-detail", "kind": "persona_detail", "headline": "Persona detail",
-             "items": [{"persona_id": persona_ids[0]}, {"persona_id": persona_ids[1]}],
+             "items": [{"persona_id": persona_ids[0], "quote": "I need a clear start."},
+                       {"persona_id": persona_ids[1], "quote": "Tell me what happens next."}],
              "speaker_notes": notes},
             {"id": "sources", "kind": "source_index", "headline": "Sources",
              "columns": ["Source", "Contribution"],
@@ -189,6 +190,7 @@ def test_stored_plan_renders_visual_story_native_notes_and_appendix(store):
     assert len(deck.slides) == 10  # seven core + appendix divider + two appendix slides
     assert "What participants saw" in visible
     assert "Alba Costa" in visible and "Bruno Keller" in visible
+    assert "I need a clear start." in visible
     assert "6/8" in visible and "8/8" in visible
     assert "Thank you" not in visible
     assert all("TALK TRACK" in slide.notes_slide.notes_text_frame.text

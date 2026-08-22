@@ -470,6 +470,46 @@ def build_persona_grid(s, e):
     e.footer(slide)
 
 
+def build_persona_detail(s, e):
+    """Two appendix-ready persona portraits with lens, role and an evidence-grounded voice."""
+    prs, blank, W, H = e.prs, e.blank, e.W, e.H
+    slide = prs.slides.add_slide(blank); e.bg(slide)
+    e.heading_band(slide, s)
+    items = list(s.get("items") or [])[:2]
+    gap = 0.32
+    card_w = (W.inches - 1.4 - gap) / 2
+    card_h = H.inches - 2.2
+    for index, item in enumerate(items):
+        x = 0.7 + index * (card_w + gap); y = 1.72
+        e.rrect(slide, x, y, card_w, card_h, _PANEL, radius=0.05, line=_LINE)
+        image = _place_image(slide, item.get("avatar"), x + 0.3, y + 0.3,
+                             1.05, 1.05, cover=True)
+        if image is None:
+            e.initials_chip(slide, x + 0.3, y + 0.3, 1.05, item.get("name"))
+        e.text(slide, x + 1.58, y + 0.28, card_w - 1.88, 0.38,
+               str(item.get("name") or ""), size=16, bold=True)
+        e.text(slide, x + 1.58, y + 0.7, card_w - 1.88, 0.52,
+               str(item.get("role") or ""), size=9.5, color=_MUTED,
+               anchor=MSO_ANCHOR.TOP)
+        if item.get("badge"):
+            badge = e.text(slide, x + 0.3, y + 1.53, card_w - 0.6, 0.25,
+                           str(item["badge"]).upper(), size=8.5, bold=True, color=_ACCENT)
+            e.mono_run(badge.text_frame.paragraphs[0].runs[0])
+        e.text(slide, x + 0.3, y + 1.9, card_w - 0.6, 0.72,
+               str(item.get("lens") or ""), size=11.5, color=_INK,
+               anchor=MSO_ANCHOR.TOP)
+        if item.get("quote"):
+            e.rrect(slide, x + 0.3, y + 2.85, card_w - 0.6, card_h - 3.2,
+                    _SURFACE2, radius=0.04, line=_LINE)
+            e.text(slide, x + 0.58, y + 3.12, card_w - 1.16, card_h - 3.72,
+                   f'«{item["quote"]}»', size=14, color=_INK,
+                   anchor=MSO_ANCHOR.MIDDLE)
+    if s.get("footnote"):
+        e.text(slide, 0.7, H.inches - 0.48, W.inches - 1.4, 0.25,
+               s["footnote"], size=9.5, color=_FAINT)
+    e.footer(slide)
+
+
 def build_stimulus_comparison(s, e):
     """Two real stimuli side-by-side; callouts support, never replace, the screens."""
     prs, blank, W, H = e.prs, e.blank, e.W, e.H
@@ -707,7 +747,7 @@ PAINTERS = {
     "chart": build_chart, "charts": build_charts, "table": build_table,
     "comparison": build_comparison, "timeline": build_timeline,
     "stimulus_comparison": build_stimulus_comparison,
-    "persona_grid": build_persona_grid, "persona_detail": build_persona_grid,
+    "persona_grid": build_persona_grid, "persona_detail": build_persona_detail,
     "preference_shift": build_preference_shift,
     "annotated_screen": build_annotated_screen,
     "closing": build_closing, "image": build_image,

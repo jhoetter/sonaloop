@@ -45,6 +45,7 @@ def _persona_item(raw, store: Store) -> dict:
         **item,
         "persona_id": persona_id,
         "name": str(item.get("name") or persona.get("display_name") or persona_id),
+        "role": str(item.get("role") or role.get("title") or ""),
         "lens": lens,
         "avatar": avatar,
     }
