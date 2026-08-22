@@ -716,17 +716,23 @@ def export_synthesis_pptx(synthesis_id: str, store: Store | None = None,
             charts = [c for c in (_figure_to_chart(f, store) for f in figs) if c]
             images = [im for im in (_figure_image(f, store) for f in figs) if im]
             blocks, clipped = _budget_blocks(_md_blocks(sec.get("markdown", "")))
-            foot_parts = []
-            if clipped:
-                foot_parts.append(L["details_in_report"])
-            if sec.get("source_study_ids"):
-                count = len(set(sec["source_study_ids"]))
-                foot_parts.append(
-                    f"{count} Quellen im vollständigen Report" if de
-                    else f"{count} sources in the full report")
+            count = len(set(sec.get("source_study_ids") or []))
+            source_label = (
+                f"{count} {'Quelle' if count == 1 else 'Quellen'}" if de else
+                f"{count} {'source' if count == 1 else 'sources'}")
+            if clipped and count:
+                footnote = (f"Details und {source_label} im vollständigen Report" if de else
+                            f"Details and {source_label} in the full report")
+            elif clipped:
+                footnote = L["details_in_report"]
+            elif count:
+                footnote = (f"{source_label} im vollständigen Report" if de else
+                            f"{source_label} in the full report")
+            else:
+                footnote = ""
             slides.append({"kind": "content", "num": f"{idx:02d}", "heading": headings[idx - 1],
                            "blocks": blocks,
-                           "chart": charts[0] if charts else None, "footnote": " · ".join(foot_parts)})
+                           "chart": charts[0] if charts else None, "footnote": footnote})
             for c in charts[1:]:
                 slides.append({"kind": "content", "num": f"{idx:02d}", "heading": headings[idx - 1],
                                "blocks": [], "chart": c})
