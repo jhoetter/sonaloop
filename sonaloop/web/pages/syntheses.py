@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from fastapi import Request
 from fastapi.responses import RedirectResponse
+from starlette.concurrency import run_in_threadpool
 
 from ._ctx import *  # noqa: F401,F403  (shared render toolkit)
 from .._keymap import sibling_attrs, sibling_urls
@@ -144,9 +145,19 @@ def register_syntheses(app) -> None:
             return gate
         try:
             from .._ext import export_synthesis_deliverable
-            result = export_synthesis_deliverable(
-                synthesis_id, fmt, store=store,
-                audience="stakeholder" if fmt == "pdf" else "presentation")
+            # PDF rendering uses Playwright's synchronous API.  This route is
+            # async because it has to read the multipart form, so rendering it
+            # inline would run the sync browser inside the active asyncio loop
+            # and fail before Chromium is even launched.  Keep both PDF and
+            # PPTX generation off the request loop: exporters are deliberately
+            # synchronous and may also perform CPU-heavy presentation work.
+            result = await run_in_threadpool(
+                export_synthesis_deliverable,
+                synthesis_id,
+                fmt,
+                store=store,
+                audience="stakeholder" if fmt == "pdf" else "presentation",
+            )
         except (KeyError, RuntimeError, ValueError):
             return HTMLResponse(
                 _layout(t("export_failed"), _empty_state(

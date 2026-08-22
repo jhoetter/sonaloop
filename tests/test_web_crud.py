@@ -8,6 +8,7 @@ only, generated prose never editable) is documented in docs/web-mutations.md; th
 absence of any text-edit route for councils/syntheses/SOUL is asserted here too."""
 from __future__ import annotations
 
+import asyncio
 import re
 
 import pytest
@@ -59,11 +60,18 @@ def test_report_exports_are_csrf_protected_post_actions(store, monkeypatch):
 
     calls = []
     from sonaloop.web import _ext
+    def _export(synthesis_id, fmt, **kwargs):
+        # The exporter is synchronous (PDF uses Playwright's sync API) and
+        # therefore must never execute in the route's asyncio event-loop
+        # thread.
+        with pytest.raises(RuntimeError, match="no running event loop"):
+            asyncio.get_running_loop()
+        calls.append((synthesis_id, fmt, kwargs["audience"]))
+        return {"asset_id": "asset_exported"}
+
     monkeypatch.setattr(
         _ext, "export_synthesis_deliverable",
-        lambda synthesis_id, fmt, **kwargs: (
-            calls.append((synthesis_id, fmt, kwargs["audience"]))
-            or {"asset_id": "asset_exported"}))
+        _export)
     missing_csrf = client.post(pdf_url, data={}, follow_redirects=False)
     assert missing_csrf.status_code == 403
     exported = _post(client, pdf_url)
