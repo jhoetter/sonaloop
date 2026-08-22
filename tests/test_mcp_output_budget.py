@@ -415,6 +415,7 @@ def build_fixture(store: Store) -> dict[str, Any]:
             {"heading": "Trust blockers", "intent": "Why the premium tier stalls in procurement",
              "source_study_ids": [ids["synthesis_id"]], "theme_tags": ["trust"]},
         ]}, store=store)
+    ids["report_id"] = report["id"]
     ids["report_section_id"] = report["sections"][0]["id"]
     services.set_project_methodology(project_id, "double_diamond", store=store)
     ids["run_id"] = services.start_run(project_id, store=store)["run_id"]
@@ -492,6 +493,8 @@ def _tool_args(ids: dict[str, Any]) -> dict[str, dict]:
         "brief_survey": {"project_id": proj},
         "brief_synthesis_outline": {"project_id": proj},
         "brief_synthesis_section": {"project_id": proj, "section_id": ids["report_section_id"]},
+        "brief_presentation": {"synthesis_id": ids["report_id"],
+                               "audience": "stakeholder", "duration_minutes": 10},
         "export_plan_md": {"project_id": proj},
         "get_plan": {"project_id": proj},
         "project_health": {"project_id": proj},

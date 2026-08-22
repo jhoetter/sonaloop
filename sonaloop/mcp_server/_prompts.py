@@ -163,8 +163,11 @@ Loop (cap ~10 councils):
 
 Hard rule: personas are STATELESS across councils -- every next question must stand alone (include the
 essential briefing + the precise new angle); never write "building on the last council". Cross-reference
-councils by id; never copy their voices verbatim. Finish with export_synthesis(id) -- that report is the
-answer the user reads.
+councils by id; never copy their voices verbatim. When the report is complete, call
+brief_presentation(id, audience, duration) -> author a decision-led presentation_plan.v1 from the
+methodology profile, evidence, personas and assets -> record_presentation_plan(id, plan, stable
+operation_id) -> export_synthesis(id). The presentation is a visual meeting story with native speaker
+notes and a detail appendix, not one slide per report section. The report remains the complete answer.
 """
 
     @mcp.prompt(title="Run a Double-Diamond design-thinking project",
@@ -188,6 +191,8 @@ critic dispatches author
 the completeness verdict via record_completeness_critic + record_critic_round) until run_step returns
 kind=='done'. The engine — not your judgment — ends the run: gates passed != finished, and "Discover
 and Define are complete" is the midpoint, not an ending. assess_project is the pulse along the way.
+After the engine is done and its report exists, brief_presentation -> author +
+record_presentation_plan -> export_synthesis for the stakeholder hand-off.
 
 - Discover -> Define: frame user-research questions grounded in persona memory -> a FEW real
   multi-persona councils (run_council) -> synthesize key problems + a sharp POV (the surprising core

@@ -47,7 +47,8 @@ for agency-specific or opaque names, from portable placeholder structure:
 | `cover`, `title` | `cover` |
 | `agenda` | `agenda`, then `content` |
 | `section`, `canvas-section` | `section` |
-| `comparison`, `charts` | `two_column`, then `content` |
+| `comparison`, `charts`, `stimulus_comparison` | `two_column`, then `content` |
+| `persona_grid`, `persona_detail`, `preference_shift`, `annotated_screen` | `content`, `two_column`, or `image` |
 | `image` | `image`, then `content` |
 | `closing` | `closing`, then `section`/`cover` |
 | all other report slides | `content`, `two_column`, or `image` |
@@ -71,6 +72,49 @@ palette. The generated Sonaloop canvas, logo, footer, and forced Geist/Geist Mon
 names are suppressed. Each export records a content-free QA result covering exact master
 part retention, layout use, filled placeholders, slide bounds, explicit font overrides,
 and colors outside the derived master palette.
+
+## Evidence-led presentation plan
+
+An uploaded master is a brand adapter, not the presentation author. Sonaloop stores a
+brand-neutral `sonaloop.presentation_plan.v1` on the completed report before rendering a
+high-quality deck:
+
+1. `brief_presentation(synthesis_id, audience, duration_minutes)` gathers the report,
+   evidence graph, cohort, project assets, result schemas, methodology, and that
+   methodology's data-authored `presentation.deck` profile.
+2. The host authors one decision-led story using the brief. It must not copy report
+   sections one-for-one.
+3. `record_presentation_plan(synthesis_id, plan, operation_id)` validates and persists the
+   plan. Reusing an operation id with different content fails closed.
+4. The normal PPTX export compiles the stored plan into editable native PowerPoint shapes
+   and then adapts them to the active workspace master. Reports without a plan retain the
+   legacy deterministic export.
+
+Every core evidence slide carries `evidence_refs`; every slide carries structured
+`speaker_notes` with a required `talk_track` and optional takeaway, timing, evidence,
+caveats, backup, and transition. Those fields are written into the native PowerPoint notes
+body rather than shown on the canvas. The validation layer accepts only a stable generic
+presentation vocabulary. Methodology semantics stay in data, under
+`methodologies/*.json → presentation.deck`, so a new methodology can define its story
+beats, required visuals, appendix and anti-patterns without renderer code.
+
+The core deck is the meeting narrative: conclusion first, visual evidence second, explicit
+decision/next action last. Detailed persona profiles, response matrices, method notes,
+limitations and source indexes belong in `appendix`. Short decks do not receive a filler
+agenda or generic thank-you slide. The renderer currently supports:
+
+- decision forms: `decision`, `insight`, `recommendation`, `risk`, `next_steps`;
+- evidence forms: `stimulus_comparison`, `annotated_screen`, `preference_shift`,
+  `persona_grid`, `persona_detail`, `quote`, `voices`;
+- analytic forms: `stats`, `chart`, `charts`, `comparison`, `table`, `timeline`,
+  `summary`, `pillars`; and
+- structural forms: `cover`, `agenda`, `section`, `content`, `image`, `source_index`,
+  `closing`.
+
+`presentation_plan_qa` reports visible-copy density, visual-slide ratio, unnecessary
+agendas, actionless closings, missing caveat notes and note coverage. These checks concern
+the information design independently of the customer's master; package/master QA remains a
+separate export-stage check.
 
 ## Design hand-off contract
 
