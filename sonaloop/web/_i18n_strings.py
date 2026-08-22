@@ -420,6 +420,9 @@ STRINGS: dict[str, dict[str, str]] = {
         "run_active_n_one": "1 Run aktiv", "run_active_n": "{n} Runs aktiv",
         "run_setup_n_one": "1 Job wartet auf Eingabe", "run_setup_n": "{n} Jobs warten auf Eingabe",
         "run_stalled_n_one": "1 Job braucht Aufmerksamkeit", "run_stalled_n": "{n} Jobs brauchen Aufmerksamkeit",
+        "job_exp_result_ready": "Ergebnisse verfügbar", "job_exp_in_progress": "Analyse läuft", "job_exp_input_required": "Deine Eingabe wird benötigt", "job_exp_completed": "Abgeschlossen", "job_exp_paused": "Zwischenstand gespeichert", "job_exp_created": "Vorbereitet",
+        "job_exp_result_ready_desc": "Die bisherigen Ergebnisse können angesehen, geteilt und exportiert werden.", "job_exp_in_progress_desc": "Sonaloop arbeitet weiter; bisher ist keine Aktion nötig.", "job_exp_input_required_desc": "Für den nächsten sinnvollen Schritt fehlt noch eine Angabe.", "job_exp_completed_desc": "Die Analyse ist abgeschlossen.", "job_exp_paused_desc": "Alles bisher Erarbeitete ist gespeichert. Der technische Lauf kann bei Bedarf fortgesetzt werden.", "job_exp_created_desc": "Der Auftrag ist angelegt und bereit für den Start.",
+        "job_exp_open_result": "Ergebnis ansehen", "job_exp_results_h": "Ergebnisse", "job_exp_research_details": "Forschungsdetails anzeigen",
         "run_expired_n_one": "1 Run ist abgelaufen", "run_expired_n": "{n} Runs sind abgelaufen",
         "run_events_n": "{n} Ereignisse", "run_events_n_one": "1 Ereignis",
         # keyboard shortcuts + ? cheat sheet (ticket keyboard-shortcuts-cheatsheet)
@@ -953,6 +956,9 @@ STRINGS: dict[str, dict[str, str]] = {
         "run_active_n_one": "1 run active", "run_active_n": "{n} runs active",
         "run_setup_n_one": "1 job awaits input", "run_setup_n": "{n} jobs await input",
         "run_stalled_n_one": "1 job needs attention", "run_stalled_n": "{n} jobs need attention",
+        "job_exp_result_ready": "Results available", "job_exp_in_progress": "Analysis in progress", "job_exp_input_required": "Your input is needed", "job_exp_completed": "Completed", "job_exp_paused": "Progress saved", "job_exp_created": "Prepared",
+        "job_exp_result_ready_desc": "The results so far are ready to review, share and export.", "job_exp_in_progress_desc": "Sonaloop is continuing; no action is needed right now.", "job_exp_input_required_desc": "One detail is still needed for the next meaningful step.", "job_exp_completed_desc": "The analysis is complete.", "job_exp_paused_desc": "Everything produced so far is saved. The technical run can be continued if needed.", "job_exp_created_desc": "The assignment has been created and is ready to start.",
+        "job_exp_open_result": "View result", "job_exp_results_h": "Results", "job_exp_research_details": "Show research details",
         "run_expired_n_one": "1 run expired", "run_expired_n": "{n} runs expired",
         "run_events_n": "{n} events", "run_events_n_one": "1 event",
         # keyboard shortcuts + ? cheat sheet (ticket keyboard-shortcuts-cheatsheet)

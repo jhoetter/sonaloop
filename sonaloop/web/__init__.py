@@ -35,6 +35,7 @@ from ._ext import (  # noqa: F401  (public extension surface for sonaloop-cloud 
     set_theme_overrides, reset_theme_overrides, set_brand, load_extensions,
     set_runtime_brand, reset_runtime_brand,
     set_identity, reset_identity, current_identity,
+    set_surface_mode, reset_surface_mode, current_surface_mode, is_customer_surface,
 )
 from ._components import _layout as _layout  # noqa: F401  (wrapped publicly as render_page)
 

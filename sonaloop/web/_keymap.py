@@ -102,12 +102,15 @@ def _kbd_html(keys: str) -> str:
 def keymap_markup() -> str:
     """Per-request cheat-sheet overlay (localised, grouped by scope) + the keymap JSON
     config — BOTH generated from BINDINGS, so the sheet can never miss a binding."""
+    from ._ext import is_customer_surface
+    bindings = [b for b in BINDINGS
+                if not (is_customer_surface() and b.get("action", {}).get("nav") == "/runs")]
     labels = _scope_labels()
     groups = []
     for scope in _SCOPES:
         rows = [h("div", {"class_": "km-row"},
                   h("span", {"class_": "km-d"}, b["desc"]()), raw(_kbd_html(b["keys"])))
-                for b in BINDINGS if b["scope"] == scope]
+                for b in bindings if b["scope"] == scope]
         if rows:
             groups.append(h("div", {"class_": "km-grp"},
                             h("h3", {}, labels[scope]), *rows))
@@ -122,7 +125,7 @@ def keymap_markup() -> str:
                       raw('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"'
                           ' stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'))),
                   *groups))
-    cfg = json.dumps({"bindings": [{"keys": b["keys"], "action": b["action"]} for b in BINDINGS]})
+    cfg = json.dumps({"bindings": [{"keys": b["keys"], "action": b["action"]} for b in bindings]})
     return overlay + h("script", {"id": "km-cfg", "type": "application/json"}, raw(cfg))
 
 

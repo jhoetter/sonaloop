@@ -244,6 +244,10 @@ def enrich_research_project(
     return {**summary,
             **({"run_state": rs} if rs else {}),
             "studies": sum(1 for n in graph["nodes"] if n.get("kind") == "synthesis"),
+            "reports": len(graph.get("reports") or []),
+            "job_outcomes": len(graph.get("job_outcomes") or []),
+            "deliverables": sum(1 for asset in graph.get("assets") or []
+                                if asset.get("direction") == "out"),
             "councils": sum(1 for n in graph["nodes"] if n.get("kind") == "council"),
             "notes": sum(1 for n in graph["nodes"] if n.get("kind") == "note"),
             "prototypes": len(protos),

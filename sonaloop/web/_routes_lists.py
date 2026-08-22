@@ -120,6 +120,8 @@ def _projects_page(page: int = 1, q: str = "") -> str:
     batch = services._research._project_count_batch(store)
     visible = [services._research.enrich_research_project(p, store, _batch=batch) for p in visible]
     rows = []
+    from ._ext import is_customer_surface
+    customer_surface = is_customer_surface()
     for p in visible:
         plan = services.get_plan(p["id"], store=store)
 
@@ -137,6 +139,9 @@ def _projects_page(page: int = 1, q: str = "") -> str:
                     return key
 
         def _run_label() -> str | None:
+            if customer_surface:
+                from ._job_experience import job_experience_badge
+                return job_experience_badge(p)
             # ``enrich_research_project`` already projects the canonical run state for
             # every visible row.  Re-running ``project_health`` here used to repeat the
             # full evidence/ref/report integrity walk solely to paint the badge (up to

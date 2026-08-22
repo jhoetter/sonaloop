@@ -27,6 +27,9 @@ packages plug in WITHOUT the core ever importing them, via four seams:
   7. Deliverable export — register_synthesis_export_provider(fn) lets a hosting
                extension add workspace branding/master-slide handling while the
                public report page keeps one export action and one route.
+  8. Surface mode — set_surface_mode("customer" | "operator") lets an authenticated
+               host keep support/run diagnostics available to operators without
+               presenting engine internals as customer work.
 
 Labels are `str | Callable[[], str]`: pass a literal, or a lambda that resolves the
 label per request when it must (i18n) — e.g. one that returns t(<your-key>). Slot/route callables are trusted
@@ -43,6 +46,38 @@ from typing import Any, Callable
 # customer-theme contract (theming validates the SAME shapes loudly at persist time;
 # this seam stays fail-soft at render time).
 from ..theming import _VAL_RE, _VAR_RE  # noqa: F401
+
+
+# ---------------------------------------------------------------------------
+# Presentation surface
+# ---------------------------------------------------------------------------
+
+_SURFACE_MODE: contextvars.ContextVar[str] = contextvars.ContextVar(
+    "sonaloop_surface_mode", default="operator")
+
+
+def set_surface_mode(mode: str) -> contextvars.Token:
+    """Select the request-local presentation contract.
+
+    Local/open-core remains operator-first. Hosted products explicitly opt into
+    the customer projection after authentication and tenant binding.
+    """
+    value = str(mode or "operator").strip().casefold()
+    if value not in {"customer", "operator"}:
+        raise ValueError("surface mode must be 'customer' or 'operator'")
+    return _SURFACE_MODE.set(value)
+
+
+def reset_surface_mode(token: contextvars.Token) -> None:
+    _SURFACE_MODE.reset(token)
+
+
+def current_surface_mode() -> str:
+    return _SURFACE_MODE.get()
+
+
+def is_customer_surface() -> bool:
+    return current_surface_mode() == "customer"
 
 # ---------------------------------------------------------------------------
 # Nav registry

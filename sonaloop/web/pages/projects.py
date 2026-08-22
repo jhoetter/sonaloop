@@ -236,6 +236,8 @@ def register_projects(app) -> None:
         except KeyError:
             return _layout(t("not_found"), _empty_state(t("not_found"), t("runtime_maybe_cleared"), icon="projects"), store, active="projects")
         proj = graph["project"]
+        from .._ext import is_customer_surface
+        customer_surface = is_customer_surface()
         plan = services.get_plan(proj["id"], store=store)
         def _methodology_name() -> str:
             key = (plan or {}).get("methodology") or proj.get("methodology") or ""
@@ -253,7 +255,7 @@ def register_projects(app) -> None:
         # Plan opens in a right drawer. Reports are NOT a top-bar button anymore — they're listed
         # inline in the outline as first-class artifacts (add as many as you like; they flow into the project).
         top_btn = ""
-        if plan:
+        if plan and not customer_surface:
             plan_url = f'/jobs/{proj["id"]}/plan'
             top_btn = h("a", {"class_": "sl-toolbtn sl-tour-plan-chip", "href": plan_url,
                               "data-drawer": plan_url, "data-drawer-title": t("plan_h")},
@@ -316,7 +318,13 @@ def register_projects(app) -> None:
             health = cached_project_health(proj["id"], store=store)
         except Exception:
             health = {}
-        run_chip = project_run_chip(proj["id"], store, run_state=health)
+        run_chip = ("" if customer_surface else
+                    project_run_chip(proj["id"], store, run_state=health))
+        from .._job_experience import customer_job_header, customer_results
+        experience_header = (customer_job_header(proj, graph, health)
+                             if customer_surface else "")
+        experience_results = (customer_results(proj["id"], graph)
+                              if customer_surface else "")
         # The graph projection is deliberately lean and does not carry request-boundary
         # attribution. Read the canonical project row for this one presentation field;
         # only its display snapshot is rendered (never the opaque actor id).
@@ -356,6 +364,7 @@ def register_projects(app) -> None:
                                            edit_label=t("f_project_icon"))),
                      proj["title"]),
                    h("p", {"class_": "lead"}, proj.get("goal", "")),
+                   raw(experience_header),
                    (h("p", {
                        "class_": "sl-project-creator",
                        **({"title": origin_hint,
@@ -368,9 +377,16 @@ def register_projects(app) -> None:
                     if str(project_record.get("status") or "") == "archived" else None),
                    raw(_project_lineage_html(project_record, store)),
                    h("div", {"class_": "pills"}, raw(run_chip)),
-                   bar),
-                 raw(_project_setup_details_html(project_record, store)),
-                 main_view) + raw(project_icon_edit_script())
+                   bar if not customer_surface else None),
+                 (raw(_project_setup_details_html(project_record, store))
+                 if not customer_surface else None),
+                 (fragment(
+                    raw(experience_results),
+                    h("details", {"class_": "sl-job-details"},
+                      h("summary", {}, t("job_exp_research_details")),
+                      bar, main_view))
+                  if customer_surface and experience_results
+                  else main_view)) + raw(project_icon_edit_script())
         # Write affordances (web CRUD, V10 §9): the ONE visible "…" overflow — Edit opens the
         # metadata dialog over the page, Delete the typed-confirm modal. No create buttons
         # (notes/sections/jobs are created by the MCP/CLI host).

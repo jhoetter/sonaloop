@@ -97,6 +97,55 @@ def test_topbar_widget_hidden_at_zero_runs(store):
     assert ">1 job needs attention</span>" in html.split('id="runsw-count"')[1][:80]
 
 
+def test_customer_surface_hides_run_chrome_and_uses_customer_job_state(store):
+    project_id = _planned(store, "CUSTOMER-FACING PROJECT")
+    from sonaloop.web import reset_surface_mode, set_surface_mode
+    from sonaloop.web._keymap import keymap_markup
+    from sonaloop.web._palette_registry import palette_nav
+
+    token = set_surface_mode("customer")
+    try:
+        list_html = _client().get("/jobs?lang=en").text
+        detail_html = _client().get(f"/jobs/{project_id}?lang=en").text
+        assert web.STRINGS["en"]["job_exp_paused"] in list_html
+        assert web.STRINGS["en"]["job_exp_paused_desc"] in detail_html
+        assert 'id="runsw"' not in detail_html
+        assert 'id="runchip"' not in detail_html
+        assert 'class="sl-toolbtn sl-tour-plan-chip"' not in detail_html
+        assert web.STRINGS["en"]["run_stalled_n_one"] not in detail_html
+        assert all(row["url"] != "/runs" for row in palette_nav())
+        assert '"nav": "/runs"' not in keymap_markup()
+    finally:
+        reset_surface_mode(token)
+
+
+def test_customer_project_leads_with_available_results_and_collapses_research_detail(store):
+    project_id = _planned(store, "RESULT-FIRST PROJECT")
+    synthesis = S.record_synthesis(
+        "Mobile banking findings", "What do customers understand?", [],
+        {"gesamtbild": "The migration message needs a clearer first step."},
+        project_id=project_id, store=store,
+    )
+    from sonaloop.web import reset_surface_mode, set_surface_mode
+
+    token = set_surface_mode("customer")
+    try:
+        response = _client().get(f"/jobs/{project_id}?lang=en")
+        assert response.status_code == 200
+        html = response.text
+        assert 'data-job-experience="result_ready"' in html
+        assert web.STRINGS["en"]["job_exp_result_ready"] in html
+        assert f'href="/syntheses/{synthesis["id"]}"' in html
+        assert "Mobile banking findings" in html
+        assert 'class="sl-job-details"' in html
+        details_tag = html[html.index('<details class="sl-job-details"'):
+                           html.index('>', html.index('<details class="sl-job-details"')) + 1]
+        assert " open" not in details_tag
+        assert 'id="runchip"' not in html
+    finally:
+        reset_surface_mode(token)
+
+
 def test_topbar_ssr_uses_light_attention_projection_without_full_health(store, monkeypatch):
     """Every ordinary page gets the topbar.  Its SSR pass must classify only the
     visible lanes, without claim/report verification for every workspace job.

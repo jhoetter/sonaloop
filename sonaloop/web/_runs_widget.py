@@ -461,6 +461,9 @@ def runs_widget_markup(store: Store) -> str:
     the static fallback IS the initial state). JS only mutates it on live events.
     At zero the whole chip is hidden (§9 V7) — the markup still ships so a live event
     can unhide it without a reload."""
+    from ._ext import is_customer_surface
+    if is_customer_surface():
+        return ""
     # The /runs page has already paid for the canonical full projection in this
     # same request; reuse it there.  Ordinary pages never trigger that work just
     # for chrome and take the lightweight path.
