@@ -408,6 +408,7 @@ def inspect_master_template(data: bytes) -> dict[str, Any]:
     if not any(item["placeholder_count"] for item in layouts):
         warnings.append({"code": "no_placeholders"})
     return {
+        "profile_version": 2,
         "layout_count": len(layouts),
         "layouts": layouts,
         "role_counts": dict(sorted(roles.items())),
