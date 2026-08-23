@@ -87,6 +87,11 @@ both. When `deck.master_asset_ref` points at an approved 16:9 `.pptx`, its theme
 masters and layouts are retained while uploaded sample slides are discarded. Without
 one, the polished Sonaloop deck is the deterministic default.
 
+Generated deliverables are hand-off actions, not incoming evidence alerts. Their whole file
+card downloads the binary directly and their `asset.attached` live event is deliberately quiet;
+the generic asset provenance screen is reserved for explicit inspection. Incoming assets keep
+their detail-drawer flow.
+
 These downloads are delivery projections of already recorded evidence. They remain
 available while the underlying governed run is active and are attached with dispatch
 state `delivery`; creating one never consumes, completes, or checkpoints the run's
@@ -103,7 +108,8 @@ dispatch contract.
 - **Project outline** (`/jobs/{id}`): every project asset appears in context
   under an Assets subgroup for incoming files, or in the final Deliver group
   when the software generated it. Multiple files form a compact responsive
-  gallery with bounded previews; each file still opens its canonical detail.
+  gallery with bounded previews. Incoming evidence opens its canonical detail; generated
+  deliverables download directly from the file card.
 - **Report detail** (`/syntheses/{id}`): consecutive unplaced asset figures form
   the same kind of responsive gallery. Explicitly positioned figures and charts
   retain the report's reading width; print/export restores the figures' natural height.

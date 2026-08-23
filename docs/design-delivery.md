@@ -83,7 +83,8 @@ high-quality deck:
    evidence graph, cohort, project assets, result schemas, methodology, and that
    methodology's data-authored `presentation.deck` profile.
 2. The host authors one decision-led story using the brief. It must not copy report
-   sections one-for-one.
+   sections one-for-one. The default pacing is one slide per 60–90 seconds, so a
+   ten-minute readout normally has six to eight core slides.
 3. `record_presentation_plan(synthesis_id, plan, operation_id)` validates and persists the
    plan. Reusing an operation id with different content fails closed.
 4. The normal PPTX export compiles the stored plan into editable native PowerPoint shapes
@@ -99,20 +100,26 @@ presentation vocabulary. Methodology semantics stay in data, under
 beats, required visuals, appendix and anti-patterns without renderer code.
 
 The core deck is the meeting narrative: conclusion first, visual evidence second, explicit
-decision/next action last. Detailed persona profiles, response matrices, method notes,
-limitations and source indexes belong in `appendix`. Short decks do not receive a filler
-agenda or generic thank-you slide. The renderer currently supports:
+decision/next action last. Related proof is composed into one information-rich frame rather
+than spread across sparse finding slides. `decision_dashboard` combines the decision,
+denominator/strength and up to three reasons. `revision_mockup` puts the admitted current
+stimulus next to an editable replacement screen/copy/CTA proposal; it is not a flattened
+decorative image. Detailed response matrices, method notes, limitations and source indexes
+belong in `appendix`; persona details are included only when they help the decision. Short
+decks do not receive a filler agenda or generic thank-you slide. The renderer supports:
 
-- decision forms: `decision`, `insight`, `recommendation`, `risk`, `next_steps`;
-- evidence forms: `stimulus_comparison`, `annotated_screen`, `preference_shift`,
+- decision forms: `decision_dashboard`, `decision`, `insight`, `recommendation`, `risk`,
+  `next_steps`;
+- evidence forms: `stimulus_comparison`, `annotated_screen`, `revision_mockup`, `preference_shift`,
   `persona_grid`, `persona_detail`, `quote`, `voices`;
 - analytic forms: `stats`, `chart`, `charts`, `comparison`, `table`, `timeline`,
   `summary`, `pillars`; and
 - structural forms: `cover`, `agenda`, `section`, `content`, `image`, `source_index`,
   `closing`.
 
-`presentation_plan_qa` reports visible-copy density, visual-slide ratio, unnecessary
-agendas, actionless closings, missing caveat notes and note coverage. These checks concern
+`presentation_plan_qa` reports visible-copy density, visual-slide ratio, core-slide pacing
+against duration, overbuilt appendices, unnecessary agendas, actionless closings, missing
+caveat notes and note coverage. These checks concern
 the information design independently of the customer's master; package/master QA remains a
 separate export-stage check.
 
