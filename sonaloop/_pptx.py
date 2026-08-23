@@ -372,6 +372,7 @@ def render(slides: list[dict], *, title: str = "Report",
                    SimpleNamespace(CANVASES={}, LOGOS={}, ICONS=_da.ICONS))
     eng = SimpleNamespace(
         prs=prs, blank=blank, W=W, H=H, title=title, rgb=rgb, da=deck_assets, num=_num,
+        master_mode=master_mode,
         bg=_bg, box=_box, run=_run, rule=_rule, footer=_footer,
         text=_text, rrect=_rrect, connector=_connector, dot=_dot, noshadow=_noshadow,
         est_h=_est_h, callout_box=_callout_box, chart=_chart, pic=_pic, pic_cover=_pic_cover,

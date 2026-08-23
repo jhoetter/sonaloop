@@ -551,11 +551,11 @@ def build_preference_shift(s, e):
                 line=_ACCENT if highlighted else _LINE)
         e.text(slide, x + 0.35, 2.16, 4.05, 0.32,
                str(item.get("label") or ""), size=11, bold=True,
-               color=_ACCENT if highlighted else _MUTED)
+               color=_INK if highlighted else _MUTED)
         value, total = str(item.get("value") or ""), str(item.get("total") or "")
         display = f"{value}/{total}" if total and "/" not in value else value
         e.text(slide, x + 0.35, 2.62, 4.05, 0.92, display, size=48, bold=True,
-               color=_ACCENT if highlighted else _INK, anchor=MSO_ANCHOR.MIDDLE)
+               color=_INK, anchor=MSO_ANCHOR.MIDDLE)
         e.text(slide, x + 0.35, 3.68, 4.05, 0.48,
                str(item.get("detail") or ""), size=11, color=_MUTED,
                anchor=MSO_ANCHOR.TOP)

@@ -9,7 +9,7 @@ from ._deck import PALETTE as _PALETTE
 _INK = _PALETTE["ink"]
 _MUTED = _PALETTE["muted"]
 _ACCENT = _PALETTE["accent"]
-_BG = _PALETTE["bg"]
+_ACCENT_INK = _PALETTE["accentInk"]
 _PANEL = _PALETTE["panel"]
 _LINE = _PALETTE["line"]
 _SURFACE2 = _PALETTE["surface2"]
@@ -60,7 +60,7 @@ def build_decision_dashboard(s, e):
                    Inches(metric_w - 0.56), Inches(metric_h - 0.3))
         tf.vertical_anchor = MSO_ANCHOR.MIDDLE
         e.run(tf.paragraphs[0], str(item.get("value") or ""), size=30, bold=True,
-              color=_ACCENT if index == 0 else _INK)
+              color=_INK)
         p = tf.add_paragraph(); p.space_before = Pt(3)
         e.run(p, str(item.get("label") or ""), size=10.5, bold=True)
         if item.get("detail") or item.get("sub"):
@@ -133,7 +133,9 @@ def build_revision_mockup(s, e):
     if primary:
         e.rrect(slide, card_x + 0.34, button_y, 2.15, 0.48, _ACCENT, radius=0.08)
         e.text(slide, card_x + 0.34, button_y + 0.05, 2.15, 0.3, primary,
-               size=9.5, bold=True, color=_BG, align=PP_ALIGN.CENTER,
+               size=9.5, bold=True,
+               color=_INK if e.master_mode else _ACCENT_INK,
+               align=PP_ALIGN.CENTER,
                anchor=MSO_ANCHOR.MIDDLE)
     if secondary:
         e.rrect(slide, card_x + 2.65, button_y, 2.15, 0.48, _PANEL,

@@ -206,6 +206,7 @@ def test_stored_plan_renders_visual_story_native_notes_and_appendix(store):
     assert "6/8" in visible and "8/8" in visible
     assert "Use B as the base" in visible and "Plan ten uninterrupted minutes" in visible
     assert "Start switch" in visible and "Bruno Keller" in visible
+    assert "Evidence, method and sources" in visible
     assert "Thank you" not in visible
     assert all("TALK TRACK" in slide.notes_slide.notes_text_frame.text
                for slide in deck.slides)

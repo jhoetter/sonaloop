@@ -185,8 +185,8 @@ def compile_presentation_plan_slides(report: dict, store: Store, title: str,
     if appendix:
         slides.append({
             "kind": "section", "num": "A", "title": "Anhang" if de else "Appendix",
-            "subtitle": "Vertiefung, Persona-Details und Quellen" if de else
-                        "Detail, persona profiles and sources",
+            "subtitle": "Evidenz, Methode und Quellen" if de else
+                        "Evidence, method and sources",
             "speaker_notes": {"takeaway": "Appendix", "talk_track":
                               "Use the following slides for questions and evidence detail."},
         })
