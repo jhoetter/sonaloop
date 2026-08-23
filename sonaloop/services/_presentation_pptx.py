@@ -96,6 +96,16 @@ def compile_presentation_plan_slides(report: dict, store: Store, title: str,
                     "eyebrow": str(slide.get("eyebrow") or eyebrow),
                     "statement": headline, "support": _support(slide, strip_md),
                     "meta": str(slide.get("meta") or "")}
+        if kind == "decision_dashboard":
+            decision = dict(slide.get("decision") or {})
+            if not decision:
+                decision = {"text": headline}
+            return {
+                **common, "kind": kind, "heading": headline,
+                "decision": decision,
+                "metrics": list(slide.get("metrics") or []),
+                "rationale": list(slide.get("rationale") or slide.get("items") or []),
+            }
         if kind in {"persona_grid", "persona_detail"}:
             rows = slide.get("items") or slide.get("personas") or slide.get("persona_ids") or []
             return {**common, "kind": kind, "heading": headline,
@@ -115,7 +125,8 @@ def compile_presentation_plan_slides(report: dict, store: Store, title: str,
             return {**common, "kind": kind, "heading": headline,
                     "before": dict(slide.get("before") or {}),
                     "after": dict(slide.get("after") or {}),
-                    "switchers": list(slide.get("switchers") or []),
+                    "switchers": [_persona_item(row, store)
+                                  for row in (slide.get("switchers") or [])],
                     "switch_label": str(slide.get("switch_label") or
                                         ("Gewechselt" if de else "Changed"))}
         if kind == "annotated_screen":
@@ -124,6 +135,19 @@ def compile_presentation_plan_slides(report: dict, store: Store, title: str,
                         project_id,
                         slide.get("asset_id") or slide.get("image_ref") or slide.get("image"), store),
                     "annotations": list(slide.get("annotations") or [])}
+        if kind == "revision_mockup":
+            return {
+                **common, "kind": kind, "heading": headline,
+                "image": _asset_path(
+                    project_id,
+                    slide.get("asset_id") or slide.get("image_ref") or slide.get("image"), store),
+                "source_label": str(slide.get("source_label") or
+                                    ("Heute" if de else "Current")),
+                "proposal_label": str(slide.get("proposal_label") or
+                                      ("Vorschlag" if de else "Proposed")),
+                "proposal": dict(slide.get("proposal") or {}),
+                "why": list(slide.get("why") or []),
+            }
         if kind in {"next_steps", "timeline"}:
             return {**common, "kind": "timeline", "heading": headline,
                     "steps": list(slide.get("steps") or slide.get("items") or [])}

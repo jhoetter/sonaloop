@@ -69,7 +69,8 @@ def test_methodology_exposes_data_authored_deck_profile(store):
     assert {row["role"] for row in profile["story_beats"]} >= {
         "decision", "stimulus", "cohort", "reaction", "revision",
     }
-    assert "persona details" in profile["appendix"]
+    assert "6–8" in profile["target_core_slides"]
+    assert "response table by persona" in profile["appendix"]
 
 
 def test_presentation_plan_validation_and_qa():
@@ -93,6 +94,7 @@ def test_brief_and_retry_safe_record(store):
     assert brief["methodology"]["result_contract"]["schemas"][0]["id"] == \
         "stimulus_reaction.v1"
     assert brief["output_contract"]["schema"] == PRESENTATION_PLAN_SCHEMA
+    assert "decision_dashboard" in brief["output_contract"]["preferred_blueprints"]
 
     first = services.record_presentation_plan(
         report["id"], _plan(), operation_id="deck-v1", store=store)
@@ -149,16 +151,26 @@ def test_stored_plan_renders_visual_story_native_notes_and_appendix(store):
              "before": {"label": "Blind reaction", "value": 6, "total": 8,
                         "detail": "B preferred"},
              "after": {"label": "After explanation", "value": 8, "total": 8,
-                       "detail": "B preferred"},
-             "switchers": ["Bruno", "Clara"], "evidence_refs": ["council:round-2"],
+                        "detail": "B preferred"},
+             "switchers": [{"persona_id": persona_ids[1], "reason": "Context resolved the risk"}],
+             "evidence_refs": ["council:round-2"],
              "speaker_notes": notes},
-            {"id": "revision", "kind": "annotated_screen", "headline": "Make the interruption risk explicit",
+            {"id": "revision", "kind": "revision_mockup", "headline": "Make the interruption risk explicit",
              "asset_id": screen["id"],
-             "annotations": [{"title": "Set expectation", "text": "Plan ten uninterrupted minutes."},
-                             {"title": "Name consequence", "text": "An aborted switch restarts."}],
+             "proposal": {"eyebrow": "Before you start", "headline": "Plan ten uninterrupted minutes",
+                          "body": "If you leave the process, the switch restarts.",
+                          "primary_cta": "Start switch", "secondary_cta": "Later"},
+             "why": ["Sets expectation", "Names the restart consequence"],
              "evidence_refs": ["council:round-2"], "speaker_notes": notes},
-            {"id": "risk", "kind": "risk", "headline": "Do not present synthetic preference as conversion proof",
-             "support": ["Validate the revised copy with observed behavior."],
+            {"id": "risk", "kind": "decision_dashboard",
+             "headline": "B should proceed only with one revision",
+             "decision": {"label": "Revise", "text": "Use B as the base",
+                          "detail": "Do not ship the interruption copy as-is."},
+             "metrics": [{"value": "8/8", "label": "Prefer B after context"},
+                         {"value": "1", "label": "Critical copy gap"}],
+             "rationale": [{"title": "Keep", "text": "Clear preparation and timing."},
+                           {"title": "Change", "text": "Name interruption and restart risk."},
+                           {"title": "Validate", "text": "Observe completion behavior."}],
              "evidence_refs": ["report:limitations"], "speaker_notes": notes},
             {"id": "next", "kind": "next_steps", "headline": "Revise, test, decide",
              "steps": [{"label": "Now", "title": "Revise copy", "text": "Add duration and restart risk."},
@@ -192,6 +204,8 @@ def test_stored_plan_renders_visual_story_native_notes_and_appendix(store):
     assert "Alba Costa" in visible and "Bruno Keller" in visible
     assert "I need a clear start." in visible
     assert "6/8" in visible and "8/8" in visible
+    assert "Use B as the base" in visible and "Plan ten uninterrupted minutes" in visible
+    assert "Start switch" in visible and "Bruno Keller" in visible
     assert "Thank you" not in visible
     assert all("TALK TRACK" in slide.notes_slide.notes_text_frame.text
                for slide in deck.slides)

@@ -74,8 +74,11 @@ def brief_presentation(synthesis_id: str, audience: str = "stakeholder",
         "instructions": [
             "Author a decision presentation, not a summary of report sections.",
             "Each core slide has one conclusion-led headline and an evidence-linked visual story.",
+            "Default to one slide per 60–90 seconds: a 10-minute readout is normally 6–8 core slides.",
+            "Combine decision, strength of signal and rationale in one dense visual frame; do not fragment one conclusion across sparse slides.",
             "Show real stimuli, screens, personas, prototypes and observed transitions when available.",
-            "Keep detailed profiles, raw response tables, methodology and source trails in the appendix.",
+            "Show a concrete replacement screen, copy or interaction in editable shapes when the evidence supports a revision.",
+            "Keep verbatim voices and source detail in speaker notes; keep raw response tables, methodology and source trails in a short appendix.",
             "Speaker notes carry the talk track, evidence, caveats, transition and appendix pointers.",
             "Never present synthetic reactions as observed behavior of real customers; keep that limitation visible.",
             "Use the methodology deck profile as supporting guidance, never as permission to invent missing evidence.",
@@ -89,6 +92,18 @@ def brief_presentation(synthesis_id: str, audience: str = "stakeholder",
             "speaker_notes": {
                 "required": ["talk_track"],
                 "recommended": ["takeaway", "evidence", "caveats", "transition", "backup", "timing_seconds"],
+            },
+            "preferred_blueprints": {
+                "decision_dashboard": {
+                    "decision": {"label": "Revise", "text": "One explicit decision", "detail": "Optional boundary"},
+                    "metrics": [{"value": "8/8", "label": "Signal", "detail": "Honest denominator"}],
+                    "rationale": [{"title": "Why", "text": "Evidence-backed reason"}],
+                },
+                "revision_mockup": {
+                    "asset_id": "current admitted stimulus",
+                    "proposal": {"eyebrow": "Context", "headline": "Exact replacement copy", "body": "Exact body copy", "primary_cta": "Primary action", "secondary_cta": "Secondary action"},
+                    "why": ["Up to three evidence-backed design reasons"],
+                },
             },
         },
     }

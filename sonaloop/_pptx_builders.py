@@ -546,28 +546,52 @@ def build_preference_shift(s, e):
     slide = prs.slides.add_slide(blank); e.bg(slide)
     e.heading_band(slide, s)
     before, after = s.get("before") or {}, s.get("after") or {}
-    for item, x, highlighted in ((before, 1.0, False), (after, 7.55, True)):
-        e.rrect(slide, x, 2.0, 4.75, 3.25, _PANEL, radius=0.05,
+    for item, x, highlighted in ((before, 0.85, False), (after, 7.72, True)):
+        e.rrect(slide, x, 1.85, 4.75, 3.32, _PANEL, radius=0.05,
                 line=_ACCENT if highlighted else _LINE)
-        e.text(slide, x + 0.35, 2.32, 4.05, 0.32,
+        e.text(slide, x + 0.35, 2.16, 4.05, 0.32,
                str(item.get("label") or ""), size=11, bold=True,
                color=_ACCENT if highlighted else _MUTED)
         value, total = str(item.get("value") or ""), str(item.get("total") or "")
         display = f"{value}/{total}" if total and "/" not in value else value
-        e.text(slide, x + 0.35, 2.8, 4.05, 1.0, display, size=48, bold=True,
+        e.text(slide, x + 0.35, 2.62, 4.05, 0.92, display, size=48, bold=True,
                color=_ACCENT if highlighted else _INK, anchor=MSO_ANCHOR.MIDDLE)
-        e.text(slide, x + 0.35, 4.0, 4.05, 0.72,
+        e.text(slide, x + 0.35, 3.68, 4.05, 0.48,
                str(item.get("detail") or ""), size=11, color=_MUTED,
                anchor=MSO_ANCHOR.TOP)
-    e.connector(slide, 5.95, 3.55, 7.35, 3.55, _ACCENT, width=2.0)
-    e.text(slide, 6.15, 3.08, 1.0, 0.35, "→", size=26, bold=True,
+        try:
+            selected, denominator = int(float(value)), int(float(total))
+        except (TypeError, ValueError):
+            selected = denominator = 0
+        if 0 < denominator <= 12:
+            dot_gap = 0.37
+            dots_w = denominator * 0.2 + (denominator - 1) * (dot_gap - 0.2)
+            dot_x = x + (4.75 - dots_w) / 2
+            for dot in range(denominator):
+                e.oval(slide, dot_x + dot * dot_gap, 4.55, 0.2,
+                       _ACCENT if dot < selected else _LINE)
+    e.connector(slide, 5.85, 3.42, 7.5, 3.42, _ACCENT, width=2.0)
+    e.text(slide, 6.18, 2.94, 1.0, 0.35, "→", size=26, bold=True,
            color=_ACCENT, align=PP_ALIGN.CENTER)
-    switchers = [str(item.get("name") or item) if isinstance(item, dict) else str(item)
-                 for item in (s.get("switchers") or [])]
+    switchers = list(s.get("switchers") or [])[:3]
     if switchers:
-        e.text(slide, 4.7, 5.62, 3.9, 0.45,
-               (str(s.get("switch_label") or "Changed") + ": " + ", ".join(switchers)),
-               size=10.5, color=_MUTED, align=PP_ALIGN.CENTER)
+        label = e.text(slide, 0.85, 5.58, 2.0, 0.3,
+                       str(s.get("switch_label") or "Changed").upper(),
+                       size=9, bold=True, color=_ACCENT)
+        e.mono_run(label.text_frame.paragraphs[0].runs[0])
+        for index, raw_item in enumerate(switchers):
+            item = raw_item if isinstance(raw_item, dict) else {"name": str(raw_item)}
+            x = 2.55 + index * 3.25
+            e.rrect(slide, x, 5.42, 3.0, 0.9, _SURFACE2, radius=0.04, line=_LINE)
+            image = _place_image(slide, item.get("avatar"), x + 0.18, 5.56,
+                                 0.58, 0.58, cover=True)
+            if image is None:
+                e.initials_chip(slide, x + 0.18, 5.56, 0.58, item.get("name"))
+            e.text(slide, x + 0.9, 5.54, 1.88, 0.28,
+                   str(item.get("name") or ""), size=10.5, bold=True)
+            e.text(slide, x + 0.9, 5.84, 1.88, 0.25,
+                   str(item.get("reason") or item.get("detail") or item.get("lens") or ""),
+                   size=8.5, color=_MUTED)
     e.footer(slide)
 
 
@@ -738,10 +762,13 @@ def build_closing(s, e):
 
 
 # kind → builder. _pptx.render() dispatches each spec here (fallback = build_content).
+from . import _pptx_decision_builders as _decision  # noqa: E402
+
 PAINTERS = {
     "title": build_title, "cover": build_cover, "agenda": build_agenda,
     "section": build_section, "canvas-section": build_canvas_section,
     "pillars": build_pillars, "summary": build_summary,
+    "decision_dashboard": _decision.build_decision_dashboard,
     "insight": build_insight, "recommendation": build_insight, "risk": build_insight,
     "quote": build_quote, "voices": build_voices, "stats": build_stats,
     "chart": build_chart, "charts": build_charts, "table": build_table,
@@ -750,5 +777,6 @@ PAINTERS = {
     "persona_grid": build_persona_grid, "persona_detail": build_persona_detail,
     "preference_shift": build_preference_shift,
     "annotated_screen": build_annotated_screen,
+    "revision_mockup": _decision.build_revision_mockup,
     "closing": build_closing, "image": build_image,
 }

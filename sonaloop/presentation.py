@@ -178,9 +178,9 @@ PRESENTATION_PLAN_SCHEMA = "sonaloop.presentation_plan.v1"
 # Presentation vocabulary, not methodology vocabulary. Methodology specs choose
 # among these generic visual forms through data-authored deck profiles.
 PRESENTATION_KINDS = (
-    "cover", "decision", "agenda", "section", "summary", "stats",
+    "cover", "decision", "decision_dashboard", "agenda", "section", "summary", "stats",
     "stimulus_comparison", "persona_grid", "persona_detail",
-    "preference_shift", "annotated_screen", "insight", "quote",
+    "preference_shift", "annotated_screen", "revision_mockup", "insight", "quote",
     "recommendation", "risk", "pillars", "voices", "comparison", "timeline",
     "chart", "charts", "table",
     "image", "next_steps", "source_index", "closing", "content",
@@ -302,9 +302,9 @@ def presentation_plan_qa(plan: dict[str, Any]) -> dict[str, Any]:
     warnings: list[dict[str, Any]] = []
     visual_kinds = {
         "stats", "stimulus_comparison", "persona_grid", "persona_detail",
-        "preference_shift", "annotated_screen", "comparison", "timeline",
+        "preference_shift", "annotated_screen", "revision_mockup", "comparison", "timeline",
         "chart", "charts", "table", "image", "pillars", "voices", "decision",
-        "insight", "recommendation", "risk", "next_steps",
+        "decision_dashboard", "insight", "recommendation", "risk", "next_steps",
     }
     visual_count = sum(str(slide.get("kind") or "") in visual_kinds for slide in core)
     for slide in core:
@@ -317,6 +317,15 @@ def presentation_plan_qa(plan: dict[str, Any]) -> dict[str, Any]:
             warnings.append({"code": "speaker_caveat_missing", "slide_id": slide["id"]})
     if len(core) < 10 and any(slide.get("kind") == "agenda" for slide in core):
         warnings.append({"code": "agenda_unnecessary_for_short_deck"})
+    duration = max(1, int(plan.get("duration_minutes") or 10))
+    max_core = max(4, min(18, round(duration * 0.8)))
+    if len(core) > max_core:
+        warnings.append({"code": "too_many_core_slides_for_duration",
+                         "slides": len(core), "duration_minutes": duration,
+                         "recommended_max": max_core})
+    appendix_count = len(plan.get("appendix") or [])
+    if appendix_count > max(5, len(core)):
+        warnings.append({"code": "appendix_overbuilt", "slides": appendix_count})
     if core and core[-1].get("kind") == "closing" and not any(
             core[-1].get(key) for key in ("items", "steps", "decision", "next_action")):
         warnings.append({"code": "generic_closing_without_action",
