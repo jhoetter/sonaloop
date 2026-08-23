@@ -92,6 +92,10 @@ es.onmessage=function(ev){
   // Re-dispatch as a DOM event so OTHER chrome modules (e.g. the runs widget) ride
   // this one EventSource instead of opening their own connection.
   try{ document.dispatchEvent(new CustomEvent('sl:live-event',{detail:d})); }catch(e){}
+  // A generated deliverable is the result of the user's export action, not new incoming
+  // evidence that needs inspection. The browser download is already the feedback; showing
+  // an "Asset attached · Open" toast sends customers to the internal provenance surface.
+  if(d.event==='asset.attached' && d.direction==='out') return;
   show(CFG.labels[d.event]||d.event, d.label||'', d.url);
   if(concerns(d)){ clearTimeout(reloadT); reloadT=setTimeout(function(){ location.reload(); },900); }
 };

@@ -94,7 +94,8 @@ def test_asset_attached_event_emitted(store, project, tmp_path):
     f.write_bytes(PNG_BYTES)
     rec = services.attach_asset(project["id"], path=str(f), store=store)
     assert seen and seen[0]["data"] == {"project_id": project["id"], "asset_id": rec["id"],
-                                        "kind": "image", "filename": "shot.png"}
+                                        "kind": "image", "filename": "shot.png",
+                                        "direction": "in"}
 
 
 def test_assets_ride_the_council_brief(store, project, tmp_path):
@@ -251,9 +252,8 @@ def test_export_synthesis_deliverable_without_project_skips_attach(store, tmp_pa
 
 def test_assets_render_as_tag_free_outline_rows(store, project, tmp_path, monkeypatch):
     """UX P2 (spec/ux-contract.md §3.4 / §7.2): assets are file atoms in the outline — incoming
-    files in their phase gallery, the deliverable at the END (the Deliver group). Since UX U8 each deep-links to the
-    asset's DETAIL page (slide-over armed, §8.1); the file itself stays one click away as the
-    trailing download/open action."""
+    files in their phase gallery, the deliverable at the END (the Deliver group). Evidence opens
+    its detail drawer; generated deliverables download from the whole file card."""
     monkeypatch.setattr("sonaloop.services._synthesis_pptx.export_synthesis_pptx", lambda sid, store=None: b"PK deck")
     evidence = tmp_path / "field-note.txt"
     evidence.write_text("observed in the field")
@@ -268,13 +268,14 @@ def test_assets_render_as_tag_free_outline_rows(store, project, tmp_path, monkey
     assert "Deliverable</span>" not in html and "Evidence</span>" not in html
     assert ">Assets (1)<" in html
     # the evidence row sits in the flow; the deliverable closes the outline (Deliver group)
-    assert html.index("Field note") < html.index("Component finder (PPTX)")
+    assert html.index("Field note") < html.index("finder.pptx")
     deliverable = next(a for a in services.list_assets(project["id"], store=store)
                        if a.get("direction") == "out")
-    # the rows open the detail pages as slide-overs (U8)...
+    # Evidence opens its provenance detail; a deliverable's whole card downloads directly.
     assert f'data-drawer="/assets/{ev["id"]}"' in html
-    assert f'data-drawer="/assets/{deliverable["id"]}"' in html
-    # ...while the file itself stays one click away (the trailing chip: download / open)
+    assert f'data-drawer="/assets/{deliverable["id"]}"' not in html
+    assert f'href="{deliverable["url"]}" download="{deliverable["filename"]}"' in html
+    # The trailing chip stays the same direct download/open action.
     assert f'href="{deliverable["url"]}"' in html and f'href="{ev["url"]}"' in html
     # and there is no separate project files lens chip anymore.
     assert f'/jobs/{project["id"]}?view=files' not in html

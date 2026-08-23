@@ -108,9 +108,12 @@ def test_library_assets_tab_rows_with_project_and_direction(store, project, both
     # the scoped primitive tab is active, both directions render as compact FILE rows (V9).
     assert 'class="sl-taxo-pill sl-taxo-pill--primitive sl-is-active"' in html and ">Assets<" in html
     assert html.count('class="sl-file sl-file--row"') == 2
-    for a in (both_directions["in"], both_directions["out"]):
-        assert f'data-drawer="/assets/{a["id"]}"' in html      # slide-over armed (the card body)
-        assert f'href="{a["url"]}"' in html                    # download one click away (the ONE action)
+    incoming, deliverable = both_directions["in"], both_directions["out"]
+    assert f'data-drawer="/assets/{incoming["id"]}"' in html
+    assert f'data-drawer="/assets/{deliverable["id"]}"' not in html
+    assert f'href="{deliverable["url"]}" download="{deliverable["filename"]}"' in html
+    for a in (incoming, deliverable):
+        assert f'href="{a["url"]}"' in html
     assert "Evidence" in html and "Deliverable" in html        # badged by direction
     assert "Asset surface" in html                             # the owning project on the meta line
     # the canonical route and ?tab= address the same browser
@@ -135,10 +138,10 @@ def test_outline_asset_and_deliver_rows_are_compact_gallery_files(store, project
     assert html.count('class="ol-asset-grid" role="list"') == 2
     assert ">Assets (1)<" in html
     assert ">md</span>" in html and ">pptx</span>" in html
-    for a in (both_directions["in"], both_directions["out"]):
-        assert f'data-drawer="/assets/{a["id"]}"' in html
-        chunk = html.split(f'data-drawer="/assets/{a["id"]}"')[1].split("</div></div>")[0]
-        assert chunk.count(f'href="{a["url"]}"') == 1, "one download/open affordance per row"
+    incoming, deliverable = both_directions["in"], both_directions["out"]
+    assert f'data-drawer="/assets/{incoming["id"]}"' in html
+    assert f'data-drawer="/assets/{deliverable["id"]}"' not in html
+    assert f'href="{deliverable["url"]}" download="{deliverable["filename"]}"' in html
 
 
 def test_outline_asset_gallery_is_responsive_and_bounds_screenshot_height(store, project):

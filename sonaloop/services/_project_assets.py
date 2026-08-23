@@ -254,8 +254,11 @@ def attach_asset(project_id: str, path: str | None = None, content_base64: str |
         assets.append(record)
     project["updated_at"] = utc_now_iso()
     store.upsert_research_project(project)
-    emit_lifecycle_event("asset.attached", {"project_id": project["id"], "asset_id": aid,  # noqa: F821 (bound)
-                                            "kind": record["kind"], "filename": name}, store)
+    emit_lifecycle_event("asset.attached", {  # noqa: F821 (bound)
+        "project_id": project["id"], "asset_id": aid,
+        "kind": record["kind"], "filename": name,
+        "direction": record["direction"],
+    }, store)
     dispatch = bind_dispatch_output(  # noqa: F821 (bound)
         dispatch_ctx, {"kind": "asset", "id": aid}, "attached supporting stimulus asset", store,
         complete=False)

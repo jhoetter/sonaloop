@@ -67,11 +67,16 @@ def _append_bus_event(envelope: dict[str, Any]) -> None:
         project_id = entity_id or None
     store = Store()
     try:
+        event_data = {
+            "label": str(data.get(label_key) or "")[:160],  # lean: never full authored text
+            "url": event_url(entity_type, entity_id, project_id),
+        }
+        if data.get("direction") in {"in", "out"}:
+            event_data["direction"] = data["direction"]
         store.append_event(
             envelope.get("emitted_at") or utc_now_iso(), envelope["event"],
             entity_type, entity_id, project_id,
-            {"label": str(data.get(label_key) or "")[:160],   # lean: never full authored text
-             "url": event_url(entity_type, entity_id, project_id)})
+            event_data)
     finally:
         store.close()
 

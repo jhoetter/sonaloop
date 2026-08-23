@@ -463,12 +463,15 @@ def file_card(asset: dict, store=None, *, row: bool = False, href: str | None = 
               show_direction: bool = True, attrs: dict | None = None) -> str:
     """An asset as a FILE card (`.sl-file`) or compact row (`.sl-file--row`): identity stage ·
     filename+ext title · `size · date[ · desc]` meta · direction pill · one action. The card
-    BODY opens the canonical /assets/{id} detail (`drawer=True` arms the slide-over via the
-    stretched overlay link); `source=True` adds the quiet provenance source line (grid cards);
+    BODY opens evidence on the canonical /assets/{id} detail (`drawer=True` arms the slide-over
+    via the stretched overlay link). A deliverable BODY downloads the file directly; the
+    generic provenance screen is not part of the customer hand-off. `source=True` adds the
+    quiet provenance source line (grid cards);
     `desc` joins the meta line (the Library's owning-project title); `show_direction=False`
     lets the project outline keep rows tag-free; `attrs` extends the container."""
     from .ui import local_day
-    open_href = href or f'/assets/{asset.get("id", "")}'
+    is_out = asset_direction(asset) == "out"
+    open_href = (asset_content_url(asset) if is_out else href) or f'/assets/{asset.get("id", "")}'
     name = asset.get("filename") or asset.get("title") or asset.get("id", "")
     meta_parts = [x for x in (asset_size(asset),
                               local_day(asset.get("created_at") or "")
@@ -484,8 +487,10 @@ def file_card(asset: dict, store=None, *, row: bool = False, href: str | None = 
              h("span", {"class_": "sl-file__meta"}, meta, None if row or not pill else fragment(" ", pill)),
              h("span", {"class_": "sl-file__meta"}, raw(str(src))) if src else None)
     stretch = h("a", {"class_": "sl-file__open", "href": open_href, "aria-label": name[:90],
-                      "data-drawer": open_href if drawer else None,
-                      "data-drawer-title": (asset.get("title") or name)[:90] if drawer else None})
+                      "download": name if is_out else None,
+                      "data-drawer": open_href if drawer and not is_out else None,
+                      "data-drawer-title": ((asset.get("title") or name)[:90]
+                                            if drawer and not is_out else None)})
     return h("div", {"class_": "sl-file" + (" sl-file--row" if row else ""), **(attrs or {})},
              stretch, raw(file_stage(asset)),
              h("div", {"class_": "sl-file__body"}, info, pill if row else None,
@@ -535,10 +540,13 @@ def asset_rows(assets: list, store=None) -> str:
                    h("img", {"src": thumbnail_url, "alt": a.get("title", ""), "loading": "lazy",
                              "style": "max-height:64px;max-width:120px;border-radius:6px;display:block"}))
                  if is_img else raw(_icon("download" if is_out else "file")))
+        title_link = (dict(link) if is_out else {
+            "href": detail, "data-drawer": detail,
+            "data-drawer-title": a.get("title") or a.get("filename", ""),
+        })
         rows.append(h("div", {"class_": "strow"},
                       thumb, " ",
-                      h("a", {"href": detail, "data-drawer": detail,
-                              "data-drawer-title": a.get("title") or a.get("filename", "")},
+                      h("a", title_link,
                         h("b", {}, a.get("title") or a.get("filename", ""))), " ",
                       raw(asset_kind_pill(a)), " ",
                       raw(asset_direction_pill(a)), " ",

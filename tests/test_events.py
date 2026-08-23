@@ -69,6 +69,17 @@ def test_lifecycle_events_append_bus_rows(store):
     assert [r["id"] for r in rows] == sorted(r["id"] for r in rows) and rows[0]["ts"]
 
 
+def test_outgoing_asset_event_carries_direction_for_quiet_download_feedback(store, tmp_path):
+    project = services.create_research_project("Deliverable event", goal="g", store=store)
+    path = tmp_path / "deck.pptx"
+    path.write_bytes(b"PK deck")
+    result = services.attach_asset(
+        project["id"], path=str(path), direction="out", store=store,
+    )
+    row = next(item for item in store.list_events_after(0) if item["event"] == "asset.attached")
+    assert result and row["data"]["direction"] == "out"
+
+
 def test_bus_table_is_capped_keeping_the_newest(store):
     for i in range(25):
         store.append_event("2026-06-10T00:00:00+00:00", "council.recorded",
@@ -174,3 +185,4 @@ def test_chrome_includes_the_live_client(store):
     html = TestClient(web.create_app()).get("/jobs?lang=en").text
     assert "EventSource('/api/events')" in html               # the live module ships on every page
     assert 'id="live-toast"' in html
+    assert "d.event==='asset.attached' && d.direction==='out'" in html
