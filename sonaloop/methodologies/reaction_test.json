@@ -51,7 +51,7 @@
       "required_visuals": ["real stimulus", "cohort overview", "scored reaction with denominator", "editable proposed revision", "release gate"],
       "appendix": ["response table by persona", "optional persona details only when decision-relevant", "method and limitations", "source index"],
       "speaker_notes": ["verbatim supporting voices", "source ids", "claim posture", "caveats", "what to say while the visual is on screen", "transition to the next decision beat"],
-      "avoid": ["a cover that starts with unexplained A/B verdict language before naming what was tested", "headlines longer than 12 words or 68 characters", "describing an available stimulus only in prose", "one sparse slide per finding", "separate recommendation prose when a proposed revision can be shown", "hiding denominators", "more than five appendix slides by default", "calling synthetic reactions observed customer behavior"]
+      "avoid": ["a cover that starts with unexplained A/B verdict language before naming what was tested", "headlines longer than 10 words or 56 characters", "describing an available stimulus only in prose", "one sparse slide per finding", "separate recommendation prose when a proposed revision can be shown", "hiding denominators", "more than five appendix slides by default", "calling synthetic reactions observed customer behavior"]
     }
   },
   "steps": [

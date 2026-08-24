@@ -377,7 +377,7 @@ _VIRTUAL_SPECS: dict[str, dict[str, Any]] = {
                                   "caveats", "what to say while the visual is on screen",
                                   "transition to the next decision beat"],
                 "avoid": ["a cover that starts with unexplained A/B verdict language before naming what was tested",
-                          "headlines longer than 12 words or 68 characters",
+                          "headlines longer than 10 words or 56 characters",
                           "describing an available stimulus only in prose",
                           "one sparse slide per finding",
                           "separate recommendation prose when a proposed revision can be shown",

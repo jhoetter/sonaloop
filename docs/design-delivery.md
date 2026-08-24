@@ -122,7 +122,7 @@ decks do not receive a filler agenda or generic thank-you slide. The renderer su
   `closing`.
 
 Core headlines must stand on their own for readers without project context. They normally
-use four to nine words and cannot exceed 12 words or 68 characters; unexplained pronouns,
+use three to eight words and cannot exceed 10 words or 56 characters; unexplained pronouns,
 internal phase names and bare variant letters are avoided until the stimuli are introduced.
 
 `presentation_plan_qa` reports headline length, visible-copy density, visual-slide ratio, core-slide pacing
