@@ -352,7 +352,7 @@ _VIRTUAL_SPECS: dict[str, dict[str, Any]] = {
             "deck": {
                 "purpose": "Enable a ship, revise or review decision for one fixed stimulus.",
                 "target_core_slides": "6–8 slides for a 10-minute stakeholder readout; roughly one decision beat per 60–90 seconds.",
-                "story_shape": "Cover → decision dashboard → admitted stimulus → cohort lenses → reaction movement → editable proposed revision → release gate. Combine proof on the decision slide instead of spreading one finding over sparse slides.",
+                "story_shape": "Orienting cover (tested artifact/journey + audience + test question) → decision dashboard → admitted stimulus → cohort lenses → reaction movement → editable proposed revision → release gate. Combine proof on the decision slide instead of spreading one finding over sparse slides.",
                 "story_beats": [
                     {"role": "decision", "question": "What should happen next, how strong is the signal, and why?",
                      "preferred_visuals": ["decision_dashboard"]},
@@ -376,7 +376,9 @@ _VIRTUAL_SPECS: dict[str, dict[str, Any]] = {
                 "speaker_notes": ["verbatim supporting voices", "source ids", "claim posture",
                                   "caveats", "what to say while the visual is on screen",
                                   "transition to the next decision beat"],
-                "avoid": ["describing an available stimulus only in prose",
+                "avoid": ["a cover that starts with unexplained A/B verdict language before naming what was tested",
+                          "headlines longer than 12 words or 68 characters",
+                          "describing an available stimulus only in prose",
                           "one sparse slide per finding",
                           "separate recommendation prose when a proposed revision can be shown",
                           "hiding denominators", "more than five appendix slides by default",

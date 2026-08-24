@@ -119,6 +119,34 @@ def test_native_agenda_disables_inherited_auto_numbering():
                for paragraph in body.text_frame.paragraphs)
 
 
+def test_native_cover_opens_without_empty_prompts_or_overloaded_footer():
+    from pptx.oxml.ns import qn
+    from sonaloop._pptx_master_native import _populate_cover
+
+    template = Presentation()
+    slide = template.slides.add_slide(template.slide_layouts[8])
+    assert any(shape.placeholder_format.type.name == "PICTURE"
+               for shape in slide.placeholders)
+
+    assert _populate_cover(slide, {
+        "title": "Mobile Banking A/B-Test",
+        "subtitle": "Welche Kommunikation bereitet Kund:innen besser vor?",
+        "eyebrow": "SHKB · Mobile Banking",
+        "meta": "Entscheidungsgremium · 10 min",
+        "date": "2026-08-24",
+    }) is True
+
+    placeholder_types = {shape.placeholder_format.type.name for shape in slide.placeholders}
+    visible = "\n".join(shape.text_frame.text for shape in slide.placeholders
+                         if shape.has_text_frame)
+    assert "PICTURE" not in placeholder_types
+    assert "SHKB · MOBILE BANKING" in visible
+    assert "Entscheidungsgremium" not in visible and "2026-08-24" not in visible
+    assert all(shape.text_frame._txBody.bodyPr.find(qn("a:normAutofit")) is not None
+               for shape in slide.placeholders
+               if shape.has_text_frame and shape.text_frame.text.strip())
+
+
 def test_master_theme_drives_generated_color_and_passes_package_qa():
     from sonaloop import _pptx
     from sonaloop._deck import PALETTE

@@ -85,6 +85,14 @@ def test_presentation_plan_validation_and_qa():
     with pytest.raises(ValueError, match="evidence_refs"):
         validate_presentation_plan(broken)
 
+    verbose = _plan()
+    verbose["slides"][0]["headline"] = (
+        "This unusually long presentation headline cannot be understood or fitted at a glance"
+    )
+    warnings = presentation_plan_qa(validate_presentation_plan(verbose))["warnings"]
+    assert any(row["code"] == "headline_too_long" and row["slide_id"] == "cover"
+               for row in warnings)
+
 
 def test_brief_and_retry_safe_record(store):
     project, report = _report(store)

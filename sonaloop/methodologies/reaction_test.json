@@ -39,7 +39,7 @@
     "deck": {
       "purpose": "Enable a ship, revise or review decision for one fixed stimulus.",
       "target_core_slides": "6–8 slides for a 10-minute stakeholder readout; roughly one decision beat per 60–90 seconds.",
-      "story_shape": "Cover → decision dashboard → admitted stimulus → cohort lenses → reaction movement → editable proposed revision → release gate. Combine proof on the decision slide instead of spreading one finding over sparse slides.",
+      "story_shape": "Orienting cover (tested artifact/journey + audience + test question) → decision dashboard → admitted stimulus → cohort lenses → reaction movement → editable proposed revision → release gate. Combine proof on the decision slide instead of spreading one finding over sparse slides.",
       "story_beats": [
         {"role": "decision", "question": "What should happen next, how strong is the signal, and why?", "preferred_visuals": ["decision_dashboard"]},
         {"role": "stimulus", "question": "What exactly did the cohort see?", "preferred_visuals": ["stimulus_comparison", "annotated_screen"]},
@@ -51,7 +51,7 @@
       "required_visuals": ["real stimulus", "cohort overview", "scored reaction with denominator", "editable proposed revision", "release gate"],
       "appendix": ["response table by persona", "optional persona details only when decision-relevant", "method and limitations", "source index"],
       "speaker_notes": ["verbatim supporting voices", "source ids", "claim posture", "caveats", "what to say while the visual is on screen", "transition to the next decision beat"],
-      "avoid": ["describing an available stimulus only in prose", "one sparse slide per finding", "separate recommendation prose when a proposed revision can be shown", "hiding denominators", "more than five appendix slides by default", "calling synthetic reactions observed customer behavior"]
+      "avoid": ["a cover that starts with unexplained A/B verdict language before naming what was tested", "headlines longer than 12 words or 68 characters", "describing an available stimulus only in prose", "one sparse slide per finding", "separate recommendation prose when a proposed revision can be shown", "hiding denominators", "more than five appendix slides by default", "calling synthetic reactions observed customer behavior"]
     }
   },
   "steps": [

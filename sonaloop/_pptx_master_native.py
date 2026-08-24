@@ -47,11 +47,17 @@ def _clear_generated(slide) -> None:
 def _set_placeholder(shape, paragraphs: list[str], *, secondary_size: float | None = None) -> None:
     from pptx.oxml.ns import qn
     from pptx.oxml.xmlchemy import OxmlElement
+    from pptx.enum.text import MSO_AUTO_SIZE
     from pptx.util import Pt
 
     clean = [str(text).strip() for text in paragraphs if str(text or "").strip()]
     tf = shape.text_frame
     tf.clear()
+    tf.word_wrap = True
+    # Keep the customer's placeholder geometry and theme font, but let PowerPoint shrink
+    # unusually long localized copy instead of spilling outside the box. This writes native
+    # <a:normAutofit>; it does not bake in a font or resize the master placeholder.
+    tf.auto_size = MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
     if not clean:
         return
     for index, text in enumerate(clean):
@@ -82,18 +88,30 @@ def _populate_cover(slide, spec: dict[str, Any]) -> bool:
                          secondary_size=14)
     body = _placeholders(slide, {"body", "object"})
     if body:
-        _set_placeholder(_largest(body), [" · ".join(filter(None, [
-            str(spec.get("eyebrow") or "").upper(),
-            str(spec.get("meta") or ""),
-            str(spec.get("date") or ""),
-        ]))])
-    picture = _largest(_placeholders(slide, {"picture"}))
+        # Native covers often reserve a narrow footer beside fixed brand artwork. Audience,
+        # duration and date belong in notes unless the plan explicitly supplies compact copy;
+        # concatenating all three is what caused real customer masters to overlap their logo.
+        _set_placeholder(_largest(body), [str(
+            spec.get("native_meta") or spec.get("eyebrow") or ""
+        ).upper()])
+    pictures = _placeholders(slide, {"picture"})
+    picture = _largest(pictures)
     image = spec.get("image")
+    picture_filled = False
     if picture is not None and isinstance(image, (str, Path)) and Path(image).exists():
         try:
             picture.insert_picture(str(image))
+            picture_filled = True
         except Exception:
             pass
+    # Empty placeholders are invisible in slide show/PDF but PowerPoint displays large editing
+    # prompts. Keep only the filled picture and text placeholders on the generated cover.
+    for candidate in list(pictures):
+        if candidate is not picture or not picture_filled:
+            _remove_shape(candidate)
+    for candidate in list(_placeholders(slide, {"subtitle", "body", "object"})):
+        if not candidate.has_text_frame or not candidate.text_frame.text.strip():
+            _remove_shape(candidate)
     return True
 
 
@@ -214,6 +232,10 @@ def _adapt_content(slide, spec: dict[str, Any], slide_width: int, slide_height: 
         shape.height = max(1, int(shape.height * sy))
         if min(sx, sy) < 0.78:
             _scale_text(shape, max(0.62, min(sx, sy)))
+    # Generated visual slides use the placeholder only as a layout grid. Once their editable
+    # native shapes are fitted, remove unused body/picture prompts from the editable canvas.
+    for placeholder in list(_placeholders(slide, _BODY_TYPES | {"picture"})):
+        _remove_shape(placeholder)
     return True
 
 

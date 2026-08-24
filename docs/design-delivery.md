@@ -56,14 +56,18 @@ for agency-specific or opaque names, from portable placeholder structure:
 Native title, subtitle, body, and picture placeholders receive report content wherever
 the selected layout provides them. Generated editable content is fitted to the layout's
 content grid. Inherited bullets are disabled when the report already supplies numbering.
-Missing roles fall back through the compatible roles above and finally to the blank or
-emptiest layout.
+Populated text placeholders use PowerPoint-native text-to-fit behavior. Unused content and
+picture placeholders are removed from generated slides so the editable file opens without
+insertion prompts; a cover's narrow native metadata field receives only a compact label,
+never a concatenated audience/date line that can collide with fixed brand artwork. Missing
+roles fall back through the compatible roles above and finally to the blank or emptiest layout.
 
 Project-report decks are a stakeholder projection, not a run journal. Scaffolder phase
 names such as product-understanding or gate are translated into plain chapter labels;
-an authored `presentation_heading` wins when present. Boilerplate cover copy is replaced
-by the report's conclusion, and slide footers show only the number of sources available in
-the full report. Source identities, citations, and the unabridged prose remain in Sonaloop.
+an authored `presentation_heading` wins when present. The cover orients a cold reader with
+the tested artifact or journey, its audience and the decision question; the actual verdict
+starts on the following decision slide. Source identities, citations, and the unabridged
+prose remain in Sonaloop.
 
 When a customer master is active, it owns layout backgrounds, fixed artwork, theme-font
 inheritance, and color language. Sonaloop derives the editable chart/card palette from the
@@ -117,7 +121,11 @@ decks do not receive a filler agenda or generic thank-you slide. The renderer su
 - structural forms: `cover`, `agenda`, `section`, `content`, `image`, `source_index`,
   `closing`.
 
-`presentation_plan_qa` reports visible-copy density, visual-slide ratio, core-slide pacing
+Core headlines must stand on their own for readers without project context. They normally
+use four to nine words and cannot exceed 12 words or 68 characters; unexplained pronouns,
+internal phase names and bare variant letters are avoided until the stimuli are introduced.
+
+`presentation_plan_qa` reports headline length, visible-copy density, visual-slide ratio, core-slide pacing
 against duration, overbuilt appendices, unnecessary agendas, actionless closings, missing
 caveat notes and note coverage. These checks concern
 the information design independently of the customer's master; package/master QA remains a

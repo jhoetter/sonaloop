@@ -74,6 +74,8 @@ def brief_presentation(synthesis_id: str, audience: str = "stakeholder",
         "instructions": [
             "Author a decision presentation, not a summary of report sections.",
             "Each core slide has one conclusion-led headline and an evidence-linked visual story.",
+            "The cover must orient a cold reader: name the tested journey or artifact, the audience and the decision question before presenting the verdict.",
+            "Write concrete standalone headlines, normally 4–9 words and never more than 12 words or 68 characters; avoid unexplained pronouns, internal phase names and bare variant letters before the stimuli are introduced.",
             "Default to one slide per 60–90 seconds: a 10-minute readout is normally 6–8 core slides.",
             "Combine decision, strength of signal and rationale in one dense visual frame; do not fragment one conclusion across sparse slides.",
             "Show real stimuli, screens, personas, prototypes and observed transitions when available.",

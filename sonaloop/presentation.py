@@ -309,6 +309,13 @@ def presentation_plan_qa(plan: dict[str, Any]) -> dict[str, Any]:
     visual_count = sum(str(slide.get("kind") or "") in visual_kinds for slide in core)
     for slide in core:
         words = visible_word_count(slide)
+        headline = str(slide.get("headline") or "")
+        headline_words = len(headline.split())
+        if len(headline) > 68 or headline_words > 12:
+            warnings.append({"code": "headline_too_long", "slide_id": slide["id"],
+                             "characters": len(headline), "words": headline_words,
+                             "recommended_max_characters": 68,
+                             "recommended_max_words": 12})
         if words > 70 and slide.get("kind") not in {"table", "source_index"}:
             warnings.append({"code": "visible_copy_dense", "slide_id": slide["id"],
                              "words": words})

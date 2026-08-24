@@ -84,6 +84,7 @@ def compile_presentation_plan_slides(report: dict, store: Store, title: str,
                                               slide.get("subtitle") or plan.get("objective") or "")),
                     "meta": str(slide.get("meta") or
                                 f"{plan.get('audience', '')} · {plan.get('duration_minutes', 10)} min"),
+                    "native_meta": str(slide.get("native_meta") or slide.get("eyebrow") or ""),
                     "date": str(slide.get("date") or report.get("created_at", "")[:10]),
                     "image": _asset_path(
                         project_id, slide.get("asset_id") or slide.get("image_ref"), store)}
