@@ -208,6 +208,21 @@ def export_download_url(path: str | Path) -> str:
     return web_url("/data/" + rel.as_posix())
 
 
+def project_asset_download_url(asset: dict[str, Any]) -> str:
+    """Absolute browser download URL for a persisted project asset.
+
+    Shared Postgres deployments must resolve the opaque asset id through the
+    authenticated RLS route.  The stored ``/data/workspaces/...`` URL is only a
+    compatibility record and is deliberately not publicly mounted.
+    """
+    from .. import config
+
+    path = (f'/assets/{asset["id"]}/content'
+            if config.postgres_row_tenancy_enabled() and asset.get("id")
+            else str(asset.get("url") or ""))
+    return web_url(path) if path else ""
+
+
 # ===================================================================== #
 # Memory & multi-resolution orchestration                               #
 # spec/memory-and-simulation-architecture.md §3, §4, §4A, §12.          #

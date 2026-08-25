@@ -399,6 +399,14 @@ def test_export_synthesis_deliverable_returns_download_url(store, project, monke
     assert (Path(config.DATA_DIR) / "assets" / Path(rec["asset_path"]).name).read_bytes() == b"PK deck"
 
 
+def test_project_asset_download_url_uses_opaque_route_in_shared_tenancy(monkeypatch):
+    monkeypatch.setenv("SONALOOP_PUBLIC_BASE_URL", "https://app.sonaloop.test")
+    monkeypatch.setattr("sonaloop.config.postgres_row_tenancy_enabled", lambda: True)
+    assert services.project_asset_download_url({
+        "id": "asset_safe", "url": "/data/workspaces/ws_secret/assets/report.pdf",
+    }) == "https://app.sonaloop.test/assets/asset_safe/content"
+
+
 def test_export_synthesis_deliverable_without_project_still_links_the_export(store, monkeypatch):
     monkeypatch.setenv("SONALOOP_PUBLIC_BASE_URL", "https://app.sonaloop.test")
     monkeypatch.setattr("sonaloop.services._synthesis_pptx.export_synthesis_pptx", lambda sid, store=None: b"PK bytes")

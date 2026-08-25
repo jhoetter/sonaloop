@@ -657,7 +657,7 @@ def export_synthesis_deliverable(synthesis_id: str, fmt: str, out: str | None = 
         if replaced:
             rec = record_asset_supersession(proj["id"], rec["id"], replaced, store=store)  # noqa: F821 (bound)
         result["project_id"], result["asset_id"] = proj["id"], rec["id"]
-        result["url"] = web_url(rec["url"])                                 # noqa: F821 (bound)
+        result["url"] = project_asset_download_url(rec)                     # noqa: F821 (bound)
         result["project_url"] = web_url(f'/jobs/{proj["id"]}')  # noqa: F821 (bound)
     from ..telemetry import capture_product_event
     from ..theming import active_runtime_design_system_context
