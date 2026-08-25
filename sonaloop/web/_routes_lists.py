@@ -202,8 +202,10 @@ def _projects_page(page: int = 1, q: str = "") -> str:
             raw(_star("project", p["id"], p["title"], f'/jobs/{p["id"]}')),
             raw(project_list_actions(p)),
         )
+        from ._project_icons import methodology_icon_project
         rows.append(_row(
-            f'/jobs/{p["id"]}', raw(project_icon_html(p)), p["title"], meta,
+            f'/jobs/{p["id"]}', raw(project_icon_html(methodology_icon_project(p, plan=plan))),
+            p["title"], meta,
             byline=byline,
             byline_hint=(t("project_created_via_hint", client=origin_label)
                          if creator_label and origin_label else None),

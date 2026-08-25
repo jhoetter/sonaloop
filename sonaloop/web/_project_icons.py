@@ -54,6 +54,24 @@ document.addEventListener('click',function(e){
 """
 
 
+def methodology_icon_project(project: dict, *, plan: dict | None = None) -> dict:
+    """Project-shaped icon payload for orientation surfaces.
+
+    Jobs are easier to scan when the mark communicates the kind of work instead
+    of a randomly selected project decoration.  Detail headers deliberately keep
+    using the stored/custom project icon; list rows use this derived, stable mark.
+    """
+    key = str((plan or {}).get("methodology") or project.get("methodology") or "").strip()
+    if not key:
+        return {"icon": {"kind": "regular", "name": "projects"}}
+    try:
+        spec = services.get_methodology(key)
+        name = str((spec.get("presentation") or {}).get("icon") or "projects")
+        return {"icon": {"kind": "regular", "name": name}}
+    except Exception:
+        return {"icon": {"kind": "regular", "name": "projects"}}
+
+
 def project_icon_html(project: dict, *, cls: str = "", edit_project_id: str | None = None,
                       edit_label: str = "Icon") -> str:
     """The stored Project/Job icon as the same framed visual used by list rows."""

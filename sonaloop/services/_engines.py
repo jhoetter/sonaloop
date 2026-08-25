@@ -175,6 +175,12 @@ def start_project(title: str, goal: str, methodology: str | None = None,
         canonical_methodology = str(spec["key"])
 
     operation_id = _start_project_operation_id(operation_id)
+    # A methodology is the stable visual category on the Jobs surface.  Keep an
+    # explicit caller icon for project-detail customisation, but stop assigning a
+    # random icon to newly created methodology jobs.
+    creation_icon = icon
+    if creation_icon is None:
+        creation_icon = ((spec or {}).get("presentation") or {}).get("icon") or "projects"
     fingerprint = _start_project_fingerprint(
         title, goal, canonical_methodology, persona_ids, description, icon)
     project_id = stable_id("rproject_operation", operation_id) if operation_id else None
@@ -214,12 +220,12 @@ def start_project(title: str, goal: str, methodology: str | None = None,
         else:
             project = create_research_project(
                 title, goal=goal, persona_ids=persona_ids, description=description, store=store,
-                icon=icon, project_id=project_id, operation_id=operation_id,
+                icon=creation_icon, project_id=project_id, operation_id=operation_id,
                 operation_fingerprint=fingerprint)
     else:
         project = create_research_project(
             title, goal=goal, persona_ids=persona_ids, description=description, store=store,
-            icon=icon)
+            icon=creation_icon)
     operation_claimed = project.pop("_operation_claimed", None)
     if project_id and operation_claimed is False:
         # Another worker won the atomic deterministic-id claim between our first read and insert.

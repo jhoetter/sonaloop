@@ -28,6 +28,13 @@ def test_plan_project_graph_carries_icon_for_detail_header(store):
     assert graph["project"]["icon"] == {"kind": "regular", "name": "target"}
 
 
+def test_methodology_project_defaults_to_its_presentation_icon(store):
+    project = services.start_project(
+        "Reaction icon", "understand the reaction", methodology="reaction_test", store=store,
+    )
+    assert project["icon"] == {"kind": "regular", "name": "sentiment"}
+
+
 def test_set_project_icon_saves_sanitized_custom_svg(store):
     project = services.create_research_project("Custom icon", store=store)
     svg = '<svg viewBox="0 0 24 24" onclick="bad()"><path d="M4 12h16"/></svg>'
