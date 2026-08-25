@@ -225,6 +225,7 @@ def test_stored_plan_renders_visual_story_native_notes_and_appendix(store):
 
     html = str(render_report(store.get_synthesis(report["id"]), store, audience="stakeholder"))
     assert "delivery-report" in html
+    assert "<h1>Reaction decision</h1>" in html
     assert "What participants saw" in html
     assert html.count(screen["url"]) >= 2
     assert "Alba Costa" in html and "Bruno Keller" in html

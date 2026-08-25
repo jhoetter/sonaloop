@@ -193,6 +193,7 @@ def render_delivery_story(report: dict, store) -> tuple[str, list[tuple[str, str
                               else "Evidence, method and sources"),
     }
     project_title = _text(project.get("title") or report.get("title")).removesuffix(" — Report")
+    delivery_title = _text(plan.get("title")) or project_title
     slides = list(plan.get("slides") or [])
     cover_slide = slides[0] if slides and slides[0].get("kind") == "cover" else {}
     content_slides = slides[1:] if cover_slide else slides
@@ -200,9 +201,9 @@ def render_delivery_story(report: dict, store) -> tuple[str, list[tuple[str, str
         "header", {"class_": "dr-cover"},
         h("p", {"class_": "dr-eyebrow"},
           _text(cover_slide.get("eyebrow") or ("Research-Ergebnis" if de else "Research result"))),
-        h("h1", {}, project_title),
+        h("h1", {}, delivery_title),
         h("p", {"class_": "dr-verdict"}, _text(cover_slide.get("headline")))
-        if cover_slide.get("headline") and _text(cover_slide.get("headline")) != project_title else "",
+        if cover_slide.get("headline") and _text(cover_slide.get("headline")) != delivery_title else "",
         h("p", {"class_": "dr-subtitle"},
           _text(cover_slide.get("subheadline") or plan.get("objective") or project.get("goal"))),
         h("div", {"class_": "dr-meta"},
@@ -302,5 +303,5 @@ register_css(r"""
 .dr-quote{font-size:var(--t-xl);padding:20px;border-left:4px solid var(--accent);margin:0}.dr-quote footer{font-size:var(--t-sm);color:var(--muted);margin-top:10px}.dr-appendix{margin:72px 0 36px;padding-top:28px;border-top:4px solid var(--ink)}.dr-appendix h2{font-size:var(--t-2xl);margin:8px 0}
 .dr-method-note{margin:72px 0 0;padding:24px 0 0;border-top:1px solid var(--line);color:var(--muted);break-inside:avoid}.dr-method-note h2{font-size:var(--t-prose);color:var(--ink);margin:0 0 8px}.dr-method-note p{max-width:720px}
 @media(max-width:680px){.dr-stimuli,.dr-revision,.dr-personas{grid-template-columns:1fr}.dr-stim img{height:auto}.dr-cover{min-height:0}}
-@media print{.delivery-report{max-width:none}.dr-cover{min-height:225mm;break-after:page}.dr-section{break-before:page;margin:0;padding-top:12mm}.dr-section h2{font-size:25pt}.dr-stim img{max-height:105mm}.dr-persona{break-inside:avoid}.dr-appendix{break-before:page}.dr-method-note{break-before:page}}
+@media print{.delivery-report{max-width:none}.dr-cover{min-height:225mm;break-after:page}.dr-section{break-before:page;margin:0;padding-top:12mm}.dr-section h2{font-size:25pt}.dr-stim img{max-height:105mm}.dr-personas{display:flex;flex-wrap:wrap;gap:10px}.dr-persona{box-sizing:border-box;flex:0 0 calc(50% - 5px);break-inside:avoid}.dr-appendix{break-before:page}.dr-method-note{break-before:page}}
 """)
