@@ -49,6 +49,7 @@ def _ref(raw: Any) -> dict[str, Any]:
 def _persona(persona: dict[str, Any]) -> dict[str, Any]:
     role = persona.get("role") or {}
     segment = persona.get("segment") or {}
+    avatar_available = bool((persona.get("avatar") or {}).get("path"))
     return {
         "id": persona.get("id", ""),
         "display_name": persona.get("display_name", ""),
@@ -57,6 +58,12 @@ def _persona(persona: dict[str, Any]) -> dict[str, Any]:
                  if role.get(key)},
         "segment": {str(key): _clip(value, 300) for key, value in list(segment.items())[:20]
                     if value not in (None, "")},
+        "avatar": ({
+            "available": True,
+            "access": {"tool": "view_persona_avatar", "arguments": {
+                "persona_id": persona.get("id", ""),
+            }},
+        } if avatar_available else {"available": False}),
     }
 
 
@@ -154,7 +161,95 @@ def _report_row(report: dict[str, Any]) -> dict[str, Any]:
             "citations": _bounded(section.get("citations") or []),
             "figures": _bounded(section.get("figures") or []),
         } for section in (report.get("sections") or [])[:10]],
+        # This is the same reviewed, format-neutral decision story used by the
+        # stakeholder PDF and native PowerPoint export. Destination MCPs can use
+        # it as frames/pages without reverse-engineering internal report phases.
+        "delivery_story": _bounded(report.get("presentation_plan") or {}),
     }
+
+
+def _plan_refs(slide: dict[str, Any]) -> list[dict[str, Any]]:
+    return [{"kind": "evidence", "id": _clip(value, 500)}
+            for value in (slide.get("evidence_refs") or [])[:12] if _clip(value, 500)]
+
+
+def _delivery_findings(report: dict[str, Any]) -> list[dict[str, Any]]:
+    """Project a reviewed delivery story into design-ready findings.
+
+    Some governed reports predate the structured findings layer. A reviewed
+    presentation plan still carries explicit evidence refs and must not become an
+    empty Figma/code hand-off merely because its source report used legacy prose.
+    """
+    plan = report.get("presentation_plan") or {}
+    out = []
+    for slide in plan.get("slides") or []:
+        if slide.get("kind") in {"cover", "agenda", "section", "closing"}:
+            continue
+        refs = _plan_refs(slide)
+        if not refs:
+            continue
+        out.append({
+            "id": f"delivery:{slide.get('id') or len(out) + 1}",
+            "kind": str(slide.get("kind") or "finding"),
+            "text": _clip(slide.get("headline"), 1800),
+            "score": None,
+            "refs": refs,
+            "meta": {"delivery_slide_id": slide.get("id", ""),
+                     "details": _bounded({key: slide.get(key) for key in (
+                         "decision", "metrics", "rationale", "before", "after", "why", "steps"
+                     ) if slide.get(key) not in (None, [], {})})},
+            "claim_posture": {"posture": "evidence_linked_delivery_conclusion"},
+            "source_synthesis": {"id": report.get("id", ""),
+                                 "title": report.get("title", "")},
+        })
+    return out
+
+
+def _delivery_voices(report: dict[str, Any], store: Store) -> list[dict[str, Any]]:
+    out = []
+    for slide in list((report.get("presentation_plan") or {}).get("slides") or []) + list(
+            (report.get("presentation_plan") or {}).get("appendix") or []):
+        rows = []
+        if slide.get("kind") in {"persona_grid", "persona_detail"}:
+            rows = list(slide.get("items") or [])
+        elif slide.get("kind") == "preference_shift":
+            rows = list(slide.get("switchers") or [])
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            text = _clip(row.get("quote") or row.get("reason"), 1800)
+            persona_id = str(row.get("persona_id") or row.get("id") or "")
+            if not text or not persona_id:
+                continue
+            persona = store.get_persona(persona_id) or {}
+            out.append({
+                "id": f"delivery:{slide.get('id')}:{persona_id}",
+                "persona_id": persona_id,
+                "persona_name": persona.get("display_name", persona_id),
+                "segment": _bounded(persona.get("segment") or {}),
+                "text": text,
+                "stance": {}, "relevance": None,
+                "refs": _plan_refs(slide),
+                "source_synthesis": {"id": report.get("id", ""),
+                                     "title": report.get("title", "")},
+            })
+    return out
+
+
+def _proposed_revisions(report: dict[str, Any]) -> list[dict[str, Any]]:
+    rows = []
+    for slide in (report.get("presentation_plan") or {}).get("slides") or []:
+        if slide.get("kind") != "revision_mockup":
+            continue
+        rows.append({
+            "id": str(slide.get("id") or ""),
+            "headline": _clip(slide.get("headline"), 500),
+            "current_asset_id": str(slide.get("asset_id") or slide.get("image_ref") or ""),
+            "proposal": _bounded(slide.get("proposal") or {}),
+            "rationale": _bounded(slide.get("why") or []),
+            "refs": _plan_refs(slide),
+        })
+    return rows
 
 
 def get_design_handoff(project_id: str, synthesis_id: str | None = None,
@@ -203,6 +298,17 @@ def get_design_handoff(project_id: str, synthesis_id: str | None = None,
                 continue
             seen_voices.add(key)
             voices.append(_voice(raw, synthesis, store))
+    if selected_reports:
+        for row in _delivery_findings(selected_reports[0]):
+            key = (row["kind"], row["text"])
+            if key not in seen_findings and len(findings) < max_findings:
+                seen_findings.add(key)
+                findings.append(row)
+        for row in _delivery_voices(selected_reports[0], store):
+            key = (row["persona_id"], row["text"])
+            if key not in seen_voices and len(voices) < max_voices:
+                seen_voices.add(key)
+                voices.append(row)
     grouped: dict[str, list[str]] = defaultdict(list)
     for row in findings:
         grouped[row["kind"]].append(row["id"])
@@ -297,6 +403,8 @@ def get_design_handoff(project_id: str, synthesis_id: str | None = None,
             "open_questions": _bounded(graph.get("open_questions") or []),
             "predictions": _bounded(aggregate_predictions(project["id"], store=store)),  # noqa: F821 (bound)
             "decisions": decisions,
+            "proposed_revisions": _proposed_revisions(selected_reports[0])
+            if selected_reports else [],
         },
         "design_context": _design_system_context(),
         "existing_design": {
@@ -314,7 +422,9 @@ def get_design_handoff(project_id: str, synthesis_id: str | None = None,
             "compatible_targets": ["design MCP", "canvas MCP", "code MCP", "document MCP"],
             "sequence": [
                 "Read the research and preserve every evidence reference.",
+                "Use report.delivery_story as the approved frame/page sequence when it is present.",
                 "Fetch only the visual assets needed via each asset's access tool call.",
+                "Fetch persona portraits only when the destination needs them, using cohort[].avatar.access.",
                 "Create or update the artifact with the destination MCP selected by the user.",
                 "Keep unresolved questions visible; do not turn hypotheses into observed facts.",
                 "If the result has a shareable interactive URL, register it back in Sonaloop and test it with personas.",

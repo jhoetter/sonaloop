@@ -559,8 +559,26 @@ def brief_synthesis_section(project_id: str, section_id: str, report_id: str | N
         raise KeyError(f"Unknown section {section_id} in report {report['id']}")
     studies, source_budget = bound_report_sources(
         [_study_full(store, sid) for sid in section.get("source_study_ids", [])])
-    frame = {"heading": section["heading"], "intent": section.get("intent", ""), "theme_tags": section.get("theme_tags", []),
-             "studies": studies, "source_budget": source_budget}
+    available_assets = [{key: asset.get(key) for key in (
+        "id", "title", "filename", "kind", "direction", "notes", "source")
+        if asset.get(key) not in (None, "")}
+        for asset in (project.get("assets") or [])
+        if asset.get("kind") in {"image", "screenshot"}][:12]
+    cohort = []
+    for persona_id in (project.get("persona_ids") or [])[:16]:
+        persona = store.get_persona(persona_id) or {}
+        cohort.append({
+            "id": persona_id,
+            "display_name": persona.get("display_name", ""),
+            "age_range": (persona.get("identity_traits") or {}).get("age_range", ""),
+            "role": (persona.get("role") or {}).get("title", ""),
+            "segment": dict(list((persona.get("segment") or {}).items())[:8]),
+            "avatar_available": bool((persona.get("avatar") or {}).get("path")),
+        })
+    frame = {"heading": section["heading"], "intent": section.get("intent", ""),
+             "theme_tags": section.get("theme_tags", []), "studies": studies,
+             "source_budget": source_budget, "available_assets": available_assets,
+             "cohort": cohort}
     return {"project_id": project["id"], "report_id": report["id"], "section_id": section_id,
             "schema": "synthesis_section", "instructions": build_synthesis_section_prompt(frame) + MARKDOWN_CONTRACT, "frame": frame}
 

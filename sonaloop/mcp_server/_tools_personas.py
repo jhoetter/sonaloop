@@ -4,7 +4,12 @@ import time
 from typing import Any
 
 from .. import services
-from ..avatar import AVATAR_DISABLED_NOTE, avatars_enabled, generate_persona_avatar
+from ..avatar import (
+    AVATAR_DISABLED_NOTE,
+    avatars_enabled,
+    generate_persona_avatar,
+    get_persona_avatar_content,
+)
 from ._env import _env
 
 
@@ -34,6 +39,14 @@ def register_personas(mcp):
         """Full persona record + recent calendar/experience/pain points."""
         t = time.perf_counter()
         return _env("get_persona", services.get_persona(persona_id), t)
+
+    @mcp.tool()
+    def view_persona_avatar(persona_id: str):
+        """Return the persona's actual PNG portrait. Use this only when a report,
+        design, canvas or document needs the visual; use get_persona for profile text."""
+        data, _persona = get_persona_avatar_content(persona_id)
+        from mcp.server.fastmcp import Image
+        return Image(data=data, format="png")
 
     @mcp.tool()
     def persona_readiness(persona_id: str) -> dict[str, Any]:

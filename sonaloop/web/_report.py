@@ -226,6 +226,10 @@ def render_report(report: dict, store, *, with_toc: bool = False,
     if audience not in {"detailed", "stakeholder"}:
         raise ValueError("report audience must be 'detailed' or 'stakeholder'")
     stakeholder = audience == "stakeholder"
+    if stakeholder and report.get("scope") == "project" and report.get("presentation_plan"):
+        from ._delivery_report import render_delivery_story
+        article, delivery_toc = render_delivery_story(report, store)
+        return (article, delivery_toc) if with_toc else article
     de = content_language() == "de"
     _t = report.get("title", "")           # the default title ends in " — Report"; custom titles show as-is
     project_title = _t[:-len(" — Report")] if _t.endswith(" — Report") else _t
@@ -298,11 +302,17 @@ def render_report(report: dict, store, *, with_toc: bool = False,
                           for i, sec in enumerate(sections, 1)]))
 
     secs = []
+    stakeholder_context_html = ""
+    if stakeholder:
+        from ._delivery_report import stakeholder_context
+        stakeholder_context_html = stakeholder_context(report, store)
     for i, sec in enumerate(sections, 1):
         figs = [rf for rf in (_resolve_figure(f, store, project_id=report.get("project_id") or "")
                               for f in (sec.get("figures") or [])) if rf]
         if stakeholder:
-            figs = figs[:1]
+            # A/B stimuli are one comparison and must travel together.  More than
+            # two figures still belongs in the detailed evidence report.
+            figs = figs[:2]
         section_md = (_stakeholder_markdown(sec.get("markdown", ""))
                       if stakeholder else sec.get("markdown", ""))
         body_html = (_body(section_md, figs) if section_md
@@ -331,8 +341,13 @@ def render_report(report: dict, store, *, with_toc: bool = False,
         secs.append(h("section", {"class_": "rp-sec", "id": f"rp-s{i}"},
                       h("h2", {}, h("span", {"class_": "rp-num"}, f"{i:02d}"), sec["heading"]),
                       body_html, cites, src))
+    stakeholder_end = ""
+    if stakeholder:
+        from ._delivery_report import stakeholder_disclaimer
+        stakeholder_end = stakeholder_disclaimer()
     article = h("article", {"class_": "report" + (" report--stakeholder" if stakeholder else "")},
-                cover, limitations, "" if stakeholder else toc, *secs)
+                cover, limitations, "" if stakeholder else toc, stakeholder_context_html,
+                *secs, stakeholder_end)
     if with_toc:
         return article, [(f"rp-s{i}", sec["heading"]) for i, sec in enumerate(sections, 1)]
     return article

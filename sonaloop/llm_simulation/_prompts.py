@@ -267,9 +267,15 @@ markdown: string (the section body in Markdown; clear, concise, honest — prese
   non-targets where relevant; do not invent consensus)
 citations: array of objects {{study_id:string, council_id:string (may be empty), quote:string}}
   (the provenance behind the section's claims; use study ids/council ids from the frame)
+figures: array of objects {{kind:"asset"|"avatar"|"prototype"|"chart", id:string,
+  caption:string}} (use the actual ids from available_assets/cohort/studies; show material the
+  reader must see to understand the result. For an A/B or multi-stimulus comparison include ALL
+  compared stimuli in the same section, in comparison order. Empty only when no relevant visual exists.)
 
 Rules:
 - Ground every claim; a section with zero citations is wrong. Use only ids present in the frame.
+- Do not describe a tested screen, teaser, prototype or persona cohort only in prose when the
+  frame supplies its visual. Treat figures as context, never as proof of observed behaviour.
 - {language_instruction(language)}
 
 Section frame (heading + intent + the full content of the source studies + their councils):

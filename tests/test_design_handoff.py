@@ -4,6 +4,7 @@ from __future__ import annotations
 import pytest
 
 from sonaloop import services
+from sonaloop.models import Synthesis
 from sonaloop.services import _design_handoff, _hooks, _substrate
 
 from conftest import create_persona
@@ -63,3 +64,44 @@ def test_design_handoff_rejects_cross_project_narrowing_and_obeys_access_guard(s
     services.register_access_guard(guard)
     with pytest.raises(PermissionError):
         services.get_design_handoff(project["id"], store=store)
+
+
+def test_design_handoff_reuses_delivery_story_for_destination_mcps(store):
+    project, _synthesis, persona_id = _seed(store)
+    report = Synthesis(
+        id="report_design_delivery", title="Mobile banking — Report", start_input="",
+        council_ids=[], arc_narrative="", gesamtbild="", positionierung="", references=[],
+        created_at="2026-08-25T00:00:00+00:00", scope="project", project_id=project["id"],
+        status="done", sections=[],
+    ).to_dict()
+    store.upsert_synthesis(report)
+    notes = {"talk_track": "Explain the evidence.", "caveats": ["Synthetic cohort."]}
+    services.record_presentation_plan(report["id"], {
+        "title": "Migration decision", "audience": "project team",
+        "objective": "Choose the revision", "duration_minutes": 5,
+        "slides": [
+            {"id": "cover", "kind": "cover", "headline": "Mobile banking migration test",
+             "speaker_notes": notes},
+            {"id": "shift", "kind": "preference_shift",
+             "headline": "Context resolves the concern",
+             "before": {"value": 1, "total": 2}, "after": {"value": 2, "total": 2},
+             "switchers": [{"persona_id": persona_id, "reason": "Now I understand the order."}],
+             "evidence_refs": ["council:round-2"], "speaker_notes": notes},
+            {"id": "revision", "kind": "revision_mockup",
+             "headline": "Separate the two changes", "asset_id": "asset_current",
+             "proposal": {"headline": "First move the app", "body": "Then change login."},
+             "why": ["Clarifies sequence"], "evidence_refs": ["council:round-2"],
+             "speaker_notes": notes},
+        ],
+    }, store=store)
+
+    handoff = services.get_design_handoff(project["id"], store=store)
+    assert handoff["report"]["delivery_story"]["title"] == "Migration decision"
+    assert any(row["id"] == "delivery:shift" for row in handoff["research"]["findings"])
+    assert any(row["text"] == "Now I understand the order."
+               for row in handoff["research"]["voices"])
+    assert handoff["research"]["proposed_revisions"][0]["proposal"]["headline"] == \
+        "First move the app"
+    assert handoff["cohort"][0]["avatar"]["available"] is False
+    assert "approved frame/page sequence" in " ".join(
+        handoff["destination_contract"]["sequence"])

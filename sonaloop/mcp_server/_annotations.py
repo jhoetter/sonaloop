@@ -226,6 +226,7 @@ TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     "brief_persona": R("Brief persona authoring"),
     "record_persona": W("Record persona"),
     "get_persona": R("Get persona"),
+    "view_persona_avatar": R("View persona avatar"),
     "persona_readiness": R("Assess persona readiness"),
     "brief_persona_memory_onboarding": R("Brief persona memory onboarding"),
     "persona_task_readiness": R("Assess task readiness"),

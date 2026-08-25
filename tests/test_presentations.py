@@ -13,6 +13,7 @@ from sonaloop.presentation import (
     presentation_plan_qa,
     validate_presentation_plan,
 )
+from sonaloop.web._report import render_report
 from conftest import create_persona
 
 
@@ -221,3 +222,11 @@ def test_stored_plan_renders_visual_story_native_notes_and_appendix(store):
     assert "45 SEC" in deck.slides[0].notes_slide.notes_text_frame.text
     assert "Synthetic reactions are directional evidence." in \
         deck.slides[0].notes_slide.notes_text_frame.text
+
+    html = str(render_report(store.get_synthesis(report["id"]), store, audience="stakeholder"))
+    assert "delivery-report" in html
+    assert "What participants saw" in html
+    assert html.count(screen["url"]) >= 2
+    assert "Alba Costa" in html and "Bruno Keller" in html
+    assert "Plan ten uninterrupted minutes" in html
+    assert html.rfind("Method and interpretation") > html.find("Sources")
