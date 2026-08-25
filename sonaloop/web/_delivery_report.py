@@ -187,6 +187,11 @@ def render_delivery_story(report: dict, store) -> tuple[str, list[tuple[str, str
     project = _project(report, store)
     assets = _assets(report, store)
     de = content_language() == "de"
+    labels = {
+        "appendix": "Anhang" if de else "Appendix",
+        "appendix_subtitle": ("Evidenz, Methode und Quellen" if de
+                              else "Evidence, method and sources"),
+    }
     project_title = _text(project.get("title") or report.get("title")).removesuffix(" — Report")
     slides = list(plan.get("slides") or [])
     cover_slide = slides[0] if slides and slides[0].get("kind") == "cover" else {}
@@ -219,9 +224,8 @@ def render_delivery_story(report: dict, store) -> tuple[str, list[tuple[str, str
     appendix = list(plan.get("appendix") or [])
     if appendix:
         rendered.append(h("header", {"class_": "dr-appendix"},
-                          h("p", {"class_": "dr-eyebrow"}, "Appendix" if not de else "Anhang"),
-                          h("h2", {}, "Evidence, method and sources" if not de else
-                            "Evidenz, Methode und Quellen")))
+                          h("p", {"class_": "dr-eyebrow"}, labels["appendix"]),
+                          h("h2", {}, labels["appendix_subtitle"])))
         for offset, slide in enumerate(appendix, len(content_slides) + 1):
             anchor = f"delivery-{offset}"
             headline = _text(slide.get("headline") or slide.get("title"))

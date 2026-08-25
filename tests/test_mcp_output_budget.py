@@ -39,6 +39,7 @@ _SKIPPED: dict[str, str] = {
     "proto_read": "needs a live Playwright browser session",
     "list_flow_manifests": "requires an authenticated active remote workspace; dedicated admission tests drive a non-empty lean index",
     "get_flow_manifest": "requires an authenticated active remote workspace; dedicated admission tests drive the bounded 50-step exact record",
+    "view_persona_avatar": "returns bounded multimodal image content, not tokenized text; dedicated avatar tests cover it",
 }
 
 

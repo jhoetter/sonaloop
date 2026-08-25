@@ -191,8 +191,7 @@ DEFAULT_DESIGN_SYSTEM: dict[str, Any] = {
     },
     "deck": {
         "boundary": "tokenized_master_deck",
-        "master_asset_ref": "",
-        "style_reference_asset_ref": "",
+        "master_asset_ref": "", "style_reference_asset_ref": "",
         "logo_preferred": "icon",
         "canvas_preferred": "canvas",
         "font_role": "sans",
@@ -379,8 +378,7 @@ def deck_theme(theme: dict[str, Any]) -> dict[str, Any]:
         })
     return {
         "boundary": ds["deck"]["boundary"],
-        "master_asset_ref": ds["deck"].get("master_asset_ref") or "",
-        "style_reference_asset_ref": ds["deck"].get("style_reference_asset_ref") or "",
+        "master_asset_ref": ds["deck"].get("master_asset_ref") or "", "style_reference_asset_ref": ds["deck"].get("style_reference_asset_ref") or "",
         "logo_preferred": ds["deck"]["logo_preferred"],
         "canvas_preferred": ds["deck"]["canvas_preferred"],
         "font_role": font_role,
@@ -687,20 +685,16 @@ def _validate_charts(charts: Any) -> None:
     _hex(charts.get("grid"), "charts.grid")
     if charts.get("label_font_role") not in FONT_ROLES:
         raise ValueError("charts.label_font_role must reference a typography font role")
-
 def _validate_deck(deck: Any) -> None:
     _object(deck, "deck")
-    _keys(deck, "deck", ("boundary", "master_asset_ref", "style_reference_asset_ref",
-                          "logo_preferred", "canvas_preferred", "font_role", "chart_series",
-                          "layout_kinds"))
+    _keys(deck, "deck", ("boundary", "master_asset_ref", "style_reference_asset_ref", "logo_preferred", "canvas_preferred", "font_role", "chart_series", "layout_kinds"))
     if deck.get("boundary") != "tokenized_master_deck":
         raise ValueError("deck.boundary must be 'tokenized_master_deck'")
     if deck.get("font_role") not in FONT_ROLES:
         raise ValueError("deck.font_role must reference a typography font role")
-    if master_ref := str(deck.get("master_asset_ref") or "").strip():
-        _asset_path_or_data(master_ref, "deck.master_asset_ref")
-    if style_ref := str(deck.get("style_reference_asset_ref") or "").strip():
-        _asset_path_or_data(style_ref, "deck.style_reference_asset_ref")
+    for key in ("master_asset_ref", "style_reference_asset_ref"):
+        if asset_ref := str(deck.get(key) or "").strip():
+            _asset_path_or_data(asset_ref, f"deck.{key}")
     series = deck.get("chart_series")
     if not isinstance(series, list) or len(series) < 3:
         raise ValueError("deck.chart_series must contain at least three colors")
