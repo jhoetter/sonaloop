@@ -62,12 +62,28 @@ insertion prompts; a cover's narrow native metadata field receives only a compac
 never a concatenated audience/date line that can collide with fixed brand artwork. Missing
 roles fall back through the compatible roles above and finally to the blank or emptiest layout.
 
+The same Templates page accepts an optional **PowerPoint style reference**: a real,
+well-designed example deck that demonstrates semantic color roles, explicit type sizes and
+visual density. Sonaloop analyzes its concrete slides before removing them, then stores only
+the sanitized zero-slide package plus the derived style profile. This separates geometry
+(the master) from usage (the reference) without retaining example-slide content. A bright
+brand accent may therefore remain a rule, marker or fill while generated typography is
+promoted to the master's readable ink color. Explicit `forbidden_text_colors` learned from
+the reference are enforced only on text runs; shapes and native master artwork are untouched.
+
 Project-report decks are a stakeholder projection, not a run journal. Scaffolder phase
 names such as product-understanding or gate are translated into plain chapter labels;
 an authored `presentation_heading` wins when present. The cover orients a cold reader with
 the tested artifact or journey, its audience and the decision question; the actual verdict
 starts on the following decision slide. Source identities, citations, and the unabridged
 prose remain in Sonaloop.
+
+The reviewed presentation plan is also the shared **delivery story** for the stakeholder
+PDF. The PDF does not truncate internal phases into a shorter audit report: it renders the
+same cold-reader sequence, including all compared stimuli, compact persona profiles,
+reaction movement, proposed revision and next action. Method, sources and the synthetic-
+persona interpretation note stay at the end. Legacy reports without a plan still receive
+their available input screens and cohort overview before the authored sections.
 
 When a customer master is active, it owns layout backgrounds, fixed artwork, theme-font
 inheritance, and color language. Sonaloop derives the editable chart/card palette from the
@@ -138,7 +154,8 @@ max_voices=24)` is a read-only MCP tool. It returns
 `schema="sonaloop.design_handoff.v1"` with:
 
 - project goal, methodology, selected convergence syntheses, and the latest project report;
-- compact cohort context;
+- the report's reviewed delivery story when present;
+- compact cohort context plus lazy `view_persona_avatar` access;
 - authored findings and persona voices with stable evidence refs and claim posture;
 - open questions, behavioral predictions, and decision records;
 - workspace brand, color, typography, layout, and chart tokens from the active runtime
@@ -168,3 +185,7 @@ A host may connect Sonaloop and Figma (or another destination) independently:
 
 Figma file- or library-scoped authorization therefore stays between the user, host, and
 Figma MCP. Sonaloop never needs a direct Figma integration or a workspace-wide Figma token.
+The hand-off also projects evidence-linked presentation conclusions for legacy reports that
+have no structured finding rows, carries persona switch reasons as voices, and exposes
+editable `revision_mockup` proposals separately. A destination can therefore reproduce the
+approved frames rather than guessing a story from raw report prose.
