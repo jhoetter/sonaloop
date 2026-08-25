@@ -180,6 +180,62 @@ def test_master_theme_drives_generated_color_and_passes_package_qa():
     assert mapping[PALETTE["panel"]] == semantic["panel"]  # white panel never becomes dark ink
     assert inspect_rendered_master_deck(data, master)["status"] == "pass"
 
+
+def test_bright_master_accent_is_kept_for_shapes_but_never_used_as_generated_text():
+    from sonaloop import _pptx
+
+    template = Presentation()
+    raw = io.BytesIO()
+    template.save(raw)
+    incoming = zipfile.ZipFile(io.BytesIO(raw.getvalue()))
+    branded = io.BytesIO()
+    with zipfile.ZipFile(branded, "w") as outgoing:
+        for item in incoming.infolist():
+            value = incoming.read(item.filename)
+            if item.filename == "ppt/theme/theme1.xml":
+                value = re.sub(
+                    rb'(<a:accent1>\s*<a:srgbClr val=")[0-9A-Fa-f]{6}("/>)',
+                    rb'\g<1>FFE300\2', value,
+                )
+            outgoing.writestr(item, value)
+    data = _pptx.render([{
+        "kind": "summary", "heading": "Entscheidung",
+        "items": [{"title": "Signal", "text": "Klarer Befund"}],
+    }], master_template=branded.getvalue())
+    rendered = Presentation(io.BytesIO(data))
+    text_colors = {
+        str(run.font.color.rgb).upper()
+        for slide in rendered.slides for shape in slide.shapes if shape.has_text_frame
+        for paragraph in shape.text_frame.paragraphs for run in paragraph.runs
+        if str(getattr(run.font.color.type, "name", run.font.color.type)) == "RGB"
+    }
+    assert "FFE300" not in text_colors
+    # The brand accent still exists in generated non-text artwork.
+    with zipfile.ZipFile(io.BytesIO(data)) as archive:
+        xml = b"".join(archive.read(name) for name in archive.namelist()
+                       if name.endswith(".xml"))
+    assert b'val="FFE300"' in xml
+
+
+def test_workspace_style_rule_recolors_text_only_and_preserves_shape_accent():
+    from sonaloop import _pptx
+    from sonaloop._deck import PALETTE
+    from sonaloop._pptx_master_native import enforce_text_color_rules
+
+    data = _pptx.render([{
+        "kind": "persona_grid", "heading": "Perspectives",
+        "items": [{"name": "Ann Example", "role": "CX", "lens": "Customer lens"}],
+    }])
+    # The stock accent is deliberately used by both a generated marker shape and text.
+    accent = PALETTE["accent"]
+    out, changed = enforce_text_color_rules(data, forbidden=[accent], replacement="1A1815")
+    assert changed >= 1
+    with zipfile.ZipFile(io.BytesIO(out)) as archive:
+        slide_xml = b"".join(archive.read(name) for name in archive.namelist()
+                             if re.fullmatch(r"ppt/slides/slide\d+\.xml", name))
+    assert f'val="{accent}"'.encode() in slide_xml  # marker/fill survives
+    assert b'val="1A1815"' in slide_xml  # text now follows the allowed ink role
+
 # A showcase-shaped convergence synthesis: caps-label exec prose, stanced voices with verbatim
 # council quotes, scored recommendations and label-led findings — the report shape the owner's
 # screenshots came from.

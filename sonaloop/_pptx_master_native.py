@@ -272,6 +272,44 @@ def _package_hashes(data: bytes) -> dict[str, str]:
                 for name in archive.namelist() if name.startswith(prefixes)}
 
 
+def enforce_text_color_rules(data: bytes, *, forbidden: list[str], replacement: str
+                             ) -> tuple[bytes, int]:
+    """Replace explicit forbidden *text* colors without touching shapes/master parts.
+
+    A workspace style reference may establish a semantic rule such as "yellow is
+    a marker, never typography" even when that yellow technically passes a
+    contrast threshold on another canvas.  The OOXML walk is intentionally
+    limited to text run properties inside generated slide instances.
+    """
+    from xml.etree import ElementTree as ET
+
+    banned = {str(value or "").lstrip("#").upper() for value in forbidden
+              if re.fullmatch(r"#?[0-9A-Fa-f]{6}", str(value or ""))}
+    replacement = str(replacement or "").lstrip("#").upper()
+    if not banned or not re.fullmatch(r"[0-9A-Fa-f]{6}", replacement):
+        return data, 0
+    namespace = "http://schemas.openxmlformats.org/drawingml/2006/main"
+    changed = 0
+    source = io.BytesIO(data)
+    output = io.BytesIO()
+    with zipfile.ZipFile(source, "r") as incoming, zipfile.ZipFile(output, "w") as outgoing:
+        for item in incoming.infolist():
+            payload = incoming.read(item.filename)
+            if re.fullmatch(r"ppt/slides/slide\d+\.xml", item.filename):
+                root = ET.fromstring(payload)
+                for props_tag in ("rPr", "defRPr", "endParaRPr"):
+                    for props in root.findall(f".//{{{namespace}}}{props_tag}"):
+                        for color in props.findall(
+                                f"./{{{namespace}}}solidFill/{{{namespace}}}srgbClr"):
+                            if str(color.attrib.get("val") or "").upper() in banned:
+                                color.set("val", replacement)
+                                changed += 1
+                if changed:
+                    payload = ET.tostring(root, encoding="utf-8", xml_declaration=True)
+            outgoing.writestr(item, payload)
+    return output.getvalue(), changed
+
+
 def inspect_rendered_master_deck(data: bytes, master_template: bytes) -> dict[str, Any]:
     """Return a content-free QA record proving master retention and safe slide geometry."""
     from pptx import Presentation

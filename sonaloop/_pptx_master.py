@@ -365,6 +365,42 @@ def master_color_map(data: bytes) -> dict[str, str]:
     return mapping
 
 
+def master_text_color_map(data: bytes) -> dict[str, str]:
+    """A role-aware variant of the master map for generated text.
+
+    Corporate accent colors are often deliberately bright markers (SHKB yellow
+    is the real-world example), suitable for fills and rules but illegible as
+    body text on the master background.  Preserve the accent everywhere else;
+    only semantic foreground colors that miss WCAG AA are promoted to the
+    master's ink color.
+    """
+    from ._deck import PALETTE
+
+    mapped = master_color_map(data)
+    palette = master_palette(data)["palette"]
+
+    def luminance(value: str) -> float:
+        channels = []
+        for channel in _hex_rgb(value):
+            channels.append(channel / 12.92 if channel <= 0.04045
+                            else ((channel + 0.055) / 1.055) ** 2.4)
+        return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+
+    def contrast(left: str, right: str) -> float:
+        a, b = sorted((luminance(left), luminance(right)), reverse=True)
+        return (a + 0.05) / (b + 0.05)
+
+    guarded_roles = ("accent", "muted", "faint", "green", "amber", "red", "blue",
+                     "violet", "skep")
+    bg, ink = palette["bg"], palette["ink"]
+    for role in guarded_roles:
+        source = str(PALETTE.get(role) or "").upper()
+        target = str(mapped.get(source) or source).upper()
+        if source and contrast(target, bg) < 4.5:
+            mapped[source] = ink
+    return mapped
+
+
 def inspect_master_template(data: bytes) -> dict[str, Any]:
     """Return a safe layout/theme profile without retaining customer slide content."""
     from pptx import Presentation

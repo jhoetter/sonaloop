@@ -77,6 +77,7 @@ from ._pptx_master import (
     blank_layout as _blank_layout,
     layout_for_slide as _layout_for_slide,
     master_color_map as _master_color_map,
+    master_text_color_map as _master_text_color_map,
 )
 
 
@@ -116,12 +117,18 @@ def render(slides: list[dict], *, title: str = "Report",
     blank = _blank_layout(prs)
     W, H = prs.slide_width, prs.slide_height
     color_map = _master_color_map(master_template) if master_template else {}
+    text_color_map = _master_text_color_map(master_template) if master_template else color_map
 
     def _color(hexv):
         value = str(hexv or "000000").lstrip("#").upper()
         return color_map.get(value, value)
 
+    def _text_color(hexv):
+        value = str(hexv or "000000").lstrip("#").upper()
+        return text_color_map.get(value, value)
+
     rgb = lambda hexv: RGBColor.from_string(_color(hexv))
+    text_rgb = lambda hexv: RGBColor.from_string(_text_color(hexv))
 
     def _bg(slide, hexv=_BG):
         if master_mode:
@@ -142,7 +149,7 @@ def render(slides: list[dict], *, title: str = "Report",
         r.font.italic = italic
         if not master_mode:
             r.font.name = "Geist"
-        r.font.color.rgb = rgb(color)
+        r.font.color.rgb = text_rgb(color)
         return r
 
     def _rule(slide, l, t, w):
